@@ -44,7 +44,7 @@ static void resetAll() {
 // Basic output state tests
 // ---------------------------------------------------------------------------
 
-test(noButtons_allOutputsOff) {
+test(ImplementSprayer, noButtons_allOutputsOff) {
     resetAll();
     impl.Update();
     for (int i = 0; i < NUM_OUTPUTS; ++i) {
@@ -52,7 +52,7 @@ test(noButtons_allOutputsOff) {
     }
 }
 
-test(button0_output0On) {
+test(ImplementSprayer, button0_output0On) {
     resetAll();
     iface.buttons[0].state = true;
 
@@ -62,7 +62,7 @@ test(button0_output0On) {
     assertFalse(impl.outputs[2].state);
 }
 
-test(button0Off_immediately_clears_outputs1and2) {
+test(ImplementSprayer, button0Off_immediately_clears_outputs1and2) {
     resetAll();
     // Get mixer and vernevelaar running: 0 at t=0, 1 at t=1000
     iface.buttons[0].state = true;
@@ -93,14 +93,14 @@ test(button0Off_immediately_clears_outputs1and2) {
 // Cascading interlock — output 1 requires output 0 on for >= 1000 ms
 // ---------------------------------------------------------------------------
 
-test(button1WithoutButton0_output1Off) {
+test(ImplementSprayer, button1WithoutButton0_output1Off) {
     resetAll();
     iface.buttons[1].state = true;
     impl.Update();
     assertFalse(impl.outputs[1].state);
 }
 
-test(buttons0and1_within1s_output1Off) {
+test(ImplementSprayer, buttons0and1_within1s_output1Off) {
     resetAll();
     iface.buttons[0].state = true;
     iface.buttons[1].state = true;
@@ -111,7 +111,7 @@ test(buttons0and1_within1s_output1Off) {
     assertFalse(impl.outputs[1].state);
 }
 
-test(buttons0and1_exactly1s_output1On) {
+test(ImplementSprayer, buttons0and1_exactly1s_output1On) {
     resetAll();
     iface.buttons[0].state = true;
     impl.Update();                          // t=0: timer[0] = 0
@@ -124,7 +124,7 @@ test(buttons0and1_exactly1s_output1On) {
     assertFalse(impl.outputs[2].state);
 }
 
-test(button1_output0Off_output1StaysOff) {
+test(ImplementSprayer, button1_output0Off_output1StaysOff) {
     // Mixer was running for >1 s, then stopped — vernevelaar must not turn on
     resetAll();
     iface.buttons[0].state = true;
@@ -142,14 +142,14 @@ test(button1_output0Off_output1StaysOff) {
 // Cascading interlock — output 2 requires output 1 on for >= 1000 ms
 // ---------------------------------------------------------------------------
 
-test(button2WithoutButton1_output2Off) {
+test(ImplementSprayer, button2WithoutButton1_output2Off) {
     resetAll();
     iface.buttons[2].state = true;
     impl.Update();
     assertFalse(impl.outputs[2].state);
 }
 
-test(buttons0and1and2_within1s_ofVernevelaar_output2Off) {
+test(ImplementSprayer, buttons0and1and2_within1s_ofVernevelaar_output2Off) {
     resetAll();
     iface.buttons[0].state = true;
     impl.Update();                          // t=0: output 0 ON
@@ -165,7 +165,7 @@ test(buttons0and1and2_within1s_ofVernevelaar_output2Off) {
     assertFalse(impl.outputs[2].state);
 }
 
-test(fullCascade_after2s_output2On) {
+test(ImplementSprayer, fullCascade_after2s_output2On) {
     resetAll();
     iface.buttons[0].state = true;
     impl.Update();                          // t=0:    output 0 ON
@@ -182,7 +182,7 @@ test(fullCascade_after2s_output2On) {
     assertTrue(impl.outputs[2].state);
 }
 
-test(mixer_toggled_cascade_restarts_from_scratch) {
+test(ImplementSprayer, mixer_toggled_cascade_restarts_from_scratch) {
     resetAll();
 
     // Step 1: bring full cascade up
@@ -231,7 +231,7 @@ test(mixer_toggled_cascade_restarts_from_scratch) {
 // Default calibration: {dose=50, analog=0}, {dose=100, analog=2048}, {dose=200, analog=4095}
 // ---------------------------------------------------------------------------
 
-test(doseLHA_at_P0) {
+test(ImplementSprayer, doseLHA_at_P0) {
     // analogValue=0 → at first calibration point → 50 l/ha
     resetAll();
     iface.analogInputs[0].value = 0;
@@ -239,7 +239,7 @@ test(doseLHA_at_P0) {
     assertNear(impl.doseLHA, 50.0f, 0.01f);
 }
 
-test(doseLHA_midSegment1) {
+test(ImplementSprayer, doseLHA_midSegment1) {
     // analogValue=1024, midpoint of segment [0,2048]: dose = (1024/2048)*50 + 50 = 75 l/ha
     resetAll();
     iface.analogInputs[0].value = 1024;
@@ -247,7 +247,7 @@ test(doseLHA_midSegment1) {
     assertNear(impl.doseLHA, 75.0f, 0.01f);
 }
 
-test(doseLHA_at_P1_boundary) {
+test(ImplementSprayer, doseLHA_at_P1_boundary) {
     // analogValue=2048 → at second calibration point → 100 l/ha
     resetAll();
     iface.analogInputs[0].value = 2048;
@@ -255,7 +255,7 @@ test(doseLHA_at_P1_boundary) {
     assertNear(impl.doseLHA, 100.0f, 0.01f);
 }
 
-test(doseLHA_at_P2) {
+test(ImplementSprayer, doseLHA_at_P2) {
     // analogValue=4095 → at third calibration point → 200 l/ha
     resetAll();
     iface.analogInputs[0].value = 4095;
@@ -263,7 +263,7 @@ test(doseLHA_at_P2) {
     assertNear(impl.doseLHA, 200.0f, 0.01f);
 }
 
-test(doseLHA_clampsAbove4095) {
+test(ImplementSprayer, doseLHA_clampsAbove4095) {
     // analogValue=5000 clamped to 4095 → same result as P2: 200 l/ha
     resetAll();
     iface.analogInputs[0].value = 5000;
@@ -276,7 +276,7 @@ test(doseLHA_clampsAbove4095) {
 // Formula: doseLM = (doseLHA * speed * width * 60) / (100 * 10000), width=300 cm
 // ---------------------------------------------------------------------------
 
-test(doseLM_from_doseLHA_and_speed) {
+test(ImplementSprayer, doseLM_from_doseLHA_and_speed) {
     // analogValue=2048 → doseLHA=100, speed=1.0 m/s
     // doseLM = 100 * 1.0 * 300 * 60 / 1000000 = 1.8 l/min
     resetAll();
@@ -288,7 +288,7 @@ test(doseLM_from_doseLHA_and_speed) {
     assertNear(impl.doseLM, 1.8f, 0.01f);
 }
 
-test(doseLM_zero_when_stationary) {
+test(ImplementSprayer, doseLM_zero_when_stationary) {
     // speed=0 → doseLM=0 regardless of dose
     resetAll();
     iface.analogInputs[0].value = 4095;
@@ -301,7 +301,7 @@ test(doseLM_zero_when_stationary) {
 // End-to-end: analog → doseLHA → doseLM → PWM value
 // ---------------------------------------------------------------------------
 
-test(endToEnd_analog1024_speed1_pwm1382) {
+test(ImplementSprayer, endToEnd_analog1024_speed1_pwm1382) {
     // analogValue=1024 → doseLHA=75 l/ha
     // doseLM = 75 * 1.0 * 300 * 60 / 1000000 = 1.35 l/min → 1350 ml/min
     // PWM calibration {0,0},{2000,2048},{4000,4095}, segment [0,2000]:
@@ -320,7 +320,7 @@ test(endToEnd_analog1024_speed1_pwm1382) {
 // PWM calculation (CalculatePWMValues targets output 2, the pump)
 // ---------------------------------------------------------------------------
 
-test(pwm_disabled_valueUnchanged) {
+test(ImplementSprayer, pwm_disabled_valueUnchanged) {
     resetAll();
     impl.outputs[2].pwm = false;
     mockGps.speed = 10.0f;
@@ -329,7 +329,7 @@ test(pwm_disabled_valueUnchanged) {
     assertEqual(impl.outputs[2].value, (unsigned int)0);
 }
 
-test(pwm_enabled_lowerSegment_output1843) {
+test(ImplementSprayer, pwm_enabled_lowerSegment_output1843) {
     // analog=2048 → doseLHA=100, speed=1.0 → doseLM=100*1*300*60/1000000=1.8 l/min → 1800 ml/min
     // PWM calibration {0,0},{2000,2048},{4000,4095}, segment [0,2000]:
     // (1800/2000)*2048 = 1843.2 → 1843
@@ -342,7 +342,7 @@ test(pwm_enabled_lowerSegment_output1843) {
     assertEqual(impl.outputs[2].value, (unsigned int)1843);
 }
 
-test(pwm_enabled_upperSegment_output3685) {
+test(ImplementSprayer, pwm_enabled_upperSegment_output3685) {
     // analog=4095 → doseLHA=200, speed=1.0 → doseLM=200*1*300*60/1000000=3.6 l/min → 3600 ml/min
     // PWM calibration {0,0},{2000,2048},{4000,4095}, segment [2000,4000]:
     // ((3600-2000)/2000)*(4095-2048) + 2048 = 1637.6 + 2048 = 3685.6 → 3685

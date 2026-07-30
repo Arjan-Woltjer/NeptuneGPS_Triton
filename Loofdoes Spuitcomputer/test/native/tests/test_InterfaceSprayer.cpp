@@ -38,7 +38,7 @@ static void resetAll() {
 // Happy path
 // ---------------------------------------------------------------------------
 
-test(noButtonsPressed_statesAllFalse) {
+test(InterfaceSprayer, noButtonsPressed_statesAllFalse) {
     resetAll();
     sprayer.CheckDigitalInputs(50);
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
@@ -46,7 +46,7 @@ test(noButtonsPressed_statesAllFalse) {
     }
 }
 
-test(button1_heldLongEnough_stateTrue) {
+test(InterfaceSprayer, button1_heldLongEnough_stateTrue) {
     resetAll();
     digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
     millisValue(100);                          // well past any debounce
@@ -58,7 +58,7 @@ test(button1_heldLongEnough_stateTrue) {
     assertFalse(sprayer.buttons[3].state);
 }
 
-test(button2_heldLongEnough_stateTrue) {
+test(InterfaceSprayer, button2_heldLongEnough_stateTrue) {
     resetAll();
     digitalReadValue(kDigitalPins[1], false);  // LOW = pressed
     millisValue(100);
@@ -70,7 +70,7 @@ test(button2_heldLongEnough_stateTrue) {
     assertFalse(sprayer.buttons[3].state);
 }
 
-test(button3_heldLongEnough_stateTrue) {
+test(InterfaceSprayer, button3_heldLongEnough_stateTrue) {
     resetAll();
     digitalReadValue(kDigitalPins[2], false);  // LOW = pressed
     millisValue(100);
@@ -82,7 +82,7 @@ test(button3_heldLongEnough_stateTrue) {
     assertFalse(sprayer.buttons[3].state);
 }
 
-test(button4_heldLongEnough_stateTrue) {
+test(InterfaceSprayer, button4_heldLongEnough_stateTrue) {
     resetAll();
     digitalReadValue(kDigitalPins[3], false);  // LOW = pressed
     millisValue(100);
@@ -94,7 +94,7 @@ test(button4_heldLongEnough_stateTrue) {
     assertTrue(sprayer.buttons[3].state);
 }
 
-test(allButtons_heldLongEnough_allStatesTrue) {
+test(InterfaceSprayer, allButtons_heldLongEnough_allStatesTrue) {
     resetAll();
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) digitalReadValue(kDigitalPins[i], false);  // LOW = pressed
     millisValue(100);
@@ -109,7 +109,7 @@ test(allButtons_heldLongEnough_allStatesTrue) {
 // Debounce edge cases
 // ---------------------------------------------------------------------------
 
-test(button_heldExactlyDelay_isDetected) {
+test(InterfaceSprayer, button_heldExactlyDelay_isDetected) {
     resetAll();
     digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
     millisValue(50);                           // exactly at the threshold
@@ -119,7 +119,7 @@ test(button_heldExactlyDelay_isDetected) {
     assertTrue(sprayer.buttons[0].state);
 }
 
-test(button_heldJustUnderDelay_notDetected) {
+test(InterfaceSprayer, button_heldJustUnderDelay_notDetected) {
     resetAll();
     digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
     millisValue(49);                           // 49 < 50, should not fire
@@ -128,7 +128,7 @@ test(button_heldJustUnderDelay_notDetected) {
     assertFalse(sprayer.buttons[0].state);
 }
 
-test(button_releasedBeforeDelay_notDetected) {
+test(InterfaceSprayer, button_releasedBeforeDelay_notDetected) {
     resetAll();
     // Press briefly
     digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
@@ -142,7 +142,7 @@ test(button_releasedBeforeDelay_notDetected) {
     assertFalse(sprayer.buttons[0].state);
 }
 
-test(button_pressedReleasedThenPressedAgain_detectedOnSecondPress) {
+test(InterfaceSprayer, button_pressedReleasedThenPressedAgain_detectedOnSecondPress) {
     resetAll();
 
     // First press — too short
@@ -166,7 +166,7 @@ test(button_pressedReleasedThenPressedAgain_detectedOnSecondPress) {
 // millis() rollover (~49.7 day wraparound)
 // ---------------------------------------------------------------------------
 
-test(millis_rollover_doesNotFalselyBlock) {
+test(InterfaceSprayer, millis_rollover_doesNotFalselyBlock) {
     resetAll();
     // Timer recorded just before rollover
     sprayer.buttons[0].flag  = false;
@@ -183,7 +183,7 @@ test(millis_rollover_doesNotFalselyBlock) {
 // Multiple simultaneous buttons
 // ---------------------------------------------------------------------------
 
-test(buttons1and3_statesCorrect) {
+test(InterfaceSprayer, buttons1and3_statesCorrect) {
     resetAll();
     digitalReadValue(kDigitalPins[0], false);  // LOW = pressed (button 1)
     digitalReadValue(kDigitalPins[2], false);  // LOW = pressed (button 3)
@@ -196,7 +196,7 @@ test(buttons1and3_statesCorrect) {
     assertFalse(sprayer.buttons[3].state);
 }
 
-test(buttons2and4_statesCorrect) {
+test(InterfaceSprayer, buttons2and4_statesCorrect) {
     resetAll();
     digitalReadValue(kDigitalPins[1], false);  // LOW = pressed (button 2)
     digitalReadValue(kDigitalPins[3], false);  // LOW = pressed (button 4)
@@ -213,12 +213,12 @@ test(buttons2and4_statesCorrect) {
 // Analog input tests
 // ---------------------------------------------------------------------------
 
-test(analogInput_initialValue_isZero) {
+test(InterfaceSprayer, analogInput_initialValue_isZero) {
     resetAll();
     assertEqual(sprayer.analogInputs[0].value, 0);
 }
 
-test(analogInput_singleRead_halvesWithZeroStart) {
+test(InterfaceSprayer, analogInput_singleRead_halvesWithZeroStart) {
     resetAll();
     analogReadValue(ANALOG_IN1, 100);
 
@@ -227,7 +227,7 @@ test(analogInput_singleRead_halvesWithZeroStart) {
     assertEqual(sprayer.analogInputs[0].value, 50);
 }
 
-test(analogInput_multipleReads_converge) {
+test(InterfaceSprayer, analogInput_multipleReads_converge) {
     resetAll();
     analogReadValue(ANALOG_IN1, 1000);
 
@@ -236,7 +236,7 @@ test(analogInput_multipleReads_converge) {
     assertEqual(sprayer.analogInputs[0].value, 999);
 }
 
-test(analogInput_zeroReading_decaysNonZeroStart) {
+test(InterfaceSprayer, analogInput_zeroReading_decaysNonZeroStart) {
     resetAll();
     sprayer.analogInputs[0].value = 100;
     analogReadValue(ANALOG_IN1, 0);

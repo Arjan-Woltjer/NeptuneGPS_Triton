@@ -41,7 +41,13 @@ $aunitSources = @(
     "`"$aunit\aunit\TestRunner.cpp`""
 ) -join ' '
 
-$commonFlags = "/std:c++17 /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
+# /Zc:preprocessor switches on MSVC's conformant preprocessor -- required for
+# AUnit's two-argument test(SuiteName, testName) macros used throughout
+# test_*.cpp: they dispatch on argument count via
+# GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
+# (default) preprocessor expands wrong (see Salacia's platformio.ini/test
+# README for the same issue, hit there first).
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches

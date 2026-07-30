@@ -20,7 +20,12 @@ pio run -e native
 
 Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
 without one, use test\native\run_tests_msvc.ps1 instead, which builds and
-runs the same combined binary via MSVC directly.
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses (matching Salacia's convention: groups each test's display
+name under the class it exercises, e.g. `InterfaceSprayer_button1_...`,
+`ImplementSprayer_doseLHA_...`).
 
 More information about PlatformIO Unit Testing (not used here -- pio test's
 own Unity-based runner doesn't understand this project's AUnit setup):
