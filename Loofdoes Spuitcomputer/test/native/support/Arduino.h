@@ -23,19 +23,34 @@ typedef unsigned int word;
 class __FlashStringHelper {};
 #endif
 
-#define PROGMEM
-#define PSTR(x)           (x)
+// Also defined by pgmspace.h (which AUnit's own Flash.h includes separately when EPOXY_DUINO
+// is set) -- guard with #ifndef so both can be included in the same translation unit without a
+// harmless-but-noisy redefinition warning.
+#ifndef PROGMEM
+#  define PROGMEM
+#endif
+#ifndef PSTR
+#  define PSTR(x)         (x)
+#endif
 #ifndef F
 #  define F(x)            ((const __FlashStringHelper*)(x))
 #endif
-#define pgm_read_byte(p)  (*(const uint8_t*)(p))
-#define pgm_read_word(p)  (*(const uint16_t*)(p))
-#define pgm_read_ptr(p)   (*(const void* const*)(p))
-#define strlen_P          strlen
-#define strcmp_P          strcmp
-#define strncmp_P         strncmp
-#define strcasecmp_P      strcasecmp
-#define memcpy_P          memcpy
+#ifndef pgm_read_byte
+#  define pgm_read_byte(p)  (*(const uint8_t*)(p))
+#endif
+#ifndef pgm_read_word
+#  define pgm_read_word(p)  (*(const uint16_t*)(p))
+#endif
+#ifndef pgm_read_ptr
+#  define pgm_read_ptr(p)   (*(const void* const*)(p))
+#endif
+#ifndef strlen_P
+#  define strlen_P          strlen
+#  define strcmp_P          strcmp
+#  define strncmp_P         strncmp
+#  define strcasecmp_P      strcasecmp
+#  define memcpy_P          memcpy
+#endif
 
 #ifndef SERIAL_PORT_MONITOR
 #define SERIAL_PORT_MONITOR Serial

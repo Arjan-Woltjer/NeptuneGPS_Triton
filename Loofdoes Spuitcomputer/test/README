@@ -1,11 +1,29 @@
 
-This directory is intended for PlatformIO Test Runner and project tests.
+`native/` holds the AUnit tests for InterfaceSprayer/ImplementSprayer
+(../lib/LoofdoesCore/src/), run natively (no ESP32 attached):
 
-Unit Testing is a software testing method by which individual units of
-source code, sets of one or more MCU program modules together with associated
-control data, usage procedures, and operating procedures, are tested to
-determine whether they are fit for use. Unit testing finds problems early
-in the development cycle.
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point).
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
 
-More information about PlatformIO Unit Testing:
+test_InterfaceSprayer.cpp and test_ImplementSprayer.cpp each define their own
+setup()/loop() (one binary per test file, not combined), so they build as two
+separate PlatformIO envs:
+
+```
+pio run -e native_interface_sprayer
+.pio/build/native_interface_sprayer/program(.exe)
+
+pio run -e native_implement_sprayer
+.pio/build/native_implement_sprayer/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs both via MSVC directly.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
 - https://docs.platformio.org/en/latest/advanced/unit-testing/index.html

@@ -1,13 +1,13 @@
 # Run all AUnit tests using MSVC (Visual Studio 2022).
-# Use this on Windows when GCC / pio test -e native is not available.
+# Use this on Windows when GCC / pio run -e native_* is not available.
 #
-# Usage: .\test\run_tests_msvc.ps1
+# Usage: .\test\native\run_tests_msvc.ps1
 
-$root   = Split-Path $PSScriptRoot -Parent
+$root   = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit  = "$root\.pio\libdeps\native\AUnit\src"
-$stubs  = "$root\test\arduino_stubs"
-$src    = "$root\src"
-$test   = "$root\test"
+$stubs  = "$root\test\native\support"
+$lib    = "$root\lib\LoofdoesCore\src"
+$test   = "$root\test\native\tests"
 $out    = "$env:TEMP\msvc_test"
 
 New-Item -ItemType Directory -Force -Path $out | Out-Null
@@ -40,7 +40,7 @@ $aunitSources = @(
     "`"$aunit\aunit\TestRunner.cpp`""
 ) -join ' '
 
-$commonFlags = "/std:c++17 /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$src`""
+$commonFlags = "/std:c++17 /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
 
 $overallExit = 0
 
@@ -48,7 +48,7 @@ $overallExit = 0
 Write-Host ""
 Write-Host "=== Building test_interface_sprayer ===" -ForegroundColor Cyan
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$src\InterfaceSprayer.cpp`" `"$test\test_InterfaceSprayer.cpp`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\test_InterfaceSprayer.exe`" && `"$out\test_InterfaceSprayer.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$test\test_InterfaceSprayer.cpp`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\test_InterfaceSprayer.exe`" && `"$out\test_InterfaceSprayer.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
@@ -58,7 +58,7 @@ if ($LASTEXITCODE -ne 0) { $overallExit = 1 }
 Write-Host ""
 Write-Host "=== Building test_ImplementSprayer ===" -ForegroundColor Cyan
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$src\InterfaceSprayer.cpp`" `"$src\ImplementSprayer.cpp`" `"$test\test_ImplementSprayer.cpp`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\test_ImplementSprayer.exe`" && `"$out\test_ImplementSprayer.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" `"$test\test_ImplementSprayer.cpp`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\test_ImplementSprayer.exe`" && `"$out\test_ImplementSprayer.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
