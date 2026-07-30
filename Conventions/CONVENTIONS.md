@@ -13,16 +13,19 @@ missing licence headers); new files always follow the rules below.
 One class per file. File name must exactly match the class name.
 
 ```
-GpsState.h / GpsState.cpp
-NmeaParser.h / NmeaParser.cpp
-PloughIsobus.h / PloughIsobus.cpp
+GpsState.hpp / GpsState.cpp
+NmeaParser.hpp / NmeaParser.cpp
+PloughIsobus.hpp / PloughIsobus.cpp
 ```
 
 Config-only headers that contain no class use the same pattern:
 ```
-ConfigIsobusPlough.h
-ConfigImplementPlough.h
+ConfigIsobusPlough.hpp
+ConfigImplementPlough.hpp
 ```
+
+Existing `.h` files are legacy and are not renamed on sight; only new files
+and files that are substantially reworked pick up the `.hpp` extension.
 
 Test files use the `test_` prefix followed by the exact class name (PascalCase).
 When one file covers a related group of classes, use a descriptive PascalCase group name:
@@ -36,7 +39,7 @@ test_GpsParsers.cpp        ← group: NmeaParser + TrimbleParser + CanSerialPars
 
 ## 2. Licence header
 
-Every `.h` and `.cpp` file starts with the LGPL block. Two-space indent inside
+Every `.hpp` and `.cpp` file starts with the LGPL block. Two-space indent inside
 the block, period after the author name, no extra blank lines inside.
 
 ```cpp
@@ -95,7 +98,7 @@ between each group:
 
 1. Arduino framework (`<Arduino.h>`, `<EEPROM.h>`, `<HardwareSerial.h>`)
 2. Third-party libraries (`<AgIsoStack.hpp>`)
-3. Local project headers, alphabetical (`"GpsState.h"`, `"NmeaParser.h"`)
+3. Local project headers, alphabetical (`"GpsState.hpp"`, `"NmeaParser.hpp"`)
 
 `.cpp` files do **not** repeat `#pragma once`. Include order is the same, but
 the first include is always the matching header for that file.
@@ -197,7 +200,32 @@ enum PloughVTObjectID : uint16_t { Plough_DataMask = 1, Key_Wider = 3 };
 
 ---
 
-## 7. Header file template
+## 7. Namespace
+
+Every project under this convention wraps its code in one project-wide
+namespace, `lower_snake_case`, matching the project's own name — not the
+individual class or file. `Loofdoes Spuitcomputer`, `Ploeg ISOBUS`, `MeijWorks
+Libs`, and any future project under this document's scope all live inside a
+single shared `namespace triton { ... }`, the same way Salacia's firmware code
+lives inside `namespace neptune`.
+
+```cpp
+namespace triton {
+
+class ImplementSprayer {
+    // ...
+};
+
+}  // namespace triton
+```
+
+Existing files that predate this rule are legacy and are not rewrapped on
+sight; only new files and files that are substantially reworked pick up the
+namespace.
+
+---
+
+## 8. Header file template
 
 ```cpp
 /*
@@ -222,7 +250,9 @@ enum PloughVTObjectID : uint16_t { Plough_DataMask = 1, Key_Wider = 3 };
 
 #include <Arduino.h>
 
-#include "SomeDependency.h"
+#include "SomeDependency.hpp"
+
+namespace triton {
 
 class ClassName {
 public:
@@ -240,11 +270,13 @@ private:
 
     void helperMethod();
 };
+
+}  // namespace triton
 ```
 
 ---
 
-## 8. Source file template
+## 9. Source file template
 
 ```cpp
 /*
@@ -265,9 +297,11 @@ private:
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "ClassName.h"
+#include "ClassName.hpp"
 
 #include <string.h>
+
+namespace triton {
 
 ClassName::ClassName(SomeDependency* dep) : dep(dep), value(0) {}
 
@@ -279,11 +313,13 @@ bool ClassName::Update() {
 void ClassName::helperMethod() {
     // ...
 }
+
+}  // namespace triton
 ```
 
 ---
 
-## 9. Comments
+## 10. Comments
 
 Write a comment only when the **why** is non-obvious — a hidden constraint,
 a protocol quirk, a workaround. Do not describe what the code does; well-named
