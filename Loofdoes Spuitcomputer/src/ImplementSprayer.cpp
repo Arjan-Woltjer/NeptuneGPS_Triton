@@ -201,7 +201,7 @@ void ImplementSprayer::updateOutputs() {
     // - Output 0 (mixer) turns on immediately when button 0 is held, off when released
     // - Output 1 (vernevelaar) turns on when button 1 is held and output 0 has been on for at least 1000 ms, off when released
     // - Output 2 (pump) turns on when button 2 is held and output 1 has been on for at least 1000 ms, off when released
-    // - Output 3 is not used in this example but can be controlled similarly
+    // - Output 3 is not button-driven; it's the low-flow warning buzzer, driven directly by calculatePWMValues()
     // ------------------------------------------------------------------------------------------------------------------------
 
     // Mixer control

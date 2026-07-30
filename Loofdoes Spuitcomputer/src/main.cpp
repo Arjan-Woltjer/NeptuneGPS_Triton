@@ -51,7 +51,7 @@ InterfaceSprayer*  interface;
 ImplementSprayer*  implement;
 CalibrationSprayer* calibration;
 VehicleGps*        gps;
-InterfaceGps*      interfaceGps;
+//InterfaceGps*      interfaceGps;
 
 
 void setup() {
@@ -92,7 +92,6 @@ void setup() {
 
 
   // Write message to screen
-  // Message in language.h
   lcd->WriteBuffer(L2_MEIJWORKS, 0);
   lcd->WriteBuffer(L2_DEVICE, 1);
   lcd->WriteBuffer(L2_COPYRIGHT, 2);
