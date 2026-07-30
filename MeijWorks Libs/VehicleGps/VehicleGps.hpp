@@ -22,6 +22,9 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+namespace triton
+{
+
 //#define DEBUG
 
 // Conversion constants
@@ -63,7 +66,7 @@
 class VehicleGps {
 private:
     Stream*         serialDebug;
-    HardwareSerial* serialGPS;
+    HardwareSerial* serialGps;
     byte            baudrate;
     byte            rtkQuality;
     bool            rawEcho;
@@ -78,9 +81,9 @@ private:
     int           xte,       newXte;
     byte          quality,   newQuality;
 
-    unsigned long lastGGAFix;
-    unsigned long lastVTGFix;
-    unsigned long lastXTEFix;
+    unsigned long lastGgaFix;
+    unsigned long lastVtgFix;
+    unsigned long lastXteFix;
 
     char         term[20];
     byte         termNumber;
@@ -113,7 +116,7 @@ private:
     void writeCalibrationData();
 
 public:
-    VehicleGps(Stream* serialDebug, HardwareSerial* serialGPS);
+    VehicleGps(Stream* serialDebug, HardwareSerial* serialGps);
 
     bool Update();
     bool Update(long int id, const uint8_t* data, byte len);
@@ -131,16 +134,16 @@ public:
     inline void    CommitCalibration() { writeCalibrationData(); }
     inline boolean MinSpeed()          { return GetSpeedMs() >= MINSPEED; }
 
-    // When enabled, every character read from serialGPS in Update() is echoed
+    // When enabled, every character read from serialGps in Update() is echoed
     // verbatim to serialDebug — raw NMEA/CAN passthrough for diagnostics.
     inline void SetRawEcho(bool enable) { rawEcho = enable; }
     inline bool GetRawEcho()            { return rawEcho; }
 
     // Setters for values arriving via CAN / NMEA 2000 rather than serial NMEA
-    inline void SetSpeedKnots(float knots)         { speed = knots;   lastVTGFix = millis(); }
-    inline void SetCourseDeg(float degrees)        { course = degrees; lastVTGFix = millis(); }
-    inline void SetPosition(float lat, float lon)  { latitude = lat; longitude = lon; lastGGAFix = millis(); }
-    inline void SetXte(int hundredthsM)            { xte = hundredthsM; lastXTEFix = millis(); }
+    inline void SetSpeedKnots(float knots)         { speed = knots;   lastVtgFix = millis(); }
+    inline void SetCourseDeg(float degrees)        { course = degrees; lastVtgFix = millis(); }
+    inline void SetPosition(float lat, float lon)  { latitude = lat; longitude = lon; lastGgaFix = millis(); }
+    inline void SetXte(int hundredthsM)            { xte = hundredthsM; lastXteFix = millis(); }
     inline void SetQuality(byte q)                 { quality = q; }
     inline void SetBaudrate(byte b)                { baudrate = b; }
 
@@ -151,7 +154,7 @@ public:
     inline bool IsRtkQuality() { return quality == rtkQuality; }
 
     // Getters
-    inline HardwareSerial* GetSerial()    { return serialGPS; }
+    inline HardwareSerial* GetSerial()    { return serialGps; }
     inline byte            GetBaudrate()  { return baudrate; }
     inline byte            GetRtkQuality(){ return rtkQuality; }
 
@@ -193,7 +196,9 @@ public:
     inline float GetSpeedKmh()    { return GPS_KMH_PER_KNOT * speed; }
     inline float GetXteM()        { return float(xte) / 100; }
 
-    inline unsigned long GetGgaFixAge() { return lastGGAFix; }
-    inline unsigned long GetVtgFixAge() { return lastVTGFix; }
-    inline unsigned long GetXteFixAge() { return lastXTEFix; }
+    inline unsigned long GetGgaFixAge() { return lastGgaFix; }
+    inline unsigned long GetVtgFixAge() { return lastVtgFix; }
+    inline unsigned long GetXteFixAge() { return lastXteFix; }
 };
+
+}  // namespace triton

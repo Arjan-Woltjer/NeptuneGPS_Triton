@@ -21,6 +21,9 @@
 #include <Arduino.h>
 #include <Wire.h>
 
+namespace triton
+{
+
 // HD44780 command bytes
 #define LCD_CLEARDISPLAY        0x01
 #define LCD_RETURNHOME          0x02
@@ -134,3 +137,5 @@ public:
     void WriteBuffer(const char line[], uint8_t lineNo);
     void WriteBuffer(char character, uint8_t lineNo, uint8_t colNo);
 };
+
+}  // namespace triton

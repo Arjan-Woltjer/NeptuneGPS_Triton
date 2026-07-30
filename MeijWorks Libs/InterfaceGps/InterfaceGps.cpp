@@ -16,7 +16,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "InterfaceGps.h"
+#include "InterfaceGps.hpp"
+
+namespace triton
+{
 
 InterfaceGps::InterfaceGps(InterfaceI2CLCD* lcd, VehicleGps* gps)
     : gps(gps), lcd(lcd) {
@@ -34,7 +37,7 @@ InterfaceGps::InterfaceGps(InterfaceI2CLCD* lcd, VehicleGps* gps)
 }
 
 boolean InterfaceGps::DetectGps() {
-    HardwareSerial* serialGPS = gps->GetSerial();
+    HardwareSerial* serialGps = gps->GetSerial();
     byte rate    = gps->GetBaudrate();
     byte gpsrate = 0;
 
@@ -59,7 +62,7 @@ boolean InterfaceGps::DetectGps() {
         lcd->WriteBuffer('0' + (baudrate / 10000) % 10, 0, 15);
         lcd->WriteBuffer('0' + (baudrate / 100000)% 10, 0, 14);
 
-        success = testRate(serialGPS, baudrate);
+        success = testRate(serialGps, baudrate);
 
         if (success != 0) {
             gpsrate = i % 8;
@@ -70,32 +73,32 @@ boolean InterfaceGps::DetectGps() {
     lcd->WriteScreen(0xFF);
 
     if (success == 7) {
-        serialGPS->begin(baudrate);
+        serialGps->begin(baudrate);
         gps->SetBaudrate(gpsrate);
         gps->CommitCalibration();
         return true;
     }
     else if (success != 0) {
-        serialGPS->begin(baudrate);
+        serialGps->begin(baudrate);
         gps->SetBaudrate(gpsrate);
         gps->CommitCalibration();
         return false;
     }
     else {
-        serialGPS->begin(long(4800) * rates[rate]);
+        serialGps->begin(long(4800) * rates[rate]);
         delay(1000);
         return false;
     }
 }
 
-byte InterfaceGps::testRate(HardwareSerial* serialGPS, unsigned long baudrate) {
+byte InterfaceGps::testRate(HardwareSerial* serialGps, unsigned long baudrate) {
     unsigned long starttime = millis();
     bool gga = false;
     bool vtg = false;
     bool xte = false;
     byte result = 0;
 
-    serialGPS->begin(baudrate);
+    serialGps->begin(baudrate);
 
 #ifndef SCRAPER
     while ((millis() - starttime < 2000 || result != 0)
@@ -145,6 +148,8 @@ byte InterfaceGps::testRate(HardwareSerial* serialGPS, unsigned long baudrate) {
     }
 
     lcd->WriteScreen(0xFF);
-    serialGPS->end();
+    serialGps->end();
     return result;
 }
+
+}  // namespace triton

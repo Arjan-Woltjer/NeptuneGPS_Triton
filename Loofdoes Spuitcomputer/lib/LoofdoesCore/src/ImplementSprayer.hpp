@@ -19,8 +19,12 @@
 #pragma once
 
 #include <Arduino.h>
-#include "VehicleGps.h"
-#include "InterfaceSprayer.h"
+
+#include "InterfaceSprayer.hpp"
+#include "VehicleGps.hpp"
+
+namespace triton
+{
 
 #define SPRAYER_VERSION 0.2
 
@@ -122,3 +126,5 @@ public:
 
     inline OutputState* GetOutputs() { return outputs; }
 };
+
+}  // namespace triton

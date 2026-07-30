@@ -16,7 +16,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "VehicleTractor.h"
+#include "VehicleTractor.hpp"
+
+namespace triton
+{
 
 VehicleTractor::VehicleTractor(Stream* serialDebug)
     : serialDebug(serialDebug),
@@ -132,3 +135,5 @@ void VehicleTractor::writeCalibrationData() {
     EEPROM.write(26, sim);
     EEPROM.write(28, inversion);
 }
+
+}  // namespace triton

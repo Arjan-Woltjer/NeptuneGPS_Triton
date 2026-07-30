@@ -18,8 +18,11 @@
 */
 #pragma once
 
-#include "InterfaceI2CLCD.h"
-#include "VehicleGps.h"
+#include "InterfaceI2CLCD.hpp"
+#include "VehicleGps.hpp"
+
+namespace triton
+{
 
 //#define DEBUG
 
@@ -28,7 +31,7 @@ private:
     VehicleGps*      gps;
     InterfaceI2CLCD* lcd;
 
-    byte testRate(HardwareSerial* serialGPS, unsigned long baudrate);
+    byte testRate(HardwareSerial* serialGps, unsigned long baudrate);
 
 public:
     InterfaceGps(InterfaceI2CLCD* lcd, VehicleGps* gps);
@@ -36,3 +39,5 @@ public:
     boolean CheckGps();
     boolean DetectGps();
 };
+
+}  // namespace triton

@@ -17,10 +17,13 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "VehicleGps.h"
+#include "VehicleGps.hpp"
 
-VehicleGps::VehicleGps(Stream* serialDebug, HardwareSerial* serialGPS)
-    : serialDebug(serialDebug), serialGPS(serialGPS),
+namespace triton
+{
+
+VehicleGps::VehicleGps(Stream* serialDebug, HardwareSerial* serialGps)
+    : serialDebug(serialDebug), serialGps(serialGps),
       baudrate(7), rtkQuality(4), rawEcho(false),
       time(GPS_INVALID_FLOAT), newTime(0),
       date(GPS_INVALID_LONG), newDate(0),
@@ -31,7 +34,7 @@ VehicleGps::VehicleGps(Stream* serialDebug, HardwareSerial* serialGPS)
       course(GPS_INVALID_FLOAT), newCourse(0),
       xte(0), newXte(0),
       quality(0), newQuality(0),
-      lastGGAFix(0), lastVTGFix(0), lastXTEFix(0),
+      lastGgaFix(0), lastVtgFix(0), lastXteFix(0),
       termNumber(0), termOffset(0), parity(0), checksum(0), sum(0),
       isChecksumTerm(false), sentenceType(OTHER)
 #ifndef GPS_NO_STATS
@@ -106,34 +109,34 @@ bool VehicleGps::parseTerm() {
                     latitude  = newLatitude;
                     longitude = newLongitude;
                     quality   = newQuality;
-                    lastGGAFix = millis();
+                    lastGgaFix = millis();
                     break;
                 case VTG:
                     course = newCourse;
                     speed  = newSpeed;
-                    lastVTGFix = millis();
+                    lastVtgFix = millis();
                     break;
                 case XTE:
                 case XTE2:
                     xte = newXte;
-                    lastXTEFix = millis();
+                    lastXteFix = millis();
                     break;
                 case CAN_POS:
                     latitude  = newLatitude;
                     longitude = newLongitude;
-                    lastGGAFix = millis();
+                    lastGgaFix = millis();
                     break;
                 case CAN_SPD:
                     course   = newCourse;
                     speed    = newSpeed;
                     altitude = newAltitude;
-                    lastVTGFix = millis();
+                    lastVtgFix = millis();
                     break;
                 case CAN_XTE:
                 case CAN_XTE2:
                     xte     = newXte;
                     quality = newQuality;
-                    lastXTEFix = millis();
+                    lastXteFix = millis();
                     break;
                 case OTHER:
                     break;
@@ -294,8 +297,8 @@ bool VehicleGps::Update() {
     char c;
     bool validSentence = false;
 
-    while (serialGPS->available()) {
-        c = serialGPS->read();
+    while (serialGps->available()) {
+        c = serialGps->read();
         if (rawEcho) serialDebug->write((uint8_t)c);
 
 #ifndef GPS_NO_STATS
@@ -389,7 +392,7 @@ bool VehicleGps::Update(long int id, const uint8_t* data, byte len) {
                 | (data[5] << 8) | data[4];
             longitude = float(long(val - 2100000000)) / 10000000;
 
-            lastGGAFix = millis();
+            lastGgaFix = millis();
 #ifdef DEBUG
             serialDebug->print("Lat: ");  serialDebug->println(latitude,  7);
             serialDebug->print("Long: "); serialDebug->println(longitude, 7);
@@ -407,7 +410,7 @@ bool VehicleGps::Update(long int id, const uint8_t* data, byte len) {
             val      = (data[7] << 8) | data[6];
             altitude = float(val) / 8 - 2500;
 
-            lastVTGFix = millis();
+            lastVtgFix = millis();
 #ifdef DEBUG
             serialDebug->print("Course: ");   serialDebug->println(course,   4);
             serialDebug->print("Speed: ");    serialDebug->println(speed,    4);
@@ -420,7 +423,7 @@ bool VehicleGps::Update(long int id, const uint8_t* data, byte len) {
             val     = (data[4] << 8) | data[3];
             xte     = int(val - 32000) >> 1;
             quality = (data[1] == 0x15) ? 4 : 0;
-            lastXTEFix = millis();
+            lastXteFix = millis();
 #ifdef DEBUG
             serialDebug->print("XTE: ");     serialDebug->println(xte);
             serialDebug->print("Quality: "); serialDebug->println(quality);
@@ -435,7 +438,7 @@ bool VehicleGps::Update(long int id, const uint8_t* data, byte len) {
                            | (data[3] << 8) | data[4];
                 xte     = tofloat.b * 100;
                 quality = 4;  // TODO: parse actual quality flag
-                lastXTEFix = millis();
+                lastXteFix = millis();
 #ifdef DEBUG
                 serialDebug->print("XTE: ");     serialDebug->println(xte);
                 serialDebug->print("Quality: "); serialDebug->println(quality);
@@ -486,3 +489,5 @@ void VehicleGps::PrintCalibrationData() {
     serialDebug->println(rtkQuality);
     serialDebug->println("-------------------------------");
 }
+
+}  // namespace triton

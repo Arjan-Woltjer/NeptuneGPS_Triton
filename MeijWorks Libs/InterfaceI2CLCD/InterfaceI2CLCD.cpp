@@ -16,7 +16,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "InterfaceI2CLCD.h"
+#include "InterfaceI2CLCD.hpp"
+
+namespace triton
+{
 
 InterfaceI2CLCD::InterfaceI2CLCD(TwoWire* lcdWire, uint8_t addr,
                                  uint8_t cols, uint8_t rows,
@@ -260,3 +263,5 @@ void InterfaceI2CLCD::pulseEnable(uint8_t data) {
     expanderWrite(data & ~EN);
     delayMicroseconds(50);
 }
+
+}  // namespace triton

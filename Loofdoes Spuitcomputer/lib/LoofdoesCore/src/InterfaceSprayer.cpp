@@ -16,7 +16,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "InterfaceSprayer.h"
+#include "InterfaceSprayer.hpp"
+
+namespace triton
+{
 
 InterfaceSprayer::InterfaceSprayer(Stream* serialDebug)
     : serialDebug(serialDebug) {
@@ -90,3 +93,5 @@ void InterfaceSprayer::CheckAnalogInputs() {
         analogInput.value = (analogInput.value + analogRead(analogInput.pin)) / 2;
     }
 }
+
+}  // namespace triton

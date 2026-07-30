@@ -29,6 +29,9 @@ bool digitalRead(uint8_t pin);
 int  analogRead(uint8_t pin);
 #endif
 
+namespace triton
+{
+
 #define INTERFACE_VERSION 0.2
 
 #define NUM_DIGITAL_IN 4
@@ -80,3 +83,5 @@ public:
     inline DigitalInputState* GetDigitalInputs() { return buttons; }
     inline AnalogInputState*  GetAnalogInputs()  { return analogInputs; }
 };
+
+}  // namespace triton

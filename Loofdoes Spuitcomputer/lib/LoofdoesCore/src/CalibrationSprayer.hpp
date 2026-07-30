@@ -21,7 +21,11 @@
 #ifdef ARDUINO
 
 #include <Arduino.h>
-#include "ImplementSprayer.h"
+
+#include "ImplementSprayer.hpp"
+
+namespace triton
+{
 
 // Call Process() every loop iteration. Normal operation (ImplementSprayer::Update)
 // continues in the background. Any serial character while idle opens the menu.
@@ -83,5 +87,7 @@ private:
     bool parseFloat(float* out);
     bool parseInt(int* out);
 };
+
+}  // namespace triton
 
 #endif  // ARDUINO

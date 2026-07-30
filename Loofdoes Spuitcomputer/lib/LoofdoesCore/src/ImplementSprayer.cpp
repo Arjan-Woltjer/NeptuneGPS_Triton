@@ -16,12 +16,15 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "ImplementSprayer.h"
+#include "ImplementSprayer.hpp"
 
 #ifdef ARDUINO
 #include <Preferences.h>
 #include "driver/ledc.h"
 #endif
+
+namespace triton
+{
 
 ImplementSprayer::ImplementSprayer(Stream* serialDebug, VehicleGps* gps,
                                    InterfaceSprayer* interface)
@@ -331,3 +334,5 @@ void ImplementSprayer::LoadCalibration() {
 void ImplementSprayer::SaveCalibration() {}
 void ImplementSprayer::LoadCalibration() {}
 #endif
+
+}  // namespace triton

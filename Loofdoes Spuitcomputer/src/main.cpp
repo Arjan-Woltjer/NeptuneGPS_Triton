@@ -21,12 +21,12 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#include "InterfaceI2CLCD.h"
-#include "InterfaceGps.h"
-#include "VehicleGps.h"
-#include "ImplementSprayer.h"
-#include "InterfaceSprayer.h"
-#include "CalibrationSprayer.h"
+#include "CalibrationSprayer.hpp"
+#include "ImplementSprayer.hpp"
+#include "InterfaceGps.hpp"
+#include "InterfaceI2CLCD.hpp"
+#include "InterfaceSprayer.hpp"
+#include "VehicleGps.hpp"
 
 #define EEPROM_SIZE 64
 
@@ -46,12 +46,12 @@ TwoWire* lcdWire = &Wire;
 // --------------
 // Global objects
 // --------------
-InterfaceI2CLCD*   lcd;
-InterfaceSprayer*  interface;
-ImplementSprayer*  implement;
-CalibrationSprayer* calibration;
-VehicleGps*        gps;
-//InterfaceGps*      interfaceGps;
+triton::InterfaceI2CLCD*   lcd;
+triton::InterfaceSprayer*  interface;
+triton::ImplementSprayer*  implement;
+triton::CalibrationSprayer* calibration;
+triton::VehicleGps*        gps;
+//triton::InterfaceGps*      interfaceGps;
 
 
 void setup() {
@@ -63,16 +63,16 @@ void setup() {
   gpsSerial.begin(115200, SERIAL_8N1, 21, 22);
 
     // Initialise objects and interfaces
-  lcd = new InterfaceI2CLCD(lcdWire, 0x27, 20, 4, 13, 14);
+  lcd = new triton::InterfaceI2CLCD(lcdWire, 0x27, 20, 4, 13, 14);
   lcd->Begin();
   lcd->Backlight();
   lcd->Clear();
   delay(200);
 
-  gps          = new VehicleGps(serialDebug, serialGps);
-  interface    = new InterfaceSprayer(serialDebug);
-  implement    = new ImplementSprayer(serialDebug, gps, interface);
-  calibration  = new CalibrationSprayer(serialDebug, implement);
+  gps          = new triton::VehicleGps(serialDebug, serialGps);
+  interface    = new triton::InterfaceSprayer(serialDebug);
+  implement    = new triton::ImplementSprayer(serialDebug, gps, interface);
+  calibration  = new triton::CalibrationSprayer(serialDebug, implement);
 
   implement->LoadCalibration();
   

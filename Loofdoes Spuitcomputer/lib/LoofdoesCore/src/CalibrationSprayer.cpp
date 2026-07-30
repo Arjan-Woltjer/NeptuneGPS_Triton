@@ -18,12 +18,15 @@
 */
 #ifdef ARDUINO
 
-#include "CalibrationSprayer.h"
+#include "CalibrationSprayer.hpp"
 #include <stdlib.h>
 
 #define RUN_DURATION_MS 60000UL
 #define PWM_ARM_THRESHOLD 50  // analog reading below this counts as "knob at minimum"
 #define GPS_PRINT_INTERVAL_MS 500UL
+
+namespace triton
+{
 
 CalibrationSprayer::CalibrationSprayer(Stream* serial, ImplementSprayer* impl)
     : serial(serial), impl(impl), state(State::IDLE),
@@ -530,5 +533,7 @@ bool CalibrationSprayer::parseInt(int* out) {
     *out = (int)val;
     return true;
 }
+
+}  // namespace triton
 
 #endif  // ARDUINO

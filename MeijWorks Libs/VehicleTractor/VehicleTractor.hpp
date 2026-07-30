@@ -21,7 +21,10 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ConfigVehicleTractor.h"
+#include "ConfigVehicleTractor.hpp"
+
+namespace triton
+{
 
 class VehicleTractor {
 private:
@@ -57,29 +60,31 @@ public:
 
     void PrintCalibrationData();
 
-    inline bool ResetCalibration()  { return readCalibrationData(); }
-    inline void CommitCalibration() { writeCalibrationData(); }
+    inline bool ResetCalibration()        { return readCalibrationData(); }
+    inline void CommitCalibration()       { writeCalibrationData(); }
 
-    inline bool MinSpeed()          { return speed > MINSPEED_1; }
+    inline bool MinSpeed()                { return speed > MINSPEED_1; }
 
-    inline void EnableSim()         { sim = true; }
-    inline void DisableSim()        { sim = false; }
+    inline void EnableSim()               { sim = true; }
+    inline void DisableSim()              { sim = false; }
 
-    inline void SetInversion(bool value)      { inversion = value; }
-    inline void SetSimSpeedKmh(float kmh)     { simspeed = kmh / 36; }
-    inline void SetSimTime(byte t)            { simtime = t; }
-    inline void SetVconst(unsigned int v)     { vConst = v; }
+    inline void SetInversion(bool value)  { inversion = value; }
+    inline void SetSimSpeedKmh(float kmh) { simspeed = kmh / 36; }
+    inline void SetSimTime(byte t)        { simtime = t; }
+    inline void SetVconst(unsigned int v) { vConst = v; }
 
-    inline void ResetWheelspeedPulses()       { wheelspeedPulses = 0; }
+    inline void ResetWheelspeedPulses()   { wheelspeedPulses = 0; }
 
-    inline boolean GetHitch()                 { return digitalRead(HITCH_PIN_1) ^ inversion; }
-    inline float   GetSpeedMs()               { return speed; }
-    inline float   GetSpeedKmh()              { return speed * 36; }
-    inline bool    GetSim()                   { return sim; }
-    inline bool    GetInversion()             { return inversion; }
-    inline float   GetSimSpeedKmh()           { return simspeed * 36; }
-    inline byte    GetSimTime()               { return simtime; }
-    inline boolean SimSpeed()                 { return speed >= simspeed; }
-    inline unsigned long   GetDistance()      { return distance / vConst; }
-    inline unsigned int    GetVconst()        { return vConst; }
+    inline boolean GetHitch()             { return digitalRead(HITCH_PIN_1) ^ inversion; }
+    inline float   GetSpeedMs()           { return speed; }
+    inline float   GetSpeedKmh()          { return speed * 36; }
+    inline bool    GetSim()               { return sim; }
+    inline bool    GetInversion()         { return inversion; }
+    inline float   GetSimSpeedKmh()       { return simspeed * 36; }
+    inline byte    GetSimTime()           { return simtime; }
+    inline boolean SimSpeed()             { return speed >= simspeed; }
+    inline unsigned long   GetDistance()  { return distance / vConst; }
+    inline unsigned int    GetVconst()    { return vConst; }
 };
+
+}  // namespace triton
