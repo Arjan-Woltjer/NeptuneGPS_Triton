@@ -1,0 +1,41 @@
+name: Loofdoes Spuitcomputer Native Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Loofdoes Spuitcomputer/**'
+      - '.github/workflows/native-tests.yml'
+  pull_request:
+    paths:
+      - 'Loofdoes Spuitcomputer/**'
+      - '.github/workflows/native-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  native-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install PlatformIO
+        run: pip install -U platformio
+
+      - name: Build native_interface_sprayer AUnit test suite
+        run: pio run -d "Loofdoes Spuitcomputer" -e native_interface_sprayer
+
+      - name: Run native_interface_sprayer AUnit test suite
+        run: "./Loofdoes Spuitcomputer/.pio/build/native_interface_sprayer/program"
+
+      - name: Build native_implement_sprayer AUnit test suite
+        run: pio run -d "Loofdoes Spuitcomputer" -e native_implement_sprayer
+
+      - name: Run native_implement_sprayer AUnit test suite
+        run: "./Loofdoes Spuitcomputer/.pio/build/native_implement_sprayer/program"
