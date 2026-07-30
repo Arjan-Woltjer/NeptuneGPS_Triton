@@ -65,10 +65,44 @@ class __FlashStringHelper {};
 #  endif
 #endif
 
-// HAL declarations — the test file provides the definitions for millis/digitalRead/analogRead
-unsigned long millis();
-bool digitalRead(uint8_t pin);
-int  analogRead(uint8_t pin);
+// digitalRead()/analogRead()/millis() are stateful mocks, controllable from
+// any test file via the *Value() setters below. Every test_*.cpp now links
+// into one combined binary (see ../LoofdoesNativeTests.cpp), so a test file
+// can no longer supply its own private definition of these without hitting a
+// duplicate-symbol link error -- matching Salacia's test/native/support/
+// Arduino.h. C++17 inline variables (one definition across every translation
+// unit that includes this header) avoid needing a separate Arduino.cpp.
+namespace internal_arduino_stub
+{
+inline uint32_t      g_digitalReadPinValues = 0;
+inline int           g_analogReadPinValues[64] = { 0 };
+inline unsigned long g_millis = 0;
+}
+
+inline bool digitalRead(uint8_t pin) {
+    if (pin >= 32) return false;
+    return (internal_arduino_stub::g_digitalReadPinValues & (uint32_t(1) << pin)) != 0;
+}
+
+inline void digitalReadValue(uint8_t pin, bool val) {
+    if (pin >= 32) return;
+    if (!val) internal_arduino_stub::g_digitalReadPinValues &= ~(uint32_t(1) << pin);
+    else       internal_arduino_stub::g_digitalReadPinValues |=  (uint32_t(1) << pin);
+}
+
+inline int analogRead(uint8_t pin) {
+    if (pin >= 64) return 0;
+    return internal_arduino_stub::g_analogReadPinValues[pin];
+}
+
+inline void analogReadValue(uint8_t pin, int value) {
+    if (pin >= 64) return;
+    internal_arduino_stub::g_analogReadPinValues[pin] = value;
+}
+
+inline unsigned long millis() { return internal_arduino_stub::g_millis; }
+
+inline void millisValue(unsigned long ms) { internal_arduino_stub::g_millis = ms; }
 
 // No-op stubs for hardware control not used in tests
 inline void pinMode(uint8_t, uint8_t) {}

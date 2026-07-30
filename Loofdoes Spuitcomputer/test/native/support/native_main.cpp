@@ -11,7 +11,7 @@ HardwareSerial Serial;
 int epoxy_argc = 0;
 const char* const* epoxy_argv = nullptr;
 
-// Declared by test_interface_sprayer.cpp
+// Declared by LoofdoesNativeTests.cpp
 void setup();
 void loop();
 

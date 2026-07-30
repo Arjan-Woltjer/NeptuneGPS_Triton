@@ -7,23 +7,21 @@
 using namespace aunit;
 
 // ---------------------------------------------------------------------------
-// Fake Arduino HAL
-// ---------------------------------------------------------------------------
-static unsigned long fakeMillis = 0;
-
-unsigned long millis()             { return fakeMillis; }
-bool          digitalRead(uint8_t) { return false; }
-int           analogRead(uint8_t)  { return 0; }
-
-// ---------------------------------------------------------------------------
 // Objects under test
+//
+// digitalRead()/analogRead() aren't exercised here -- every test drives
+// iface.buttons[]/analogInputs[] directly -- and millis() is now the shared
+// mock in support/Arduino.h (millisValue()), since every test_*.cpp links
+// into one combined binary (see ../LoofdoesNativeTests.cpp) and this file can
+// no longer supply its own private millis() definition without hitting a
+// duplicate-symbol link error.
 // ---------------------------------------------------------------------------
 static InterfaceSprayer iface;
 static VehicleGps       mockGps;
 static ImplementSprayer impl(nullptr, &mockGps, &iface);
 
-void resetAll() {
-    fakeMillis    = 0;
+static void resetAll() {
+    millisValue(0);
     mockGps.speed = 0.0f;
 
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
@@ -70,11 +68,11 @@ test(button0Off_immediately_clears_outputs1and2) {
     iface.buttons[0].state = true;
     impl.Update();                          // t=0:    output 0 ON
 
-    fakeMillis = 1000;
+    millisValue(1000);
     iface.buttons[1].state = true;
     impl.Update();                          // t=1000: output 1 ON
 
-    fakeMillis = 2000;
+    millisValue(2000);
     iface.buttons[2].state = true;
     impl.Update();                          // t=2000: output 2 ON
 
@@ -107,7 +105,7 @@ test(buttons0and1_within1s_output1Off) {
     iface.buttons[0].state = true;
     iface.buttons[1].state = true;
 
-    fakeMillis = 999;
+    millisValue(999);
     impl.Update();                          // 999 ms < 1000 ms threshold
     assertTrue(impl.outputs[0].state);
     assertFalse(impl.outputs[1].state);
@@ -118,7 +116,7 @@ test(buttons0and1_exactly1s_output1On) {
     iface.buttons[0].state = true;
     impl.Update();                          // t=0: timer[0] = 0
 
-    fakeMillis = 1000;
+    millisValue(1000);
     iface.buttons[1].state = true;
     impl.Update();                          // 1000 - 0 >= 1000 → on
     assertTrue(impl.outputs[0].state);
@@ -132,7 +130,7 @@ test(button1_output0Off_output1StaysOff) {
     iface.buttons[0].state = true;
     impl.Update();                          // t=0: output 0 ON, timer[0]=0
 
-    fakeMillis = 1500;
+    millisValue(1500);
     iface.buttons[0].state = false;        // mixer released
     iface.buttons[1].state = true;
     impl.Update();                          // output 0 goes off; vernevelaar must stay off
@@ -156,11 +154,11 @@ test(buttons0and1and2_within1s_ofVernevelaar_output2Off) {
     iface.buttons[0].state = true;
     impl.Update();                          // t=0: output 0 ON
 
-    fakeMillis = 1000;
+    millisValue(1000);
     iface.buttons[1].state = true;
     impl.Update();                          // t=1000: output 1 ON, timer[1]=1000
 
-    fakeMillis = 1999;
+    millisValue(1999);
     iface.buttons[2].state = true;
     impl.Update();                          // 999 ms since output 1 on — too soon
     assertTrue(impl.outputs[1].state);
@@ -172,11 +170,11 @@ test(fullCascade_after2s_output2On) {
     iface.buttons[0].state = true;
     impl.Update();                          // t=0:    output 0 ON
 
-    fakeMillis = 1000;
+    millisValue(1000);
     iface.buttons[1].state = true;
     impl.Update();                          // t=1000: output 1 ON
 
-    fakeMillis = 2000;
+    millisValue(2000);
     iface.buttons[2].state = true;
     impl.Update();                          // t=2000: output 2 ON
     assertTrue(impl.outputs[0].state);
@@ -191,17 +189,17 @@ test(mixer_toggled_cascade_restarts_from_scratch) {
     iface.buttons[0].state = true;
     impl.Update();                          // t=0:    output 0 ON, timer[0]=0
 
-    fakeMillis = 1000;
+    millisValue(1000);
     iface.buttons[1].state = true;
     impl.Update();                          // t=1000: output 1 ON, timer[1]=1000
 
-    fakeMillis = 2000;
+    millisValue(2000);
     iface.buttons[2].state = true;
     impl.Update();                          // t=2000: output 2 ON
     assertTrue(impl.outputs[2].state);
 
     // Step 2: release mixer — everything goes off
-    fakeMillis = 3000;
+    millisValue(3000);
     iface.buttons[0].state = false;
     impl.Update();
     assertFalse(impl.outputs[0].state);
@@ -209,7 +207,7 @@ test(mixer_toggled_cascade_restarts_from_scratch) {
     assertFalse(impl.outputs[2].state);
 
     // Step 3: re-press mixer — timer resets; outputs 1 and 2 must NOT come back on yet
-    fakeMillis = 3001;
+    millisValue(3001);
     iface.buttons[0].state = true;
     impl.Update();                          // rising edge: timer[0]=3001
     assertTrue(impl.outputs[0].state);
@@ -217,13 +215,13 @@ test(mixer_toggled_cascade_restarts_from_scratch) {
     assertFalse(impl.outputs[2].state);
 
     // Step 4: after 1 s since mixer re-pressed — vernevelaar may come on
-    fakeMillis = 4001;
+    millisValue(4001);
     impl.Update();                          // 4001-3001=1000 >= 1000 → output 1 ON
     assertTrue(impl.outputs[1].state);
     assertFalse(impl.outputs[2].state);    // pump delay not elapsed yet
 
     // Step 5: after another 1 s — pump may come on
-    fakeMillis = 5001;
+    millisValue(5001);
     impl.Update();                          // 5001-4001=1000 >= 1000 → output 2 ON
     assertTrue(impl.outputs[2].state);
 }
@@ -355,16 +353,4 @@ test(pwm_enabled_upperSegment_output3685) {
 
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)3685);
-}
-
-// ---------------------------------------------------------------------------
-// Arduino boilerplate
-// ---------------------------------------------------------------------------
-void setup() {
-    Serial.begin(115200);
-    while (!Serial);
-}
-
-void loop() {
-    TestRunner::run();
 }

@@ -1,14 +1,15 @@
 # Run all AUnit tests using MSVC (Visual Studio 2022).
-# Use this on Windows when GCC / pio run -e native_* is not available.
+# Use this on Windows when GCC / pio run -e native is not available.
 #
 # Usage: .\test\native\run_tests_msvc.ps1
 
-$root   = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$aunit  = "$root\.pio\libdeps\native\AUnit\src"
-$stubs  = "$root\test\native\support"
-$lib    = "$root\lib\LoofdoesCore\src"
-$test   = "$root\test\native\tests"
-$out    = "$env:TEMP\msvc_test"
+$root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+$aunit   = "$root\.pio\libdeps\native\AUnit\src"
+$stubs   = "$root\test\native\support"
+$lib     = "$root\lib\LoofdoesCore\src"
+$test    = "$root\test\native\tests"
+$driver  = "$root\test\native\LoofdoesNativeTests.cpp"
+$out     = "$env:TEMP\msvc_test"
 
 New-Item -ItemType Directory -Force -Path $out | Out-Null
 
@@ -42,27 +43,20 @@ $aunitSources = @(
 
 $commonFlags = "/std:c++17 /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
 
-$overallExit = 0
-
-# ---- test_interface_sprayer ------------------------------------------------
+# ---- combined native test binary --------------------------------------------
+# One binary for every test_*.cpp under test/native/tests/ -- matches
+# platformio.ini's [env:native] build_src_filter (single driver file,
+# LoofdoesNativeTests.cpp, provides setup()/loop()).
 Write-Host ""
-Write-Host "=== Building test_interface_sprayer ===" -ForegroundColor Cyan
+Write-Host "=== Building LoofdoesNativeTests ===" -ForegroundColor Cyan
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$test\test_InterfaceSprayer.cpp`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\test_InterfaceSprayer.exe`" && `"$out\test_InterfaceSprayer.exe`""
+$testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
+
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\LoofdoesNativeTests.exe`" && `"$out\LoofdoesNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
-if ($LASTEXITCODE -ne 0) { $overallExit = 1 }
-
-# ---- test_ImplementSprayer ------------------------------------------------
-Write-Host ""
-Write-Host "=== Building test_ImplementSprayer ===" -ForegroundColor Cyan
-
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" `"$test\test_ImplementSprayer.cpp`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\test_ImplementSprayer.exe`" && `"$out\test_ImplementSprayer.exe`""
-Write-Host "Running..." -ForegroundColor Cyan
-cmd /c $cmd
-
-if ($LASTEXITCODE -ne 0) { $overallExit = 1 }
+$overallExit = if ($LASTEXITCODE -ne 0) { 1 } else { 0 }
 
 # ---- Summary ---------------------------------------------------------------
 Write-Host ""

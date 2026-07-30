@@ -4,37 +4,24 @@
 using namespace aunit;
 
 // ---------------------------------------------------------------------------
-// Fake Arduino HAL — controls what digitalRead() and millis() return
+// Pin table — maps the button index used throughout this file to the real
+// pin number, for driving the shared digitalRead()/millis() mock in
+// support/Arduino.h (digitalReadValue()/millisValue()). Every test_*.cpp now
+// links into one combined binary (see ../LoofdoesNativeTests.cpp), so this
+// file can no longer supply its own private digitalRead()/analogRead()/
+// millis() definitions without hitting a duplicate-symbol link error.
 // ---------------------------------------------------------------------------
-static bool          pinStates[NUM_DIGITAL_IN]           = { false, false, false, false };
-static int           analogValues[NUM_ANALOG_IN]  = { 0 };
-static unsigned long fakeMillis = 0;
-
-// Overrides linked in test build
-bool digitalRead(uint8_t pin) {
-    if (pin == IN1) return pinStates[0];
-    if (pin == IN2) return pinStates[1];
-    if (pin == IN3) return pinStates[2];
-    if (pin == IN4) return pinStates[3];
-    return false;
-}
-
-int analogRead(uint8_t pin) {
-    if (pin == ANALOG_IN1) return analogValues[0];
-    return 0;
-}
-
-unsigned long millis() { return fakeMillis; }
+static const uint8_t kDigitalPins[NUM_DIGITAL_IN] = { IN1, IN2, IN3, IN4 };
 
 // ---------------------------------------------------------------------------
 // Helper — reset hardware fakes and the sprayer's button state
 // ---------------------------------------------------------------------------
 static InterfaceSprayer sprayer;
 
-void resetAll() {
-    fakeMillis = 0;
-    for (int i = 0; i < NUM_DIGITAL_IN; ++i) pinStates[i] = true;  // HIGH = released (pull-up)
-    for (int i = 0; i < NUM_ANALOG_IN; ++i) analogValues[i] = 0;
+static void resetAll() {
+    millisValue(0);
+    for (int i = 0; i < NUM_DIGITAL_IN; ++i) digitalReadValue(kDigitalPins[i], true);  // HIGH = released (pull-up)
+    analogReadValue(ANALOG_IN1, 0);
 
     // Reset internal DigitalInputState (flags true = ready, timers 0, states false)
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
@@ -61,8 +48,8 @@ test(noButtonsPressed_statesAllFalse) {
 
 test(button1_heldLongEnough_stateTrue) {
     resetAll();
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis = 100;                          // well past any debounce
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(100);                          // well past any debounce
 
     sprayer.CheckDigitalInputs(50);
     assertTrue(sprayer.buttons[0].state);
@@ -73,8 +60,8 @@ test(button1_heldLongEnough_stateTrue) {
 
 test(button2_heldLongEnough_stateTrue) {
     resetAll();
-    pinStates[1] = false;  // LOW = pressed
-    fakeMillis = 100;
+    digitalReadValue(kDigitalPins[1], false);  // LOW = pressed
+    millisValue(100);
 
     sprayer.CheckDigitalInputs(50);
     assertFalse(sprayer.buttons[0].state);
@@ -85,8 +72,8 @@ test(button2_heldLongEnough_stateTrue) {
 
 test(button3_heldLongEnough_stateTrue) {
     resetAll();
-    pinStates[2] = false;  // LOW = pressed
-    fakeMillis = 100;
+    digitalReadValue(kDigitalPins[2], false);  // LOW = pressed
+    millisValue(100);
 
     sprayer.CheckDigitalInputs(50);
     assertFalse(sprayer.buttons[0].state);
@@ -97,8 +84,8 @@ test(button3_heldLongEnough_stateTrue) {
 
 test(button4_heldLongEnough_stateTrue) {
     resetAll();
-    pinStates[3] = false;  // LOW = pressed
-    fakeMillis = 100;
+    digitalReadValue(kDigitalPins[3], false);  // LOW = pressed
+    millisValue(100);
 
     sprayer.CheckDigitalInputs(50);
     assertFalse(sprayer.buttons[0].state);
@@ -109,8 +96,8 @@ test(button4_heldLongEnough_stateTrue) {
 
 test(allButtons_heldLongEnough_allStatesTrue) {
     resetAll();
-    for (int i = 0; i < NUM_DIGITAL_IN; ++i) pinStates[i] = false;  // LOW = pressed
-    fakeMillis = 100;
+    for (int i = 0; i < NUM_DIGITAL_IN; ++i) digitalReadValue(kDigitalPins[i], false);  // LOW = pressed
+    millisValue(100);
 
     sprayer.CheckDigitalInputs(50);
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
@@ -124,8 +111,8 @@ test(allButtons_heldLongEnough_allStatesTrue) {
 
 test(button_heldExactlyDelay_isDetected) {
     resetAll();
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis = 50;                           // exactly at the threshold
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(50);                           // exactly at the threshold
 
     // timer was set to 0 at reset, now - timer = 50 >= 50
     sprayer.CheckDigitalInputs(50);
@@ -134,8 +121,8 @@ test(button_heldExactlyDelay_isDetected) {
 
 test(button_heldJustUnderDelay_notDetected) {
     resetAll();
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis = 49;                           // 49 < 50, should not fire
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(49);                           // 49 < 50, should not fire
 
     sprayer.CheckDigitalInputs(50);
     assertFalse(sprayer.buttons[0].state);
@@ -144,13 +131,13 @@ test(button_heldJustUnderDelay_notDetected) {
 test(button_releasedBeforeDelay_notDetected) {
     resetAll();
     // Press briefly
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis = 20;
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(20);
     sprayer.CheckDigitalInputs(50);
 
     // Release before debounce expires
-    pinStates[0] = true;  // HIGH = released
-    fakeMillis = 30;
+    digitalReadValue(kDigitalPins[0], true);  // HIGH = released
+    millisValue(30);
     sprayer.CheckDigitalInputs(50);
     assertFalse(sprayer.buttons[0].state);
 }
@@ -159,18 +146,18 @@ test(button_pressedReleasedThenPressedAgain_detectedOnSecondPress) {
     resetAll();
 
     // First press — too short
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis = 10;
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(10);
     sprayer.CheckDigitalInputs(50);
 
     // Release
-    pinStates[0] = true;  // HIGH = released
-    fakeMillis = 20;
+    digitalReadValue(kDigitalPins[0], true);  // HIGH = released
+    millisValue(20);
     sprayer.CheckDigitalInputs(50);
 
     // Second press — held long enough
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis = 80;
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(80);
     sprayer.CheckDigitalInputs(50);
     assertTrue(sprayer.buttons[0].state);
 }
@@ -185,8 +172,8 @@ test(millis_rollover_doesNotFalselyBlock) {
     sprayer.buttons[0].flag  = false;
     sprayer.buttons[0].timer = 0xFFFFFFFF - 10;  // 10ms before overflow
 
-    pinStates[0] = false;  // LOW = pressed
-    fakeMillis   = 40;   // after rollover; unsigned subtraction: 40 - (2^32-10) = 50
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed
+    millisValue(40);   // after rollover; unsigned subtraction: 40 - (2^32-10) = 50
 
     sprayer.CheckDigitalInputs(50);
     assertTrue(sprayer.buttons[0].state);
@@ -198,9 +185,9 @@ test(millis_rollover_doesNotFalselyBlock) {
 
 test(buttons1and3_statesCorrect) {
     resetAll();
-    pinStates[0] = false;  // LOW = pressed (button 1)
-    pinStates[2] = false;  // LOW = pressed (button 3)
-    fakeMillis = 100;
+    digitalReadValue(kDigitalPins[0], false);  // LOW = pressed (button 1)
+    digitalReadValue(kDigitalPins[2], false);  // LOW = pressed (button 3)
+    millisValue(100);
 
     sprayer.CheckDigitalInputs(50);
     assertTrue(sprayer.buttons[0].state);
@@ -211,9 +198,9 @@ test(buttons1and3_statesCorrect) {
 
 test(buttons2and4_statesCorrect) {
     resetAll();
-    pinStates[1] = false;  // LOW = pressed (button 2)
-    pinStates[3] = false;  // LOW = pressed (button 4)
-    fakeMillis = 100;
+    digitalReadValue(kDigitalPins[1], false);  // LOW = pressed (button 2)
+    digitalReadValue(kDigitalPins[3], false);  // LOW = pressed (button 4)
+    millisValue(100);
 
     sprayer.CheckDigitalInputs(50);
     assertFalse(sprayer.buttons[0].state);
@@ -233,7 +220,7 @@ test(analogInput_initialValue_isZero) {
 
 test(analogInput_singleRead_halvesWithZeroStart) {
     resetAll();
-    analogValues[0] = 100;
+    analogReadValue(ANALOG_IN1, 100);
 
     sprayer.CheckAnalogInputs();
     // (0 + 100) / 2 = 50
@@ -242,7 +229,7 @@ test(analogInput_singleRead_halvesWithZeroStart) {
 
 test(analogInput_multipleReads_converge) {
     resetAll();
-    analogValues[0] = 1000;
+    analogReadValue(ANALOG_IN1, 1000);
 
     // After 11 reads: 0→500→750→875→937→968→984→992→996→998→999→999
     for (int i = 0; i < 11; ++i) sprayer.CheckAnalogInputs();
@@ -252,21 +239,9 @@ test(analogInput_multipleReads_converge) {
 test(analogInput_zeroReading_decaysNonZeroStart) {
     resetAll();
     sprayer.analogInputs[0].value = 100;
-    analogValues[0] = 0;
+    analogReadValue(ANALOG_IN1, 0);
 
     sprayer.CheckAnalogInputs();
     // (100 + 0) / 2 = 50
     assertEqual(sprayer.analogInputs[0].value, 50);
-}
-
-// ---------------------------------------------------------------------------
-// Arduino boilerplate
-// ---------------------------------------------------------------------------
-void setup() {
-    Serial.begin(115200);
-    while (!Serial);
-}
-
-void loop() {
-    TestRunner::run();
 }

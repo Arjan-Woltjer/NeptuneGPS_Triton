@@ -6,23 +6,21 @@
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point).
+- `native/LoofdoesNativeTests.cpp` -- the single AUnit driver (`setup()`/
+  `loop()`), matching Salacia's `test/native/SalaciaNativeTests.cpp` pattern.
+  Every `test_*.cpp` file only registers `test(...)` blocks; none of them
+  define `setup()`/`loop()` themselves anymore, so they all link into one
+  combined binary instead of one binary per test file.
 - `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
 
-test_InterfaceSprayer.cpp and test_ImplementSprayer.cpp each define their own
-setup()/loop() (one binary per test file, not combined), so they build as two
-separate PlatformIO envs:
-
 ```
-pio run -e native_interface_sprayer
-.pio/build/native_interface_sprayer/program(.exe)
-
-pio run -e native_implement_sprayer
-.pio/build/native_implement_sprayer/program(.exe)
+pio run -e native
+.pio/build/native/program(.exe)
 ```
 
 Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
 without one, use test\native\run_tests_msvc.ps1 instead, which builds and
-runs both via MSVC directly.
+runs the same combined binary via MSVC directly.
 
 More information about PlatformIO Unit Testing (not used here -- pio test's
 own Unity-based runner doesn't understand this project's AUnit setup):
