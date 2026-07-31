@@ -18,6 +18,12 @@
 */
 #include "IsobusGuidanceChannel.hpp"
 
+// The header is itself empty unless ISOBUS is defined (see its own comment) --
+// guard the body too, so this compiles to an empty translation unit instead
+// of failing on undeclared isobus:: symbols when PlatformIO's LDF pulls this
+// file in on teensy41_serial anyway.
+#ifdef ISOBUS
+
 using namespace isobus;
 
 namespace triton
@@ -58,7 +64,7 @@ static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 // ------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------
-IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, IsobusGuidanceSource* guidance, ImplementPlough* implement)
+IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, GuidanceSource* guidance, ImplementPlough* implement)
     : serialDebug(serialDebug), guidance(guidance), implement(implement),
       can0(std::make_shared<FlexCANT4Plugin>(0)) {
 }
@@ -174,7 +180,7 @@ void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) 
     auto rawXte = int32_t(uint32_t(d[2]) | (uint32_t(d[3]) << 8) | (uint32_t(d[4]) << 16) | (uint32_t(d[5]) << 24));
     if (rawXte != int32_t(0x7FFFFFFF)) {
         // rawXte is already hundredths of a metre (0.01 m units) -- matches
-        // IsobusGuidanceSource::SetXte's hundredths-of-a-metre convention
+        // GuidanceSource::SetXte's hundredths-of-a-metre convention
         // directly, no rescale needed. Quality isn't part of this PGN;
         // assume RTK-equivalent (4) since a standards-compliant guidance
         // source broadcasting real XTE implies it trusts its own fix.
@@ -254,3 +260,5 @@ void IsobusGuidanceChannel::OnAllImplementStop(const CANMessage&, void* context)
 }
 
 }  // namespace triton
+
+#endif  // ISOBUS

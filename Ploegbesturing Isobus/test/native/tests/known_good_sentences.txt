@@ -1,0 +1,34 @@
+NMEA:
+$GPGGA,151503.00,5326.480207,N,00645.193203,E,2,09,1.0,44.05,M,0.00,M,,*67
+  lat=53.441337degN  lon=6.753220degE  quality=2  alt=44.05m
+
+$GPVTG,213.4,T,,M,002.91,N,005.39,K*61
+  course=213.4deg  speed=2.91 knots
+
+$GPXTE,A,A,0.159523,L,N*67
+  xte=15 cm  (0.159523 * 100 truncated to int; sign from L/R not yet implemented)
+
+
+TRIMBLE (inner ROXTE sentence; SerialGuidanceChannel strips the outer binary packet before TrimbleParser sees it):
+ROXTE,0.050    xte= 5 cm
+ROXTE,-0.120   xte=-12 cm
+ROXTE,0.000    xte= 0 cm
+Note: TrimbleParser::useParityAsChecksum() returns true.
+      Full binary packet format: 0xBF '@' ROXTE,<value> 0x10 0x03  (Trimble binary protocol)
+
+
+CAN OVER SERIAL (CAN frame data forwarded as NMEA-like ASCII hex on the GPS serial port):
+Encoding: sentence header = CAN arbitration ID hex string; data = 8 bytes as 16 hex chars.
+Data byte layout for each type is proprietary (see CanSerialParser.cpp for details).
+
+$0CFEF31C,00072A9C80652680*52
+  lat=52.000000degN  lon=5.000000degE
+  (CAN_POS: 4-byte LE biased by +2100000000 / 1e7, big-endian nibble pairs in string)
+
+$0CFEE81C,002D00020000804F*5D
+  course=90.0deg  speed=2.0 knots  alt=44.0m
+  (CAN_SPD: nibble-swapped 16-bit fields; course/128, speed/256, alt/8-2500)
+
+$0CFFFF2A,001000007D000000*5E
+  xte=0 cm  quality=4 (RTK fix)
+  (CAN_XTE: XTE=(val-32000)>>1; quality from nibble t[2]=='1')

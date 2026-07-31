@@ -18,13 +18,19 @@
 */
 #pragma once
 
-#ifdef ARDUINO
+// See IsobusGuidanceChannel.hpp's matching comment: ARDUINO excludes this
+// from [env:native]; ISOBUS is required too so this header (and its
+// #include <AgIsoStack.hpp>) becomes entirely empty on teensy41_serial,
+// where AgIsoStack isn't installed as a lib_dep -- PlatformIO's LDF compiles
+// every .cpp under a pulled-in library folder regardless of which #ifdef
+// branch main.cpp's own #include takes.
+#if defined(ARDUINO) && defined(ISOBUS)
 
 #include <Arduino.h>
 #include <AgIsoStack.hpp>
 
 #include "ImplementPlough.hpp"
-#include "IsobusGuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 namespace triton
 {
@@ -45,7 +51,7 @@ namespace triton
 // for a deliberate follow-up decision.
 class IsobusVtInterface {
 public:
-    IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, IsobusGuidanceSource* guidance,
+    IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
                        std::shared_ptr<isobus::InternalControlFunction> controlFunction);
 
     // Call once from setup(), after the control function's address is claimed.
@@ -62,7 +68,7 @@ private:
 
     Stream*                serialDebug;
     ImplementPlough*       implement;
-    IsobusGuidanceSource*  guidance;
+    GuidanceSource*  guidance;
 
     std::shared_ptr<isobus::InternalControlFunction>  controlFunction;
     std::shared_ptr<isobus::DiagnosticProtocol>        diagnostics;
@@ -79,4 +85,4 @@ private:
 
 }  // namespace triton
 
-#endif  // ARDUINO
+#endif  // ARDUINO && ISOBUS

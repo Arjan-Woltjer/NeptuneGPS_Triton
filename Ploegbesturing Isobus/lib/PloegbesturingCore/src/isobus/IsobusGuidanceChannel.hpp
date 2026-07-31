@@ -18,13 +18,21 @@
 */
 #pragma once
 
-#ifdef ARDUINO
+// ARDUINO: excluded from [env:native] (matches CalibrationPlough's exclusion --
+// this is a hardware/protocol adapter, not pure logic worth native testing).
+// ISOBUS: PlatformIO's LDF compiles every .cpp under a library folder it's
+// pulled in at all, regardless of which #ifdef branch main.cpp's own
+// #include takes -- so on teensy41_serial (no ISOBUS, no AgIsoStack lib_dep
+// installed) this header must itself become empty, not just conditionally
+// unused, or IsobusGuidanceChannel.cpp's #include <AgIsoStack.hpp> below
+// fails to resolve.
+#if defined(ARDUINO) && defined(ISOBUS)
 
 #include <Arduino.h>
 #include <AgIsoStack.hpp>
 
 #include "ImplementPlough.hpp"
-#include "IsobusGuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 namespace triton
 {
@@ -35,11 +43,11 @@ namespace triton
 // legacy JD/Trimble/CNH proprietary messages VehicleGps used to decode (kept
 // for backwards compatibility with equipment that doesn't broadcast the
 // NMEA2000 set), and AISO (All Implement Stop Operations, a real ISOBUS
-// safety broadcast). Feeds IsobusGuidanceSource; stops ImplementPlough
+// safety broadcast). Feeds GuidanceSource; stops ImplementPlough
 // directly on AISO.
 class IsobusGuidanceChannel {
 public:
-    IsobusGuidanceChannel(Stream* serialDebug, IsobusGuidanceSource* guidance, ImplementPlough* implement);
+    IsobusGuidanceChannel(Stream* serialDebug, GuidanceSource* guidance, ImplementPlough* implement);
 
     // Brings up the CAN hardware plugin, claims a NAME/address (blocks until
     // claim completes -- a one-time startup cost per ISO 11783's >=250ms
@@ -54,7 +62,7 @@ public:
 
 private:
     Stream*                serialDebug;
-    IsobusGuidanceSource*  guidance;
+    GuidanceSource*  guidance;
     ImplementPlough*       implement;
 
     std::shared_ptr<isobus::FlexCANT4Plugin>         can0;
@@ -73,4 +81,4 @@ private:
 
 }  // namespace triton
 
-#endif  // ARDUINO
+#endif  // ARDUINO && ISOBUS

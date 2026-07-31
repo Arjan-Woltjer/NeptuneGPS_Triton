@@ -20,18 +20,27 @@
 #include <EEPROM.h>
 
 #include "CalibrationPlough.hpp"
+#include "GuidanceSource.hpp"
 #include "ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
-#include "IsobusGuidanceChannel.hpp"
-#include "IsobusGuidanceSource.hpp"
-#include "IsobusVtInterface.hpp"
 #include "LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 
-// Serial port -- no serial GPS left, CAN-only guidance data acquisition via
-// IsobusGuidanceChannel/AgIsoStack.
+#ifdef ISOBUS
+#include "IsobusGuidanceChannel.hpp"
+#include "IsobusVtInterface.hpp"
+#else
+#include "SerialGuidanceChannel.hpp"
+#endif
+
+// Serial ports
 HardwareSerial* gSerialDebug = &Serial2;
+#ifndef ISOBUS
+// Only the serial guidance path needs a GPS UART -- the ISOBUS build
+// acquires guidance data over CAN instead (IsobusGuidanceChannel/AgIsoStack).
+HardwareSerial* gSerialGps = &Serial1;
+#endif
 
 // I2C
 TwoWire* gLcdWire = &Wire;
@@ -39,14 +48,18 @@ TwoWire* gLcdWire = &Wire;
 // --------------
 // Global objects
 // --------------
-triton::InterfaceI2CLCD*       gLcd;
-triton::VehicleTractor*        gTractor;
-triton::ImplementPlough*       gImplement;
-triton::InterfacePlough*       gInterface;
-triton::CalibrationPlough*     gCalibration;
-triton::IsobusGuidanceSource*  gGuidance;
+triton::InterfaceI2CLCD*   gLcd;
+triton::VehicleTractor*    gTractor;
+triton::ImplementPlough*   gImplement;
+triton::InterfacePlough*   gInterface;
+triton::CalibrationPlough* gCalibration;
+triton::GuidanceSource*    gGuidance;
+#ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusVtInterface*     gVtInterface;
+#else
+triton::SerialGuidanceChannel* gGuidanceChannel;
+#endif
 
 // -------------
 // Setup routine
@@ -59,12 +72,13 @@ void setup() {
     gSerialDebug->begin(SERIALDATARATE);  // Serial for computer native usb
 
     // gGuidance and gImplement have no CAN/AgIsoStack dependency, so they're
-    // constructed first -- gGuidanceChannel needs both already built (it
-    // feeds gGuidance from its PGN callbacks and calls gImplement->Stop()
-    // on AISO).
-    gGuidance = new triton::IsobusGuidanceSource(gSerialDebug);
+    // constructed first -- gGuidanceChannel needs both already built (the
+    // ISOBUS one feeds gGuidance from its PGN callbacks and calls
+    // gImplement->Stop() on AISO).
+    gGuidance = new triton::GuidanceSource(gSerialDebug);
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
 
+#ifdef ISOBUS
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
     // until claimed), PGN callback registration, initial PGN requests.
     gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gGuidance, gImplement);
@@ -72,6 +86,15 @@ void setup() {
 
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
+#else
+    // 4800 baud is the common NMEA default. No baudrate calibration/UI
+    // exists in this project today (CalibrationPlough only exposes RTK
+    // quality, not GPS baud rate), so this is a fixed value, not tracked
+    // or persisted anywhere -- add a real calibration step later if a
+    // variable-baud GPS receiver ever needs it.
+    gSerialGps->begin(4800);
+    gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
+#endif
 
     // Initialise objects and interfaces
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
@@ -113,10 +136,12 @@ void setup() {
 // Main loop
 // ---------
 void loop() {
-    // Pumps CAN I/O; guidance/speed/XTE/AISO data arrives asynchronously via
-    // IsobusGuidanceChannel's own registered PGN callbacks.
+    // Pumps guidance data acquisition -- CAN I/O + PGN callbacks (ISOBUS) or
+    // the UART sentence dispatcher (serial), feeding gGuidance either way.
     gGuidanceChannel->Update();
+#ifdef ISOBUS
     gVtInterface->Update();
+#endif
 
     // Update interface
     gInterface->Update();

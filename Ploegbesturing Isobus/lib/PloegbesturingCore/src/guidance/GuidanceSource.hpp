@@ -1,5 +1,5 @@
 /*
-  IsobusGuidanceSource - shared guidance data model for the plough ISOBUS controller
+  GuidanceSource - shared guidance data model for the plough controller
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -27,28 +27,40 @@ namespace triton
 #define GPS_MS_PER_KNOT 0.51444444f
 #define MINSPEED        0.5f
 
-// Replaces VehicleGps for this project: a plain data model fed exclusively by
-// IsobusGuidanceChannel's PGN callbacks (both the standard NMEA2000 messages
-// and the legacy JD/Trimble/CNH proprietary ones), read by ImplementPlough/
-// InterfacePlough/CalibrationPlough. No NMEA-serial parsing, no CAN/AgIsoStack
-// dependency here -- that split (data model vs. hardware/protocol adapter)
-// mirrors Salacia's Source/Channel convention.
-class IsobusGuidanceSource {
+// Replaces VehicleGps for this project: a plain data model, transport-
+// agnostic, fed by either IsobusGuidanceChannel's PGN callbacks (CAN/ISOBUS,
+// standard NMEA2000 messages and legacy JD/Trimble/CNH proprietary ones) or
+// SerialGuidanceChannel's GpsParser-family sentence parsers (plain UART),
+// selected at compile time by the ISOBUS macro. Read by ImplementPlough/
+// InterfacePlough/CalibrationPlough regardless of which channel feeds it --
+// that split (data model vs. hardware/protocol adapter) mirrors Salacia's
+// Source/Channel convention.
+class GuidanceSource {
 public:
-    inline explicit IsobusGuidanceSource(Stream* serialDebug) : serialDebug(serialDebug) {
+    inline explicit GuidanceSource(Stream* serialDebug) : serialDebug(serialDebug) {
         readCalibrationData();
     }
 
     // ------------------------------------------------------------
-    // Setters -- called only from IsobusGuidanceChannel's PGN callbacks
+    // Setters -- called only from IsobusGuidanceChannel's PGN callbacks or
+    // SerialGuidanceChannel's GpsParser-family sentence parsers
     // ------------------------------------------------------------
     inline void NoteGgaFixReceived()            { lastGgaFix = millis(); }
+    inline void SetPosition(float lat, float lon) { latitude = lat; longitude = lon; lastGgaFix = millis(); }
+    inline void SetAltitude(float alt)          { altitude = alt; }
     inline void SetSpeedKnots(float knots)      { speed = knots; lastVtgFix = millis(); }
+    inline void SetCourseDeg(float degrees)     { course = degrees; lastVtgFix = millis(); }
+    inline void SetTime(float t)                { time = t; }
+    inline void SetDate(unsigned long d)        { date = d; }
+    inline void SetQuality(byte q)              { quality = q; }
+    inline void SetXte(int hundredthsM)         { xte = hundredthsM; lastXteFix = millis(); }
     inline void SetXte(int hundredthsM, byte q) { xte = hundredthsM; quality = q; lastXteFix = millis(); }
 
     // ------------------------------------------------------------
     // Getters -- exact mirror of what ImplementPlough/InterfacePlough/
-    // CalibrationPlough called on VehicleGps before this port
+    // CalibrationPlough called on VehicleGps before this port, plus the
+    // fuller surface the serial-path parsers need (position/altitude/
+    // course/quality/datetime), matching the prototype's GpsState.
     // ------------------------------------------------------------
     inline int           GetXte()        { return xte; }
     inline unsigned long GetXteFixAge()  { return lastXteFix; }
@@ -57,6 +69,18 @@ public:
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
     inline boolean       MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
+
+    inline float  GetLatitude()  { return latitude; }
+    inline float  GetLongitude() { return longitude; }
+    inline float  GetAltitude()  { return altitude; }
+    inline float  GetCourse()    { return course; }
+    inline float  GetSpeed()     { return speed; }
+    inline byte   GetQuality()   { return quality; }
+
+    inline void GetDatetime(unsigned long* outdate, unsigned long* outtime) {
+        if (outdate) *outdate = date;
+        if (outtime) *outtime = (unsigned long)time;
+    }
 
     inline void SetRtkQuality(byte q) { rtkQuality = (q == 4 || q == 2) ? q : 4; }
     inline byte GetRtkQuality()       { return rtkQuality; }
@@ -81,6 +105,12 @@ private:
 
     Stream* serialDebug;
 
+    float         latitude = 0.0f;
+    float         longitude = 0.0f;
+    float         altitude = 0.0f;
+    float         course = 0.0f;
+    float         time = 0.0f;
+    unsigned long date = 0;
     int           xte = 0;
     byte          quality = 0;
     float         speed = 0.0f;
@@ -90,7 +120,7 @@ private:
     unsigned long lastXteFix = 0;
 };
 
-inline void IsobusGuidanceSource::PrintCalibrationData() {
+inline void GuidanceSource::PrintCalibrationData() {
     serialDebug->println("===============================");
     serialDebug->println("Guidance source using following data:");
     serialDebug->println("===============================");

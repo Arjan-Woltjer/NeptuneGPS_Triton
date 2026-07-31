@@ -1,11 +1,20 @@
 
-`native/` holds the AUnit tests for ImplementPlough/InterfacePlough
-(../lib/PloegbesturingCore/src/), run natively (no Teensy attached):
+`native/` holds the AUnit tests for ImplementPlough/InterfacePlough and the
+serial-path GPS sentence parsers (../lib/PloegbesturingCore/src/), run
+natively (no Teensy attached):
 
-- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test, or a
+  descriptive group name for a related set (`test_GpsParsers.cpp` covers
+  `NmeaParser`/`TrimbleParser`/`CanSerialParser`).
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
-  `native_main.cpp` (the host `int main()` entry point).
+  `native_main.cpp` (the host `int main()` entry point). `GuidanceSource.hpp`
+  here is a fake with the same API shape as the real class in
+  `lib/PloegbesturingCore/src/guidance/` -- both `ImplementPlough`/
+  `InterfacePlough` tests (which poke raw fields directly) and
+  `test_GpsParsers.cpp` (which calls real `Set*()`/`Get*()` methods) resolve
+  to this same fake, since `[env:native]`'s `-I test/native/support` is
+  searched before the real header's directory.
 - `native/PloegbesturingNativeTests.cpp` -- the single AUnit driver (`setup()`/
   `loop()`), matching Salacia's/Loofdoes' `SalaciaNativeTests.cpp`/
   `LoofdoesNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
@@ -26,7 +35,22 @@ runs the same combined binary via MSVC directly. That script passes
 this project uses (matching Salacia's/Loofdoes' convention: groups each
 test's display name under the class it exercises, e.g.
 `ImplementPlough_position_descendingCalibration_atPoint0`,
-`InterfacePlough_update_staleGgaFix_selectsHold`).
+`NmeaParser_gga_lat_lon_quality_alt`).
+
+## Real-board envs
+
+Two buildable board environments, both `board = teensy41`, selected by
+whether guidance data comes over CAN/ISOBUS or plain UART:
+
+- `pio run -e teensy41_isobus` (default) -- `IsobusGuidanceChannel`, AgIsoStack
+  address claim + PGN subscriptions/requests, plus the Virtual Terminal
+  client and diagnostics (`IsobusVtInterface`/`VTObjectPool`). `-D ISOBUS`.
+- `pio run -e teensy41_serial` -- `SerialGuidanceChannel`, plain UART
+  NMEA/Trimble/CAN-over-serial parsing (`GpsParser`/`NmeaParser`/
+  `TrimbleParser`/`CanSerialParser`). No CAN bus, no AgIsoStack, no VT.
+
+Both share `[env:teensy41]` as a common template in `platformio.ini` (not
+built directly), mirroring Salacia's own base-env + variant pattern.
 
 ## Known gaps
 
@@ -42,10 +66,22 @@ test's display name under the class it exercises, e.g.
   *are* tested, live in the same file) but its output isn't asserted on by
   any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
   `WriteScreen` are no-ops.
-- The `teensy41` real-board env (ACAN_T4-based CAN/ISOBUS setup in
-  `src/main.cpp`) has not been build-verified on real hardware or via a full
-  `pio run -e teensy41` in this environment -- see `platformio.ini`'s
-  comments on `lib_deps` for what's confirmed vs. still open.
+- `IsobusGuidanceChannel`/`IsobusVtInterface`/`SerialGuidanceChannel` are all
+  thin hardware/transport adapters (CAN bus, ISOBUS stack, or raw UART byte
+  reading) with no native coverage by design -- the real logic worth testing
+  (PGN byte-decode math, sentence parsing) lives in the natively-tested
+  classes each of them calls into (`GuidanceSource`, `NmeaParser`/
+  `TrimbleParser`/`CanSerialParser`).
+- `teensy41_isobus`: the JD/Trimble/CNH legacy proprietary-PGN decode and the
+  standard NMEA2000 PGN decode both build and link against the real AgIsoStack
+  package, but haven't been verified against real CAN traffic on target
+  hardware -- see `IsobusGuidanceChannel.cpp`'s comments for the specific
+  open risks (PDU1 destination-addressing for the Trimble/CNH message,
+  whether non-address-claiming senders are delivered via the PGN callback at
+  all).
+- `teensy41_serial`: builds and links, but the UART sentence dispatch itself
+  (`SerialGuidanceChannel::Update()`/`dispatchTerm()`, including the Trimble
+  binary packet framing) has not been verified against a real GPS receiver.
 - Only the `teensy41` board is wired up today. Ploegbesturing has
   historically also run on Arduino Uno, Arduino Micro, Teensy 3.2, and
   Teensy 3.6 -- their pin-config `#ifdef` branches remain in

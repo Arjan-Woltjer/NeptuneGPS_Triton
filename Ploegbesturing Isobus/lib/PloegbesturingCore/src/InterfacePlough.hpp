@@ -20,7 +20,7 @@
 
 #include "InterfaceI2CLCD.hpp"
 #include "VehicleTractor.hpp"
-#include "IsobusGuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 #include "ConfigInterfacePlough.hpp"
 #include "ImplementPlough.hpp"
@@ -50,7 +50,7 @@ private:
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
     VehicleTractor*        tractor;
-    IsobusGuidanceSource*  guidance;
+    GuidanceSource*  guidance;
 
 public:
     // ----------------------------------------------------
@@ -62,7 +62,7 @@ public:
                     InterfaceI2CLCD* lcd,
                     ImplementPlough* implement,
                     VehicleTractor* tractor,
-                    IsobusGuidanceSource* guidance);
+                    GuidanceSource* guidance);
 
     void Update();
     void UpdateScreen(boolean rewrite);

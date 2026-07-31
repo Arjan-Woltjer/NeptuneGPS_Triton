@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "IsobusGuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 #include "ConfigImplementPlough.hpp"
 
@@ -80,7 +80,7 @@ private:
 
     // Objects
     Stream*     serialDebug;
-    IsobusGuidanceSource* guidance;
+    GuidanceSource* guidance;
 
     //------------------------------------------------------------
     // private member functions implemented in ImplementPlough.cpp
@@ -107,7 +107,7 @@ public:
     // ----------------------------------------------------------
 
     // Constructor
-    ImplementPlough(Stream* serialDebug, IsobusGuidanceSource* guidance);
+    ImplementPlough(Stream* serialDebug, GuidanceSource* guidance);
 
     void Update(byte mode, short int buttons);
     void Stop();

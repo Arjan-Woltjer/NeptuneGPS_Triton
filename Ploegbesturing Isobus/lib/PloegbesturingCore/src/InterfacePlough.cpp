@@ -28,7 +28,7 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
                                   InterfaceI2CLCD* lcd,
                                   ImplementPlough* implement,
                                   VehicleTractor* tractor,
-                                  IsobusGuidanceSource* guidance) {
+                                  GuidanceSource* guidance) {
     // Pin assignments and configuration
     // Schmitt triggered inputs
     pinMode(LEFT_BUTTON_2, INPUT);

@@ -22,7 +22,7 @@ namespace triton
 {
 
 CalibrationPlough::CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                                      VehicleTractor* tractor, IsobusGuidanceSource* guidance, InterfacePlough* interface)
+                                      VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface)
     : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), interface(interface) {
 }
 

@@ -18,6 +18,12 @@
 */
 #include "IsobusVtInterface.hpp"
 
+// The header is itself empty unless ISOBUS is defined (see its own comment) --
+// guard the body too, so this compiles to an empty translation unit instead
+// of failing on undeclared isobus:: symbols when PlatformIO's LDF pulls this
+// file in on teensy41_serial anyway.
+#ifdef ISOBUS
+
 #include "VTObjectPool.hpp"
 
 using namespace isobus;
@@ -43,7 +49,7 @@ void IsobusVtInterface::Logger::sink_CAN_stack_log(CANStackLogger::LoggingLevel 
 // ----------------------------------------------------------------
 // Constructor
 // ----------------------------------------------------------------
-IsobusVtInterface::IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, IsobusGuidanceSource* guidance,
+IsobusVtInterface::IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
                                       std::shared_ptr<InternalControlFunction> controlFunction)
     : serialDebug(serialDebug), implement(implement), guidance(guidance), controlFunction(controlFunction) {
 }
@@ -117,3 +123,5 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
 }
 
 }  // namespace triton
+
+#endif  // ISOBUS

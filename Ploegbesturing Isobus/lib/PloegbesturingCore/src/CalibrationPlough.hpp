@@ -26,7 +26,7 @@
 #include "ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
-#include "IsobusGuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 #include "LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 
@@ -41,7 +41,7 @@ namespace triton
 class CalibrationPlough {
 public:
     CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                       VehicleTractor* tractor, IsobusGuidanceSource* guidance, InterfacePlough* interface);
+                       VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface);
 
     void Calibrate();
 
@@ -50,7 +50,7 @@ private:
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
     VehicleTractor*        tractor;
-    IsobusGuidanceSource*  guidance;
+    GuidanceSource*  guidance;
     InterfacePlough*       interface;
 };
 

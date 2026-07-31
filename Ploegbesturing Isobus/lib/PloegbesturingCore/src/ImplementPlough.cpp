@@ -24,7 +24,7 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementPlough::ImplementPlough(Stream* serialDebug, IsobusGuidanceSource* guidance) {
+ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) {
     // Pin configuration
     // Inputs
     pinMode(PLOUGHSIDE_PIN_2, INPUT);
