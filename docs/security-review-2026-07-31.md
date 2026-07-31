@@ -111,6 +111,16 @@ adjacent `lastXteFix` member.
 `term` is `char term[20]`, a member of a heap object, immediately preceded in the
 class layout by `lastGgaFix`, `lastVtgFix` and `lastXteFix`.
 
+Two qualifications on severity, established while fixing this. The **read** is
+certain: it follows directly from `termOffset` being 0 and the expression
+indexing `-1`. The **write** additionally requires the checksum arithmetic over
+those out-of-bounds bytes to sum to zero; a bounded search over ~1M candidate
+inputs did not produce a triggering sequence, so it is reachable in principle but
+not demonstrated. Note also that AddressSanitizer cannot detect either: `term[-1]`
+is still within the `VehicleGps` allocation, making this intra-object corruption
+rather than a buffer overflow relative to the object. A clean ASan run is not
+evidence of absence here.
+
 This file is consumed by all three firmware projects. Convention §11 requires
 external input be validated and malformed packets fail closed. Fixed by **PR 5**.
 
