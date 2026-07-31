@@ -1,0 +1,58 @@
+
+`native/` holds the AUnit tests for ImplementPlough/InterfacePlough
+(../lib/PloegbesturingCore/src/), run natively (no Teensy attached):
+
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point).
+- `native/PloegbesturingNativeTests.cpp` -- the single AUnit driver (`setup()`/
+  `loop()`), matching Salacia's/Loofdoes' `SalaciaNativeTests.cpp`/
+  `LoofdoesNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
+  `test(...)` blocks; none of them define `setup()`/`loop()` themselves, so
+  they all link into one combined binary instead of one binary per test file.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses (matching Salacia's/Loofdoes' convention: groups each
+test's display name under the class it exercises, e.g.
+`ImplementPlough_position_descendingCalibration_atPoint0`,
+`InterfacePlough_update_staleGgaFix_selectsHold`).
+
+## Known gaps
+
+- `CalibrationPlough` (the LCD/button calibration wizard extracted from the
+  legacy `InterfacePlough::Calibrate()`) is `#ifdef ARDUINO`-guarded and
+  deliberately excluded from `[env:native]`'s `build_src_filter` -- it drives
+  real LCD/button hardware through a sequence of blocking `while(true)` menu
+  loops, the same shape of problem Loofdoes' `CalibrationSprayer` has, and
+  which is excluded there for the same reason. No native coverage exists or
+  is planned for it.
+- `InterfacePlough::UpdateScreen()` (LCD rendering) compiles as part of
+  `InterfacePlough.cpp` (needed since `CheckButtons()`/`Update()`, which
+  *are* tested, live in the same file) but its output isn't asserted on by
+  any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
+  `WriteScreen` are no-ops.
+- The `teensy41` real-board env (ACAN_T4-based CAN/ISOBUS setup in
+  `src/main.cpp`) has not been build-verified on real hardware or via a full
+  `pio run -e teensy41` in this environment -- see `platformio.ini`'s
+  comments on `lib_deps` for what's confirmed vs. still open.
+- Only the `teensy41` board is wired up today. Ploegbesturing has
+  historically also run on Arduino Uno, Arduino Micro, Teensy 3.2, and
+  Teensy 3.6 -- their pin-config `#ifdef` branches remain in
+  `ConfigPlough.hpp`/`ConfigImplementPlough.hpp`/`ConfigInterfacePlough.hpp`
+  for future revival, but none of them has a buildable `platformio.ini` env
+  yet.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
