@@ -39,7 +39,8 @@ private:
         bool   valid;
     };
 
-    enum Result  { SUCCESS, DOWNLOAD_FAIL, INVALID_IMAGE, PARTITION_ERR, FLASH_ERR };
+    enum Result  { SUCCESS, DOWNLOAD_FAIL, INVALID_IMAGE, PARTITION_ERR, FLASH_ERR,
+                   UNTRUSTED_URL, HASH_MISMATCH };
     enum LedMode { LED_OFF, LED_ON, LED_BLINK_SLOW, LED_BLINK_FAST };
 
     bool   fetchFirmwareInfo(FirmwareInfo& info);
@@ -49,6 +50,11 @@ private:
     void   setLed(LedMode mode);
     void   updateLed();
     String getDeviceId();
+
+    // The download URL arrives in the server's JSON, so it is attacker-controlled
+    // the moment that server is. Both are static -- no instance state.
+    static bool   trustedUrl(const String& url);
+    static String toHex(const uint8_t* bytes, size_t len);
 
     bool (*selfTestCallback)();
     nvs_handle_t  nvs;

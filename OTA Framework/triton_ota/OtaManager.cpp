@@ -22,12 +22,24 @@
 #include <WiFi.h>
 #include <esp_ota_ops.h>
 #include <esp_task_wdt.h>
+#include <mbedtls/md.h>
 #include <nvs_flash.h>
 
 #include <ArduinoJson.h>
 
 #include "ConfigOta.h"
 #include "OtaCerts.h"
+
+// SHA-256 as lowercase hex.
+static constexpr unsigned kSha256HexLen = 64;
+
+// What the digest does and does not buy: it proves the bytes that reached flash
+// are the bytes the manifest described, so a truncated or corrupted download can
+// no longer boot. It proves nothing about who wrote the manifest -- a server that
+// serves a malicious image will serve its matching hash just as happily. Closing
+// that needs the image signed with a key the device holds (esp_secure_boot, or a
+// signature field verified here); the transport CA pin is the only thing standing
+// in for it today.
 
 OtaManager::OtaManager()
     : selfTestCallback(nullptr),
@@ -119,13 +131,58 @@ bool OtaManager::fetchFirmwareInfo(FirmwareInfo& info) {
     info.url     = doc["url"].as<String>();
     info.sha256  = doc["sha256"].as<String>();
     info.notes   = doc["notes"].as<String>();
-    info.valid   = (info.version > 0 && info.url.length() > 0);
+
+    // A manifest without a usable digest is not something to flash. The hash was
+    // already being parsed here and then never used; requiring it makes an
+    // unverifiable image fail closed rather than install silently.
+    info.valid = (info.version > 0 &&
+                  info.url.length() > 0 &&
+                  info.sha256.length() == kSha256HexLen &&
+                  trustedUrl(info.url));
+
+    if (!info.valid) {
+        Serial.println("[OTA] Manifest rejected: needs version, trusted https URL and sha256.");
+    }
 
     return info.valid;
 }
 
+// Only https, and only from the configured server. HTTPClient::begin(url, ca)
+// ignores the CA argument entirely for an http:// URL, so without this check a
+// manifest could downgrade its own firmware download to cleartext just by
+// changing the scheme.
+bool OtaManager::trustedUrl(const String& url) {
+    if (!url.startsWith("https://")) {
+        Serial.println("[OTA] Refusing non-https firmware URL.");
+        return false;
+    }
+    if (!url.startsWith(OTA_SERVER_HOST "/")) {
+        Serial.println("[OTA] Refusing firmware URL outside OTA_SERVER_HOST.");
+        return false;
+    }
+    return true;
+}
+
+String OtaManager::toHex(const uint8_t* bytes, size_t len) {
+    static const char* digits = "0123456789abcdef";
+    String out;
+    out.reserve(len * 2);
+    for (size_t i = 0; i < len; i++) {
+        out += digits[(bytes[i] >> 4) & 0x0F];
+        out += digits[bytes[i] & 0x0F];
+    }
+    return out;
+}
+
 OtaManager::Result OtaManager::performOta(const FirmwareInfo& fw) {
     HTTPClient http;
+
+    // Re-checked here rather than trusted from fetchFirmwareInfo(), so this stays
+    // correct if performOta() ever gains another caller.
+    if (!trustedUrl(fw.url)) {
+        return UNTRUSTED_URL;
+    }
+
     Serial.printf("[OTA] Downloading v%d from %s\n", fw.version, fw.url.c_str());
 
     http.begin(fw.url, OTA_CA_CERT);
@@ -159,6 +216,19 @@ OtaManager::Result OtaManager::performOta(const FirmwareInfo& fw) {
 
     esp_task_wdt_delete(NULL);
 
+    // Hash the image as it streams past, so verification costs no extra flash
+    // reads and no second pass.
+    mbedtls_md_context_t md;
+    mbedtls_md_init(&md);
+    if (mbedtls_md_setup(&md, mbedtls_md_info_from_type(MBEDTLS_MD_SHA256), 0) != 0 ||
+        mbedtls_md_starts(&md) != 0) {
+        mbedtls_md_free(&md);
+        esp_ota_abort(handle);
+        http.end();
+        esp_task_wdt_add(NULL);
+        return FLASH_ERR;
+    }
+
     WiFiClient* stream = http.getStreamPtr();
     uint8_t buf[1024];
     size_t written = 0;
@@ -169,11 +239,13 @@ OtaManager::Result OtaManager::performOta(const FirmwareInfo& fw) {
         if (avail > 0) {
             int n = stream->readBytes(buf, min(avail, (int)sizeof(buf)));
             if (esp_ota_write(handle, buf, n) != ESP_OK) {
+                mbedtls_md_free(&md);
                 esp_ota_abort(handle);
                 http.end();
                 esp_task_wdt_add(NULL);
                 return FLASH_ERR;
             }
+            mbedtls_md_update(&md, buf, n);
             written += n;
             stalls = 0;
             if (written % 65536 < (size_t)n) {
@@ -183,6 +255,7 @@ OtaManager::Result OtaManager::performOta(const FirmwareInfo& fw) {
         } else {
             delay(1);
             if (++stalls > 5000) {
+                mbedtls_md_free(&md);
                 esp_ota_abort(handle);
                 http.end();
                 esp_task_wdt_add(NULL);
@@ -193,6 +266,25 @@ OtaManager::Result OtaManager::performOta(const FirmwareInfo& fw) {
 
     http.end();
     esp_task_wdt_add(NULL);
+
+    uint8_t digest[32];
+    int mdRc = mbedtls_md_finish(&md, digest);
+    mbedtls_md_free(&md);
+    if (mdRc != 0) {
+        esp_ota_abort(handle);
+        return FLASH_ERR;
+    }
+
+    // Checked before esp_ota_end()/esp_ota_set_boot_partition(), so a mismatched
+    // image is discarded rather than left bootable.
+    const String actual = toHex(digest, sizeof(digest));
+    if (!actual.equalsIgnoreCase(fw.sha256)) {
+        Serial.printf("[OTA] SHA-256 mismatch.\n  expected %s\n  actual   %s\n",
+                      fw.sha256.c_str(), actual.c_str());
+        esp_ota_abort(handle);
+        return HASH_MISMATCH;
+    }
+    Serial.println("[OTA] SHA-256 verified.");
 
     if (esp_ota_end(handle) != ESP_OK) return INVALID_IMAGE;
     if (esp_ota_set_boot_partition(part) != ESP_OK) return FLASH_ERR;
