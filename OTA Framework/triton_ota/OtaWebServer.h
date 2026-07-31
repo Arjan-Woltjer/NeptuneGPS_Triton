@@ -33,8 +33,14 @@ private:
     void   handleRoot();
     void   handleUpdate();
     void   handleUploadChunk();
+    bool   authenticated();
+    void   requestAuth();
     String buildPage(const String& statusHtml);
 
     WebServer server;
     bool      uploadError;
+    // Latched at UPLOAD_FILE_START. The upload handler runs while the request
+    // body is still being parsed, so this is the only point at which an
+    // unauthenticated upload can be refused before it reaches flash.
+    bool      uploadAuthorized;
 };

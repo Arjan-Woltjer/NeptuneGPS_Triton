@@ -23,11 +23,24 @@
 
 #include "ConfigOta.h"
 
+static const char* kAuthRealm = "Triton IO";
+
+#if OTA_WEB_ENABLED
+// A firmware-flashing endpoint reachable over the network with a blank password
+// is an open door, so refuse to build one. Both credentials come from
+// build_flags; see ConfigOta.h.
+static_assert(sizeof(OTA_WEB_PASSWORD) > 1,
+              "OTA_WEB_ENABLED=1 requires OTA_WEB_PASSWORD to be set via build_flags");
+static_assert(sizeof(OTA_WEB_USER) > 1,
+              "OTA_WEB_ENABLED=1 requires OTA_WEB_USER to be set via build_flags");
+#endif
+
 OtaWebServer::OtaWebServer(uint16_t port)
-    : server(port), uploadError(false) {
+    : server(port), uploadError(false), uploadAuthorized(false) {
 }
 
 void OtaWebServer::Begin() {
+#if OTA_WEB_ENABLED
     server.on("/", HTTP_GET, [this]() { handleRoot(); });
 
     server.on("/update", HTTP_POST,
@@ -38,22 +51,47 @@ void OtaWebServer::Begin() {
     server.begin();
     Serial.printf("[WEB-OTA] Listening on http://%s:%d\n",
                   WiFi.localIP().toString().c_str(), OTA_WEB_PORT);
+#else
+    Serial.println("[WEB-OTA] Disabled at build time (build with -D OTA_WEB_ENABLED=1).");
+#endif
 }
 
 void OtaWebServer::Update() {
+#if OTA_WEB_ENABLED
     server.handleClient();
+#endif
+}
+
+bool OtaWebServer::authenticated() {
+    return server.authenticate(OTA_WEB_USER, OTA_WEB_PASSWORD);
+}
+
+void OtaWebServer::requestAuth() {
+    // Digest rather than basic: this server speaks plaintext HTTP, and basic
+    // auth would put the password on the wire base64-encoded, which is to say
+    // in clear. Digest is still not confidentiality -- it only keeps the
+    // password itself off the wire.
+    server.requestAuthentication(DIGEST_AUTH, kAuthRealm, "Authentication required");
 }
 
 void OtaWebServer::handleRoot() {
-    if (!server.authenticate(OTA_WEB_USER, OTA_WEB_PASSWORD)) {
-        return server.requestAuthentication();
+    if (!authenticated()) {
+        return requestAuth();
     }
     server.send(200, "text/html", buildPage(""));
 }
 
 void OtaWebServer::handleUpdate() {
-    if (!server.authenticate(OTA_WEB_USER, OTA_WEB_PASSWORD)) {
-        return server.requestAuthentication();
+    // uploadAuthorized is what the upload handler actually acted on; re-checking
+    // authenticated() as well covers a POST that carried no file part at all, in
+    // which case handleUploadChunk() never ran and the latch is stale.
+    const bool authorized = uploadAuthorized && authenticated();
+    uploadAuthorized = false;
+
+    if (!authorized) {
+        // Nothing was flashed: handleUploadChunk() does not call Update.begin()
+        // without authorisation.
+        return requestAuth();
     }
     if (uploadError) {
         server.send(500, "text/html",
@@ -70,18 +108,38 @@ void OtaWebServer::handleUploadChunk() {
     HTTPUpload& upload = server.upload();
 
     if (upload.status == UPLOAD_FILE_START) {
-        uploadError = false;
+        uploadError      = false;
+        // The WebServer calls this handler while it is still parsing the request
+        // body -- before handleUpdate() runs. Authenticating only there would let
+        // an unauthenticated POST run to completion through Update.end(true),
+        // which sets the boot partition, and receive its 401 afterwards. By then
+        // the board is flashed and boots the uploaded image on the next reset.
+        // Authorisation has to be decided here, before the first byte is written.
+        uploadAuthorized = authenticated();
+
+        if (!uploadAuthorized) {
+            uploadError = true;
+            Serial.println("[WEB-OTA] Rejected unauthenticated upload.");
+            return;
+        }
+
         Serial.printf("[WEB-OTA] Upload started: %s\n", upload.filename.c_str());
         if (!::Update.begin(UPDATE_SIZE_UNKNOWN)) {
             ::Update.printError(Serial);
             uploadError = true;
         }
     } else if (upload.status == UPLOAD_FILE_WRITE) {
+        if (!uploadAuthorized) {
+            return;
+        }
         if (!uploadError && ::Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
             ::Update.printError(Serial);
             uploadError = true;
         }
     } else if (upload.status == UPLOAD_FILE_END) {
+        if (!uploadAuthorized) {
+            return;
+        }
         if (!uploadError) {
             if (::Update.end(true)) {
                 Serial.printf("[WEB-OTA] Complete: %u bytes flashed.\n", upload.totalSize);
@@ -90,6 +148,14 @@ void OtaWebServer::handleUploadChunk() {
                 uploadError = true;
             }
         }
+    } else if (upload.status == UPLOAD_FILE_ABORTED) {
+        // A client that disconnects mid-upload otherwise leaves Update holding a
+        // partially written partition.
+        if (uploadAuthorized && ::Update.isRunning()) {
+            ::Update.abort();
+        }
+        uploadError = true;
+        Serial.println("[WEB-OTA] Upload aborted.");
     }
 }
 

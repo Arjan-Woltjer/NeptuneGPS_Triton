@@ -30,5 +30,26 @@
 #define LED_PIN                2
 
 #define OTA_WEB_PORT           80
-#define OTA_WEB_USER           "admin"
-#define OTA_WEB_PASSWORD       "triton"
+
+// The local web upload endpoint flashes firmware, so it is opt-in rather than on
+// by default. Enable it and supply credentials through build_flags:
+//
+//   build_flags =
+//       -D OTA_WEB_ENABLED=1
+//       -D OTA_WEB_USER='"someuser"'
+//       -D OTA_WEB_PASSWORD='"a-real-password"'
+//
+// Credentials deliberately have no usable default -- OtaWebServer.cpp refuses to
+// compile with OTA_WEB_ENABLED=1 unless both are set. A password committed to
+// source is a published password.
+#ifndef OTA_WEB_ENABLED
+#define OTA_WEB_ENABLED        0
+#endif
+
+#ifndef OTA_WEB_USER
+#define OTA_WEB_USER           ""
+#endif
+
+#ifndef OTA_WEB_PASSWORD
+#define OTA_WEB_PASSWORD       ""
+#endif
