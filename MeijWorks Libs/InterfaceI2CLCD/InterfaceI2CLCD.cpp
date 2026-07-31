@@ -29,7 +29,12 @@ InterfaceI2CLCD::InterfaceI2CLCD(TwoWire* lcdWire, uint8_t addr,
       deviceAddress(addr),
       displayfunction(LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS),
       displaycontrol(0), displaymode(0),
-      numlines(rows), cols(cols), rows(rows),
+      // buffer and screen are fixed char[4][21]; constructing with dimensions
+      // larger than that would have overflowed both arrays inside the
+      // constructor itself, before any caller could get it wrong.
+      numlines(rows > 4 ? 4 : rows),
+      cols(cols > 20 ? 20 : cols),
+      rows(rows > 4 ? 4 : rows),
       backlightval(LCD_BACKLIGHT),
       screencounter(0), cursorRow(0), cursorCol(0) {
     if (rows > 1) {
@@ -38,8 +43,11 @@ InterfaceI2CLCD::InterfaceI2CLCD(TwoWire* lcdWire, uint8_t addr,
     if (charsize != 0 && rows == 1) {
         displayfunction |= LCD_5x10DOTS;
     }
-    for (int r = 0; r < rows; r++) {
-        for (int c = 0; c < cols; c++) {
+    // Clear the whole arrays, not just the configured area: column index 20 is
+    // the terminator slot and was never initialised, leaving each row an
+    // unterminated char[21] of indeterminate content until the first write.
+    for (size_t r = 0; r < sizeof(buffer) / sizeof(buffer[0]); r++) {
+        for (size_t c = 0; c < sizeof(buffer[0]); c++) {
             buffer[r][c] = 0;
             screen[r][c] = 0;
         }
@@ -187,11 +195,24 @@ void InterfaceI2CLCD::CreateChar(uint8_t location, uint8_t charmap[]) {
 
 void InterfaceI2CLCD::SetCursor(uint8_t col, uint8_t row) {
     int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
+
+    // Clamp before use, not after. The bound was `row > numlines`, so with the
+    // usual numlines of 4 a row of exactly 4 passed and indexed row_offsets[4],
+    // one past the end -- and cursorRow was assigned the unclamped value either
+    // way. row_offsets has four entries whatever numlines says, so bound by both.
+    const uint8_t maxRow = (numlines < 4 ? numlines : 4);
+    if (maxRow == 0) {
+        return;
+    }
+    if (row >= maxRow) {
+        row = maxRow - 1;
+    }
+    if (cols > 0 && col >= cols) {
+        col = cols - 1;
+    }
+
     cursorCol = col;
     cursorRow = row;
-    if (row > numlines) {
-        row = numlines - 1;
-    }
     Command(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
@@ -200,6 +221,12 @@ void InterfaceI2CLCD::SetCursor(uint8_t col, uint8_t row) {
 void InterfaceI2CLCD::WriteScreen(uint8_t n) {
     if (n == 0xFF) {
         screencounter = 0;
+    }
+
+    // n-- below would wrap 0 to 255 and write a whole screen's worth of
+    // characters for a call that asked for none.
+    if (n == 0) {
+        return;
     }
 
     while (true) {
@@ -224,9 +251,24 @@ void InterfaceI2CLCD::WriteScreen(uint8_t n) {
 }
 
 void InterfaceI2CLCD::WriteBuffer(const char line[], uint8_t lineNo) {
-    if (lineNo < rows) {
-        strcpy(buffer[lineNo], line);
+    if (lineNo >= rows || line == nullptr) {
+        return;
     }
+
+    // The row index was checked and the string length was not. buffer is
+    // char[4][21] with screen[4][21] immediately after it in the class layout,
+    // so an over-long line ran into the next row and, from row 3, into screen.
+    // Every caller currently passes exactly 20 characters -- the full width,
+    // with no margin -- so one added character to any language string was
+    // enough. Truncate instead: a clipped line is a display fault, not memory
+    // corruption.
+    const size_t capacity = sizeof(buffer[0]) - 1;
+    size_t i = 0;
+    while (i < capacity && line[i] != '\0') {
+        buffer[lineNo][i] = line[i];
+        i++;
+    }
+    buffer[lineNo][i] = '\0';
 }
 
 void InterfaceI2CLCD::WriteBuffer(char character, uint8_t lineNo, uint8_t colNo) {
