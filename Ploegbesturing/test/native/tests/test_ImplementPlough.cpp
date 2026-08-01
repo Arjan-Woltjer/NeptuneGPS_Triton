@@ -278,3 +278,84 @@ test(ImplementPlough, setSetpoint_clampsBelowNegativeMaxCorrection) {
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - (-50)));
 }
+
+// ---------------------------------------------------------------------------
+// Degenerate calibration: equal points make the interpolation divide by zero
+// ---------------------------------------------------------------------------
+
+test(ImplementPlough, equalCalibrationPoints_doNotProduceNonFinitePosition) {
+    // The wizard latches analogRead() at each of three steps without checking
+    // the captures differ, so a disconnected or seized potentiometer -- which
+    // rails to a constant -- records the same value three times. That put a
+    // zero denominator into the interpolation, and narrowing the resulting inf
+    // or NaN to short int is undefined behaviour.
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGps);
+
+    analogReadValue(POSITION_SENS_PIN_2, 512);
+    impl.SetPositionCalibrationData(0);
+    impl.SetPositionCalibrationData(1);
+    impl.SetPositionCalibrationData(2);
+
+    analogReadValue(POSITION_SENS_PIN_2, 512);
+    impl.Update(2, 0);
+    impl.Update(2, 0);
+    const short int position = impl.GetPosition();
+
+    // Any finite, in-range value is acceptable; the point is that the result is
+    // a number the caller can act on rather than garbage from a bad conversion.
+    assertMoreOrEqual(position, (short int)-32000);
+    assertLessOrEqual(position, (short int)32000);
+}
+
+test(ImplementPlough, partiallyEqualCalibrationPoints_doNotProduceNonFinitePosition) {
+    // Only two of the three captures coinciding is enough: the segment the
+    // reading falls into is the one that divides by zero.
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGps);
+
+    analogReadValue(POSITION_SENS_PIN_2, 300);
+    impl.SetPositionCalibrationData(0);
+    impl.SetPositionCalibrationData(1);
+    analogReadValue(POSITION_SENS_PIN_2, 700);
+    impl.SetPositionCalibrationData(2);
+
+    analogReadValue(POSITION_SENS_PIN_2, 300);
+    impl.Update(2, 0);
+    impl.Update(2, 0);
+    const short int position = impl.GetPosition();
+
+    assertMoreOrEqual(position, (short int)-32000);
+    assertLessOrEqual(position, (short int)32000);
+}
+
+test(ImplementPlough, corruptEepromPositionData_fallsBackToDefaults) {
+    // The stored points are 16-bit but the sensor is a 10-bit ADC, so values
+    // above 1023 cannot have come from it. They were previously loaded as-is
+    // and fed straight into the divisor.
+    resetAll();
+
+    // Mark the block "written" the way readCalibrationData() detects it, then
+    // store an impossible first calibration point (0xFFFE) and two equal ones.
+    EEPROM.write(52, 0);
+    EEPROM.write(40, 0xFF); EEPROM.write(41, 0xFE);
+    EEPROM.write(42, 0x02); EEPROM.write(43, 0x00);
+    EEPROM.write(44, 0x02); EEPROM.write(45, 0x00);
+
+    ImplementPlough corrupt(nullptr, &mockGps);
+
+    analogReadValue(POSITION_SENS_PIN_2, 600);
+    corrupt.Update(2, 0);
+    corrupt.Update(2, 0);
+    const short int fromCorrupt = corrupt.GetPosition();
+
+    // Erased EEPROM is the known-good "no calibration data" path. Corrupt data
+    // has to land on the same defaults rather than on whatever it contained.
+    resetAll();
+    ImplementPlough reference(nullptr, &mockGps);
+    analogReadValue(POSITION_SENS_PIN_2, 600);
+    reference.Update(2, 0);
+    reference.Update(2, 0);
+
+    assertEqual(fromCorrupt, reference.GetPosition());
+}

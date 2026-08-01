@@ -28,6 +28,15 @@
 namespace triton
 {
 
+// The position sensor is read with analogRead(), a 10-bit conversion, so a
+// stored calibration point outside this range cannot have come from it.
+static constexpr short int kAdcMaxCount = 1023;
+
+// Factory position curve. Named because it is needed in two places: the
+// constructor's no-calibration-data path, and the rejection path in
+// readCalibrationData() when what was stored cannot be used.
+static constexpr short int kDefaultPositionCalibration[3] = { 600, 461, 308 };
+
 class ImplementPlough {
 private:
     //-------------
@@ -67,7 +76,7 @@ private:
     byte    shares;
 
     // XTE
-    short int xte;
+    short int xte;   // initialised in the constructor; see note there
 
     // PID variables
     byte kp;

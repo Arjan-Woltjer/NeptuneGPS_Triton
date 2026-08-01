@@ -86,6 +86,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, VehicleGps* gps) {
     // Update timer
     updateAge = millis();
     lastXteFix = 0;
+    xte = 0;
     updateFlag = false;
 
     // Connected classes
@@ -96,9 +97,9 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, VehicleGps* gps) {
     if (!readCalibrationData()) {
         // Defaults
         // offset calibration
-        positionCalibrationData[0] = 600;
-        positionCalibrationData[1] = 461;
-        positionCalibrationData[2] = 308;
+        for (int i = 0; i < 3; i++) {
+            positionCalibrationData[i] = kDefaultPositionCalibration[i];
+        }
 
 #ifdef ROTATION
         // rotation calibration
@@ -349,8 +350,18 @@ short int ImplementPlough::getActualPosition() {
     float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
     float d = positionCalibrationPoints[i - 1];
 
-    // Calculate actual implement offset
-    actualPosition = (((a * c) / b) + d);
+    // b is zero when two calibration points hold the same reading, which a
+    // disconnected or seized position potentiometer produces directly: the
+    // wizard latches analogRead() at each step without checking the captures
+    // differ. The result would be inf or NaN, and narrowing either to short int
+    // below is undefined behaviour -- so this cannot be left to the caller.
+    // Fall back to the segment's own start point, the nearest defensible value.
+    if (b == 0.0f) {
+        actualPosition = d;
+    }
+    else {
+        actualPosition = (((a * c) / b) + d);
+    }
 
     return actualPosition * shares;
 }
@@ -437,14 +448,41 @@ boolean ImplementPlough::readCalibrationData() {
         EEPROM.read(64) != 255) {
 
         // Read from eeprom highbyte, then lowbyte, and combine into words
+        short int storedPosition[3];
         for (int i = 0; i < 3; i++) {
             int k = 2 * i;
             // 100 - 101 and 110 - 111
-            positionCalibrationData[i] = word(EEPROM.read(k + 40), EEPROM.read(k + 41));
+            storedPosition[i] = word(EEPROM.read(k + 40), EEPROM.read(k + 41));
 #ifdef ROTATION
             rotationCalibrationData[i] = word(EEPROM.read(k + 46), EEPROM.read(k + 47));
 #endif
         }
+
+        // These three feed the divisor in getActualPosition(), and were
+        // previously accepted as-is -- an arbitrary 16-bit value from EEPROM,
+        // even though the sensor is a 10-bit ADC so anything above 1023 is
+        // physically impossible. Every other persisted field here is range
+        // checked; these were not. Adjacent points also have to differ, or the
+        // interpolation divides by zero.
+        boolean positionValid = true;
+        for (int i = 0; i < 3; i++) {
+            if (storedPosition[i] < 0 || storedPosition[i] > kAdcMaxCount) {
+                positionValid = false;
+            }
+        }
+        if (storedPosition[0] == storedPosition[1] ||
+            storedPosition[1] == storedPosition[2]) {
+            positionValid = false;
+        }
+
+        // The defaults are otherwise only applied when this function returns
+        // false, so they have to be written explicitly here -- leaving the
+        // members untouched would leave them uninitialised.
+        for (int i = 0; i < 3; i++) {
+            positionCalibrationData[i] = positionValid ? storedPosition[i]
+                                                       : kDefaultPositionCalibration[i];
+        }
+
 
 #ifdef PWM_MAN
         manPwm = EEPROM.read(52);
