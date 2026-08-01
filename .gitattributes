@@ -1,0 +1,18 @@
+* text=auto
+
+*.cpp  text
+*.hpp  text
+*.h    text
+*.ino  text
+*.ini  text
+*.md   text
+*.yml  text
+*.py   text
+
+# PowerShell is run by Windows hosts that expect CRLF.
+*.ps1  text eol=crlf
+
+# Binary: no diff, no merge, no line-ending translation.
+*.docx binary
+*.pdf  binary
+*.png  binary
