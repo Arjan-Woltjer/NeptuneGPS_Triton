@@ -295,7 +295,7 @@ void ImplementPlough::Narrower(byte pwm) {
     analogWrite(OUTPUT_WIDE_2, 0);
     analogWrite(OUTPUT_NARROW_2, pwm);
     //analogWrite(OUTPUT_BYPASS_2, pwm);
-    analogWrite(OUTPUT_LED_2, 255);
+    digitalWrite(OUTPUT_LED_2, HIGH);
 }
 
 // ---------------------------------
@@ -305,7 +305,7 @@ void ImplementPlough::Wider(byte pwm) {
     analogWrite(OUTPUT_WIDE_2, pwm);
     analogWrite(OUTPUT_NARROW_2, 0);
     //analogWrite(OUTPUT_BYPASS_2, pwm);
-    analogWrite(OUTPUT_LED_2, 255);
+    digitalWrite(OUTPUT_LED_2, HIGH);
 }
 
 // ------------------------------
@@ -315,7 +315,7 @@ void ImplementPlough::Stop() {
     analogWrite(OUTPUT_WIDE_2, 0);
     analogWrite(OUTPUT_NARROW_2, 0);
     //analogWrite(OUTPUT_BYPASS_2, 0);
-    analogWrite(OUTPUT_LED_2, 0);
+    digitalWrite(OUTPUT_LED_2, LOW);
 }
 
 // --------------------------------------------

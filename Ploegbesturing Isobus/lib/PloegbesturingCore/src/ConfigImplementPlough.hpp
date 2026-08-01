@@ -38,7 +38,8 @@ _7 are defines for sower
 //#define xxx_2                 5
 
 // Digital outputs
-#define OUTPUT_LED_2          13
+#define OUTPUT_LED_2          33  // LED net (A14/DAC0 on 3.5/3.6); pin 13 is
+                                   // JOY_RIGHT_2, an input, not this board's LED
 
 // FET OUTPUTS
 #define OUTPUT_NARROW_2       20
