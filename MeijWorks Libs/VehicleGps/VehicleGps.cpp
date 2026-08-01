@@ -36,7 +36,7 @@ VehicleGps::VehicleGps(Stream* serialDebug, HardwareSerial* serialGps)
       quality(0), newQuality(0),
       lastGgaFix(0), lastVtgFix(0), lastXteFix(0),
       termNumber(0), termOffset(0), parity(0), checksum(0), sum(0),
-      isChecksumTerm(false), sentenceType(OTHER)
+      isChecksumTerm(false), trimbleFrameVerified(false), sentenceType(OTHER)
 #ifndef GPS_NO_STATS
       , encodedCharacters(0), goodSentences(0),
         failedChecksum(0), passedChecksum(0)
@@ -83,7 +83,24 @@ bool VehicleGps::strcmp_(const char* str1, const char* str2) {
 byte VehicleGps::hexToInt(char c) {
     if (c >= 'A' && c <= 'F') return c - 'A' + 10;
     if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-    return c - '0';
+    if (c >= '0' && c <= '9') return c - '0';
+    // Previously fell through to c - '0' for anything, so '\0' became 208 and a
+    // malformed field silently produced a plausible-looking number. Callers
+    // establish hex validity with termIsHex() before reading, so reaching this
+    // means the field was already rejected.
+    return 0;
+}
+
+bool VehicleGps::termIsHex(byte need) const {
+    for (byte i = 0; i < need; i++) {
+        const char c = term[i];
+        if (c == '\0') return false;
+        const bool isHex = (c >= '0' && c <= '9') ||
+                           (c >= 'A' && c <= 'F') ||
+                           (c >= 'a' && c <= 'f');
+        if (!isHex) return false;
+    }
+    return true;
 }
 
 bool VehicleGps::parseTerm() {
@@ -91,10 +108,27 @@ bool VehicleGps::parseTerm() {
 
     if (isChecksumTerm) {
         if (sentenceType == XTE2) {
-            // Outer Trimble binary packet already verified integrity
+            // Outer Trimble binary packet already verified integrity -- but only
+            // if one actually did. Without this check a bare @ROXTE sentence sent
+            // straight down the line skipped checksum validation entirely, since
+            // checksum = parity makes the comparison below unconditionally true.
+            if (!trimbleFrameVerified) {
+#ifndef GPS_NO_STATS
+                failedChecksum++;
+#endif
+                return false;
+            }
             checksum = parity;
         }
         else {
+            // Exactly two hex digits. A sentence ending "*\r\n" left term[0] at
+            // '\0' and term[1] holding bytes from the previous term.
+            if (!termIsHex(2) || term[2] != '\0') {
+#ifndef GPS_NO_STATS
+                failedChecksum++;
+#endif
+                return false;
+            }
             checksum = (hexToInt(term[0]) << 4) + hexToInt(term[1]);
         }
 
@@ -208,7 +242,10 @@ bool VehicleGps::parseTerm() {
                 if (termNumber == 1) newXte = parseDecimal(term) * 100;
                 break;
             case CAN_POS:
-                if (termNumber == 1) {
+                // 16 hex digits: two 32-bit fields read by index. Short frames
+                // used to read past the terminator into whatever the previous
+                // sentence left behind, yielding a plausible but invented fix.
+                if (termNumber == 1 && termIsHex(16)) {
                     for (int i = 7; i >= 0; i -= 2) {
                         val = (val << 8) + (hexToInt(term[i - 1]) << 4)
                                          + hexToInt(term[i]);
@@ -230,7 +267,7 @@ bool VehicleGps::parseTerm() {
                 }
                 break;
             case CAN_SPD:
-                if (termNumber == 1) {
+                if (termNumber == 1 && termIsHex(16)) {
                     val = (hexToInt(term[2]) << 12) + (hexToInt(term[3]) << 8) +
                           (hexToInt(term[0]) <<  4) +  hexToInt(term[1]);
                     newCourse = float(val) / 128;
@@ -250,7 +287,7 @@ bool VehicleGps::parseTerm() {
                 }
                 break;
             case CAN_XTE:
-                if (termNumber == 1) {
+                if (termNumber == 1 && termIsHex(10)) {
                     val = (hexToInt(term[8]) << 12) + (hexToInt(term[9]) << 8) +
                           (hexToInt(term[6]) <<  4) +  hexToInt(term[7]) - 32000;
                     newXte = int(val) >> 1;
@@ -262,7 +299,7 @@ bool VehicleGps::parseTerm() {
                 }
                 break;
             case CAN_XTE2:
-                if (termNumber == 1) {
+                if (termNumber == 1 && termIsHex(12)) {
                     int headerByte = (hexToInt(term[0]) << 4) + hexToInt(term[1]);
                     int flagByte   = (hexToInt(term[10]) << 4) + hexToInt(term[11]);
 
@@ -294,12 +331,16 @@ bool VehicleGps::parseTerm() {
 // ----------------------------------------
 
 bool VehicleGps::Update() {
-    char c;
+    // Unsigned deliberately. Dispatching on a plain char made `case 191` (the
+    // Trimble packet-start byte) unreachable wherever char is signed, so the
+    // parser behaved differently on the host than on the target -- and host
+    // tests could never have exercised the Trimble path at all.
+    uint8_t c;
     bool validSentence = false;
 
     while (serialGps->available()) {
-        c = serialGps->read();
-        if (rawEcho) serialDebug->write((uint8_t)c);
+        c = uint8_t(serialGps->read());
+        if (rawEcho) serialDebug->write(c);
 
 #ifndef GPS_NO_STATS
         encodedCharacters++;
@@ -310,6 +351,7 @@ bool VehicleGps::Update() {
                 termNumber = 0;
                 termOffset = 0;
                 sum = 0;
+                trimbleFrameVerified = false;
                 break;
             case '$':
             case '@':
@@ -319,6 +361,7 @@ bool VehicleGps::Update() {
                 sum        += byte(c);
                 sentenceType    = OTHER;
                 isChecksumTerm  = false;
+                trimbleFrameVerified = false;
                 break;
             case 20:
             case 0:
@@ -340,8 +383,15 @@ bool VehicleGps::Update() {
                 isChecksumTerm = (c == '*');
                 break;
             case 3:
-                // Trimble packet end: byte 3 preceded by byte 16
-                if (term[termOffset - 1] == 16 && !isChecksumTerm) {
+                // Trimble packet end: byte 3 preceded by byte 16.
+                //
+                // termOffset is reset to 0 by five other cases above, so without
+                // the length guard a single 0x03 arriving after any delimiter
+                // read term[-1] -- and if the bytes there happened to satisfy the
+                // checksum arithmetic, term[-4] = '\0' wrote outside the buffer,
+                // into the lastXteFix member that directly precedes it. Four
+                // bytes are the minimum this block indexes.
+                if (termOffset >= 4 && term[termOffset - 1] == 16 && !isChecksumTerm) {
                     sum -= byte(term[termOffset - 1]);
                     sum -= byte(term[termOffset - 2]);
                     sum -= byte(term[termOffset - 3]);
@@ -350,6 +400,9 @@ bool VehicleGps::Update() {
                             - (256 * byte(term[termOffset - 3])) == 0) {
                         term[termOffset - 4] = '\0';
                         parseTerm();
+                        // The outer frame's own checksum just passed, which is
+                        // what XTE2 relies on in place of an NMEA checksum.
+                        trimbleFrameVerified = true;
                         isChecksumTerm = true;
                         validSentence  = parseTerm();
                     }

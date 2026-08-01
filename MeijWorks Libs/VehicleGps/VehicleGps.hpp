@@ -92,6 +92,10 @@ private:
     byte         checksum;
     unsigned int sum;
     bool         isChecksumTerm;
+    // True only between a Trimble frame passing its own checksum and the next
+    // frame start. XTE2 skips the NMEA checksum on the grounds that the outer
+    // binary packet already covered it, so that claim has to actually hold.
+    bool         trimbleFrameVerified;
 
     enum types { GGA, VTG, XTE, XTE2, CAN_POS, CAN_SPD, CAN_XTE, CAN_XTE2, OTHER };
     types sentenceType;
@@ -109,6 +113,9 @@ private:
 
     bool strcmp_(const char* str1, const char* str2);
     byte hexToInt(char c);
+    // Fixed-width hex fields are read by index, so length has to be established
+    // before the first read rather than inferred from the buffer.
+    bool termIsHex(byte need) const;
 
     bool parseTerm();
 
