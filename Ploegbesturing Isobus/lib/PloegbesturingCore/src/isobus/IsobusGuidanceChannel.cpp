@@ -64,12 +64,9 @@ static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 // ------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------
-IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, GuidanceSource* guidance, ImplementPlough* implement)
+IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement)
     : serialDebug(serialDebug), guidance(guidance), implement(implement),
-      // Channel 2 = FlexCAN3 (Teensy pins 31 TX / 30 RX), matching the besturing 0.1
-      // board's CAN bodge wire -- channel 0 (FlexCAN1, pins 22/23) has nothing
-      // physically connected to it on this board.
-      can0(std::make_shared<FlexCANT4Plugin>(2)) {
+      can0(canPlugin) {
 }
 
 // ------------------------------------------------------------------

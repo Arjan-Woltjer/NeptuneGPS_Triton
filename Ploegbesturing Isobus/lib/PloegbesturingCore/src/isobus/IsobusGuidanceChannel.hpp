@@ -47,7 +47,11 @@ namespace triton
 // directly on AISO.
 class IsobusGuidanceChannel {
 public:
-    IsobusGuidanceChannel(Stream* serialDebug, GuidanceSource* guidance, ImplementPlough* implement);
+    // canPlugin is injected rather than constructed internally, the same way
+    // SerialGuidanceChannel takes a HardwareSerial* instead of picking its own
+    // port -- which physical CAN peripheral/pins to use is a board-specific
+    // choice that belongs at the call site (see main.cpp), not hardcoded here.
+    IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement);
 
     // Brings up the CAN hardware plugin, claims a NAME/address (blocks until
     // claim completes -- a one-time startup cost per ISO 11783's >=250ms
@@ -65,7 +69,7 @@ private:
     GuidanceSource*  guidance;
     ImplementPlough*       implement;
 
-    std::shared_ptr<isobus::FlexCANT4Plugin>         can0;
+    std::shared_ptr<isobus::CANHardwarePlugin>       can0;
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;
 
     // Static PGN callbacks -- void* context is always `this`.

@@ -79,9 +79,16 @@ void setup() {
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
 
 #ifdef ISOBUS
+    // Board-specific CAN wiring: besturing 0.1's CAN transceiver is bodge-wired
+    // to FLEXCAN3 (Teensy pins 31 TX / 30 RX), not the FlexCAN1 default (22/23)
+    // -- see MeijWorks Hardware/Triton/MeijWorks besturing 0.1/Design documents/
+    // teensy41-application-note.md. Constructed here, next to gSerialGps below,
+    // so a future board revision only needs this one line changed.
+    auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(2);
+
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
     // until claimed), PGN callback registration, initial PGN requests.
-    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gGuidance, gImplement);
+    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, gImplement);
     gGuidanceChannel->Begin();
 
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
