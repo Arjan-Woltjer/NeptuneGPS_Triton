@@ -39,7 +39,8 @@ static ImplementSprayer impl(nullptr, &mockGps, &iface);
 
 static void resetAll() {
     millisValue(0);
-    mockGps.speed = 0.0f;
+    mockGps.speed  = 0.0f;
+    mockGps.vtgFix = 0;
 
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
         iface.buttons[i].state = false;
@@ -54,6 +55,18 @@ static void resetAll() {
     }
     impl.doseLHA = 0.0f;
     impl.doseLM  = 0.0f;
+
+    // impl is a file-static shared by every test in this file, so the tests that
+    // deliberately corrupt the calibration tables would otherwise leak those
+    // values into whichever tests AUnit happens to run next.
+    impl.doseCalibrationPoints[0] = { 50,  0 };
+    impl.doseCalibrationPoints[1] = { 100, 2048 };
+    impl.doseCalibrationPoints[2] = { 200, 4095 };
+
+    impl.pwmCalibrationPoints[0] = { 0,    0 };
+    impl.pwmCalibrationPoints[1] = { 2000, 2048 };
+    impl.pwmCalibrationPoints[2] = { 4000, 4095 };
+    impl.numPwmCalibrationPoints = 3;
     iface.analogInputs[0].value = 0;
 }
 
@@ -298,7 +311,8 @@ test(ImplementSprayer, doseLM_from_doseLHA_and_speed) {
     // doseLM = 100 * 1.0 * 300 * 60 / 1000000 = 1.8 l/min
     resetAll();
     iface.analogInputs[0].value = 2048;
-    mockGps.speed = 1.0f;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
     // Update() SPEED_AVG_SAMPLES times so the rolling speed average fully
     // converges to mockGps.speed instead of only weighting it 1/SPEED_AVG_SAMPLES.
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
@@ -309,7 +323,8 @@ test(ImplementSprayer, doseLM_zero_when_stationary) {
     // speed=0 → doseLM=0 regardless of dose
     resetAll();
     iface.analogInputs[0].value = 4095;
-    mockGps.speed = 0.0f;
+    millisValue(1000);
+    mockGps.SetSpeed(0.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertNear(impl.doseLM, 0.0f, 0.001f);
 }
@@ -326,7 +341,8 @@ test(ImplementSprayer, endToEnd_analog1024_speed1_pwm1382) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 1024;
-    mockGps.speed = 1.0f;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertNear(impl.doseLHA, 75.0f, 0.01f);
     assertNear(impl.doseLM, 1.35f, 0.01f);
@@ -340,7 +356,8 @@ test(ImplementSprayer, endToEnd_analog1024_speed1_pwm1382) {
 test(ImplementSprayer, pwm_disabled_valueUnchanged) {
     resetAll();
     impl.outputs[2].pwm = false;
-    mockGps.speed = 10.0f;
+    millisValue(1000);
+    mockGps.SetSpeed(10.0f);
 
     impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)0);
@@ -353,7 +370,8 @@ test(ImplementSprayer, pwm_enabled_lowerSegment_output1843) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    mockGps.speed = 1.0f;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
 
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)1843);
@@ -366,8 +384,94 @@ test(ImplementSprayer, pwm_enabled_upperSegment_output3685) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 4095;
-    mockGps.speed = 1.0f;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
 
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)3685);
+}
+
+// ---------------------------------------------------------------------------
+// Fail-safe behaviour: stale guidance and non-finite dose must stop the pump
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, staleGuidance_stopsPump) {
+    // Establish a real dose first, so a latched value would be visible.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+
+    // No further messages. VehicleGps::speed keeps its last value forever, so
+    // before this fix the pump went on dosing from it indefinitely.
+    millisValue(1000 + 2001);
+    impl.Update();
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+}
+
+test(ImplementSprayer, guidanceJustWithinTimeout_keepsDosing) {
+    // The boundary must not be so tight that ordinary message jitter trips it.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+
+    millisValue(1000 + 2000);
+    impl.Update();
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+}
+
+test(ImplementSprayer, noFixSinceBoot_doesNotDose) {
+    // lastVtgFix starts at 0, so "never received" must not read as "just now".
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    mockGps.speed = 5.0f;   // set directly: speed present, no message ever seen
+    millisValue(500);
+
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+}
+
+test(ImplementSprayer, duplicateDoseCalibrationPoints_doNotProduceNaN) {
+    // A seized or disconnected potentiometer makes the capture step record the
+    // same reading three times, which put a 0/0 into the interpolation. NaN then
+    // passed straight through the low-flow shutoff and both duty clamps.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    for (int i = 0; i < NUM_DOSE_CAL_POINTS; ++i) {
+        impl.doseCalibrationPoints[i].analogValue = 2048;
+        impl.doseCalibrationPoints[i].dose        = 100;
+    }
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+
+    // Self-comparison rather than isfinite(): <math.h> collides with Arduino.h's
+    // min/max macros in this build, and NaN is the case that matters here.
+    assertTrue(impl.doseLHA == impl.doseLHA);
+    assertTrue(impl.doseLM  == impl.doseLM);
+    assertLessOrEqual(impl.outputs[2].value, (unsigned int)PWM_MAX_DUTY);
+}
+
+test(ImplementSprayer, tooFewPwmCalibrationPoints_stopsPump) {
+    // A bad restore from NVS used to leave the pump at its last duty with dose
+    // control silently disabled, reapplied every cycle by updateOutputs().
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+
+    impl.numPwmCalibrationPoints = 1;
+    impl.Update();
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
 }

@@ -76,6 +76,37 @@ private:
     DigitalInputState* buttons[NUM_DIGITAL_IN];
     AnalogInputState*  inputAnalog[NUM_ANALOG_IN];
 
+    float speed;
+    float speedBuf[SPEED_AVG_SAMPLES];
+    float speedSum;
+    int   speedBufIdx;
+    float width;
+    bool  calibrationMode = false;
+
+    // Guidance older than this counts as no guidance at all. Same threshold
+    // InterfacePlough already applies on the plough side.
+    static constexpr unsigned long kGuidanceTimeoutMs = 2000;
+
+    void updateInputs();
+    void updateSpeed();
+    bool guidanceStale() const;
+
+    void calculateDoseLHA();
+    void calculateDoseLM();
+    void calculatePWMValues(byte outputIndex);
+
+    void updateOutputs();
+    void setOutputDuty(const OutputState& out, uint32_t duty);
+
+public:
+    // Exposed for testing; use GetOutputs() in production code
+    float       doseLHA = 0.0f;
+    float       doseLM  = 0.0f;
+
+    // Also exposed for testing. CalibrationSprayer is already a friend and
+    // writes these directly, so this widens who can reach them rather than
+    // breaking an invariant -- and the fail-closed paths that guard duplicate
+    // and short calibration tables are only reachable by setting them.
     PwmCalibrationPoint pwmCalibrationPoints[MAX_PWM_CAL_POINTS] = {
         { 0, 0 },
         { 2000, 2048 },
@@ -89,27 +120,6 @@ private:
         { 200, 4095 }
     };
 
-    float speed;
-    float speedBuf[SPEED_AVG_SAMPLES];
-    float speedSum;
-    int   speedBufIdx;
-    float width;
-    bool  calibrationMode = false;
-
-    void updateInputs();
-    void updateSpeed();
-
-    void calculateDoseLHA();
-    void calculateDoseLM();
-    void calculatePWMValues(byte outputIndex);
-
-    void updateOutputs();
-    void setOutputDuty(const OutputState& out, uint32_t duty);
-
-public:
-    // Exposed for testing; use GetOutputs() in production code
-    float       doseLHA = 0.0f;
-    float       doseLM  = 0.0f;
     OutputState outputs[NUM_OUTPUTS] = {
         { OUT1, 0, false, false, 0, 0 },
         { OUT2, 1, false, false, 0, 0 },

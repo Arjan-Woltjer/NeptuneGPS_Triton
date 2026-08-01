@@ -26,6 +26,18 @@
 namespace triton
 {
 
+namespace {
+// NaN is the case that matters here: it compares false against everything,
+// itself included, so it slips through range clamps instead of being caught by
+// them. Written out rather than using isfinite() from <math.h>, which is not
+// available in the native test build's Arduino stubs and whose header collides
+// with Arduino.h's min/max macros.
+inline bool GIsFinite(float v) {
+    return (v == v) && (v < 3.0e38f) && (v > -3.0e38f);
+}
+}  // namespace
+
+
 ImplementSprayer::ImplementSprayer(Stream* serialDebug, VehicleGps* gps,
                                    InterfaceSprayer* interface)
     : serialDebug(serialDebug), gps(gps), interface(interface),
@@ -92,7 +104,35 @@ void ImplementSprayer::updateInputs() {
     }
 }
 
+// VehicleGps::speed is only overwritten when a fresh, checksum-valid message
+// arrives -- it is never invalidated. Without this check, losing the antenna or
+// the fix left the last known speed latched forever, and the sprayer went on
+// dosing from it. Stopping the tractor at that point kept the pump injecting
+// onto one stationary spot.
+//
+// Note the getter returns an absolute timestamp, not an age, despite the name.
+// It also starts at 0, so "no message since boot" has to be distinguished from
+// a genuine fix rather than read as a very recent one.
+bool ImplementSprayer::guidanceStale() const {
+    const unsigned long lastFix = gps->GetVtgFixAge();
+    if (lastFix == 0) {
+        return true;
+    }
+    return (millis() - lastFix) > kGuidanceTimeoutMs;
+}
+
 void ImplementSprayer::updateSpeed() {
+    if (guidanceStale()) {
+        // Drain the moving average too, so speed does not creep back up from
+        // stale samples when a fix returns.
+        for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) {
+            speedBuf[i] = 0.0f;
+        }
+        speedSum = 0.0f;
+        speed    = 0.0f;
+        return;
+    }
+
     speedSum -= speedBuf[speedBufIdx];
     speedBuf[speedBufIdx] = gps->GetSpeedMs();
     speedSum += speedBuf[speedBufIdx];
@@ -130,7 +170,20 @@ void ImplementSprayer::calculateDoseLHA() {
     float c = doseCalibrationPoints[i].dose        - doseCalibrationPoints[i - 1].dose;
     float d = doseCalibrationPoints[i - 1].dose;
 
-    doseLHA = ((a * c) / b) + d;
+    // b is zero whenever two adjacent calibration points share an analogValue,
+    // which a seized or disconnected potentiometer produces directly: the
+    // capture step records whatever the ADC reads without checking the points
+    // differ. With a zero too, that is 0.0f/0.0f -- NaN, which then defeats
+    // every comparison downstream rather than being caught by them.
+    if (b == 0.0f) {
+        doseLHA = d;
+    } else {
+        doseLHA = ((a * c) / b) + d;
+    }
+
+    if (!GIsFinite(doseLHA)) {
+        doseLHA = 0.0f;
+    }
 
     // For this example, we will just print the calculated dose to the debug stream
 #ifdef DEBUG
@@ -146,9 +199,28 @@ void ImplementSprayer::calculateDoseLM() {
 }
 
 void ImplementSprayer::calculatePWMValues(byte outputIndex) {
-    if (!outputs[outputIndex].pwm || numPwmCalibrationPoints < 2) return;
+    if (!outputs[outputIndex].pwm) return;
+
+    // Fewer than two points means no usable curve. Returning here left the pump
+    // at whatever duty was last computed, and updateOutputs() goes on reapplying
+    // that value every cycle -- so a bad restore from NVS ran the pump at a
+    // fixed rate with dose control silently switched off. Fail closed instead.
+    //
+    // Stale guidance lands in the same place: without a speed there is no dose
+    // to compute, so the pump stops rather than coasting on the last figure.
+    if (numPwmCalibrationPoints < 2 || guidanceStale()) {
+        outputs[outputIndex].value = 0;
+        return;
+    }
 
     float doseMlMin = doseLM * 1000.0f;
+
+    // NaN fails the shutoff comparison below and both clamps further down, since
+    // every comparison against it is false. Catch it before any of them.
+    if (!GIsFinite(doseMlMin)) {
+        outputs[outputIndex].value = 0;
+        return;
+    }
 
     // Requested dose is below the pump's lowest calibrated flow point — stop it
     // rather than extrapolating below the calibrated range (which could produce
@@ -179,9 +251,17 @@ void ImplementSprayer::calculatePWMValues(byte outputIndex) {
     // hardware's maximum duty cycle.
     if (b != 0.0f) {
         float computed = ((a * c) / b) + d;
+        // isfinite() first: NaN passes both clamps untouched, and the resulting
+        // (unsigned int)NaN is undefined behaviour that reaches ledc_set_duty()
+        // through the unsigned subtraction in updateOutputs().
+        if (!GIsFinite(computed))            computed = 0.0f;
         if (computed > (float)PWM_MAX_DUTY) computed = (float)PWM_MAX_DUTY;
         else if (computed < 0.0f)           computed = 0.0f;
         outputs[outputIndex].value = (unsigned int)computed;
+    } else {
+        // Duplicate calibration points. Previously fell through leaving the
+        // previous duty in place.
+        outputs[outputIndex].value = 0;
     }
 
 #ifdef DEBUG
