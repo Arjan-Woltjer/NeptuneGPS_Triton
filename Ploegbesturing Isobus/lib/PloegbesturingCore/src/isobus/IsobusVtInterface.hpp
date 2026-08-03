@@ -73,8 +73,8 @@ private:
     std::shared_ptr<isobus::InternalControlFunction>  controlFunction;
     std::shared_ptr<isobus::DiagnosticProtocol>        diagnostics;
     std::shared_ptr<isobus::VirtualTerminalClient>     vtClient;
-    std::shared_ptr<void>                              softKeyListener;
-    std::shared_ptr<void>                              buttonListener;
+    isobus::EventCallbackHandle                         softKeyListener;
+    isobus::EventCallbackHandle                         buttonListener;
     Logger                                              logger;
 
     unsigned long lastVtUpdate = 0;

@@ -34,8 +34,8 @@ namespace triton
 // ------------------------------------------------------------------
 // Standard NMEA2000 (confirmed broadcast by the reference Fendt 6240):
 static constexpr std::uint32_t kPgnPositionNmea2000 = 129025;  // Position, Rapid Update
-static constexpr std::uint32_t kPgnSpeedNmea2000     = 129026;  // COG & SOG, Rapid Update
-static constexpr std::uint32_t kPgnXteNmea2000       = 129283;  // Cross Track Error
+static constexpr std::uint32_t kPgnSpeedNmea2000    = 129026;  // COG & SOG, Rapid Update
+static constexpr std::uint32_t kPgnXteNmea2000      = 129283;  // Cross Track Error
 
 // Legacy proprietary, ported from VehicleGps.cpp's CAN_POS_ID/CAN_SPD_ID/
 // CAN_XTE_ID/CAN_XTE_ID2 (0x0CFEF31C/0x18FEF31C, 0x0CFEE81C/0x18FEE81C,
@@ -43,13 +43,13 @@ static constexpr std::uint32_t kPgnXteNmea2000       = 129283;  // Cross Track E
 // that only broadcasts these instead of the NMEA2000 set. PGN extracted from
 // the 29-bit CAN ID (PF>=240 -> PDU2, PGN=(PF<<8)|PS; PF<240 -> PDU1,
 // PGN=(PF<<8), PS is a destination address, not part of the PGN).
-static constexpr std::uint32_t kPgnPositionLegacy    = 0xFEF3;  // 65267, PDU2
-static constexpr std::uint32_t kPgnSpeedLegacy       = 0xFEE8;  // 65256, PDU2
-static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF; // 65535, PDU2 -- heavily overloaded
+static constexpr std::uint32_t kPgnPositionLegacy     = 0xFEF3;  // 65267, PDU2
+static constexpr std::uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
+static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
                                                                  // proprietary PGN, source address
                                                                  // 0x2A must be rechecked in the callback
 static constexpr std::uint8_t  kSourceAddressJohnDeere = 0x2A;
-static constexpr std::uint32_t kPgnXteTrimbleLegacy  = 0xEB00;  // 60160, PDU1 -- legacy filter required
+static constexpr std::uint32_t kPgnXteTrimbleLegacy    = 0xEB00; // 60160, PDU1 -- legacy filter required
                                                                  // destination address 0xAC (fixed); our
                                                                  // claimed SA is dynamic, so whether this
                                                                  // is actually delivered needs real-bus
@@ -66,7 +66,7 @@ static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 // ------------------------------------------------------------------
 IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement)
     : serialDebug(serialDebug), guidance(guidance), implement(implement),
-      can0(canPlugin) {
+      canPlugin(canPlugin) {
 }
 
 // ------------------------------------------------------------------
@@ -74,8 +74,9 @@ IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, std::shared_pt
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::Begin() {
     CANHardwareInterface::set_number_of_can_channels(1);
-    CANHardwareInterface::assign_can_channel_frame_handler(0, can0);
+    CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
     CANHardwareInterface::start();
+
     CANHardwareInterface::update();
 
     // ISOBUS NAME
@@ -94,22 +95,39 @@ void IsobusGuidanceChannel::Begin() {
     deviceName.set_function_instance(0);
     deviceName.set_device_class_instance(0);
 
-    controlFunction = InternalControlFunction::create(deviceName, 0x81, 0);
+    // Must go through the factory method, not a direct std::make_shared
+    // construction -- only create_internal_control_function() registers the
+    // control function into CANNetworkManager's internalControlFunctions
+    // list, and only members of that list ever get their
+    // update_address_claiming() state machine driven (from
+    // CANNetworkManager::update(), called transitively by
+    // CANHardwareInterface::update() below). A directly-constructed
+    // InternalControlFunction never leaves State::None, so
+    // get_address_valid() can never become true -- confirmed on hardware
+    // 2026-08-04 as the actual cause of an infinite block here, not a timing
+    // issue. Matches AgIsoStack-Arduino's own reference examples
+    // (examples/SpeedMessages, examples/VirtualTerminal), which all use this
+    // factory method.
+    controlFunction = CANNetworkManager::CANNetwork().create_internal_control_function(deviceName, 0, 0x81);
 
+    serialDebug->print("IsobusGuidanceChannel: claiming address ");
     // J1939 address claim takes at least 250 ms; block until our address is
     // confirmed before sending PGN requests so the source address is valid
     // in the outgoing frame. One-time startup cost, not called from loop().
     while (!controlFunction->get_address_valid())
         CANHardwareInterface::update();
 
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000, OnPositionNmea2000, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000, OnSpeedNmea2000, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteNmea2000, OnXteNmea2000, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionLegacy, OnLegacyPosition, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedLegacy, OnLegacySpeed, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteJohnDeereLegacy, OnLegacyXteJohnDeere, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy, OnLegacyXteTrimble, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop, OnAllImplementStop, this);
+    serialDebug->print("address claimed: 0x");
+    serialDebug->println(controlFunction->get_address(), HEX);
+
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000, OnPositionNmea2000, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000, OnSpeedNmea2000, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnXteNmea2000, OnXteNmea2000, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnPositionLegacy, OnLegacyPosition, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnSpeedLegacy, OnLegacySpeed, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnXteJohnDeereLegacy, OnLegacyXteJohnDeere, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy, OnLegacyXteTrimble, this);
+    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop, OnAllImplementStop, this);
 
     // Trigger an immediate first transmission from whatever's on the bus;
     // the reference Fendt 6240 then continues broadcasting on its own

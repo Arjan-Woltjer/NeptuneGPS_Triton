@@ -35,7 +35,7 @@
 #endif
 
 // Serial ports
-HardwareSerial* gSerialDebug = &Serial2;
+Stream* gSerialDebug = &Serial;
 #ifndef ISOBUS
 // Only the serial guidance path needs a GPS UART -- the ISOBUS build
 // acquires guidance data over CAN instead (IsobusGuidanceChannel/AgIsoStack).
@@ -69,7 +69,28 @@ void setup() {
     delay(3000);
 
     // Setup serial ports
-    gSerialDebug->begin(SERIALDATARATE);  // Serial for computer native usb
+    Serial.begin(SERIALDATARATE);  // Serial for computer native usb
+
+    // Print message to computer
+    gSerialDebug->println("--------------------------------");
+    gSerialDebug->println("-----------MeijWorks------------");
+    gSerialDebug->println("--------------------------------");
+    gSerialDebug->println("Ploughcontrol ISOBUS version 0.1"); 
+    gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
+    gSerialDebug->println("--------------------------------");
+
+    // Setup I2C LCD
+    gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
+    gLcd->Begin();
+
+    // Write message to screen
+    // Messages in LanguagePlough.hpp
+    gLcd->WriteBuffer(L2_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L2_DEVICE, 1);
+    gLcd->WriteBuffer(L2_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L2_AUTHOR, 3);
+
+    gLcd->WriteScreen(-1);
 
     // gGuidance and gImplement have no CAN/AgIsoStack dependency, so they're
     // constructed first -- gGuidanceChannel needs both already built (the
@@ -104,33 +125,13 @@ void setup() {
 #endif
 
     // Initialise objects and interfaces
-    gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
-    gLcd->Begin();
-
     gTractor = new triton::VehicleTractor(gSerialDebug);
     gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
     gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
 
-    // Print message to computer
-    gSerialDebug->println("-------------------------------");
-    gSerialDebug->println("-----------MeijWorks-----------");
-    gSerialDebug->println("-------------------------------");
-    gSerialDebug->println("  Ploughcontrol ISOBUS version 0.1");
-    gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer");
-    gSerialDebug->println("-------------------------------");
-
     gTractor->PrintCalibrationData();
     gGuidance->PrintCalibrationData();
     gImplement->PrintCalibrationData();
-
-    // Write message to screen
-    // Messages in LanguagePlough.hpp
-    gLcd->WriteBuffer(L2_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L2_DEVICE, 1);
-    gLcd->WriteBuffer(L2_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L2_AUTHOR, 3);
-
-    gLcd->WriteScreen(-1);
 
     // Delay for splashscreen
     delay(2000);

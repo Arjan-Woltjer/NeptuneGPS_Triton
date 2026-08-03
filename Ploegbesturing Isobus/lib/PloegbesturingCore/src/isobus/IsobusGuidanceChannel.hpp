@@ -65,11 +65,11 @@ public:
     inline std::shared_ptr<isobus::InternalControlFunction> GetControlFunction() { return controlFunction; }
 
 private:
-    Stream*                serialDebug;
+    Stream*          serialDebug;
     GuidanceSource*  guidance;
-    ImplementPlough*       implement;
+    ImplementPlough* implement;
 
-    std::shared_ptr<isobus::CANHardwarePlugin>       can0;
+    std::shared_ptr<isobus::CANHardwarePlugin>       canPlugin;
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;
 
     // Static PGN callbacks -- void* context is always `this`.

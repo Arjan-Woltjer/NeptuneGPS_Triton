@@ -72,13 +72,13 @@ void IsobusVtInterface::Begin() {
 
     const NAMEFilter vtFilter(NAME::NAMEParameters::FunctionCode, static_cast<uint8_t>(NAME::Function::VirtualTerminal));
     const std::vector<NAMEFilter> vtNameFilters = { vtFilter };
-    auto partnerVT = PartneredControlFunction::create(0, vtNameFilters);
+    auto partnerVT = std::make_shared<PartneredControlFunction>(0, vtNameFilters);
 
     vtClient = std::make_shared<VirtualTerminalClient>(partnerVT, controlFunction);
-    vtClient->set_object_pool(0, VirtualTerminalClient::VTVersion::Version3, VT3PoolData, VT3PoolSize, "MW01");
-    softKeyListener = vtClient->add_vt_soft_key_event_listener(
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW01");
+    softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
-    buttonListener = vtClient->add_vt_button_event_listener(
+    buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     vtClient->initialize(false);
 }
