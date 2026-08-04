@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """
 Wrapper around PJRC's teensy_size binary.
-Applies correct per-bank memory checks for IMXRT1062 (Teensy 4.1).
+Applies the correct combined FlexRAM check for IMXRT1062 (Teensy 4.1).
 
-teensy_size adds ITCM (code) and DTCM (variables) together and compares to
-512 KB, which is wrong. Both banks are 512 KB each — check them separately.
+ITCM and DTCM are NOT independent 512 KB banks -- per imxrt1062_t41.ld they
+share one 512 KB / 16-block FlexRAM pool (DTCM gets whatever blocks ITCM
+doesn't claim, see _itcm_block_count/_estack in the linker script). So
+teensy_size summing ITCM + DTCM and comparing to 512 KB was actually
+correct; check the combined total, not each side independently.
 """
 import subprocess, sys, os, re
 
-ITCM_LIMIT  = 512 * 1024       # 512 KB — IMXRT1062 ITCM bank (code + padding)
-DTCM_LIMIT  = 512 * 1024       # 512 KB — IMXRT1062 DTCM bank (variables)
-FLASH_LIMIT = 8 * 1024 * 1024  # 8 MB  — Teensy 4.1 external QSPI flash
+FLEXRAM_LIMIT = 512 * 1024     # 512 KB — IMXRT1062 FlexRAM pool, shared by ITCM + DTCM
+FLASH_LIMIT   = 8 * 1024 * 1024  # 8 MB  — Teensy 4.1 external QSPI flash
 
 tool_dir = os.path.join(os.path.expanduser("~"), ".platformio", "packages", "tool-teensy")
 binary = os.path.join(tool_dir, "teensy_size.exe" if sys.platform == "win32" else "teensy_size")
@@ -33,14 +35,16 @@ if flash_m and ram1_m:
     flash_used = int(flash_m.group(1)) + int(flash_m.group(2)) + int(flash_m.group(3))
     itcm_used  = int(ram1_m.group(2)) + int(ram1_m.group(3))   # code + padding
     dtcm_used  = int(ram1_m.group(1))                          # variables
+    flexram_used = itcm_used + dtcm_used
 
     errors = []
     if flash_used > FLASH_LIMIT:
         errors.append(f"Error FLASH overflow: {flash_used:,} of {FLASH_LIMIT:,} bytes used")
-    if itcm_used > ITCM_LIMIT:
-        errors.append(f"Error ITCM overflow: {itcm_used:,} of {ITCM_LIMIT:,} bytes used")
-    if dtcm_used > DTCM_LIMIT:
-        errors.append(f"Error DTCM overflow: {dtcm_used:,} of {DTCM_LIMIT:,} bytes used")
+    if flexram_used > FLEXRAM_LIMIT:
+        errors.append(
+            f"Error FlexRAM overflow: {flexram_used:,} of {FLEXRAM_LIMIT:,} bytes used "
+            f"(ITCM {itcm_used:,} + DTCM {dtcm_used:,} share one 512K pool)"
+        )
 
     if errors:
         for e in errors:

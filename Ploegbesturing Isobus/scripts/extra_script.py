@@ -1,18 +1,25 @@
 """
 PlatformIO post extra_script — correct RAM overflow check for IMXRT1062 (Teensy 4.1).
 
-teensy_size incorrectly adds ITCM (code) and DTCM (variables) together and
-compares to 512 KB. These are two independent 512 KB SRAM banks on IMXRT1062.
+ITCM and DTCM are NOT independent 512 KB banks. Per imxrt1062_t41.ld, they
+share a single 512 KB / 16-block (32 KB each) FlexRAM pool:
+    _itcm_block_count = ceil((itcm code + padding) / 32K)
+    _estack = ORIGIN(DTCM) + ((16 - _itcm_block_count) << 15)
+DTCM's real usable size is whatever's left after ITCM claims its blocks, so
+the correct check is ITCM + DTCM <= 512 KB combined (matching Paul
+Stoffregen's explanation on the PJRC forum, thread 73201) -- not each
+against 512 KB independently, which would silently pass a build that
+overflows the real shared pool (e.g. 491K ITCM + 146K DTCM = 637K, which
+fits neither bank's flawed 512K check but exceeds the true combined budget).
 """
 Import("env")
 import sys, os, re
 
-ITCM_LIMIT = 512 * 1024   # IMXRT1062 ITCM bank (code + padding), 512 KB
-DTCM_LIMIT = 512 * 1024   # IMXRT1062 DTCM bank (variables), 512 KB
+FLEXRAM_LIMIT = 512 * 1024   # IMXRT1062 FlexRAM pool, shared by ITCM + DTCM
 
 
 def _imxrt_check(output, flash_limit):
-    """Return (ok, error_string) using correct per-bank checks for IMXRT1062."""
+    """Return (ok, error_string) using the correct combined FlexRAM check for IMXRT1062."""
     flash_m = re.search(r'FLASH:\s+code:(\d+),\s+data:(\d+),\s+headers:(\d+)', output)
     ram1_m  = re.search(r'RAM1:\s+variables:(\d+),\s+code:(\d+),\s+padding:(\d+)', output)
     if not flash_m or not ram1_m:
@@ -21,14 +28,16 @@ def _imxrt_check(output, flash_limit):
     flash_used = int(flash_m.group(1)) + int(flash_m.group(2)) + int(flash_m.group(3))
     itcm_used  = int(ram1_m.group(2)) + int(ram1_m.group(3))   # code + padding
     dtcm_used  = int(ram1_m.group(1))                          # variables
+    flexram_used = itcm_used + dtcm_used
 
     errors = []
     if flash_used > flash_limit:
         errors.append(f"Error FLASH overflow: {flash_used:,} of {flash_limit:,} bytes used")
-    if itcm_used > ITCM_LIMIT:
-        errors.append(f"Error ITCM overflow: {itcm_used:,} of {ITCM_LIMIT:,} bytes used")
-    if dtcm_used > DTCM_LIMIT:
-        errors.append(f"Error DTCM overflow: {dtcm_used:,} of {DTCM_LIMIT:,} bytes used")
+    if flexram_used > FLEXRAM_LIMIT:
+        errors.append(
+            f"Error FlexRAM overflow: {flexram_used:,} of {FLEXRAM_LIMIT:,} bytes used "
+            f"(ITCM {itcm_used:,} + DTCM {dtcm_used:,} share one 512K pool)"
+        )
 
     if errors:
         return False, "\n".join(errors) + "\n"
