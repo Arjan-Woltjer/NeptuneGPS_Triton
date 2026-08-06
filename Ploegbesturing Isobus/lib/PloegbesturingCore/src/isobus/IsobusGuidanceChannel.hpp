@@ -64,6 +64,28 @@ public:
 
     inline std::shared_ptr<isobus::InternalControlFunction> GetControlFunction() { return controlFunction; }
 
+    // Per-PGN receive counters, incremented from the On* callbacks below --
+    // AgIsoStack itself exposes no message/error counters (only
+    // CANNetworkManager::get_estimated_busload()), so this is the only place
+    // that can count them. Read by IsobusDebugMenu.
+    struct MessageCounters {
+        uint32_t positionNmea2000 = 0, speedNmea2000 = 0, xteNmea2000 = 0;
+        uint32_t positionLegacy = 0, speedLegacy = 0;
+        uint32_t xteJohnDeereLegacy = 0, xteTrimbleLegacy = 0;
+        uint32_t allImplementStop = 0;
+        unsigned long lastAllImplementStopMs = 0;
+
+        inline uint32_t Total() const {
+            return positionNmea2000 + speedNmea2000 + xteNmea2000 + positionLegacy
+                 + speedLegacy + xteJohnDeereLegacy + xteTrimbleLegacy + allImplementStop;
+        }
+    };
+
+    // Snapshot, safe to call at any time -- single-threaded loop, no
+    // concurrent writer.
+    inline MessageCounters GetMessageCounters() const { return counters; }
+    inline void            ResetMessageCounters()      { counters = MessageCounters(); }
+
 private:
     Stream*          serialDebug;
     GuidanceSource*  guidance;
@@ -71,6 +93,8 @@ private:
 
     std::shared_ptr<isobus::CANHardwarePlugin>       canPlugin;
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;
+
+    MessageCounters counters;
 
     // Static PGN callbacks -- void* context is always `this`.
     static void OnPositionNmea2000(const isobus::CANMessage& msg, void* context);

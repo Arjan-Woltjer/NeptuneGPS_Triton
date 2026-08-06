@@ -66,12 +66,15 @@ built directly), mirroring Salacia's own base-env + variant pattern.
   *are* tested, live in the same file) but its output isn't asserted on by
   any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
   `WriteScreen` are no-ops.
-- `IsobusGuidanceChannel`/`IsobusVtInterface`/`SerialGuidanceChannel` are all
-  thin hardware/transport adapters (CAN bus, ISOBUS stack, or raw UART byte
-  reading) with no native coverage by design -- the real logic worth testing
-  (PGN byte-decode math, sentence parsing) lives in the natively-tested
-  classes each of them calls into (`GuidanceSource`, `NmeaParser`/
-  `TrimbleParser`/`CanSerialParser`).
+- `IsobusGuidanceChannel`/`IsobusVtInterface`/`SerialGuidanceChannel`/
+  `IsobusDebugMenu` are all thin hardware/transport adapters (CAN bus, ISOBUS
+  stack, raw UART byte reading, or a read-only serial status menu) with no
+  native coverage by design -- the real logic worth testing (PGN byte-decode
+  math, sentence parsing) lives in the natively-tested classes each of them
+  calls into (`GuidanceSource`, `NmeaParser`/`TrimbleParser`/
+  `CanSerialParser`). `IsobusDebugMenu` only reads `IsobusGuidanceChannel`'s
+  message counters and `GuidanceSource`'s existing getters -- it has no
+  decode/parsing logic of its own.
 - `teensy41_isobus`: the JD/Trimble/CNH legacy proprietary-PGN decode and the
   standard NMEA2000 PGN decode both build and link against the real AgIsoStack
   package, but haven't been verified against real CAN traffic on target

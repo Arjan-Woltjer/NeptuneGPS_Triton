@@ -28,6 +28,7 @@
 #include "VehicleTractor.hpp"
 
 #ifdef ISOBUS
+#include "IsobusDebugMenu.hpp"
 #include "IsobusGuidanceChannel.hpp"
 #include "IsobusVtInterface.hpp"
 #else
@@ -57,6 +58,7 @@ triton::GuidanceSource*    gGuidance;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusVtInterface*     gVtInterface;
+triton::IsobusDebugMenu*       gDebugMenu;
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
 #endif
@@ -114,6 +116,9 @@ void setup() {
 
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
+
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance);
+    gDebugMenu->Begin();
 #else
     // 4800 baud is the common NMEA default. No baudrate calibration/UI
     // exists in this project today (CalibrationPlough only exposes RTK
@@ -149,6 +154,7 @@ void loop() {
     gGuidanceChannel->Update();
 #ifdef ISOBUS
     gVtInterface->Update();
+    gDebugMenu->Update();
 #endif
 
     // Update interface

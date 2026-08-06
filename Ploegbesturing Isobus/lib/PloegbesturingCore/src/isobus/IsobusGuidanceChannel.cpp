@@ -158,6 +158,8 @@ void IsobusGuidanceChannel::Update() {
 // handling before this port.
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnPositionNmea2000(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.positionNmea2000++;
+
     if (msg.get_data_length() < 8) return;
     const auto& d = msg.get_data();
 
@@ -176,6 +178,8 @@ void IsobusGuidanceChannel::OnPositionNmea2000(const CANMessage& msg, void* cont
 //   Bytes 4-5: SOG uint16 LE (0.01 m/s;  0xFFFF = N/A)
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.speedNmea2000++;
+
     if (msg.get_data_length() < 6) return;
     const auto& d = msg.get_data();
 
@@ -192,6 +196,8 @@ void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context
 //   Bytes 2-5: XTE int32 LE (0.01 m, signed; 0x7FFFFFFF = N/A)
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.xteNmea2000++;
+
     if (msg.get_data_length() < 6) return;
     const auto& d = msg.get_data();
 
@@ -211,11 +217,15 @@ void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) 
 // Update(long id, const uint8_t* data, byte len).
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.positionLegacy++;
+
     if (msg.get_data_length() != 8) return;
     static_cast<IsobusGuidanceChannel*>(context)->guidance->NoteGgaFixReceived();
 }
 
 void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.speedLegacy++;
+
     if (msg.get_data_length() != 8) return;
     const auto& d = msg.get_data();
 
@@ -225,6 +235,8 @@ void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) 
 }
 
 void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.xteJohnDeereLegacy++;
+
     if (msg.get_data_length() != 8) return;
 
     // PGN 0xFFFF is a heavily-overloaded manufacturer-proprietary PGN --
@@ -244,6 +256,8 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
 }
 
 void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* context) {
+    static_cast<IsobusGuidanceChannel*>(context)->counters.xteTrimbleLegacy++;
+
     if (msg.get_data_length() != 8) return;
 
     // PDU1-format PGN: the legacy exact-CAN-ID filter (0x1CEBACAA) required
@@ -274,7 +288,10 @@ void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* cont
 // when received."
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnAllImplementStop(const CANMessage&, void* context) {
-    static_cast<IsobusGuidanceChannel*>(context)->implement->Stop();
+    auto* self = static_cast<IsobusGuidanceChannel*>(context);
+    self->counters.allImplementStop++;
+    self->counters.lastAllImplementStopMs = millis();
+    self->implement->Stop();
 }
 
 }  // namespace triton
