@@ -1,0 +1,63 @@
+
+`native/` holds the AUnit tests for ImplementPlanter/InterfacePlanter
+(../lib/PootmachinebesturingCore/src/), run natively (no Teensy attached):
+
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point).
+- `native/PootmachinebesturingNativeTests.cpp` -- the single AUnit driver
+  (`setup()`/`loop()`), matching Ploegbesturing's/Salacia's/Loofdoes'
+  `PloegbesturingNativeTests.cpp`/`SalaciaNativeTests.cpp`/
+  `LoofdoesNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
+  `test(...)` blocks; none of them define `setup()`/`loop()` themselves, so
+  they all link into one combined binary instead of one binary per test file.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses (matching Ploegbesturing's/Salacia's/Loofdoes' convention:
+groups each test's display name under the class it exercises, e.g.
+`ImplementPlanter_position_ascendingCalibration_atPoint0`,
+`InterfacePlanter_update_staleGgaFix_selectsHold`).
+
+## Known gaps
+
+- `CalibrationPlanter` (the LCD/button calibration wizard extracted from the
+  legacy `InterfacePlanter::Calibrate()`) is `#ifdef ARDUINO`-guarded and
+  deliberately excluded from `[env:native]`'s `build_src_filter` -- it drives
+  real LCD/button hardware through a sequence of blocking `while(true)` menu
+  loops, the same shape of problem Ploegbesturing's `CalibrationPlough` and
+  Loofdoes' `CalibrationSprayer` have, and which is excluded there for the
+  same reason. No native coverage exists or is planned for it.
+- `InterfacePlanter::UpdateScreen()` (LCD rendering) compiles as part of
+  `InterfacePlanter.cpp` (needed since `CheckButtons()`/`Update()`, which
+  *are* tested, live in the same file) but its output isn't asserted on by
+  any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
+  `WriteScreen` are no-ops.
+- The `teensy41` real-board env (ACAN_T4-based CAN/ISOBUS setup in
+  `src/main.cpp`) has not been build-verified on real hardware -- only via
+  `pio run -e teensy41`'s cross-compile in this environment.
+- Only the `teensy41` board is wired up today. This module's legacy code
+  (the combined Ploeg-Poot sketch) has historically also referenced Arduino
+  Uno, Arduino Micro, and a Teensy 3.5/3.6 protoboard -- their pin-config
+  `#ifdef` branches remain in `ConfigPlanter.hpp`/`ConfigImplementPlanter.hpp`/
+  `ConfigInterfacePlanter.hpp` for future revival, but none of them has a
+  buildable `platformio.ini` env yet.
+- `xteAvg`/`dxte` (private `ImplementPlanter` members, kept in step with the
+  legacy `xte_avg`/`dxte` fields for calibration/debug parity) have no public
+  getter and so aren't directly asserted on by any test; `setSetpoint()`'s
+  effect on `setpoint`/`GetPosition()` is covered instead, through
+  `Update()`.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
