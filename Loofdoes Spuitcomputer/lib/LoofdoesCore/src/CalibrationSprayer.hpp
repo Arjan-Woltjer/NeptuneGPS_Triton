@@ -60,8 +60,10 @@ private:
     unsigned long       runStartTime;
     unsigned long       lastCountdown;
 
+    bool          doseOutputEnabled;
+    bool          pumpOutputEnabled;
     bool          gpsOutputEnabled;
-    unsigned long lastGpsPrintTime;
+    unsigned long lastPeriodicPrintTime;
 
     char buf[32];
     int  bufLen;
@@ -82,6 +84,8 @@ private:
     void printCurrentCalibration();
     void handleEditPwmSelect();
     void handleEditPwmValue();
+    void printDoseData();
+    void printPumpData();
     void printGpsData();
 
     bool parseFloat(float* out);

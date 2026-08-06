@@ -23,7 +23,7 @@
 
 #define RUN_DURATION_MS 60000UL
 #define PWM_ARM_THRESHOLD 50  // analog reading below this counts as "knob at minimum"
-#define GPS_PRINT_INTERVAL_MS 500UL
+#define PERIODIC_PRINT_INTERVAL_MS 500UL
 
 namespace triton
 {
@@ -32,7 +32,8 @@ CalibrationSprayer::CalibrationSprayer(Stream* serial, ImplementSprayer* impl)
     : serial(serial), impl(impl), state(State::IDLE),
       analogPointIdx(0), currentPWM(0), pwmStepIdx(0),
       runStartTime(0), lastCountdown(0),
-      gpsOutputEnabled(false), lastGpsPrintTime(0), bufLen(0) {
+      doseOutputEnabled(false), pumpOutputEnabled(false), gpsOutputEnabled(false),
+      lastPeriodicPrintTime(0), bufLen(0) {
     buf[0] = 0;
 }
 
@@ -72,13 +73,18 @@ void CalibrationSprayer::Process() {
         }
     }
 
-    // Periodic GPS telemetry, only while sitting idle/at the menu so it
-    // doesn't corrupt the single-line \r-updated displays used elsewhere.
-    if (gpsOutputEnabled && (state == State::IDLE || state == State::MENU)) {
+    // Periodic telemetry, only while sitting idle/at the menu so it doesn't
+    // corrupt the single-line \r-updated displays used elsewhere. Each output
+    // is independently toggleable; all share one timer since they print at
+    // the same rate.
+    if ((doseOutputEnabled || pumpOutputEnabled || gpsOutputEnabled)
+            && (state == State::IDLE || state == State::MENU)) {
         unsigned long now = millis();
-        if (now - lastGpsPrintTime >= GPS_PRINT_INTERVAL_MS) {
-            lastGpsPrintTime = now;
-            printGpsData();
+        if (now - lastPeriodicPrintTime >= PERIODIC_PRINT_INTERVAL_MS) {
+            lastPeriodicPrintTime = now;
+            if (doseOutputEnabled) printDoseData();
+            if (pumpOutputEnabled) printPumpData();
+            if (gpsOutputEnabled) printGpsData();
         }
     }
 
@@ -160,10 +166,16 @@ void CalibrationSprayer::printMenu() {
     serial->println("2. PWM output      (ml/min)");
     serial->println("3. Show current calibration");
     serial->println("4. Edit PWM point");
-    serial->print("5. GPS output      (");
+    serial->print("5. Analog output   (raw/dose/speed/flow) (");
+    serial->print(doseOutputEnabled ? "ON" : "OFF");
+    serial->println(" - press to toggle)");
+    serial->print("6. Pump output     (calMode/pumpBtn/pumpOn/pumpVal) (");
+    serial->print(pumpOutputEnabled ? "ON" : "OFF");
+    serial->println(" - press to toggle)");
+    serial->print("7. GPS output      (");
     serial->print(gpsOutputEnabled ? "ON" : "OFF");
     serial->println(" - press to toggle)");
-    serial->print("6. GPS raw passthrough (");
+    serial->print("8. GPS raw passthrough (");
     serial->print(impl->gps->GetRawEcho() ? "ON" : "OFF");
     serial->println(" - press to toggle)");
     serial->println("q. Exit");
@@ -200,13 +212,27 @@ void CalibrationSprayer::handleMenu() {
             state = State::EDIT_PWM_SELECT;
             break;
         case '5':
+            doseOutputEnabled = !doseOutputEnabled;
+            lastPeriodicPrintTime = 0;
+            serial->print("\nAnalog output ");
+            serial->println(doseOutputEnabled ? "enabled." : "disabled.");
+            printMenu();
+            break;
+        case '6':
+            pumpOutputEnabled = !pumpOutputEnabled;
+            lastPeriodicPrintTime = 0;
+            serial->print("\nPump output ");
+            serial->println(pumpOutputEnabled ? "enabled." : "disabled.");
+            printMenu();
+            break;
+        case '7':
             gpsOutputEnabled = !gpsOutputEnabled;
-            lastGpsPrintTime = 0;
+            lastPeriodicPrintTime = 0;
             serial->print("\nGPS output ");
             serial->println(gpsOutputEnabled ? "enabled." : "disabled.");
             printMenu();
             break;
-        case '6':
+        case '8':
             impl->gps->SetRawEcho(!impl->gps->GetRawEcho());
             serial->print("\nGPS raw passthrough ");
             serial->println(impl->gps->GetRawEcho() ? "enabled." : "disabled.");
@@ -429,6 +455,38 @@ void CalibrationSprayer::printCurrentCalibration() {
     }
 }
 
+void CalibrationSprayer::printDoseData() {
+    // Analog/dosing pipeline diagnostics — raw analog counts and the resulting
+    // dose/speed/flow demand, so a wrong-dose report can be traced to the
+    // exact stage (raw ADC not moving vs. calibration math). Formatted as
+    // Arduino Serial Plotter "label:value,label:value" pairs — no units in
+    // the values themselves, since trailing text after a number breaks the
+    // plotter's parser.
+    serial->print("raw:");
+    serial->print(impl->inputAnalog[0]->value);
+    serial->print(",dose:");
+    serial->print(impl->doseLHA, 1);
+    serial->print(",speed:");
+    serial->print(impl->gps->GetSpeedMs(), 2);
+    serial->print(",flow:");
+    serial->println(impl->doseLM * 1000.0f, 1);
+}
+
+void CalibrationSprayer::printPumpData() {
+    // Pump-path diagnostics — calibration mode, pump button state, and the
+    // computed pump value that actually reaches the hardware.
+    serial->print("calMode=");
+    serial->print(impl->calibrationMode ? "Y" : "N");
+    serial->print("  pumpBtn=");
+    serial->print(impl->buttons[2]->state ? "1" : "0");
+    serial->print("  pumpOn=");
+    serial->print(impl->outputs[2].state ? "1" : "0");
+    serial->print("  pumpPwmFlag=");
+    serial->print(impl->outputs[2].pwm ? "1" : "0");
+    serial->print("  pumpVal=");
+    serial->println(impl->outputs[2].value);
+}
+
 void CalibrationSprayer::printGpsData() {
     float lat, lon;
     impl->gps->GetPosition(&lat, &lon);
@@ -439,28 +497,7 @@ void CalibrationSprayer::printGpsData() {
     serial->print("  lon=");
     serial->print(lon, 6);
     serial->print("  quality=");
-    serial->print(impl->gps->GetQuality());
-
-    // Dosing pipeline diagnostics — raw analog counts, dose/flow demand,
-    // calibration mode, pump button state, and the computed pump value that
-    // actually reaches the hardware, so a wrong-dose report can be traced to
-    // the exact stage (raw ADC not moving vs. calibration math vs. pump path).
-    serial->print("  | analogRaw=");
-    serial->print(impl->inputAnalog[0]->value);
-    serial->print("  dose=");
-    serial->print(impl->doseLHA, 1);
-    serial->print(" l/ha  flow=");
-    serial->print(impl->doseLM * 1000.0f, 1);
-    serial->print(" ml/min  calMode=");
-    serial->print(impl->calibrationMode ? "Y" : "N");
-    serial->print("  pumpBtn=");
-    serial->print(impl->buttons[2]->state ? "1" : "0");
-    serial->print("  pumpOn=");
-    serial->print(impl->outputs[2].state ? "1" : "0");
-    serial->print("  pumpPwmFlag=");
-    serial->print(impl->outputs[2].pwm ? "1" : "0");
-    serial->print("  pumpVal=");
-    serial->println(impl->outputs[2].value);
+    serial->println(impl->gps->GetQuality());
 }
 
 // ---------------------------------------------------------------------------
