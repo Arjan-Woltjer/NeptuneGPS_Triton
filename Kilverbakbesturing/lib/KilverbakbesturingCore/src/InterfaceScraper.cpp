@@ -1,0 +1,465 @@
+/*
+  InterfaceScraper - a library for the MeijWorks scrapercontrol interface
+  Copyright (C) 2011-2026 J.A. Woltjer.
+  All rights reserved.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#include "InterfaceScraper.hpp"
+
+namespace triton
+{
+
+// -----------
+// Constructor
+// -----------
+InterfaceScraper::InterfaceScraper(InterfaceI2CLCD* lcd,
+                                    ImplementScraper* implement,
+                                    VehicleTractor* tractor,
+                                    VehicleGps* gps) {
+#ifdef DEBUG
+    Serial.println(S_DIVIDE);
+    Serial.println("Initialising scraper interface");
+    Serial.println(S_DIVIDE);
+#endif
+
+    // Pin assignments and configuration
+    // Schmitt triggered inputs
+    pinMode(LEFT_BUTTON_5, INPUT);
+    digitalWrite(LEFT_BUTTON_5, LOW);
+    pinMode(RIGHT_BUTTON_5, INPUT);
+    digitalWrite(RIGHT_BUTTON_5, LOW);
+    pinMode(MODE_PIN_5, INPUT);
+    digitalWrite(MODE_PIN_5, LOW);
+    pinMode(JOY_LEFT_5, INPUT);
+    digitalWrite(JOY_LEFT_5, LOW);
+    pinMode(JOY_RIGHT_5, INPUT);
+    digitalWrite(JOY_RIGHT_5, LOW);
+    pinMode(JOY_MODE_5, INPUT);
+    digitalWrite(JOY_MODE_5, LOW);
+
+    // Mode
+    mode = 2;  // MANUAL
+
+    // Button flag and timer. button1Timer/button2Timer were never
+    // initialized here in the legacy code (a real latent bug -- the very
+    // first CheckButtons() call would measure elapsed time against garbage
+    // memory); seeded to millis() now, matching the same fix already applied
+    // to InterfacePlough/InterfacePlanter.
+    buttons = 0;
+    button1Flag = false;
+    button2Flag = false;
+    button1Timer = millis();
+    button2Timer = millis();
+
+    // Connected classes
+    this->lcd = lcd;
+    this->implement = implement;
+    this->tractor = tractor;
+    this->gps = gps;
+}
+
+// ------------------------
+// Method for updating mode
+// ------------------------
+void InterfaceScraper::Update() {
+    // ===============
+    // Process buttons
+    // ===============
+    CheckButtons(255, 0);
+
+    // =======================
+    // Process GPS and tractor
+    // =======================
+    gps->Update();
+    tractor->Update(mode);
+
+    // ====================
+    // Process mode changes
+    // ====================
+
+    // ------
+    // Manual
+    // ------
+    if (!digitalRead(MODE_PIN_5) || !digitalRead(JOY_MODE_5)) {
+        // set mode to manual
+        mode = 2;
+
+#ifdef DEBUG
+        Serial.println("M");
+#endif
+    }
+    // ----
+    // Hold
+    // ----
+    else if (millis() - gps->GetGgaFixAge() > 2000 || millis() - gps->GetVtgFixAge() > 2000) {
+        // set mode to hold
+        mode = 1;
+
+#ifdef DEBUG
+        Serial.println("H");
+#endif
+    }
+    // ---------
+    // Automatic
+    // ---------
+    else {
+        // set mode to automatic
+        mode = 0;
+
+#ifdef DEBUG
+        Serial.println("A");
+#endif
+    }
+
+    // Update implement and adjust
+    implement->Update(mode, buttons);
+    implement->Adjust(mode, buttons);
+
+    // Update screen (no rewrite) and write one character
+    UpdateScreen(0);
+    lcd->WriteScreen(1);
+}
+
+// --------------------------
+// Method for updating screen
+// --------------------------
+void InterfaceScraper::UpdateScreen(boolean rewrite) {
+    int temp = 0;
+    int temp2 = 0;
+
+    // Update screen
+    if (rewrite) {
+        // Regel 0
+        lcd->WriteBuffer(L5_HEIGHT_R, 0);
+
+        // Regel 1
+        lcd->WriteBuffer(L5_HEIGHT, 1);
+
+        // Regel 2
+        lcd->WriteBuffer(L5_DISTANCE, 2);
+
+        // Regel 3
+        lcd->WriteBuffer(L5_SLOPE, 3);
+
+        lcd->WriteScreen(-1);
+    }
+
+    // Regel 0
+    temp2 = implement->GetRefHeight();
+    temp = abs(temp2);
+
+    if (temp > 9999) {
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 0, 5);
+        }
+        else {
+            lcd->WriteBuffer(' ', 0, 5);
+        }
+        lcd->WriteBuffer(temp / 10000 + '0', 0, 6);
+        temp = temp % 10000;
+        lcd->WriteBuffer(temp / 1000 + '0', 0, 7);
+        temp = temp % 1000;
+        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 0, 9);
+        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 0, 11);
+    }
+    else if (temp > 999) {
+        lcd->WriteBuffer(' ', 0, 5);
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 0, 6);
+        }
+        else {
+            lcd->WriteBuffer(' ', 0, 6);
+        }
+        lcd->WriteBuffer(temp / 1000 + '0', 0, 7);
+        temp = temp % 1000;
+        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 0, 9);
+        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 0, 11);
+    }
+    else if (temp > 99) {
+        lcd->WriteBuffer(' ', 0, 5);
+        lcd->WriteBuffer(' ', 0, 6);
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 0, 7);
+        }
+        else {
+            lcd->WriteBuffer(' ', 0, 7);
+        }
+        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 0, 9);
+        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 0, 11);
+    }
+
+    // Regel 0
+    temp2 = implement->GetOffset();
+    temp = abs(temp2);
+
+    if (temp > 99) {
+        lcd->WriteBuffer(' ', 0, 12);
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 0, 13);
+        }
+        else {
+            lcd->WriteBuffer('+', 0, 13);
+        }
+        lcd->WriteBuffer(' ', 0, 14);
+        lcd->WriteBuffer(temp / 100 + '0', 0, 15);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 0, 16);
+        lcd->WriteBuffer(temp / 10 + '0', 0, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 0, 18);
+    }
+
+    // Regel 1
+    temp2 = implement->GetHeight();
+    temp = abs(temp2);
+
+    if (temp > 9999) {
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 1, 12);
+        }
+        else {
+            lcd->WriteBuffer(' ', 1, 12);
+        }
+        lcd->WriteBuffer(temp / 10000 + '0', 1, 13);
+        temp = temp % 10000;
+        lcd->WriteBuffer(temp / 1000 + '0', 1, 14);
+        temp = temp % 1000;
+        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 1, 16);
+        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 1, 18);
+    }
+    else if (temp > 999) {
+        lcd->WriteBuffer(' ', 1, 12);
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 1, 13);
+        }
+        else {
+            lcd->WriteBuffer(' ', 1, 13);
+        }
+        lcd->WriteBuffer(temp / 1000 + '0', 1, 14);
+        temp = temp % 1000;
+        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 1, 16);
+        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 1, 18);
+    }
+    else if (temp > 99) {
+        lcd->WriteBuffer(' ', 1, 12);
+        lcd->WriteBuffer(' ', 1, 13);
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 1, 14);
+        }
+        else {
+            lcd->WriteBuffer(' ', 1, 14);
+        }
+        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
+        temp = temp % 100;
+        lcd->WriteBuffer(',', 1, 16);
+        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 1, 18);
+    }
+
+    // Regel 2
+    temp2 = implement->GetDistance();
+    temp = abs(temp2);
+
+    if (temp > 9999) {
+        lcd->WriteBuffer(temp / 10000 + '0', 2, 14);
+        temp = temp % 10000;
+        lcd->WriteBuffer(temp / 1000 + '0', 2, 15);
+        temp = temp % 1000;
+        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
+        temp = temp % 100;
+        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 2, 18);
+    }
+    else if (temp > 999) {
+        lcd->WriteBuffer(' ', 2, 14);
+        lcd->WriteBuffer(temp / 1000 + '0', 2, 15);
+        temp = temp % 1000;
+        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
+        temp = temp % 100;
+        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 2, 18);
+    }
+    else if (temp > 99) {
+        lcd->WriteBuffer(' ', 2, 14);
+        lcd->WriteBuffer(' ', 2, 15);
+        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
+        temp = temp % 100;
+        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 2, 18);
+    }
+    else if (temp > 9) {
+        lcd->WriteBuffer(' ', 2, 14);
+        lcd->WriteBuffer(' ', 2, 15);
+        lcd->WriteBuffer(' ', 2, 16);
+        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 2, 18);
+    }
+    else {
+        lcd->WriteBuffer(' ', 2, 14);
+        lcd->WriteBuffer(' ', 2, 15);
+        lcd->WriteBuffer(' ', 2, 16);
+        lcd->WriteBuffer(' ', 2, 17);
+        lcd->WriteBuffer(temp + '0', 2, 18);
+    }
+
+    // Regel 3
+    temp2 = implement->GetSlope();
+    temp = abs(temp2);
+
+    if (temp > 9) {
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 3, 8);
+        }
+        else {
+            lcd->WriteBuffer(' ', 3, 8);
+        }
+        lcd->WriteBuffer('.', 3, 9);
+        lcd->WriteBuffer(temp / 10 + '0', 3, 10);
+        temp = temp % 10;
+        lcd->WriteBuffer(temp + '0', 3, 11);
+    }
+    else {
+        if (temp2 < 0) {
+            lcd->WriteBuffer('-', 3, 8);
+        }
+        else {
+            lcd->WriteBuffer(' ', 3, 8);
+        }
+        lcd->WriteBuffer('.', 3, 9);
+        lcd->WriteBuffer('0', 3, 10);
+        lcd->WriteBuffer(temp + '0', 3, 11);
+    }
+
+    switch (mode) {
+        case 0:  // AUTO
+            lcd->WriteBuffer('A', 3, 14);
+            lcd->WriteBuffer(' ', 3, 17);
+            lcd->WriteBuffer(' ', 3, 18);
+            break;
+        case 1:  // HOLD
+            lcd->WriteBuffer('H', 3, 14);
+            if (gps->MinSpeed()) {
+                lcd->WriteBuffer('G', 3, 17);
+                lcd->WriteBuffer('!', 3, 18);
+            }
+            else {
+                lcd->WriteBuffer('S', 3, 17);
+                lcd->WriteBuffer('!', 3, 18);
+            }
+            break;
+        case 2:  // MANUAL
+            lcd->WriteBuffer('M', 3, 14);
+
+            if (buttons == -1) {
+                lcd->WriteBuffer('<', 3, 17);
+                lcd->WriteBuffer(' ', 3, 18);
+            }
+            else if (buttons == 1) {
+                lcd->WriteBuffer(' ', 3, 17);
+                lcd->WriteBuffer('>', 3, 18);
+            }
+            else {
+                lcd->WriteBuffer(' ', 3, 17);
+                lcd->WriteBuffer(' ', 3, 18);
+            }
+            break;
+    }
+}
+
+// ---------------------------
+// Method for checking buttons
+// ---------------------------
+int InterfaceScraper::CheckButtons(byte delay1, byte delay2) {
+    if (button1Flag) {
+        button1Timer = millis();
+        button1Flag = false;
+    }
+
+    if (button2Flag) {
+        button2Timer = millis();
+        button2Flag = false;
+    }
+
+    // Check for left/right button presses
+    if (digitalRead(LEFT_BUTTON_5) && digitalRead(RIGHT_BUTTON_5)) {
+        if (millis() - button1Timer >= delay1 * 4) {
+            button1Flag = true;
+            buttons = 2;
+            return 2;
+        }
+        else {
+            button2Flag = true;
+            buttons = 0;
+            return 0;
+        }
+    }
+    else if (digitalRead(LEFT_BUTTON_5) || digitalRead(JOY_LEFT_5)) {
+        if (millis() - button2Timer >= delay2) {
+            button2Flag = true;
+            buttons = -1;
+            return -1;
+        }
+        else {
+            button1Flag = true;
+            buttons = 0;
+            return 0;
+        }
+    }
+    else if (digitalRead(RIGHT_BUTTON_5) || digitalRead(JOY_RIGHT_5)) {
+        if (millis() - button2Timer >= delay2) {
+            button2Flag = true;
+            buttons = 1;
+            return 1;
+        }
+        else {
+            button1Flag = true;
+            buttons = 0;
+            return 0;
+        }
+    }
+    else {
+        button1Flag = true;
+        button2Flag = true;
+        buttons = 0;
+        return 0;
+    }
+}
+
+}  // namespace triton

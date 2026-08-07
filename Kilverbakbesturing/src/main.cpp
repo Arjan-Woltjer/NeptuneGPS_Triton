@@ -1,5 +1,5 @@
 /*
-  Pootmachinebesturing - program using gps-data to control the offset of a planter
+  Kilverbakbesturing - program using gps-data to control the offset of a scraper (leveling bucket)
   Copyright (C) 2011-2026 J.A. Woltjer.
 
   This program is free software: you can redistribute it and/or modify
@@ -20,12 +20,12 @@
 #include <EEPROM.h>
 #include <ACAN_T4.h>
 
-#include "CalibrationPlanter.hpp"
-#include "ImplementPlanter.hpp"
+#include "CalibrationScraper.hpp"
+#include "ImplementScraper.hpp"
 #include "InterfaceGps.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfacePlanter.hpp"
-#include "LanguagePlanter.hpp"
+#include "InterfaceScraper.hpp"
+#include "LanguageScraper.hpp"
 #include "VehicleGps.hpp"
 #include "VehicleTractor.hpp"
 
@@ -45,9 +45,9 @@ TwoWire* gLcdWire = &Wire;
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
 triton::VehicleTractor*    gTractor;
-triton::ImplementPlanter*  gImplement;
-triton::InterfacePlanter*  gInterface;
-triton::CalibrationPlanter* gCalibration;
+triton::ImplementScraper*  gImplement;
+triton::InterfaceScraper*  gInterface;
+triton::CalibrationScraper* gCalibration;
 triton::VehicleGps*        gGps;
 triton::InterfaceGps*      gInterfaceGps;
 
@@ -76,28 +76,28 @@ void setup() {
     // CheckGps() is never called again after setup().
     gInterfaceGps = new triton::InterfaceGps(gLcd, gGps);
 
-    gImplement = new triton::ImplementPlanter(gSerialDebug, gTractor, gGps);
-    gInterface = new triton::InterfacePlanter(gSerialDebug, gLcd, gImplement, gTractor, gGps);
-    gCalibration = new triton::CalibrationPlanter(gSerialDebug, gLcd, gImplement, gTractor, gGps, gInterface);
+    gImplement = new triton::ImplementScraper(gGps);
+    gInterface = new triton::InterfaceScraper(gLcd, gImplement, gTractor, gGps);
+    gCalibration = new triton::CalibrationScraper(gLcd, gImplement, gTractor, gGps, gInterface);
 
     // Print message to computer
-    gSerialDebug->println(S_DIVIDE);
-    gSerialDebug->print(S_MEIJWORKS);
-    gSerialDebug->print(" ");
-    gSerialDebug->println(S_DEVICE);
-    gSerialDebug->println(S_COPYRIGHT);
-    gSerialDebug->println(S_DIVIDE);
+    gSerialDebug->println("-------------------------------");
+    gSerialDebug->println("-----------MeijWorks-----------");
+    gSerialDebug->println("-------------------------------");
+    gSerialDebug->println("  Scrapercontrol version 1.1   ");
+    gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer");
+    gSerialDebug->println("-------------------------------");
 
     gTractor->PrintCalibrationData();
     gGps->PrintCalibrationData();
     gImplement->PrintCalibrationData();
 
     // Write message to screen
-    // Messages in LanguagePlanter.hpp
-    gLcd->WriteBuffer(L3_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L3_DEVICE, 1);
-    gLcd->WriteBuffer(L3_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L3_AUTHOR, 3);
+    // Messages in LanguageScraper.hpp
+    gLcd->WriteBuffer(L5_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L5_DEVICE, 1);
+    gLcd->WriteBuffer(L5_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L5_AUTHOR, 3);
 
     gLcd->WriteScreen(-1);
 
@@ -119,8 +119,8 @@ void loop() {
     gInterface->Update();
 
     // Both buttons held -> enter the calibration wizard (blocking until it
-    // finishes/is cancelled). See CalibrationPlanter.hpp for why this trigger
-    // lives here instead of inside InterfacePlanter itself.
+    // finishes/is cancelled). See CalibrationScraper.hpp for why this
+    // trigger lives here instead of inside InterfaceScraper itself.
     if (gInterface->GetButtons() == 2) {
         gCalibration->Calibrate();
     }
@@ -129,8 +129,10 @@ void loop() {
 // ------------------------
 // Setup CAN-bus for ISOBUS
 // ------------------------
-// Same ACAN_T4 (Teensy 4.x FlexCAN, can1/CAN1) port Ploegbesturing already
-// went through.
+// Same ACAN_T4 (Teensy 4.x FlexCAN, can1/CAN1) port Ploegbesturing/
+// Pootmachinebesturing already went through. This module needs full GPS
+// (position/altitude for the two-reference-point leveling calculation, not
+// just XTE/speed), matching Ploegbesturing's CAN filter set exactly.
 static void GCanSetup() {
     ACAN_T4_Settings settings(250UL * 1000UL);  // CAN bit rate 250 kbit/s
 

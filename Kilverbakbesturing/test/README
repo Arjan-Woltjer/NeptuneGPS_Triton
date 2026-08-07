@@ -1,0 +1,70 @@
+
+`native/` holds the AUnit tests for ImplementScraper/InterfaceScraper
+(../lib/KilverbakbesturingCore/src/), run natively (no Teensy attached):
+
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point). `VehicleGps.hpp`
+  here also implements `DistanceBetween()`/`GetPosition()`/`GetAltitudeCm()`
+  with real math (a flat local-tangent-plane approximation, matching the real
+  `triton::VehicleGps::DistanceBetween()` now does too) rather than a fixed
+  stub value -- this module's leveling calculation needs genuine relative
+  distances between deliberately-chosen lat/long test fixtures.
+- `native/KilverbakbesturingNativeTests.cpp` -- the single AUnit driver
+  (`setup()`/`loop()`), matching Ploegbesturing's/Pootmachinebesturing's/
+  Slangenpomp Spuitcomputer's `*NativeTests.cpp` pattern. Every `test_*.cpp`
+  file only registers `test(...)` blocks; none of them define `setup()`/
+  `loop()` themselves, so they all link into one combined binary instead of
+  one binary per test file.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses (matching this family's convention: groups each test's
+display name under the class it exercises, e.g.
+`ImplementScraper_calculateDistances_degenerateReferencePoints_fallsBackToZero`,
+`InterfaceScraper_update_staleGgaFix_selectsHold`).
+
+## Known gaps
+
+- `CalibrationScraper` (the LCD/button calibration wizard extracted from the
+  legacy `InterfaceScraper::calibrate()`) is `#ifdef ARDUINO`-guarded and
+  deliberately excluded from `[env:native]`'s `build_src_filter` -- same
+  reason as `CalibrationPlough`/`CalibrationPlanter`/`CalibrationSprayer`. No
+  native coverage exists or is planned for it.
+- `ImplementScraper::getActualPosition()`'s divide-by-zero guard (two
+  calibration points holding the same reading) has no public setter to
+  construct that state directly -- `positionCalibrationData` is only settable
+  through `SetPositionCalibrationData()`, which reads a *live* `analogRead()`,
+  and the whole sensored code path is `#ifndef NOSENS`-gated (dead on every
+  board built today; this production unit has no position sensor at all,
+  matching the legacy source's `NOSENS` default). Same gap Slangenpomp
+  Spuitcomputer's PWM-calibration guard has, for the same reason.
+- `InterfaceScraper::UpdateScreen()` (LCD rendering) compiles as part of
+  `InterfaceScraper.cpp` (needed since `CheckButtons()`/`Update()`, which
+  *are* tested, live in the same file) but its output isn't asserted on by
+  any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
+  `WriteScreen` are no-ops.
+- The `teensy41` real-board env (ACAN_T4-based CAN/ISOBUS setup in
+  `src/main.cpp`, matching Ploegbesturing's) has not been build-verified on
+  real hardware -- only via `pio run -e teensy41`'s cross-compile in this
+  environment.
+- Only the `teensy41` board is wired up today. This module's legacy source
+  also referenced a production Arduino Micro board, an Arduino Micro/
+  Leonardo "voorserie" preseries board, and a Teensy 3.5/3.6 protoboard --
+  their `#ifdef` branches remain in `ConfigScraper.hpp`/
+  `ConfigImplementScraper.hpp`/`ConfigInterfaceScraper.hpp` for future
+  revival, but none of them has a buildable `platformio.ini` env yet.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html

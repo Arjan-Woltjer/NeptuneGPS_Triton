@@ -505,6 +505,28 @@ bool VehicleGps::Update(long int id, const uint8_t* data, byte len) {
     }
 }
 
+// -------------------------------------------------------------------------
+// Distance between two lat/long points, in meters. Declared in the header
+// since this library's initial version, but never given a body -- every
+// caller across this codebase so far has computed relative position from
+// XTE directly, so the gap went unnoticed until Kilverbakbesturing's
+// two-reference-point leveling calculation became the first real caller
+// (see ImplementScraper::calculateDistances()). Equirectangular
+// approximation (not full great-circle/Haversine) -- appropriate at the
+// field scale every caller of this operates at (tens to low hundreds of
+// meters), and better numerically conditioned than Haversine's sin^2(d/2)
+// term at short range.
+float VehicleGps::DistanceBetween(float lat1, float lon1, float lat2, float lon2) {
+    constexpr float kMetersPerDegreeLat = 111320.0f;
+    float latMeters = (lat2 - lat1) * kMetersPerDegreeLat;
+    float lonMeters = (lon2 - lon1) * kMetersPerDegreeLat * cosf(lat1 * (PI / 180.0f));
+    return sqrtf(latMeters * latMeters + lonMeters * lonMeters);
+}
+
+float VehicleGps::DistanceBetween(float* lat1, float* lon1, float* lat2, float* lon2) {
+    return DistanceBetween(*lat1, *lon1, *lat2, *lon2);
+}
+
 #ifndef GPS_NO_STATS
 void VehicleGps::Stats(unsigned long* chars, unsigned short* sentences, unsigned short* failedCs) {
     if (chars)     *chars     = encodedCharacters;
