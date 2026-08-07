@@ -1,0 +1,70 @@
+
+`native/` holds the AUnit tests for ImplementSprayer/InterfaceSprayer
+(../lib/SlangenpompCore/src/), run natively (no Teensy attached):
+
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point).
+- `native/SlangenpompNativeTests.cpp` -- the single AUnit driver
+  (`setup()`/`loop()`), matching Ploegbesturing's/Pootmachinebesturing's
+  `PloegbesturingNativeTests.cpp`/`PootmachinebesturingNativeTests.cpp`
+  pattern. Every `test_*.cpp` file only registers `test(...)` blocks; none of
+  them define `setup()`/`loop()` themselves, so they all link into one
+  combined binary instead of one binary per test file.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses (matching Ploegbesturing's/Pootmachinebesturing's
+convention: groups each test's display name under the class it exercises,
+e.g. `ImplementSprayer_dose_defaultsTo200`,
+`InterfaceSprayer_update_allConditionsGood_selectsAuto`).
+
+## Known gaps
+
+- `CalibrationSprayer` (the LCD/button calibration wizard extracted from the
+  legacy `InterfaceSprayer::calibrate()`) is `#ifdef ARDUINO`-guarded and
+  deliberately excluded from `[env:native]`'s `build_src_filter` -- it drives
+  real LCD/button hardware through a sequence of blocking `while(true)` nested
+  menu loops, the same shape of problem Ploegbesturing's `CalibrationPlough`
+  and Pootmachinebesturing's `CalibrationPlanter` have, and which is excluded
+  there for the same reason. No native coverage exists or is planned for it.
+- `ImplementSprayer::calculateSetpointPwm()`'s divide-by-zero guard (two
+  calibration points capturing the same flow-pulse count) has no public
+  setter to construct that state directly, unlike Plough's/Planter's position
+  calibration -- `pwmCalibrationData` is only ever populated by
+  `CalibratePump()` (a real, 60-second-real-time automated 12-point capture)
+  or `readCalibrationData()`. The corrupt-EEPROM test exercises the
+  validation path that keeps that state from ever being reached in practice,
+  but the guard itself is untested in isolation.
+- `InterfaceSprayer::UpdateScreen()` (LCD rendering) compiles as part of
+  `InterfaceSprayer.cpp` (needed since `CheckButtons()`/`Update()`, which
+  *are* tested, live in the same file) but its output isn't asserted on by
+  any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
+  `WriteScreen` are no-ops.
+- The `teensy41` real-board env has not been build-verified on real hardware
+  -- only via `pio run -e teensy41`'s cross-compile in this environment.
+- Only the `teensy41` board is wired up today. This module's legacy source
+  also referenced a production Arduino Micro board, an Arduino Micro
+  "voorserie" preseries board, and a Teensy 3.5/3.6 protoboard
+  (`TEENSYPROTO`, including a remote pump-selection-over-`Serial1` protocol)
+  -- their `#ifdef` branches remain in `ConfigSprayer.hpp`/
+  `ConfigImplementSprayer.hpp`/`ConfigInterfaceSprayer.hpp` for future
+  revival, but none of them has a buildable `platformio.ini` env yet.
+- GPS-speed dosing is out of scope for this pass -- the legacy GPS
+  constructor was a never-implemented stub, dropped entirely rather than
+  carried forward. See `ImplementSprayer.hpp`'s note on wiring up real
+  GPS-speed dosing later, mirroring Loofdoes Spuitcomputer's `ImplementSprayer`.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
