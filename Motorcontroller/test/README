@@ -1,0 +1,53 @@
+
+`native/` holds the AUnit tests for `InterfaceMotorcontroller`
+(`../lib/MotorcontrollerCore/src/`), run natively (no microcontroller attached).
+
+- `native/tests/` -- `test_InterfaceMotorcontroller.cpp` only covers the roboteq-style
+  serial protocol layer (term splitting, command dispatch). PID/config/safety behavior
+  is exercised by `Shared Firmware Libs/SteeringActuator`'s own test suite instead, not
+  duplicated here -- see that library's own `test/README`.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs, not a real
+  EpoxyDuino dependency (see any Triton module's own `test/README` for "why no
+  EpoxyDuino"). Notably has a `NativeSerial` with an **injectable RX queue and
+  captured TX buffer** (`Serial.inject("...")` / `Serial.sent()` / `Serial.clearSent()`)
+  -- this is the first Triton module whose native tests parse live serial input, unlike
+  every sibling module's LCD/button-driven interfaces. Also has a `FlashStorage.h` fake
+  (SAMD-only in reality; holds values in memory for the test process) and a `pwm()`
+  stub (this board's real PWM API -- see `SteeringActuator.cpp`'s `writePwm()`).
+- `native/MotorcontrollerNativeTests.cpp` -- the single AUnit driver.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+## Known gaps
+
+- **This board's pin budget is a real, hardware-forced compromise, not an oversight.**
+  The Seeedstudio XIAO SAMD21 target has 11 GPIO pins total; `SteeringActuator::Pins`
+  has 18 distinct roles (matching Salacia's much larger Teensy boards). Confirmed with
+  the user: single-motor-only (`Config::Electric1`, fixed -- motor2/pressure sensing is
+  never functionally exercised), and all four safety interlocks
+  (e-stop/operator-present/steer-limit-left/-right) share one physical pin -- a real
+  loss of independent-interlock granularity versus Salacia's boards. See
+  `ConfigMotorcontroller.hpp`'s own comment for the full pin-budget reasoning.
+- `overpressureThreshold`/`overcurrentThreshold` are hardcoded to 255 (effectively
+  disabled) in `InterfaceMotorcontroller::ApplySettingsToActuator()` -- this board has
+  no real current/pressure sensing wired (see the pin-budget note above), so leaving
+  the check enabled against floating/noise ADC readings would just be a nuisance-fault
+  source, not real protection.
+- `errorFraction` (roboteq `!VAR 7`) is a vestigial, flash-persisted value with **no
+  functional effect** -- it belonged to the legacy sketch's own encoder-vs-PWM-delta
+  watchdog math, which no longer exists (replaced entirely by `SteeringActuator`'s own
+  overcurrent/overpressure/interlock safety system). Kept only so the roboteq wire
+  protocol and the legacy Python tuner GUI's variable set don't shrink.
+- The real `seeed_xiao` env has not been build-verified on real hardware -- only via
+  `pio run -e seeed_xiao`'s cross-compile in this environment.
+- Encoder2/motor2/current/pressure pins are wired to genuinely idle or shared pins with
+  no real sensor/actuator behind them (see `ConfigMotorcontroller.hpp`) -- their
+  readings are meaningless noise, not a bug, given the single-motor-only scope above.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's own
+Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
