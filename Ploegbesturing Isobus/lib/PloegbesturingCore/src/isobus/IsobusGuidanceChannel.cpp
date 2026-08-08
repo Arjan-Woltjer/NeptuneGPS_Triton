@@ -108,7 +108,7 @@ void IsobusGuidanceChannel::Begin() {
     // issue. Matches AgIsoStack-Arduino's own reference examples
     // (examples/SpeedMessages, examples/VirtualTerminal), which all use this
     // factory method.
-    controlFunction = CANNetworkManager::CANNetwork().create_internal_control_function(deviceName, 0, 0x81);
+    controlFunction = CANNetworkManager::CANNetwork.create_internal_control_function(deviceName, 0, 0x81);
 
     serialDebug->print("IsobusGuidanceChannel: claiming address ");
     // J1939 address claim takes at least 250 ms; block until our address is
@@ -120,14 +120,14 @@ void IsobusGuidanceChannel::Begin() {
     serialDebug->print("address claimed: 0x");
     serialDebug->println(controlFunction->get_address(), HEX);
 
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000, OnPositionNmea2000, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000, OnSpeedNmea2000, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnXteNmea2000, OnXteNmea2000, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnPositionLegacy, OnLegacyPosition, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnSpeedLegacy, OnLegacySpeed, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnXteJohnDeereLegacy, OnLegacyXteJohnDeere, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy, OnLegacyXteTrimble, this);
-    CANNetworkManager::CANNetwork().add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop, OnAllImplementStop, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000, OnPositionNmea2000, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000, OnSpeedNmea2000, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteNmea2000, OnXteNmea2000, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionLegacy, OnLegacyPosition, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedLegacy, OnLegacySpeed, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteJohnDeereLegacy, OnLegacyXteJohnDeere, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy, OnLegacyXteTrimble, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop, OnAllImplementStop, this);
 
     // Trigger an immediate first transmission from whatever's on the bus;
     // the reference Fendt 6240 then continues broadcasting on its own

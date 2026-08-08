@@ -121,7 +121,7 @@ void IsobusDebugMenu::printFullDump() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
-    float busload = CANNetworkManager::CANNetwork().get_estimated_busload(kCanChannel);
+    float busload = CANNetworkManager::CANNetwork.get_estimated_busload(kCanChannel);
 
     serialDebug->println("=== ISOBUS STATUS ===");
 
@@ -199,7 +199,7 @@ void IsobusDebugMenu::printPeriodicLine() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
-    float busload = CANNetworkManager::CANNetwork().get_estimated_busload(kCanChannel);
+    float busload = CANNetworkManager::CANNetwork.get_estimated_busload(kCanChannel);
     unsigned long now = millis();
 
     serialDebug->print("[ISOBUS] addr=0x");
