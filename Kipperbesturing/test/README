@@ -1,0 +1,81 @@
+
+`native/` holds the AUnit tests for ImplementKipper/InterfaceKipper
+(../lib/KipperbesturingCore/src/), run natively (no Teensy attached):
+
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point). No `VehicleGps.hpp`
+  stub here -- GPS was dropped for this module (see "Known gaps" below).
+  `Arduino.h` here also adds a `digitalWrite()`/`digitalWriteValue()`
+  readback pair (mirroring the existing `analogWrite()`/`analogWriteValue()`
+  pattern) -- `ImplementKipper::Adjust()` is the first module in this family
+  to drive its bang-bang outputs with plain `digitalWrite()` rather than a
+  variable-strength `analogWrite()`, since this module never had a
+  manPwm/autoPwm split.
+- `native/KipperbesturingNativeTests.cpp` -- the single AUnit driver
+  (`setup()`/`loop()`), matching every other Triton module's `*NativeTests.cpp`
+  pattern. Every `test_*.cpp` file only registers `test(...)` blocks; none of
+  them define `setup()`/`loop()` themselves, so they all link into one
+  combined binary instead of one binary per test file.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses.
+
+## Known gaps
+
+- Kipperbesturing's legacy source was closer to complete than most
+  distilled modules -- a coherent P/I/D-to-shutoff-latch-bang-bang design,
+  structurally a close cousin of ImplementPlanter's XTE control loop -- but
+  the user confirmed it was never actually finished. Two real gaps closed
+  here (see the distillation commit message for the full account):
+  - **Hold mode is reconstructed, not ported.** The legacy source declared
+    (and constructed) a `VehicleGps` solely so `updateScreen()`'s dead
+    `case 1: // HOLD` branch could call `gps->minSpeed()`/`gps->getQuality()`
+    -- but `update()`'s mode ladder never actually transitioned to Hold, and
+    nothing in `ImplementKipper` ever used GPS for real. Dropped GPS
+    entirely and implemented a real Hold transition using
+    `VehicleTractor::MinSpeed()` (already real, already used by this
+    module's own D-term) -- auto-steering now genuinely pauses while the
+    tractor is stationary. Not validated against real hardware.
+  - **The `TEENSY` board pin assignment in `ConfigKipper.hpp`/
+    `ConfigImplementKipper.hpp`/`ConfigInterfaceKipper.hpp` is new** -- the
+    legacy source only ever targeted a `VOORSERIE` (Arduino Uno/Leonardo)
+    board. Pin numbers follow the same shape every sibling module's
+    `TEENSY` branch uses, but haven't been validated against real hardware
+    either.
+- `CalibrationKipper` (the LCD/button calibration wizard) is `#ifdef
+  ARDUINO`-guarded and deliberately excluded from `[env:native]`'s
+  `build_src_filter` -- same reason as `CalibrationPlanter`/
+  `CalibrationRooier`.
+- `InterfaceKipper::UpdateScreen()` (LCD rendering) compiles as part of
+  `InterfaceKipper.cpp` (needed since `CheckButtons()`/`Update()`, which
+  *are* tested, live in the same file) but its output isn't asserted on by
+  any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
+  `WriteScreen` are no-ops.
+- The `teensy41` real-board env (in `src/main.cpp`) has not been
+  build-verified on real hardware -- only via `pio run -e teensy41`'s
+  cross-compile in this environment. Kipperbesturing also has no CAN/ISOBUS
+  wiring at all -- it never used GPS/ISOBUS in the first place, and the
+  angle/steer sensors are both purely local.
+- Only the `teensy41` board is wired up today. This module's legacy source
+  only ever targeted the `VOORSERIE` (Arduino Uno/Leonardo pre-series)
+  board -- that `#ifdef` branch remains in `ConfigKipper.hpp`/
+  `ConfigImplementKipper.hpp`/`ConfigInterfaceKipper.hpp` for future
+  revival, but has no buildable `platformio.ini` env today. Unlike every
+  other Triton module, this legacy source never had `TEENSY`/`TEENSYPROTO`/
+  `MICRO` branches at all.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html
