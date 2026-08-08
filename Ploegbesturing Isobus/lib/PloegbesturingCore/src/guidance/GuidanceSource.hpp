@@ -121,9 +121,9 @@ private:
 };
 
 inline void GuidanceSource::PrintCalibrationData() {
-    serialDebug->println("===============================");
+    serialDebug->println("=====================================");
     serialDebug->println("Guidance source using following data:");
-    serialDebug->println("===============================");
+    serialDebug->println("=====================================");
     serialDebug->println("RTK Quality");
     serialDebug->println(rtkQuality);
     serialDebug->println("-------------------------------");
