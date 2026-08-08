@@ -25,10 +25,15 @@ namespace triton
 // Constructor
 // -----------
 InterfacePlough::InterfacePlough(Stream* serialDebug,
-                                  InterfaceI2CLCD* lcd,
-                                  ImplementPlough* implement,
-                                  VehicleTractor* tractor,
-                                  GuidanceSource* guidance) {
+                                 InterfaceI2CLCD* lcd,
+                                 ImplementPlough* implement,
+                                 VehicleTractor* tractor,
+                                 GuidanceSource* guidance):
+                                 serialDebug(serialDebug), 
+                                 lcd(lcd), 
+                                 implement(implement),
+                                 tractor(tractor),
+                                 guidance(guidance) {
     // Pin assignments and configuration
     // Schmitt triggered inputs
     pinMode(LEFT_BUTTON_2, INPUT);
@@ -56,13 +61,6 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
     button2Flag = false;
     button1Timer = millis();
     button2Timer = millis();
-
-    // Connected classes
-    this->serialDebug = serialDebug;
-    this->lcd = lcd;
-    this->implement = implement;
-    this->tractor = tractor;
-    this->guidance = guidance;
 }
 
 // ------------------------
