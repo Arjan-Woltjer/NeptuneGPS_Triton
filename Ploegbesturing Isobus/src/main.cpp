@@ -134,7 +134,7 @@ void setup() {
     gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gTcInterface->Begin();
 
-    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface);
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface);
     gDebugMenu->Begin();
 #else
     // 4800 baud is the common NMEA default. No baudrate calibration/UI

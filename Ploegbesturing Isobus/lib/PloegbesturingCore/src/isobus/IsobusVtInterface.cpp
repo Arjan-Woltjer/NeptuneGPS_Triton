@@ -109,6 +109,57 @@ void IsobusVtInterface::updateVtVariables() {
     vtClient->send_change_numeric_value(Var_Offset, static_cast<uint32_t>(implement->GetOffset()));
 }
 
+// ----------------------------------------------------------------
+// State-machine step name/index -- see the header comment and
+// Documentation/AgIsoStackVendorPatches.md. Order matches
+// isobus::VirtualTerminalClient::StateMachineState exactly (0-based);
+// keep in sync if that enum changes.
+// ----------------------------------------------------------------
+namespace {
+constexpr const char* kVtStateNames[] = {
+    "Disconnected",
+    "WaitForPartnerVTStatusMessage",
+    "SendWorkingSetMasterMessage",
+    "ReadyForObjectPool",
+    "SendGetMemory",
+    "WaitForGetMemoryResponse",
+    "SendGetNumberSoftkeys",
+    "WaitForGetNumberSoftKeysResponse",
+    "SendGetTextFontData",
+    "WaitForGetTextFontDataResponse",
+    "SendGetHardware",
+    "WaitForGetHardwareResponse",
+    "SendGetVersions",
+    "WaitForGetVersionsResponse",
+    "SendStoreVersion",
+    "WaitForStoreVersionResponse",
+    "SendLoadVersion",
+    "WaitForLoadVersionResponse",
+    "UploadObjectPool",
+    "SendEndOfObjectPool",
+    "WaitForEndOfObjectPoolResponse",
+    "Connected",
+    "Failed",
+};
+constexpr int kVtStateCount = sizeof(kVtStateNames) / sizeof(kVtStateNames[0]);
+}  // namespace
+
+int IsobusVtInterface::GetStateStep() const {
+    if (!vtClient) return 0;
+    return static_cast<int>(vtClient->get_state());
+}
+
+int IsobusVtInterface::GetStateTotalSteps() const {
+    return kVtStateCount - 1;  // Failed isn't a forward step, exclude it from "of N"
+}
+
+const char* IsobusVtInterface::GetStateName() const {
+    if (!vtClient) return "(no client)";
+    int index = static_cast<int>(vtClient->get_state());
+    if (index < 0 || index >= kVtStateCount) return "(unknown)";
+    return kVtStateNames[index];
+}
+
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
     if (event.keyEvent != VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased) return;
 

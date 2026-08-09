@@ -60,6 +60,19 @@ public:
     // Call every loop() iteration.
     void Update();
 
+    // Diagnostics for IsobusDebugMenu.
+    inline bool IsConnected() const { return vtClient && vtClient->get_is_connected(); }
+
+    // Coarse progress through the ~23-step connect/upload/activate handshake
+    // (isobus::VirtualTerminalClient::StateMachineState) -- NOT byte-accurate
+    // upload progress (that would need the transport-protocol session's own
+    // percentage, which AgIsoStack doesn't expose a public path to reach).
+    // Backed by a locally-patched get_state() on VirtualTerminalClient --
+    // see Documentation/AgIsoStackVendorPatches.md.
+    int         GetStateStep() const;
+    int         GetStateTotalSteps() const;
+    const char* GetStateName() const;
+
 private:
     class Logger : public isobus::CANStackLogger {
     public:

@@ -39,8 +39,9 @@ static constexpr unsigned long kPeriodicIntervalMs = 1000UL;
 // Constructor / Begin
 // ------------------------------------------------------------------
 IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
-                                  IsobusTcInterface* tcInterface)
-    : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance), tcInterface(tcInterface) {
+                                  IsobusTcInterface* tcInterface, IsobusVtInterface* vtInterface)
+    : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance),
+      tcInterface(tcInterface), vtInterface(vtInterface) {
 }
 
 void IsobusDebugMenu::Begin() {
@@ -204,6 +205,20 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(guidance->GetCourse(), 1);
     serialDebug->println(" deg");
 
+    serialDebug->println("--- Virtual Terminal ---");
+    if (vtInterface == nullptr) {
+        serialDebug->println("  (not configured)");
+    } else {
+        serialDebug->print("  Connected:    ");
+        serialDebug->println(vtInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("  State:        ");
+        serialDebug->print(vtInterface->GetStateStep());
+        serialDebug->print("/");
+        serialDebug->print(vtInterface->GetStateTotalSteps());
+        serialDebug->print("  ");
+        serialDebug->println(vtInterface->GetStateName());
+    }
+
     serialDebug->println("--- Task Controller ---");
     if (tcInterface == nullptr) {
         serialDebug->println("  (not configured)");
@@ -261,6 +276,15 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->print(" xteAge=");
     serialDebug->print(now - guidance->GetXteTimestamp());
 
+    if (vtInterface != nullptr) {
+        serialDebug->print(" vt=");
+        serialDebug->print(vtInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("(");
+        serialDebug->print(vtInterface->GetStateStep());
+        serialDebug->print("/");
+        serialDebug->print(vtInterface->GetStateTotalSteps());
+        serialDebug->print(")");
+    }
     if (tcInterface != nullptr) {
         serialDebug->print(" tc=");
         serialDebug->print(tcInterface->IsConnected() ? "Y" : "N");

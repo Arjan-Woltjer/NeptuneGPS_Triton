@@ -31,6 +31,7 @@
 
 #include "IsobusGuidanceChannel.hpp"
 #include "IsobusTcInterface.hpp"
+#include "IsobusVtInterface.hpp"
 #include "GuidanceSource.hpp"
 
 namespace triton
@@ -46,10 +47,11 @@ namespace triton
 // line buffer/Enter needed.
 class IsobusDebugMenu {
 public:
-    // tcInterface may be nullptr (e.g. during incremental bring-up before
-    // it's wired in main.cpp) -- the TC section is skipped in that case.
+    // tcInterface/vtInterface may be nullptr (e.g. during incremental
+    // bring-up before they're wired in main.cpp) -- the corresponding
+    // section is skipped in that case.
     IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
-                    IsobusTcInterface* tcInterface = nullptr);
+                    IsobusTcInterface* tcInterface = nullptr, IsobusVtInterface* vtInterface = nullptr);
 
     // Prints a one-line hint that the menu exists. Call once from setup().
     void Begin();
@@ -64,6 +66,7 @@ private:
     IsobusGuidanceChannel* guidanceChannel;
     GuidanceSource*        guidance;
     IsobusTcInterface*     tcInterface;
+    IsobusVtInterface*     vtInterface;
 
     State         state = State::IDLE;
     bool          periodicEnabled = false;
