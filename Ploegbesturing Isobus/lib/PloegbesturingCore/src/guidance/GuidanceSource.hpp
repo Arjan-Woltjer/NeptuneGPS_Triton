@@ -62,8 +62,12 @@ public:
     // fuller surface the serial-path parsers need (position/altitude/
     // course/quality/datetime), matching the prototype's GpsState.
     // ------------------------------------------------------------
-    inline int           GetXte()        { return xte; }
-    inline unsigned long GetXteFixAge()  { return lastXteFix; }
+    inline int           GetXte()          { return xte; }
+    // Named Timestamp, not "FixAge" -- this returns the millis() value the
+    // fix was received at, not an elapsed age. Callers compute the age
+    // themselves (millis() - GetXteTimestamp()). Renamed 2026-08-09; the
+    // old name invited a future bug (see Triton_TC_Client_Design.md P5).
+    inline unsigned long GetXteTimestamp() { return lastXteFix; }
     inline unsigned long GetGgaFixAge()  { return lastGgaFix; }
     inline unsigned long GetVtgFixAge()  { return lastVtgFix; }
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }

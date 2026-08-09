@@ -74,6 +74,10 @@ public:
         uint32_t xteJohnDeereLegacy = 0, xteTrimbleLegacy = 0;
         uint32_t allImplementStop = 0;
         unsigned long lastAllImplementStopMs = 0;
+        // Last decoded 2-bit state (0=Stop, 1=Permit, 2=Error, 3=Not available),
+        // updated on every AISO frame regardless of state -- lastAllImplementStopMs
+        // only advances on an actual Stop. 0xFF = no AISO frame seen yet.
+        uint8_t lastAllImplementStopState = 0xFF;
 
         // Bus-diagnostic snapshot, updated unconditionally on receipt (ahead
         // of any source-address filter or sentinel check) -- lets

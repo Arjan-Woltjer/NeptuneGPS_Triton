@@ -191,7 +191,7 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(millis() - guidance->GetVtgFixAge());
     serialDebug->println(" ms");
     serialDebug->print("  XTE fix age:  ");
-    serialDebug->print(millis() - guidance->GetXteFixAge());
+    serialDebug->print(millis() - guidance->GetXteTimestamp());
     serialDebug->println(" ms");
     serialDebug->print("  Lat/Lon/Alt/Course: ");
     serialDebug->print(guidance->GetLatitude(), 6);
@@ -237,7 +237,7 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->print(" vtgAge=");
     serialDebug->print(now - guidance->GetVtgFixAge());
     serialDebug->print(" xteAge=");
-    serialDebug->println(now - guidance->GetXteFixAge());
+    serialDebug->println(now - guidance->GetXteTimestamp());
 }
 
 }  // namespace triton

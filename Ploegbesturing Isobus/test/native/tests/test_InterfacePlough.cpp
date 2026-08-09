@@ -39,7 +39,7 @@ static void resetAll() {
     EEPROM.eepromReset();
 
     mockGuidance.xte = 0;
-    mockGuidance.xteFixAge = 0;
+    mockGuidance.lastXteFix = 0;
     mockGuidance.ggaFixAge = 0;
     mockGuidance.vtgFixAge = 0;
     mockGuidance.rtkQuality = true;
@@ -166,7 +166,7 @@ test(InterfacePlough, update_staleGgaFix_selectsHold) {
     millisValue(2001);
     mockGuidance.ggaFixAge = 0;     // 2001 - 0 = 2001 > 2000 -> stale
     mockGuidance.vtgFixAge = 2001;  // fresh
-    mockGuidance.xteFixAge = 2001;  // fresh
+    mockGuidance.lastXteFix = 2001;  // fresh
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
@@ -179,7 +179,7 @@ test(InterfacePlough, update_staleVtgFix_selectsHold) {
     millisValue(2001);
     mockGuidance.ggaFixAge = 2001;  // fresh
     mockGuidance.vtgFixAge = 0;     // stale
-    mockGuidance.xteFixAge = 2001;  // fresh
+    mockGuidance.lastXteFix = 2001;  // fresh
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
@@ -192,7 +192,7 @@ test(InterfacePlough, update_staleXteFix_selectsHold) {
     millisValue(2001);
     mockGuidance.ggaFixAge = 2001;  // fresh
     mockGuidance.vtgFixAge = 2001;  // fresh
-    mockGuidance.xteFixAge = 0;     // stale
+    mockGuidance.lastXteFix = 0;     // stale
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }

@@ -16,7 +16,7 @@ class Stream;
 class GuidanceSource {
   public:
     int           xte = 0;
-    unsigned long xteFixAge = 0;
+    unsigned long lastXteFix = 0;  // matches the real GuidanceSource's private field name
     unsigned long ggaFixAge = 0;
     unsigned long vtgFixAge = 0;
     bool          rtkQuality = true;
@@ -33,8 +33,8 @@ class GuidanceSource {
 
     GuidanceSource() {}
 
-    int           GetXte()        { return xte; }
-    unsigned long GetXteFixAge()  { return xteFixAge; }
+    int           GetXte()          { return xte; }
+    unsigned long GetXteTimestamp() { return lastXteFix; }
     unsigned long GetGgaFixAge()  { return ggaFixAge; }
     unsigned long GetVtgFixAge()  { return vtgFixAge; }
     bool          IsRtkQuality()  { return rtkQuality; }

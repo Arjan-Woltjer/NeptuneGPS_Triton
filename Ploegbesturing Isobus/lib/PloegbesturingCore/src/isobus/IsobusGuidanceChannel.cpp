@@ -233,24 +233,40 @@ void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context
 
 // ------------------------------------------------------------------
 // PGN 129283 - Cross Track Error (single frame, 8 bytes)
-//   Byte 0: SID | Byte 1: XTE mode (4b) + reserved (4b)
-//   Bytes 2-5: XTE int32 LE (0.01 m, signed; 0x7FFFFFFF = N/A)
+//   Byte 0: SID
+//   Byte 1: bits 0-3 XTE mode, bits 4-5 reserved, bit 6 Navigation
+//           Terminated, bit 7 reserved (canboat/NMEA2000 field layout --
+//           AgIsoStack's own NMEA2000Messages namespace doesn't cover this
+//           PGN, so there's no vendored reference for it).
+//   Bytes 2-5: XTE int32 LE (0.01 m, signed; 0x7FFFFFFF = N/A,
+//              0x7FFFFFFE = error)
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) {
-    static_cast<IsobusGuidanceChannel*>(context)->counters.xteNmea2000++;
+    auto* self = static_cast<IsobusGuidanceChannel*>(context);
+    self->counters.xteNmea2000++;
 
     if (msg.get_data_length() < 6) return;
     const auto& d = msg.get_data();
 
+    // Navigation Terminated (bit 6): the source has stopped navigating this
+    // route/leg, so any XTE value in this frame is stale/meaningless --
+    // gate on it rather than feeding a leftover number to GuidanceSource.
+    bool navigationTerminated = (d[1] >> 6) & 0x01;
+    if (navigationTerminated) return;
+
     auto rawXte = int32_t(uint32_t(d[2]) | (uint32_t(d[3]) << 8) | (uint32_t(d[4]) << 16) | (uint32_t(d[5]) << 24));
-    if (rawXte != int32_t(0x7FFFFFFF)) {
-        // rawXte is already hundredths of a metre (0.01 m units) -- matches
-        // GuidanceSource::SetXte's hundredths-of-a-metre convention
-        // directly, no rescale needed. Quality isn't part of this PGN;
-        // assume RTK-equivalent (4) since a standards-compliant guidance
-        // source broadcasting real XTE implies it trusts its own fix.
-        static_cast<IsobusGuidanceChannel*>(context)->guidance->SetXte(int(rawXte), 4);
-    }
+    if (rawXte == int32_t(0x7FFFFFFF) || rawXte == int32_t(0x7FFFFFFE)) return;
+
+    // rawXte is already hundredths of a metre (0.01 m units) -- matches
+    // GuidanceSource::SetXte's hundredths-of-a-metre convention directly,
+    // no rescale needed. Quality isn't part of this PGN and there is no
+    // verified quality source wired up for the ISOBUS path yet (PGN 129029
+    // deliberately not pursued -- not reliably present across hardware, see
+    // Triton_TC_Client_Design.md); the single-arg SetXte() leaves
+    // GuidanceSource::quality untouched rather than lying that every frame
+    // is RTK-equivalent, which previously defeated InterfacePlough's
+    // IsRtkQuality() interlock unconditionally.
+    self->guidance->SetXte(int(rawXte));
 }
 
 // ------------------------------------------------------------------
@@ -357,17 +373,32 @@ void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* cont
 }
 
 // ------------------------------------------------------------------
-// AISO - All Implement Stop Operations. Exact signal layout isn't
-// documented in the available DBC notes (PGN-level identification only) --
-// treat receipt of this PGN as an unconditional, immediate stop, the safe/
-// conservative interpretation of "should stop plough movement immediately
-// when received."
+// AISO - All Implement Stop Operations Switch State (ISO 11783-7 / AEF
+// Guideline 004 ISB). Byte 7, bits 0-1 carry a 2-bit state: 00 = Stop
+// implement operations, 01 = Permit all implements to operate ON, 10 =
+// Error, 11 = Not available. This is a periodic broadcast (roughly 1 Hz,
+// per AgIsoStack's own isobus_shortcut_button_interface.cpp), not a
+// one-shot stop event -- most received frames carry state 01 (Permit).
+// Only 00 means stop; 01/10/11 must NOT call implement->Stop(), or every
+// routine Permit broadcast would halt the plough. Layout confirmed against
+// the vendored AgIsoStack ShortcutButtonInterface::process_message(), which
+// reads the identical field the same way (messageData.at(7) & 0x03).
 // ------------------------------------------------------------------
-void IsobusGuidanceChannel::OnAllImplementStop(const CANMessage&, void* context) {
+void IsobusGuidanceChannel::OnAllImplementStop(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
     self->counters.allImplementStop++;
-    self->counters.lastAllImplementStopMs = millis();
-    self->implement->Stop();
+
+    if (msg.get_data_length() != 8) return;
+    const auto& d = msg.get_data();
+
+    constexpr uint8_t kStopImplementOperations = 0;
+    uint8_t state = d[7] & 0x03;
+    self->counters.lastAllImplementStopState = state;
+
+    if (state == kStopImplementOperations) {
+        self->counters.lastAllImplementStopMs = millis();
+        self->implement->Stop();
+    }
 }
 
 }  // namespace triton

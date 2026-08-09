@@ -41,7 +41,7 @@ static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
     mockGuidance.xte = 0;
-    mockGuidance.xteFixAge = 0;
+    mockGuidance.lastXteFix = 0;
     digitalReadValue(PLOUGHSIDE_PIN_2, false);
 }
 
@@ -256,7 +256,7 @@ test(ImplementPlough, setSetpoint_withinMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     mockGuidance.xte = 30;
-    mockGuidance.xteFixAge = 1;  // > impl's internal lastXteFix(0) -> triggers recompute
+    mockGuidance.lastXteFix = 1;  // > impl's internal lastXteFix(0) -> triggers recompute
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 30));
 }
@@ -265,7 +265,7 @@ test(ImplementPlough, setSetpoint_clampsAboveMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     mockGuidance.xte = 100;  // pe=100 > maxCorrection(50) -> clamped to 50
-    mockGuidance.xteFixAge = 1;
+    mockGuidance.lastXteFix = 1;
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 50));
 }
@@ -274,7 +274,7 @@ test(ImplementPlough, setSetpoint_clampsBelowNegativeMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     mockGuidance.xte = -100;  // pe=-100 <= -maxCorrection(-50) -> clamped to -50
-    mockGuidance.xteFixAge = 1;
+    mockGuidance.lastXteFix = 1;
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - (-50)));
 }
