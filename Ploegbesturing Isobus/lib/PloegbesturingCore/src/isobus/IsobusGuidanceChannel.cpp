@@ -47,8 +47,15 @@ static constexpr std::uint32_t kPgnPositionLegacy     = 0xFEF3;  // 65267, PDU2
 static constexpr std::uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
 static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
                                                                  // proprietary PGN, source address
-                                                                 // 0x2A must be rechecked in the callback
-static constexpr std::uint8_t  kSourceAddressJohnDeere = 0x2A;
+                                                                 // must be rechecked in the callback
+// The old VehicleGps-era fixed CAN ID (0x0CFFFF2A) implied 0x2A. Real-bus
+// verification on 2026-08-08 (IsobusDebugMenu's per-PGN "last SA=" readout,
+// read via the CAN identifier directly rather than through AgIsoStack's
+// control-function table -- see OnLegacyXteJohnDeere) showed this project's
+// actual guidance source claiming/using 0x80 instead, at the same steady
+// per-cycle rate as the position/speed legacy PGNs from the same unit.
+// Trust the live reading over the old assumed constant.
+static constexpr std::uint8_t  kSourceAddressJohnDeere = 0x80;
 static constexpr std::uint32_t kPgnXteTrimbleLegacy    = 0xEB00; // 60160, PDU1 -- legacy filter required
                                                                  // destination address 0xAC (fixed); our
                                                                  // claimed SA is dynamic, so whether this
@@ -132,13 +139,8 @@ void IsobusGuidanceChannel::Begin() {
     // Trigger an immediate first transmission from whatever's on the bus;
     // the reference Fendt 6240 then continues broadcasting on its own
     // schedule (~10 Hz) without needing a repetition-rate request.
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionNmea2000, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedNmea2000, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteNmea2000, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionLegacy, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedLegacy, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteJohnDeereLegacy, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteTrimbleLegacy, controlFunction, nullptr);
+    RequestGuidancePgns();
+    lastPgnRetryMs = millis();
 }
 
 // ------------------------------------------------------------------
@@ -146,6 +148,41 @@ void IsobusGuidanceChannel::Begin() {
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::Update() {
     CANHardwareInterface::update();
+
+    // Legacy GPS units aren't always listening yet the moment Begin()'s
+    // one-shot request goes out (their own power-on race), and a single
+    // request frame can simply get lost -- so keep re-requesting whichever
+    // PGN families haven't produced a single message yet, every
+    // kPgnRetryIntervalMs, until each of position/speed/XTE has. Any
+    // variant (NMEA2000 or legacy) counting as a hit is enough to stop
+    // retrying that family; decode-level correctness (address filters,
+    // scale factors) is a separate concern a repeated request can't fix.
+    bool havePosition = (counters.positionNmea2000 > 0) || (counters.positionLegacy > 0);
+    bool haveSpeed     = (counters.speedNmea2000 > 0)    || (counters.speedLegacy > 0);
+    bool haveXte       = (counters.xteNmea2000 > 0)      || (counters.xteJohnDeereLegacy > 0) || (counters.xteTrimbleLegacy > 0);
+
+    if (!havePosition || !haveSpeed || !haveXte) {
+        unsigned long now = millis();
+        if (now - lastPgnRetryMs >= kPgnRetryIntervalMs) {
+            lastPgnRetryMs = now;
+            RequestGuidancePgns();
+        }
+    }
+}
+
+// ------------------------------------------------------------------
+// Sends one PGN request per guidance PGN this channel consumes. Called
+// once from Begin() and then repeated from Update() (see its comment)
+// until every family has produced at least one message.
+// ------------------------------------------------------------------
+void IsobusGuidanceChannel::RequestGuidancePgns() {
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionNmea2000, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedNmea2000, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteNmea2000, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionLegacy, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedLegacy, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteJohnDeereLegacy, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteTrimbleLegacy, controlFunction, nullptr);
 }
 
 // ------------------------------------------------------------------
@@ -224,39 +261,66 @@ void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* contex
 }
 
 void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) {
-    static_cast<IsobusGuidanceChannel*>(context)->counters.speedLegacy++;
+    auto* self = static_cast<IsobusGuidanceChannel*>(context);
+    self->counters.speedLegacy++;
 
     if (msg.get_data_length() != 8) return;
     const auto& d = msg.get_data();
 
+    // Read the address straight off the CAN identifier, not via
+    // get_source_control_function() -- confirmed on hardware 2026-08-08
+    // that this legacy sender never broadcasts a real ISO Address Claim
+    // (PGN 60928), so AgIsoStack's control-function table never resolves an
+    // entry for it and that accessor is permanently nullptr for this
+    // device, even while the PGN counter climbs at full rate.
+    self->counters.lastSpeedLegacySourceAddress = msg.get_identifier().get_source_address();
+
     unsigned long val = (unsigned long)((d[3] << 8) | d[2]);
+    self->counters.lastSpeedLegacyRaw = uint16_t(val);
+    // 0xFFFF = "speed not available", matching OnSpeedNmea2000's guard --
+    // confirmed on hardware 2026-08-08: without this, an unavailable
+    // reading was being printed as an impossible 131.70 m/s (256.00 kn).
+    if (val == 0xFFFF) return;
+
     float speed = float(val) / 256.0f;
-    static_cast<IsobusGuidanceChannel*>(context)->guidance->SetSpeedKnots(speed);
+    self->guidance->SetSpeedKnots(speed);
 }
 
 void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* context) {
-    static_cast<IsobusGuidanceChannel*>(context)->counters.xteJohnDeereLegacy++;
+    auto* self = static_cast<IsobusGuidanceChannel*>(context);
+    self->counters.xteJohnDeereLegacy++;
 
     if (msg.get_data_length() != 8) return;
 
     // PGN 0xFFFF is a heavily-overloaded manufacturer-proprietary PGN --
     // add_any_control_function_parameter_group_number_callback dispatches by
     // PGN alone, so the sender's source address must be rechecked here to
-    // replicate the legacy exact-CAN-ID filter's actual specificity.
-    auto sourceCF = msg.get_source_control_function();
-    if (sourceCF == nullptr || sourceCF->get_address() != kSourceAddressJohnDeere) {
+    // replicate the legacy exact-CAN-ID filter's actual specificity. Read
+    // the address straight off the CAN identifier, not via
+    // get_source_control_function() -- confirmed on hardware 2026-08-08
+    // that this legacy sender never broadcasts a real ISO Address Claim
+    // (PGN 60928), so AgIsoStack's control-function table never resolves an
+    // entry for it and that accessor was permanently nullptr here, silently
+    // dropping every one of these messages regardless of the address filter
+    // value.
+    std::uint8_t sourceAddress = msg.get_identifier().get_source_address();
+    self->counters.lastXteJohnDeereLegacySourceAddress = sourceAddress;
+    if (sourceAddress != kSourceAddressJohnDeere) {
         return;
     }
 
     const auto& d = msg.get_data();
     unsigned long val = (unsigned long)((d[4] << 8) | d[3]);
+    self->counters.lastXteJohnDeereLegacyRawWord = uint16_t(val);
+    self->counters.lastXteJohnDeereLegacyRawByte1 = d[1];
     int xte = int(val - 32000) >> 1;
     byte quality = (d[1] == 0x15) ? 4 : 0;
-    static_cast<IsobusGuidanceChannel*>(context)->guidance->SetXte(xte, quality);
+    self->guidance->SetXte(xte, quality);
 }
 
 void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* context) {
-    static_cast<IsobusGuidanceChannel*>(context)->counters.xteTrimbleLegacy++;
+    auto* self = static_cast<IsobusGuidanceChannel*>(context);
+    self->counters.xteTrimbleLegacy++;
 
     if (msg.get_data_length() != 8) return;
 
@@ -266,8 +330,16 @@ void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* cont
     // addressed-message delivery (keyed to our own claimed address) actually
     // surfaces a message the sender addressed to a different, fixed DA needs
     // real-bus verification -- see the plan's open risk on this PGN.
-    auto sourceCF = msg.get_source_control_function();
-    if (sourceCF == nullptr || sourceCF->get_address() != kSourceAddressTrimble) {
+    //
+    // Read the sender's address straight off the CAN identifier, not via
+    // get_source_control_function() -- confirmed on hardware 2026-08-08
+    // that legacy senders on this PGN family never broadcast a real ISO
+    // Address Claim (PGN 60928), so AgIsoStack's control-function table
+    // never resolves an entry for them and that accessor was permanently
+    // nullptr here.
+    std::uint8_t sourceAddress = msg.get_identifier().get_source_address();
+    self->counters.lastXteTrimbleLegacySourceAddress = sourceAddress;
+    if (sourceAddress != kSourceAddressTrimble) {
         return;
     }
 
@@ -276,7 +348,7 @@ void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* cont
         union { unsigned long a; float b; } tofloat;
         tofloat.a = ((unsigned long)d[1] << 24) | ((unsigned long)d[2] << 16) | (d[3] << 8) | d[4];
         int xte = int(tofloat.b * 100);
-        static_cast<IsobusGuidanceChannel*>(context)->guidance->SetXte(xte, 4);
+        self->guidance->SetXte(xte, 4);
     }
 }
 
