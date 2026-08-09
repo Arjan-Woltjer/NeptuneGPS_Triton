@@ -38,8 +38,9 @@ static constexpr unsigned long kPeriodicIntervalMs = 1000UL;
 // ------------------------------------------------------------------
 // Constructor / Begin
 // ------------------------------------------------------------------
-IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance)
-    : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance) {
+IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
+                                  IsobusTcInterface* tcInterface)
+    : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance), tcInterface(tcInterface) {
 }
 
 void IsobusDebugMenu::Begin() {
@@ -202,6 +203,27 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(" m / ");
     serialDebug->print(guidance->GetCourse(), 1);
     serialDebug->println(" deg");
+
+    serialDebug->println("--- Task Controller ---");
+    if (tcInterface == nullptr) {
+        serialDebug->println("  (not configured)");
+    } else {
+        serialDebug->print("  Connected:    ");
+        serialDebug->println(tcInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("  Task active:  ");
+        // Advisory only -- see IsobusTcInterface::IsTaskActive()'s comment.
+        serialDebug->println(tcInterface->IsTaskActive() ? "Y" : "N");
+        serialDebug->print("  DRP deviation (DDI 513): ");
+        serialDebug->print(tcInterface->GetDrpDeviationMm());
+        serialDebug->print(" mm, last ");
+        serialDebug->print(millis() - tcInterface->GetDrpTimestamp());
+        serialDebug->println(" ms ago");
+        serialDebug->print("  GNSS quality (DDI 514):  ");
+        serialDebug->print(tcInterface->GetTcGnssQuality());
+        serialDebug->print(", last ");
+        serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
+        serialDebug->println(" ms ago");
+    }
 }
 
 // ------------------------------------------------------------------
@@ -237,7 +259,17 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->print(" vtgAge=");
     serialDebug->print(now - guidance->GetVtgFixAge());
     serialDebug->print(" xteAge=");
-    serialDebug->println(now - guidance->GetXteTimestamp());
+    serialDebug->print(now - guidance->GetXteTimestamp());
+
+    if (tcInterface != nullptr) {
+        serialDebug->print(" tc=");
+        serialDebug->print(tcInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print(" drp=");
+        serialDebug->print(tcInterface->GetDrpDeviationMm());
+        serialDebug->print("mm tcq=");
+        serialDebug->print(tcInterface->GetTcGnssQuality());
+    }
+    serialDebug->println();
 }
 
 }  // namespace triton
