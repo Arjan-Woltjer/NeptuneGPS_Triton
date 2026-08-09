@@ -31,7 +31,7 @@
 #include "IsobusDebugMenu.hpp"
 #include "IsobusGuidanceChannel.hpp"
 #include "IsobusVtInterface.hpp"
-//#include "IsobusTcInterface.hpp"
+#include "IsobusTcInterface.hpp"
 #else
 #include "SerialGuidanceChannel.hpp"
 #endif
@@ -59,7 +59,7 @@ triton::CalibrationPlough* gCalibration;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusVtInterface*     gVtInterface;
-//triton::IsobusTcInterface*     gTcInterface;
+triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
@@ -131,8 +131,8 @@ void setup() {
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
 
-    //gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
-    //gTcInterface->Begin();
+    gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
+    gTcInterface->Begin();
 
     gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance);
     gDebugMenu->Begin();
@@ -162,6 +162,7 @@ void loop() {
     gGuidanceChannel->Update();
 #ifdef ISOBUS
     gVtInterface->Update();
+    gTcInterface->Update();
     gDebugMenu->Update();
 #endif
 
