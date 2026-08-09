@@ -31,6 +31,7 @@
 #include "IsobusDebugMenu.hpp"
 #include "IsobusGuidanceChannel.hpp"
 #include "IsobusVtInterface.hpp"
+//#include "IsobusTcInterface.hpp"
 #else
 #include "SerialGuidanceChannel.hpp"
 #endif
@@ -50,14 +51,15 @@ TwoWire* gLcdWire = &Wire;
 // Global objects
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
+triton::GuidanceSource*    gGuidance;
 triton::VehicleTractor*    gTractor;
 triton::ImplementPlough*   gImplement;
 triton::InterfacePlough*   gInterface;
 triton::CalibrationPlough* gCalibration;
-triton::GuidanceSource*    gGuidance;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusVtInterface*     gVtInterface;
+//triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
@@ -94,12 +96,24 @@ void setup() {
 
     gLcd->WriteScreen(-1);
 
-    // gGuidance and gImplement have no CAN/AgIsoStack dependency, so they're
+    // gGuidance, gTractor and gImplement have no CAN/AgIsoStack dependency, so they're
     // constructed first -- gGuidanceChannel needs both already built (the
     // ISOBUS one feeds gGuidance from its PGN callbacks and calls
     // gImplement->Stop() on AISO).
     gGuidance = new triton::GuidanceSource(gSerialDebug);
+    gTractor = new triton::VehicleTractor(gSerialDebug);
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
+
+    gGuidance->PrintCalibrationData();
+    gTractor->PrintCalibrationData();
+    gImplement->PrintCalibrationData();
+    
+    // Initialise interfaces
+    gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
+    gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
+
+    gGuidance->PrintCalibrationData();
+    gImplement->PrintCalibrationData();
 
 #ifdef ISOBUS
     // Board-specific CAN wiring: besturing 0.1's CAN transceiver is bodge-wired
@@ -117,6 +131,9 @@ void setup() {
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
 
+    //gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
+    //gTcInterface->Begin();
+
     gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance);
     gDebugMenu->Begin();
 #else
@@ -128,15 +145,6 @@ void setup() {
     gSerialGps->begin(4800);
     gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
 #endif
-
-    // Initialise objects and interfaces
-    gTractor = new triton::VehicleTractor(gSerialDebug);
-    gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
-    gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
-
-    gTractor->PrintCalibrationData();
-    gGuidance->PrintCalibrationData();
-    gImplement->PrintCalibrationData();
 
     // Delay for splashscreen
     delay(2000);

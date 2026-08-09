@@ -71,9 +71,14 @@ static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 // ------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------
-IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement)
-    : serialDebug(serialDebug), guidance(guidance), implement(implement),
-      canPlugin(canPlugin) {
+IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, 
+                                             std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, 
+                                             GuidanceSource* guidance,
+                                             ImplementPlough* implement)
+                                           : serialDebug(serialDebug),
+                                             guidance(guidance),
+                                             implement(implement),
+                                             canPlugin(canPlugin) {
 }
 
 // ------------------------------------------------------------------
@@ -94,8 +99,7 @@ void IsobusGuidanceChannel::Begin() {
     deviceName.set_arbitrary_address_capable(true);
     deviceName.set_industry_group(2);   // Agriculture and Forestry
     deviceName.set_device_class(8);     // Non-self-propelled work machine
-    deviceName.set_function_code(
-        static_cast<uint8_t>(NAME::Function::SteeringControl));  // TODO: confirm correct function
+    deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::SteeringControl));  // TODO: confirm correct function
     deviceName.set_manufacturer_code(64);
     deviceName.set_identity_number(1);
     deviceName.set_ecu_instance(0);
@@ -127,14 +131,14 @@ void IsobusGuidanceChannel::Begin() {
     serialDebug->print("address claimed: 0x");
     serialDebug->println(controlFunction->get_address(), HEX);
 
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000, OnPositionNmea2000, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000, OnSpeedNmea2000, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteNmea2000, OnXteNmea2000, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionLegacy, OnLegacyPosition, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedLegacy, OnLegacySpeed, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000,   OnPositionNmea2000,   this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000,      OnSpeedNmea2000,      this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteNmea2000,        OnXteNmea2000,        this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionLegacy,     OnLegacyPosition,     this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedLegacy,        OnLegacySpeed,        this);
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteJohnDeereLegacy, OnLegacyXteJohnDeere, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy, OnLegacyXteTrimble, this);
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop, OnAllImplementStop, this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy,   OnLegacyXteTrimble,   this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop,   OnAllImplementStop,   this);
 
     // Trigger an immediate first transmission from whatever's on the bus;
     // the reference Fendt 6240 then continues broadcasting on its own
@@ -158,8 +162,8 @@ void IsobusGuidanceChannel::Update() {
     // retrying that family; decode-level correctness (address filters,
     // scale factors) is a separate concern a repeated request can't fix.
     bool havePosition = (counters.positionNmea2000 > 0) || (counters.positionLegacy > 0);
-    bool haveSpeed     = (counters.speedNmea2000 > 0)    || (counters.speedLegacy > 0);
-    bool haveXte       = (counters.xteNmea2000 > 0)      || (counters.xteJohnDeereLegacy > 0) || (counters.xteTrimbleLegacy > 0);
+    bool haveSpeed    = (counters.speedNmea2000 > 0)    || (counters.speedLegacy > 0);
+    bool haveXte      = (counters.xteNmea2000 > 0)      || (counters.xteJohnDeereLegacy > 0) || (counters.xteTrimbleLegacy > 0);
 
     if (!havePosition || !haveSpeed || !haveXte) {
         unsigned long now = millis();
@@ -176,13 +180,13 @@ void IsobusGuidanceChannel::Update() {
 // until every family has produced at least one message.
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::RequestGuidancePgns() {
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionNmea2000, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedNmea2000, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteNmea2000, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionLegacy, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedLegacy, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionNmea2000,   controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedNmea2000,      controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteNmea2000,        controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionLegacy,     controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnSpeedLegacy,        controlFunction, nullptr);
     ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteJohnDeereLegacy, controlFunction, nullptr);
-    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteTrimbleLegacy, controlFunction, nullptr);
+    ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnXteTrimbleLegacy,   controlFunction, nullptr);
 }
 
 // ------------------------------------------------------------------

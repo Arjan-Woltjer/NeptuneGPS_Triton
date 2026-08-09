@@ -66,13 +66,13 @@ private:
         void sink_CAN_stack_log(isobus::CANStackLogger::LoggingLevel level, const std::string& text) override;
     };
 
-    Stream*                serialDebug;
-    ImplementPlough*       implement;
+    Stream*          serialDebug;
+    ImplementPlough* implement;
     GuidanceSource*  guidance;
 
-    std::shared_ptr<isobus::InternalControlFunction>  controlFunction;
-    std::shared_ptr<isobus::DiagnosticProtocol>        diagnostics;
-    std::shared_ptr<isobus::VirtualTerminalClient>     vtClient;
+    std::shared_ptr<isobus::InternalControlFunction>    controlFunction;
+    std::shared_ptr<isobus::DiagnosticProtocol>         diagnostics;
+    std::shared_ptr<isobus::VirtualTerminalClient>      vtClient;
     isobus::EventCallbackHandle                         softKeyListener;
     isobus::EventCallbackHandle                         buttonListener;
     Logger                                              logger;
