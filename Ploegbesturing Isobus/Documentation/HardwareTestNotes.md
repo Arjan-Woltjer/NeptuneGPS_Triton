@@ -307,9 +307,35 @@ CNH VT3/VT4 here) and confirmed by exact byte arithmetic, not inference:
   two blocking delays, `delay(3000)`+`delay(2000)`, during which nothing
   processes CAN traffic at all -- though those delays run once, before the
   first connection, and can't explain a timeout that fires from the
-  already-Connected state later). Root cause not yet found; worth watching
-  whether it's a fixed interval (something periodic in our own loop) or
-  irregular (genuine bus/terminal broadcast flakiness).
+  already-Connected state later).
+
+  **Leading hypothesis, found post-session (2026-08-10, desktop):** the key
+  clue is that the reference-pool test (see above) stayed stable throughout,
+  while our own pool drops intermittently -- and the one thing that differs
+  behaviorally, not just structurally, between those two tests is
+  `IsobusVtInterface::updateVtVariables()`, which sent 4
+  `send_change_numeric_value()` commands **unconditionally every 100 ms**
+  (40 msg/s) the entire time connected, regardless of whether any value
+  actually changed. AgIsoStack's own reference example only calls that
+  function on a button press, not continuously. Against our own pool those 4
+  object IDs are real, bound `OutputNumber` widgets -- the VT does actual
+  redraw work on every one of those 40 messages/sec; against the swapped-in
+  reference pool, those IDs almost certainly don't resolve to a
+  `NumberVariable` at all, so the VT can reject them cheaply without
+  rendering anything. Sustained real redraw load intermittently starving the
+  VT's own periodic status broadcast past the 3 s window is a plausible,
+  common class of embedded-UI issue -- but this is a hypothesis, not
+  confirmed on hardware.
+
+  **Fix applied (not yet field-verified):** `updateVtVariables()` now sends
+  only on real value change, plus a 1 s heartbeat resend (so a dropped CAN
+  frame can't leave the VT stale forever) -- cuts steady-state traffic
+  roughly 10x for slow-changing plough telemetry with no functional loss.
+  Built clean on `teensy41_isobus`/`teensy41_serial`. **Next session: re-test
+  connection stability specifically** (long-duration `Connected: Y` dumps,
+  watching for `[VT]: Status Timeout`) to confirm or rule this out -- if it
+  still drops, the redraw-load theory is wrong and this needs to go back to
+  irregular-vs-fixed-interval investigation.
 - DDI 513/514 -- not reached this session (task never went active against
   CNH); the `TC-GEO (with/without pos):` capability line from 086d5d6 was
   not exercised live here either.

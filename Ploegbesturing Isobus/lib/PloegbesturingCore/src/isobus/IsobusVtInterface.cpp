@@ -120,11 +120,36 @@ void IsobusVtInterface::Update() {
 void IsobusVtInterface::updateVtVariables() {
     if (!vtClient->get_is_connected()) return;
 
-    vtClient->send_change_numeric_value(Var_Position, static_cast<uint32_t>(implement->GetPosition()));
-    vtClient->send_change_numeric_value(Var_Setpoint, static_cast<uint32_t>(implement->GetSetpoint()));
+    const int32_t position = static_cast<int32_t>(implement->GetPosition());
+    const int32_t setpoint = static_cast<int32_t>(implement->GetSetpoint());
     // XTE is signed (cm); bias by +1000 so the uint32 variable stays non-negative
-    vtClient->send_change_numeric_value(Var_XTE, static_cast<uint32_t>(guidance->GetXte() + 1000));
-    vtClient->send_change_numeric_value(Var_Offset, static_cast<uint32_t>(implement->GetOffset()));
+    const int32_t xte      = static_cast<int32_t>(guidance->GetXte() + 1000);
+    const int32_t offset   = static_cast<int32_t>(implement->GetOffset());
+
+    // See the header's comment on these fields for why this is on-change +
+    // heartbeat rather than unconditional every-100ms.
+    const bool heartbeatDue = (millis() - lastVtVariableHeartbeat >= 1000);
+    const bool forceSend = !sentInitialVtVariables || heartbeatDue;
+
+    if (forceSend || position != lastSentPosition) {
+        vtClient->send_change_numeric_value(Var_Position, static_cast<uint32_t>(position));
+        lastSentPosition = position;
+    }
+    if (forceSend || setpoint != lastSentSetpoint) {
+        vtClient->send_change_numeric_value(Var_Setpoint, static_cast<uint32_t>(setpoint));
+        lastSentSetpoint = setpoint;
+    }
+    if (forceSend || xte != lastSentXte) {
+        vtClient->send_change_numeric_value(Var_XTE, static_cast<uint32_t>(xte));
+        lastSentXte = xte;
+    }
+    if (forceSend || offset != lastSentOffset) {
+        vtClient->send_change_numeric_value(Var_Offset, static_cast<uint32_t>(offset));
+        lastSentOffset = offset;
+    }
+
+    sentInitialVtVariables = true;
+    if (heartbeatDue) lastVtVariableHeartbeat = millis();
 }
 
 // ----------------------------------------------------------------

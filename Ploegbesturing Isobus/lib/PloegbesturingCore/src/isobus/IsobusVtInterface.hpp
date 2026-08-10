@@ -101,6 +101,31 @@ private:
 
     unsigned long lastVtUpdate = 0;
 
+    // On-change gating for updateVtVariables() -- added 2026-08-10 (van
+    // Mastwijk) after Session 4 found intermittent post-Connect drops
+    // ("[VT]: Status Timeout", AgIsoStack's own 3 s VT_STATUS_TIMEOUT_MS)
+    // that did NOT reproduce while a swapped-in AgIsoStack reference pool
+    // was loaded. That reference pool's own example only calls
+    // send_change_numeric_value() on a button press; this class used to call
+    // it unconditionally 4x every 100 ms (40 msg/s) regardless of whether
+    // anything changed, for as long as the VT stayed connected -- real,
+    // bound OutputNumber widgets in OUR pool means the VT does real redraw
+    // work each time, unlike the reference pool's IDs (which likely don't
+    // resolve to a NumberVariable at all, so get cheaply rejected). Leading
+    // hypothesis, not yet re-verified against hardware: sustained redraw
+    // load intermittently starves the VT's own periodic status broadcast
+    // past our 3 s window. Fix sends only on real value change, plus a 1 s
+    // heartbeat resend (so a dropped CAN frame can't leave the VT stale
+    // forever) -- cuts steady-state traffic roughly 10x for slow-changing
+    // plough telemetry with no functional loss (a human reading a numeric
+    // field can't perceive 10 Hz vs. on-change+1 Hz).
+    bool          sentInitialVtVariables = false;
+    unsigned long lastVtVariableHeartbeat = 0;
+    int32_t       lastSentPosition = 0;
+    int32_t       lastSentSetpoint = 0;
+    int32_t       lastSentXte      = 0;
+    int32_t       lastSentOffset   = 0;
+
     void updateVtVariables();
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
 };
