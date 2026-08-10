@@ -40,15 +40,16 @@ namespace triton
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes.
 //
-// Soft-key handling (Wider/Narrower/Auto) is currently display + event
-// logging only, NOT wired to drive ImplementPlough. main.cpp's loop()
-// already calls InterfacePlough::Update(), which unconditionally calls
-// ImplementPlough::Adjust() every tick based on the physical-button/GPS
-// mode ladder; having VT soft keys *also* call Wider()/Narrower()/Adjust()
-// independently would race that same-tick call and is a real machine-
-// safety-behavior decision (how VT input should arbitrate with the
-// physical button ladder), not something to invent silently here. Flagged
-// for a deliberate follow-up decision.
+// Soft-key handling: Wider/Narrower are wired to ImplementPlough via
+// ConsumeWiderPress()/ConsumeNarrowerPress() below (2026-08-10) -- main.cpp's
+// loop() passes these into InterfacePlough::Update(), which OR's them into
+// the same LEFT_BUTTON_2/RIGHT_BUTTON_2 conditions CheckButtons() already
+// uses for the physical buttons (and, disabled today, the joystick), so a
+// VT press goes through identical debounce/arbitration logic rather than a
+// separate control path. Auto (Key_Auto) is deliberately NOT wired --
+// InterfacePlough's AUTO mode is derived from GPS/hitch state, not
+// user-settable via a button, so there's no existing target for it; still
+// display + log only.
 class IsobusVtInterface {
 public:
     IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
@@ -81,6 +82,25 @@ public:
     // confirming what VT version is on the other end when the VT rejects the
     // pool (see VTObjectPool.cpp).
     const char* GetVtVersionName() const;
+
+    // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
+    // release, cleared by the call itself (edge-triggered, matching a
+    // discrete VT tap rather than a held physical button). Direction mapping
+    // confirmed against ImplementPlough::Adjust(): direction=-1
+    // (LEFT_BUTTON_2's slot) -> Wider(), direction=+1 (RIGHT_BUTTON_2's
+    // slot) -> Narrower() -- so Key_Wider must feed the LEFT slot and
+    // Key_Narrower the RIGHT slot for both input paths to mean the same
+    // thing. See InterfacePlough::CheckButtons() for where these land.
+    inline bool ConsumeWiderPress() {
+        bool v = pendingWiderPress;
+        pendingWiderPress = false;
+        return v;
+    }
+    inline bool ConsumeNarrowerPress() {
+        bool v = pendingNarrowerPress;
+        pendingNarrowerPress = false;
+        return v;
+    }
 
 private:
     class Logger : public isobus::CANStackLogger {
@@ -125,6 +145,9 @@ private:
     int32_t       lastSentSetpoint = 0;
     int32_t       lastSentXte      = 0;
     int32_t       lastSentOffset   = 0;
+
+    bool pendingWiderPress    = false;
+    bool pendingNarrowerPress = false;
 
     void updateVtVariables();
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);

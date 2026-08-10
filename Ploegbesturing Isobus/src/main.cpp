@@ -164,10 +164,15 @@ void loop() {
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();
-#endif
 
+    // Update interface -- VT Wider/Narrower soft-key presses OR straight
+    // into InterfacePlough's existing button arbitration, see
+    // IsobusVtInterface.hpp/InterfacePlough.cpp for the full rationale.
+    gInterface->Update(gVtInterface->ConsumeWiderPress(), gVtInterface->ConsumeNarrowerPress());
+#else
     // Update interface
     gInterface->Update();
+#endif
 
     // Both buttons held -> enter the calibration wizard (blocking until it
     // finishes/is cancelled). See CalibrationPlough.hpp for why this trigger

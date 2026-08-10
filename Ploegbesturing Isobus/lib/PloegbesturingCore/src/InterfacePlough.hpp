@@ -64,9 +64,13 @@ public:
                     VehicleTractor* tractor,
                     GuidanceSource* guidance);
 
-    void Update();
+    // vtWiderPressed/vtNarrowerPressed: consume-once signals from an
+    // IsobusVtInterface's VT soft keys (see that class's header comment).
+    // Defaulted so non-ISOBUS builds and any other caller can omit them --
+    // this class stays framework-agnostic, no AgIsoStack/ISOBUS dependency.
+    void Update(bool vtWiderPressed = false, bool vtNarrowerPressed = false);
     void UpdateScreen(boolean rewrite);
-    short int CheckButtons(byte delay1, byte delay2);
+    short int CheckButtons(byte delay1, byte delay2, bool vtWiderPressed = false, bool vtNarrowerPressed = false);
 
     inline short int GetButtons() {
         return buttons;
