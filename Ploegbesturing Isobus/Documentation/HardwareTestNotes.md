@@ -71,6 +71,37 @@ All three: real, wired-up code paths (traced end-to-end from `main.cpp`'s `setup
 - **The project's stated real goal -- implement-independent, this rig's actual XTE -- is blocked by a separate, more fundamental gap**, independent of the DDI 513/TC-GEO question above: **all three XTE PGNs `IsobusGuidanceChannel` listens for (129283 NMEA2000, 65535 JD legacy, 60160 Trimble legacy) received zero messages the entire session**, while Position (129025) and Speed (129026) from the same Trimble unit flowed normally throughout. Confirmed the data genuinely exists on this rig and isn't simply absent: the operator observed a live 29 cm deviation directly on the Trimble terminal's own screen (with the AB line active and steering enabled) -- that number was never received by us, it's a locally-displayed reference value only, useful for cross-checking once/if we do receive real XTE. Means whatever PGN actually carries Trimble's XTE on this specific rig is not one of the three we're coded for.
   **Next step:** a proper CAN bus sniff with a CAN logger, output in MF4 (ASAM MDF) format, while jogging side-to-side a known amount to see which PGN's payload tracks the Trimble terminal's own displayed deviation -- rather than continuing to guess PGN numbers live.
 
+**TC-GEO licensing angle (this rig is Bos):** separate research done the same
+morning (`Documentation/ISOBUS_TC_Manufacturer_Comparison.md`) into how each
+ISOBUS terminal brand gates TC-GEO gives the DDI 513/514 theory above a
+concrete, non-code explanation. Trimble sells the base "ISOBUS Task
+Controller" license (TC-BAS + TC-SC) as one SKU and TC-GEO as a *separate,
+additional* license on top -- Trimble's own dealer docs state the base
+license is a prerequisite for the prescription license, so a farm can hold
+TC-SC without ever having bought TC-GEO. **Likely explanation for this
+session's "TC connects and goes active but never sends DDI 513/514":** Bos's
+terminal simply isn't TC-GEO licensed, not a Triton-side or Trimble-firmware
+bug. This also explains something Bos separately flagged: they've had to buy
+a standalone plough-control system with its own A/B lines rather than driving
+plough guidance off the tractor terminal's own geo-referenced task data --
+consistent with no georeferenced stream being available out of this
+terminal's Task Controller at all (TC-SC only gives section on/off + totals).
+This is the exact degraded case the DDI 513 architecture already anticipated
+(deviation measured at the implement's own DRP, not borrowed from the
+terminal) -- see `NeptuneGPS Documentation/Design documents/
+Triton_TC_Client_Design.md` sec 6. **Not yet
+confirmed directly** (no ISOBUS diagnostics screen check was done this
+session to see TC-GEO's licensed state explicitly) -- open items: exact GFX
+model/firmware version; whether Bos's dealer confirmed "not purchased" vs.
+some other fault; name of the separately-purchased plough-control system and
+whether it exposes any ISOBUS interface; whether TC-SC (section control)
+itself was confirmed working, to isolate "no TC-GEO license" from "no TC
+license at all." A 2026-08-10 firmware change (see the reference-parser
+verification follow-up below) added `IsobusTcInterface::
+SupportsTcGeoWithPosition()/SupportsTcGeoWithoutPosition()`, reading the
+connected TC's own reported capability bits directly -- Session 4 below is
+the first chance to use it instead of inferring from DDI silence.
+
 **Code changed this session** (all on `isobus-tc-client`, uncommitted as of end of session): `IsobusVtInterface.cpp/.hpp`, `IsobusTcInterface.cpp/.hpp`, `IsobusDebugMenu.cpp`, `VTObjectPool.cpp` (bisection scaffolding added then reverted -- `VT_POOL_MINIMAL_BISECT_TEST` present but `#define`d to `0`).
 
 ## Follow-up (off-tractor) -- 2026-08-10: reference-parser verification
@@ -123,3 +154,60 @@ client, which needs the physical bench setup this session didn't have. Given
 the reference parser's clean accept, effort may be better spent chasing a
 Fendt-specific angle (known UT quirks, a firmware update, or contacting Fendt)
 than further static analysis of our own bytes.
+
+Also added this same day: `IsobusTcInterface::SupportsTcGeoWithPosition()`/
+`SupportsTcGeoWithoutPosition()`, reading the connected TC's own reported
+`ServerOptions` capability bits (from its `ParameterVersion` handshake
+message) via AgIsoStack's existing `get_connected_tc_option_supported()`,
+surfaced in `IsobusDebugMenu`'s TC screen as `TC-GEO (with/without pos):
+Y/N`. Built clean on `teensy41_isobus`/`teensy41_serial`; committed
+(086d5d6) and pushed to `origin/isobus-tc-client` ahead of Session 4 below.
+This settles "does the connected TC implement TC-GEO at all" directly from
+its own handshake instead of inferring it from DDI silence -- see the
+Session 3 TC-GEO subsection above and `Documentation/
+ISOBUS_TC_Manufacturer_Comparison.md` for the licensing research this was
+prompted by.
+
+## Session 4 -- 2026-08-10 (afternoon, van Mastwijk) -- PLANNED, not yet run
+
+**Rig:** second visit to the same site as Session 1 (Ag Leader InCommand
+1200, CNH tractor -- Case IH/New Holland/Steyr TBC; all three share the same
+PLM/AFS backend per `ISOBUS_TC_Manufacturer_Comparison.md`, so behavior
+should be consistent regardless of badge).
+
+**Why this session matters:** the InCommand 1200 is the one display in the
+Ag Leader lineup that ships with UT *and* TC standard, TC-GEO included, no
+unlock purchase required (unlike the InCommand 800, which needs a paid
+unlock for both, or Compass, which never gets TC at any price) -- see
+`ISOBUS_TC_Manufacturer_Comparison.md` sec 3. This makes van Mastwijk the
+contrast case to Session 3/Bos: same DDOP, same Triton firmware (`isobus-tc-
+client` at commit 086d5d6 or later), a brand where the TC-GEO commercial
+gate is largely absent by default. If DDI 513/514 delivery works anywhere,
+this is the rig where it should.
+
+**What to check on-site (fill in results below when run):**
+- [ ] `IsobusDebugMenu`'s new `TC-GEO (with/without pos):` line -- expect `Y`
+      (or at least `Y` for "with position based control", the one the DDOP
+      declares support for) once TC connects.
+- [ ] Whether Triton's DDOP is accepted and the working set connects cleanly
+      against a terminal that *does* have TC-GEO (contrast with Bos, where
+      TC connected fine but the TC-GEO data channel never activated).
+- [ ] Whether DDI 513/514 Value Commands actually arrive once a task is
+      active (contrast with Session 3, which got zero the entire session).
+- [ ] Whether the terminal only logs totals or genuinely exchanges
+      geo-referenced data -- i.e. confirm TC-GEO isn't just "present" but
+      *functionally* exchanging data.
+- [ ] VT object pool: does it get accepted here? (Session 1 never got as far
+      as confirming the plough-control screen rendered; Session 3's Fendt UT
+      rejected it outright -- a clean accept here would support the
+      "Fendt-UT-specific" theory from the reference-parser follow-up above.)
+
+**Results:** *(fill in after the visit)*
+
+---
+
+*Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
+on 2026-08-10 (Bos content folded into Session 3 above, van Mastwijk content
+became this Session 4 placeholder) -- that file no longer exists separately.
+`ISOBUS_TC_Manufacturer_Comparison.md` (the TC-GEO-per-brand licensing
+research) remains a separate, standalone reference doc.*
