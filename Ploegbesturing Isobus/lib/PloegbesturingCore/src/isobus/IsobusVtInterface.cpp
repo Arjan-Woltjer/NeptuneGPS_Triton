@@ -72,7 +72,19 @@ void IsobusVtInterface::Begin() {
 
     const NAMEFilter vtFilter(NAME::NAMEParameters::FunctionCode, static_cast<uint8_t>(NAME::Function::VirtualTerminal));
     const std::vector<NAMEFilter> vtNameFilters = { vtFilter };
-    auto partnerVT = std::make_shared<PartneredControlFunction>(0, vtNameFilters);
+    // Must go through the factory method, not a direct std::make_shared
+    // construction -- same class of bug as IsobusGuidanceChannel::Begin()'s
+    // create_internal_control_function() comment. Only
+    // create_partnered_control_function() registers the object into
+    // CANNetworkManager's partneredControlFunctions list, and only members
+    // of that list are ever checked against an incoming Address Claim frame
+    // (can_network_manager.cpp's update_control_functions()) -- so a directly
+    // constructed partner can NEVER become address-valid, no matter how long
+    // a real VT sits on the bus. Confirmed on hardware 2026-08-10: VT stuck
+    // at state 0/22 "Disconnected" indefinitely against a live Fendt
+    // Universal Terminal. AgIsoStack's own header (can_control_function.hpp)
+    // and its VirtualTerminal.ino example both use the factory form.
+    auto partnerVT = CANNetworkManager::CANNetwork.create_partnered_control_function(0, vtNameFilters);
 
     vtClient = std::make_shared<VirtualTerminalClient>(partnerVT, controlFunction);
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW01");
@@ -158,6 +170,18 @@ const char* IsobusVtInterface::GetStateName() const {
     int index = static_cast<int>(vtClient->get_state());
     if (index < 0 || index >= kVtStateCount) return "(unknown)";
     return kVtStateNames[index];
+}
+
+const char* IsobusVtInterface::GetVtVersionName() const {
+    if (!vtClient) return "(no client)";
+    switch (vtClient->get_connected_vt_version()) {
+        case VirtualTerminalClient::VTVersion::Version2OrOlder:   return "<=2";
+        case VirtualTerminalClient::VTVersion::Version3:          return "3";
+        case VirtualTerminalClient::VTVersion::Version4:          return "4";
+        case VirtualTerminalClient::VTVersion::Version5:          return "5";
+        case VirtualTerminalClient::VTVersion::Version6:          return "6";
+        default:                                                  return "(unknown)";
+    }
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {

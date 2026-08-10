@@ -73,6 +73,15 @@ public:
     int         GetStateTotalSteps() const;
     const char* GetStateName() const;
 
+    // Which VT version we actually negotiated (public, unpatched --
+    // isobus::VirtualTerminalClient::get_connected_vt_version() already
+    // existed). Only meaningful once past WaitForPartnerVTStatusMessage --
+    // added 2026-08-10 to check a live suspicion: our hand-rolled VT3 object
+    // pool's WorkingSet object includes a language-code list, and it's worth
+    // confirming what VT version is on the other end when the VT rejects the
+    // pool (see VTObjectPool.cpp).
+    const char* GetVtVersionName() const;
+
 private:
     class Logger : public isobus::CANStackLogger {
     public:

@@ -142,11 +142,41 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
     pu8(0);     // 0 macros
 }
 
+// Bisection test disabled -- 2026-08-10 hardware session. Real pool (23
+// objects) is consistently rejected by a real VT (v6) with "Faulty Object 0
+// [WorkingSet] Faulty Object Parent 65535, error bitmask 9" despite every
+// object's binary encoding checking out byte-for-byte against AgIsoStack's
+// own get_number_bytes_in_object()/get_minimum_object_length() formulas.
+// Three live bisection rounds against the real terminal all failed
+// identically regardless of content (empty DataMask + NULL softkey mask;
+// empty DataMask + real softkey mask; non-empty DataMask matching the real
+// AgIsoStack reference pool's colours/child count exactly) -- ruling out
+// pool CONTENT as the variable and pointing at something more systemic.
+// Follow-up: reproduce against Open-Agriculture/AgIsoVirtualTerminal (a free
+// software VT server built on AgIsoStack++ itself) on a PC, off the tractor,
+// to determine whether the reference VT also rejects this pool (a genuine
+// bug in our bytes/upload path) or accepts it (a Fendt-UT-specific quirk).
+#define VT_POOL_MINIMAL_BISECT_TEST 0
+
 // ----------------------------------------------------------------
 // Public entry point -- call once in setup() before VT init
 // ----------------------------------------------------------------
 void BuildObjectPool() {
     poolPos = 0;
+
+#if VT_POOL_MINIMAL_BISECT_TEST
+    constexpr uint8_t kRefColour = 1;  // matches the real reference pool exactly
+    appendWorkingSet(Plough_WorkingSet, kRefColour, Plough_DataMask);
+    appendDataMask(Plough_DataMask, kRefColour, Plough_SoftKeyMask, 1 /* one real child this time */);
+    appendObjRef(Label_Position, 5, 5);
+    appendSoftKeyMask(Plough_SoftKeyMask, kRefColour, 0);
+    appendFontAttributes(Font_White_Medium, kWhite, 2);
+    appendOutputString(Label_Position, 90, 30, Font_White_Medium, 0, "TEST");
+
+    VT3PoolData = poolBuffer;
+    VT3PoolSize = poolPos;
+    return;
+#endif
 
     // Screen layout (VT3 minimum area: 200x176 pixels)
     const uint16_t LBL_X = 5, LBL_W = 90, ROW_H = 30;

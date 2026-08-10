@@ -84,6 +84,18 @@ public:
     inline unsigned long GetDrpTimestamp() const      { return lastDrpUpdate; }
     inline unsigned long GetQualityTimestamp() const  { return lastQualityUpdate; }
 
+    // Raw activity counters, independent of DDI 513/514 specifically -- added
+    // 2026-08-10 to answer "is the TC sending us ANYTHING at all" separately
+    // from "is it sending 513/514". A DDOP can connect and have an active
+    // task while the TC still sends zero process data for any DDI (e.g. no
+    // guidance line set, or our device elements not mapped into the task on
+    // the UT's own setup screen) -- these counters distinguish that from a
+    // callback-wiring bug.
+    inline unsigned long GetValueCommandCount() const   { return valueCommandCount; }
+    inline std::uint16_t GetLastValueCommandDdi() const  { return lastValueCommandDdi; }
+    inline unsigned long GetLastValueCommandMs() const   { return lastValueCommandMs; }
+    inline unsigned long GetValueRequestCount() const   { return valueRequestCount; }
+
 private:
     // --- TC callbacks (static, AgIsoStack uses raw function pointers) ---
     // Value types are int32_t, matching the AgIsoStack-Arduino version
@@ -124,6 +136,11 @@ private:
     uint8_t       tcGnssQuality      = 0;
     unsigned long lastDrpUpdate      = 0;
     unsigned long lastQualityUpdate  = 0;
+
+    unsigned long   valueCommandCount    = 0;
+    std::uint16_t   lastValueCommandDdi  = 0xFFFF;  // 0xFFFF = none received yet
+    unsigned long   lastValueCommandMs   = 0;
+    unsigned long   valueRequestCount    = 0;
 };
 
 }  // namespace triton

@@ -38,13 +38,14 @@ constexpr std::uint16_t kElementDevice    = 0;
 constexpr std::uint16_t kElementConnector = 1;
 constexpr std::uint16_t kElementFunction  = 2;
 
-constexpr std::uint16_t kObjDevice      = 0;
-constexpr std::uint16_t kObjConnector   = 1;
-constexpr std::uint16_t kObjOffsetX     = 2;
-constexpr std::uint16_t kObjOffsetY     = 3;
-constexpr std::uint16_t kObjFunction    = 4;
-constexpr std::uint16_t kObjDeviation   = 5;
-constexpr std::uint16_t kObjQuality     = 6;
+constexpr std::uint16_t kObjDevice       = 0;
+constexpr std::uint16_t kObjPloughDevice = 1;  // root DeviceElement, Type::Device -- see buildDdop()
+constexpr std::uint16_t kObjConnector    = 2;
+constexpr std::uint16_t kObjOffsetX      = 3;
+constexpr std::uint16_t kObjOffsetY      = 4;
+constexpr std::uint16_t kObjFunction     = 5;
+constexpr std::uint16_t kObjDeviation    = 6;
+constexpr std::uint16_t kObjQuality      = 7;
 
 // TODO: measure against the actual plough frame before trusting DDI 513 --
 // see Triton_TC_Client_Design.md sec 4.3 ("the offsets are part of the
@@ -82,15 +83,29 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC01",  // Structure label -- bump this on every DDOP
-                               // tree change (added/removed/renumbered
-                               // objects), see design doc sec 4.5. Terminals
-                               // cache pools by this label.
+                      "TC02",  // Structure label -- bumped from TC01 for this
+                               // tree-shape fix (root Device element +
+                               // child-object references added, see below).
+                               // Bump this on every DDOP tree change
+                               // (added/removed/renumbered objects), see
+                               // design doc sec 4.5. Terminals cache pools by
+                               // this label.
                       localizationLabel,
                       {},  // no extended structure label
                       controlFunction->get_NAME().get_full_name());
 
-    ddop->add_device_element("Hitch", kElementConnector, kObjDevice,
+    // Mandatory root Device-type element -- ISO 11783-10 requires exactly one
+    // per DDOP (see task_controller_object::DeviceElementObject::Type::Device's
+    // own doc comment in AgIsoStack: "the device descriptor object pool shall
+    // have one device element of type device"). Connector/Function hang off
+    // this, not off the DVC (kObjDevice) directly. Missing entirely --
+    // confirmed as (part of) the cause of a real TC-side DDOP rejection on
+    // hardware 2026-08-10 ("Faulting parent ID: 1 Faulting object: 0" /
+    // "Unknown object reference (missing object)").
+    ddop->add_device_element("Plough", kElementDevice, kObjDevice,
+                              task_controller_object::DeviceElementObject::Type::Device, kObjPloughDevice);
+
+    ddop->add_device_element("Hitch", kElementConnector, kObjPloughDevice,
                               task_controller_object::DeviceElementObject::Type::Connector, kObjConnector);
     ddop->add_device_property("Offset X", kHitchOffsetXMm,
                                static_cast<std::uint16_t>(DataDescriptionIndex::DeviceElementOffsetX),
@@ -98,8 +113,17 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device_property("Offset Y", kHitchOffsetYMm,
                                static_cast<std::uint16_t>(DataDescriptionIndex::DeviceElementOffsetY),
                                NULL_OBJECT_ID, kObjOffsetY);
+    // add_device_property()/add_device_process_data() don't take a parent --
+    // DeviceElementObject::add_reference_to_child_object() is the only thing
+    // that actually attaches a DPT/DPD to its owning DET in the generated
+    // binary pool. Never called before this fix, so Offset X/Y were floating,
+    // unattached objects -- the other half of the "Unknown object reference"
+    // rejection above.
+    auto connectorElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjConnector));
+    connectorElement->add_reference_to_child_object(kObjOffsetX);
+    connectorElement->add_reference_to_child_object(kObjOffsetY);
 
-    ddop->add_device_element("Ploughbody", kElementFunction, kObjDevice,
+    ddop->add_device_element("Ploughbody", kElementFunction, kObjPloughDevice,
                               task_controller_object::DeviceElementObject::Type::Function, kObjFunction);
 
     // Both DDI 513 and 514 are written TO us by the TC (Settable), not
@@ -119,6 +143,11 @@ void IsobusTcInterface::buildDdop() {
                                    static_cast<std::uint16_t>(DataDescriptionIndex::GNSSQuality),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjQuality);
+
+    // Same attachment requirement as the Connector's Offset X/Y above.
+    auto functionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjFunction));
+    functionElement->add_reference_to_child_object(kObjDeviation);
+    functionElement->add_reference_to_child_object(kObjQuality);
 }
 
 // ------------------------------------------------------------------
@@ -132,7 +161,13 @@ void IsobusTcInterface::Begin() {
     const NAMEFilter tcFilter(NAME::NAMEParameters::FunctionCode,
                               static_cast<uint8_t>(NAME::Function::TaskController));
     const std::vector<NAMEFilter> tcNameFilters = { tcFilter };
-    auto partnerTC = std::make_shared<PartneredControlFunction>(0, tcNameFilters);
+    // Must go through the factory method -- see the matching comment on
+    // IsobusVtInterface::Begin()'s identical fix (2026-08-10 hardware
+    // session). A direct std::make_shared construction never registers into
+    // CANNetworkManager's partneredControlFunctions list, so it can never be
+    // matched against an incoming Address Claim and get_address_valid()
+    // stays false forever.
+    auto partnerTC = CANNetworkManager::CANNetwork.create_partnered_control_function(0, tcNameFilters);
 
     buildDdop();
 
@@ -179,6 +214,13 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
         return true;
     }
 
+    // Unconditional -- fires for ANY DDI the TC pushes, not just 513/514.
+    // See the header comment on GetValueCommandCount() for why this exists
+    // separately from the two specific counters below.
+    self->valueCommandCount++;
+    self->lastValueCommandDdi = DDI;
+    self->lastValueCommandMs  = millis();
+
     switch (DDI) {
         case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceLineDeviation):  // 513, mm
             // Wire value is already signed (mm, positive = guidance line
@@ -216,6 +258,8 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
         processVariableValue = 0;
         return true;
     }
+
+    self->valueRequestCount++;
 
     switch (DDI) {
         case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceLineDeviation):

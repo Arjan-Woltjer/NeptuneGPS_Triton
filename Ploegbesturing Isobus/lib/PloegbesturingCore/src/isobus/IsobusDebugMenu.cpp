@@ -217,6 +217,8 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print(vtInterface->GetStateTotalSteps());
         serialDebug->print("  ");
         serialDebug->println(vtInterface->GetStateName());
+        serialDebug->print("  VT version:  ");
+        serialDebug->println(vtInterface->GetVtVersionName());
     }
 
     serialDebug->println("--- Task Controller ---");
@@ -238,6 +240,19 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print(", last ");
         serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
         serialDebug->println(" ms ago");
+        serialDebug->print("  Value commands (any DDI): ");
+        serialDebug->print(tcInterface->GetValueCommandCount());
+        serialDebug->print("  last DDI=");
+        if (tcInterface->GetValueCommandCount() > 0) {
+            serialDebug->print(tcInterface->GetLastValueCommandDdi());
+            serialDebug->print(" (");
+            serialDebug->print(millis() - tcInterface->GetLastValueCommandMs());
+            serialDebug->println(" ms ago)");
+        } else {
+            serialDebug->println("(none)");
+        }
+        serialDebug->print("  Value requests (any DDI): ");
+        serialDebug->println(tcInterface->GetValueRequestCount());
     }
 }
 
