@@ -20,6 +20,23 @@
 
 #include <string.h>
 
+// Reference-pool test -- 2026-08-10, van Mastwijk. Every WorkingSet-attribute
+// variant (0-4: selectable, language count/code, background colour), a fresh
+// version label, VT3-vs-VT4 negotiation, and a corrected manufacturer code
+// all failed identically against the same CNH terminal, ruling out pool
+// content and identity as far as this project's own authored pool goes. Last
+// remaining test: does AgIsoStack's OWN real, examples-folder reference pool
+// -- used verbatim, not authored by us at all -- fare any differently?
+// Included as raw text (the exact same way their own VirtualTerminal.ino
+// pulls it in -- see that file) so these are genuinely their exact bytes, not
+// a copy that could itself introduce a transcription mistake. Guarded so this
+// ~150 KB pool (real size: 149660 bytes, see the file's own comment) only
+// gets compiled in when actually testing it -- REVERT to 0 afterward.
+#define VT_POOL_USE_AGISOSTACK_REFERENCE 0
+#if VT_POOL_USE_AGISOSTACK_REFERENCE
+#include "../../../../.pio/libdeps/teensy41_isobus/AgIsoStack/examples/VirtualTerminal/ObjectPool.cpp"
+#endif
+
 namespace triton
 {
 
@@ -61,18 +78,40 @@ static const uint8_t kWhite = 1;
 // EndOfObjectPool_ErrorBitmask_Research.md. Session 3's own bisection only
 // ever varied DataMask/SoftKeyMask content, never the WorkingSet's own
 // fields, so this is genuinely untested territory, not a confirmed fix.
+//
+// CONFIRMED BUG, fixed 2026-08-10 (van Mastwijk): this function used to write
+// the language-code bytes internally, immediately after the header -- but
+// the correct ISO 11783-6 wire order (confirmed against AgIsoStack's own
+// get_number_bytes_in_object() size formula) is children list, THEN macros
+// list, THEN language list, in that order. With numChildren always 0 until
+// today's variant 5, there was nothing between the header and the language
+// bytes, so the bug was completely invisible -- the wrong order and the
+// correct order produced byte-identical output. The moment a real child was
+// added, a real CNH VT4 terminal read our language code "nl" (bytes 0x6E,
+// 0x6C) as the low/high bytes of the child's object ID -- 0x6C6E = 27758 --
+// and correctly rejected it as an unknown/missing object reference. Exact
+// match confirmed by hand (0x6C6E = 27758, decoded from the VT's own error
+// response), not a guess.
+//
+// Now only writes the fixed header (through the numLanguages count byte).
+// Caller must append, IN ORDER: numChildren object references (appendObjRef),
+// then the language code bytes (appendLanguageCode) -- see BuildObjectPool().
 static void appendWorkingSet(uint16_t id, uint8_t bgColour, uint16_t activeMask,
                               bool selectable = true, uint8_t numLanguages = 1,
-                              const char* languageCode = "nl") {
+                              uint16_t numChildren = 0) {
     pu16(id); pu8(0);
     pu8(bgColour);
     pu8(selectable ? 1 : 0);
     pu16(activeMask);
-    pu8(0); pu8(0);  // 0 object refs, 0 macros
+    pu8(numChildren); pu8(0);  // N object refs (caller appends them next), 0 macros
     pu8(numLanguages);
-    for (uint8_t i = 0; i < numLanguages; i++) {
-        pu8(languageCode[0]); pu8(languageCode[1]);
-    }
+}
+
+// Language code for a WorkingSet -- must be appended AFTER any child object
+// references (see appendWorkingSet()'s comment). Kept separate rather than
+// looped/parameterised since every real use here declares exactly 1 language.
+static void appendLanguageCode(const char* code) {
+    pu8(code[0]); pu8(code[1]);
 }
 
 // Type 1: DataMask
@@ -177,11 +216,27 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // this applies to the REAL 23-object pool (not a stripped-down substitute),
 // isolating just the WorkingSet object's own fields as the variable while
 // everything else (DataMask, keys, labels, numbers) stays exactly as
-// shipped. Set to 0 for normal/production builds.
-//   0 = production values (selectable=true, 1 language "nl")
-//   1 = selectable=false
-//   2 = 0 languages declared (omit the language list entirely)
-//   3 = selectable=true but language code "en" instead of "nl"
+// shipped.
+//
+// CONFIRMED FIX, 2026-08-10 (van Mastwijk): variant 0/production now
+// includes a real WorkingSet child object reference. Variants 1-4 (selectable,
+// language count/code, background colour) all failed identically against a
+// real CNH terminal (VT3 and VT4 negotiation both tried); AgIsoStack's own
+// reference pool -- CONNECTED and rendered cleanly on the same terminal,
+// same day -- has exactly 1 WorkingSet child, the one field never isolated
+// until variant 5. Adding it (after also fixing a real field-ordering bug in
+// appendWorkingSet() it exposed -- see that function's comment) got our own
+// pool CONNECTED and rendering on the same terminal too. Folded into
+// production as the real fix rather than left as a toggled variant. Kept
+// buildable as explicit variants below for future investigation (e.g.
+// re-testing variants 1-4 against Fendt now that the ordering bug is fixed
+// -- that terminal was never retested with a WorkingSet child at all).
+//   0 = production (post-fix): selectable=true, 1 language "nl", 1 child
+//       (Label_Position)
+//   1 = selectable=false (+ 1 child, fix retained)
+//   2 = 0 languages declared (+ 1 child, fix retained)
+//   3 = language code "en" instead of "nl" (+ 1 child, fix retained)
+//   4 = background colour 1 instead of 0/kBlack (+ 1 child, fix retained)
 #define VT_WORKINGSET_BISECT_VARIANT 0
 
 // ----------------------------------------------------------------
@@ -190,9 +245,19 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 void BuildObjectPool() {
     poolPos = 0;
 
+#if VT_POOL_USE_AGISOSTACK_REFERENCE
+    // AgIsoStack's own real pool, used exactly as their example uses it --
+    // see this file's top-of-file comment. Not ours; if this ALSO gets
+    // rejected identically, the cause is provably not in anything we authored.
+    VT3PoolData = VT3TestPool;
+    VT3PoolSize = sizeof(VT3TestPool);
+    return;
+#endif
+
 #if VT_POOL_MINIMAL_BISECT_TEST
     constexpr uint8_t kRefColour = 1;  // matches the real reference pool exactly
     appendWorkingSet(Plough_WorkingSet, kRefColour, Plough_DataMask);
+    appendLanguageCode("nl");
     appendDataMask(Plough_DataMask, kRefColour, Plough_SoftKeyMask, 1 /* one real child this time */);
     appendObjRef(Label_Position, 5, 5);
     appendSoftKeyMask(Plough_SoftKeyMask, kRefColour, 0);
@@ -210,14 +275,38 @@ void BuildObjectPool() {
     const uint16_t ROW_Y[4] = { 10, 50, 90, 130 };
 
     // ---- Top-level structure ----
+    // Field order after appendWorkingSet() is fixed: any child object
+    // references (appendObjRef) MUST come before appendLanguageCode() -- see
+    // appendWorkingSet()'s own comment for the confirmed 2026-08-10 bug this
+    // guards against. Every variant below keeps the 1-child fix; only the
+    // field named in each variant differs from production.
 #if VT_WORKINGSET_BISECT_VARIANT == 1
-    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/false);
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/false,
+                      /*numLanguages=*/1, /*numChildren=*/1);
+    appendObjRef(Label_Position, 0, 0);
+    appendLanguageCode("nl");
 #elif VT_WORKINGSET_BISECT_VARIANT == 2
-    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true, /*numLanguages=*/0);
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
+                      /*numLanguages=*/0, /*numChildren=*/1);
+    appendObjRef(Label_Position, 0, 0);
+    // 0 languages declared -- no appendLanguageCode() call, deliberately.
 #elif VT_WORKINGSET_BISECT_VARIANT == 3
-    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true, /*numLanguages=*/1, "en");
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
+                      /*numLanguages=*/1, /*numChildren=*/1);
+    appendObjRef(Label_Position, 0, 0);
+    appendLanguageCode("en");
+#elif VT_WORKINGSET_BISECT_VARIANT == 4
+    appendWorkingSet(Plough_WorkingSet, /*bgColour=*/1, Plough_DataMask, /*selectable=*/true,
+                      /*numLanguages=*/1, /*numChildren=*/1);
+    appendObjRef(Label_Position, 0, 0);
+    appendLanguageCode("nl");
 #else
-    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask);
+    // Production. See this block's own comment above for how the 1-child
+    // reference here went from "untested" to "the confirmed fix."
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
+                      /*numLanguages=*/1, /*numChildren=*/1);
+    appendObjRef(Label_Position, 0, 0);
+    appendLanguageCode("nl");
 #endif
 
     appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 8);

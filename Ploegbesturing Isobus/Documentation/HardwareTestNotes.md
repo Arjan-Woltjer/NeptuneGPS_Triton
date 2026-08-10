@@ -230,7 +230,93 @@ this is the rig where it should.
       AgIsoStackVendorPatches.md` (#2) will print the decoded error bit
       directly in the serial log if it still fails, instead of a raw number.
 
-**Results:** *(fill in after the visit)*
+**Results:** Two terminals present on-site: an Ag Leader display and CNH's own
+built-in VT (AFS Pro/IntelliView) -- tested against CNH specifically (Ag
+Leader was powered off throughout, to keep results attributable to one VT;
+our partner filter matches on function code alone and can't otherwise
+distinguish which VT it binds to when more than one is live). CNH's own
+stack unlocks TC-BAS+TC-SC+TC-GEO together via one dealer activation code
+(different licensing shape than Ag Leader's, see
+`ISOBUS_TC_Manufacturer_Comparison.md` sec 3) -- so this ended up testing a
+third distinct terminal/vendor combination rather than the originally-planned
+Ag-Leader-specific contrast case. That comparison (Ag Leader vs. Bos) is
+still open for a future session.
+
+**The VT object pool rejection is solved.** Root cause, found by rigorous
+elimination across two independent real terminals (Fendt UT from Session 3,
+CNH VT3/VT4 here) and confirmed by exact byte arithmetic, not inference:
+
+- Every pool-*content* axis was re-tested here and failed identically
+  regardless: WorkingSet `selectable`, language count, language code
+  (variants 1-3, carried over from Session 3's plan), a fresh version label
+  each round (ruling out terminal-side caching), background colour matching
+  AgIsoStack's own reference pool exactly (variant 4), and even forcing the
+  terminal itself into VT4 negotiation instead of VT3 (same physical
+  terminal, same result). A corrected NAME `manufacturer_code` (was `64` --
+  belongs to a real, different manufacturer, a known unfixed TODO from
+  `Triton_TC_Client_Design.md` sec 7; changed to `1407`, AgIsoStack's own
+  permitted-for-non-commercial-use code, matching their reference examples)
+  also made no difference.
+- Decisive test: uploaded **AgIsoStack's own real reference pool**
+  (`examples/VirtualTerminal/ObjectPool.cpp`'s `VT3TestPool`, ~150 KB, pulled
+  in via a raw `#include` of the actual file -- not a copy -- so these were
+  genuinely their exact bytes) against the same CNH terminal. **It connected
+  and rendered.** First time this entire project has confirmed a working,
+  on-screen VT pool on real hardware. This proved the upload mechanism,
+  partner registration, and NAME/identity were all fine, and that something
+  specific (still unidentified at that point) remained wrong in *our* pool's
+  content specifically.
+- Comparing the reference pool's WorkingSet object field-by-field against
+  ours surfaced the one field never isolated: the reference WorkingSet has
+  **1 child object reference**; every one of our variants (0-4) kept this at
+  0. Adding a child (referencing our own `Label_Position` OutputString)
+  triggered a **second, previously-latent bug**: `appendWorkingSet()` wrote
+  the language-code bytes immediately after the header, but the correct ISO
+  11783-6 wire order (children list, then macros, then language list) puts
+  children *first*. With `numChildren` always 0 until this test, the wrong
+  order and the correct order produced byte-identical output -- completely
+  invisible until a real child existed. The CNH terminal read our language
+  code `"nl"` (bytes `0x6E, 0x6C`) as the low/high bytes of the child's
+  object ID: `0x6C6E` = **27758**, exactly matching the "unknown object
+  reference" (`bitmask 0x0A` = bit1 + bit3) it reported -- confirmed by hand
+  arithmetic, not a guess, and reproduced identically after a full power
+  cycle of the terminal (ruling out stale terminal-side state).
+- Fixed both the field order (`appendWorkingSet()` now only writes the
+  header; callers append any children via `appendObjRef()`, then the
+  language code via the new `appendLanguageCode()`, in that order) and added
+  the real WorkingSet child. **Folded into production** (`VTObjectPool.cpp`,
+  `VT_WORKINGSET_BISECT_VARIANT` defaults to 0 = the fix) rather than left
+  behind a toggle -- confirmed working after the fold-in too. The bisection
+  variants (1-4) remain available for later re-testing against Fendt, which
+  was never retested with a WorkingSet child at all -- given the exact
+  same object was implicated there too (Session 3's "Faulty Object 0"), this
+  may turn out to be the same root cause.
+
+**Still open:**
+- **Connection stability after Connected.** Confirmed staying connected for
+  real stretches (multiple consecutive debug dumps showing
+  `Connected: Y, 21/22`), but at least one drop was observed, logged as
+  `E] [VT]: Status Timeout` -- traced to AgIsoStack's hardcoded
+  `VT_STATUS_TIMEOUT_MS = 3000`: once connected, if the VT's own periodic
+  status broadcast isn't received within any 3-second window, the client
+  disconnects itself. A same-session test leaving the debug menu alone (to
+  rule out `IsobusDebugMenu::printFullDump()`'s many blocking `Serial.print()`
+  calls stalling `loop()` past that window) still dropped after ~12 seconds,
+  which doesn't cleanly support the print-blocking theory (roughly netting
+  out to a handful of real connected seconds after subtracting `setup()`'s
+  two blocking delays, `delay(3000)`+`delay(2000)`, during which nothing
+  processes CAN traffic at all -- though those delays run once, before the
+  first connection, and can't explain a timeout that fires from the
+  already-Connected state later). Root cause not yet found; worth watching
+  whether it's a fixed interval (something periodic in our own loop) or
+  irregular (genuine bus/terminal broadcast flakiness).
+- DDI 513/514 -- not reached this session (task never went active against
+  CNH); the `TC-GEO (with/without pos):` capability line from 086d5d6 was
+  not exercised live here either.
+- Ag Leader itself was never tested (kept powered off to isolate CNH) --
+  still a clean, distinct next test.
+- Fendt re-test with the WorkingSet-child fix -- see above, a real
+  candidate for also resolving Session 3's original rejection.
 
 ---
 

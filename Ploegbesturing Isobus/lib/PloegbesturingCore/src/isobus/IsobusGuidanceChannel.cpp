@@ -100,7 +100,15 @@ void IsobusGuidanceChannel::Begin() {
     deviceName.set_industry_group(2);   // Agriculture and Forestry
     deviceName.set_device_class(8);     // Non-self-propelled work machine
     deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::SteeringControl));  // TODO: confirm correct function
-    deviceName.set_manufacturer_code(64);
+    // Was 64 -- belongs to a real, different manufacturer (flagged as a TODO
+    // in Triton_TC_Client_Design.md sec 7, never actually fixed until now).
+    // 1407 is AgIsoStack's own permitted-for-non-commercial-use code, the
+    // same one their reference examples (VirtualTerminal.ino, SpeedMessages.ino)
+    // use. Tested 2026-08-10 at van Mastwijk as a candidate for the VT pool
+    // rejection that's persisted across every pool-CONTENT variant tried
+    // against both Fendt and CNH -- a real, unfixed identity-level bug is a
+    // more promising remaining variable than more pool-byte bisection.
+    deviceName.set_manufacturer_code(1407);
     deviceName.set_identity_number(1);
     deviceName.set_ecu_instance(0);
     deviceName.set_function_instance(0);

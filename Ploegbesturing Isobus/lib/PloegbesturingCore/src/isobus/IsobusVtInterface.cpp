@@ -87,7 +87,13 @@ void IsobusVtInterface::Begin() {
     auto partnerVT = CANNetworkManager::CANNetwork.create_partnered_control_function(0, vtNameFilters);
 
     vtClient = std::make_shared<VirtualTerminalClient>(partnerVT, controlFunction);
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW01");
+    // Bumped MW01 -> MW02, 2026-08-10 (van Mastwijk): the pool's structure
+    // genuinely changed (WorkingSet gained a real child object, see
+    // VTObjectPool.cpp's appendWorkingSet() comment for the confirmed bug
+    // this fixes) -- same discipline as the TC DDOP's TC01->TC02 bump in
+    // Session 3, so no terminal that cached a pool under "MW01" confuses it
+    // with this one.
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW02");
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
