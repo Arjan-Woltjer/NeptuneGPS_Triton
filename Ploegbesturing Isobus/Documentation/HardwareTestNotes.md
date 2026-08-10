@@ -72,3 +72,54 @@ All three: real, wired-up code paths (traced end-to-end from `main.cpp`'s `setup
   **Next step:** a proper CAN bus sniff with a CAN logger, output in MF4 (ASAM MDF) format, while jogging side-to-side a known amount to see which PGN's payload tracks the Trimble terminal's own displayed deviation -- rather than continuing to guess PGN numbers live.
 
 **Code changed this session** (all on `isobus-tc-client`, uncommitted as of end of session): `IsobusVtInterface.cpp/.hpp`, `IsobusTcInterface.cpp/.hpp`, `IsobusDebugMenu.cpp`, `VTObjectPool.cpp` (bisection scaffolding added then reverted -- `VT_POOL_MINIMAL_BISECT_TEST` present but `#define`d to `0`).
+
+## Follow-up (off-tractor) -- 2026-08-10: reference-parser verification
+
+Before building/wiring the full `AgIsoVirtualTerminal` GUI app (which needs a
+real or PEAK-virtual CAN adapter shared between it and a live client -- not
+available off-tractor), took a cheaper offline shortcut that answers the same
+question session 3 deferred to it ("does the reference library's parser
+accept our exact pool bytes"): `Open-Agriculture/AgIsoStack-plus-plus`'s own
+IOP object-pool parser (`isobus_virtual_terminal_working_set_base.cpp`'s
+`parse_iop_into_objects()`/`parse_next_object()`, fetched fresh from `main` --
+this is the *same* parser code `AgIsoVirtualTerminal` links against) needs
+nothing but plain C++ and a handful of self-contained files (`isobus_virtual_
+terminal_objects.hpp/.cpp`, `can_stack_logger.hpp/.cpp`, `to_string.hpp`,
+`thread_synchronization.hpp` -- no CAN, no network manager, no threading
+beyond a `std::mutex`). Built a standalone MSVC console harness (scratch-only,
+not committed) that: (1) links in a byte-for-byte copy of `VTObjectPool.cpp`'s
+real (non-bisection) 23-object pool build, (2) feeds the resulting 445 bytes
+straight into `parse_iop_into_objects()`, no CAN transport involved at all.
+
+**Result: the reference parser accepts the pool outright.** `parse_iop_into_
+objects()` returned `true`; all 23 objects landed in the object tree (no ID
+collisions silently dropped one); zero `LOG_ERROR`/`LOG_WARNING` lines other
+than the expected debug trace of the `"nl"` language code. This corroborates
+session 3's manual byte-for-byte check independently (via the actual upstream
+parser source rather than just its exposed size-formula getters) across every
+object type actually used (`WorkingSet`, `DataMask`, `SoftKeyMask`, `Key`,
+`OutputString`, `OutputNumber`, `NumberVariable`, `FontAttributes`) --
+`parse_next_object()`'s field offsets for each matched our `append*()`
+functions exactly, byte for byte.
+
+**Also checked *why* the real Fendt terminal's "Pool error bitmask value 9" is
+opaque:** AgIsoStack++'s own reference `VirtualTerminalServer::update()`
+(`isobus_virtual_terminal_server.cpp` ~line 2822-2834) hardcodes that error-
+code byte to `0` on every `EndOfObjectPoolMessage` response it sends, whether
+the pool parsed or not (`/// @todo Get the parent object ID of the faulting
+object` sits right next to it, unimplemented) -- so even the reference
+library doesn't populate/interpret ISO 11783-6's per-bit meaning for that
+byte. Bitmask 9 is therefore very likely a Fendt-proprietary interpretation,
+not something decodable from any Open-Agriculture source.
+
+**Conclusion: this shifts the leading theory from "bug in our pool bytes" to
+"Fendt Universal Terminal-specific rejection reason,"** consistent with
+session 3's bisection already ruling out pool *content* as the variable.
+Running the full `AgIsoVirtualTerminal` GUI app (real CAN transport, real
+upload/transport-protocol path, not just the parser in isolation) is still
+the next step if this needs to be nailed down further -- that requires a
+CAN adapter shared between a PC and either a real Teensy or another AgIsoStack
+client, which needs the physical bench setup this session didn't have. Given
+the reference parser's clean accept, effort may be better spent chasing a
+Fendt-specific angle (known UT quirks, a firmware update, or contacting Fendt)
+than further static analysis of our own bytes.
