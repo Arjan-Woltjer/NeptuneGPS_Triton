@@ -133,27 +133,44 @@ object type actually used (`WorkingSet`, `DataMask`, `SoftKeyMask`, `Key`,
 `parse_next_object()`'s field offsets for each matched our `append*()`
 functions exactly, byte for byte.
 
-**Also checked *why* the real Fendt terminal's "Pool error bitmask value 9" is
-opaque:** AgIsoStack++'s own reference `VirtualTerminalServer::update()`
+**Also checked *why* AgIsoStack itself can't decode "Pool error bitmask value
+9":** AgIsoStack++'s own reference `VirtualTerminalServer::update()`
 (`isobus_virtual_terminal_server.cpp` ~line 2822-2834) hardcodes that error-
 code byte to `0` on every `EndOfObjectPoolMessage` response it sends, whether
 the pool parsed or not (`/// @todo Get the parent object ID of the faulting
-object` sits right next to it, unimplemented) -- so even the reference
-library doesn't populate/interpret ISO 11783-6's per-bit meaning for that
-byte. Bitmask 9 is therefore very likely a Fendt-proprietary interpretation,
-not something decodable from any Open-Agriculture source.
+object` sits right next to it, unimplemented) -- so the reference library
+never populates or interprets ISO 11783-6's per-bit meaning for that byte on
+the sending side.
 
-**Conclusion: this shifts the leading theory from "bug in our pool bytes" to
-"Fendt Universal Terminal-specific rejection reason,"** consistent with
-session 3's bisection already ruling out pool *content* as the variable.
-Running the full `AgIsoVirtualTerminal` GUI app (real CAN transport, real
-upload/transport-protocol path, not just the parser in isolation) is still
-the next step if this needs to be nailed down further -- that requires a
-CAN adapter shared between a PC and either a real Teensy or another AgIsoStack
-client, which needs the physical bench setup this session didn't have. Given
-the reference parser's clean accept, effort may be better spent chasing a
-Fendt-specific angle (known UT quirks, a firmware update, or contacting Fendt)
-than further static analysis of our own bytes.
+**Correction, same day, later:** that byte is *not* actually opaque -- it's
+just undecoded by AgIsoStack's own sender. Reading ISO/FDIS 11783-6:2004(E)
+§C.2.5 directly (see `Documentation/EndOfObjectPool_ErrorBitmask_Research.md`
+for the full byte tables and sourcing) shows the End of Object Pool Response
+carries two separate error-code bytes: a coarse pass/fail byte, and a second
+"Object Pool Error Codes" byte with a standardized bit layout (bit 0 = method/
+attribute not supported by the VT; bit 1 = unknown object reference; bit 2 =
+any other error; bit 3 = pool deleted from volatile memory -- boilerplate
+that rides along with essentially any rejection, per the standard's own text
+that a VT should clear the pool on any error). **`9` decodes as bit 0 + bit
+3** -- stripping the boilerplate bit 3, the Fendt UT's actual complaint is
+**"method or attribute not supported by the VT,"** specifically on object 0
+(the WorkingSet itself, matching "Faulty Object 0"). This is a specific,
+narrower complaint than "structural/encoding error" -- consistent with the
+reference parser's clean accept of the exact same bytes (§ above): the pool
+is spec-legal, this VT just doesn't support something about the WorkingSet
+object's own attributes.
+
+**Conclusion: the leading theory is now sharper than "Fendt-specific
+rejection reason"** -- it's specifically something in the **WorkingSet
+object's own attribute fields** (not its children/masks). Session 3's three
+bisection rounds varied DataMask/SoftKeyMask content and colour, never the
+WorkingSet's own fields -- next bisection round should vary the WorkingSet
+specifically: a macro attached directly to it, the `Selectable` attribute,
+the Active Mask object ID reference, or anything version-gated that the
+reference parser accepts leniently but a production VT enforces strictly.
+Cheaper than the full `AgIsoVirtualTerminal` GUI/CAN-adapter bench test,
+and it's a real bisection question for Session 4 (or a future Bos revisit)
+rather than blind static analysis.
 
 Also added this same day: `IsobusTcInterface::SupportsTcGeoWithPosition()`/
 `SupportsTcGeoWithoutPosition()`, reading the connected TC's own reported
@@ -201,6 +218,11 @@ this is the rig where it should.
       as confirming the plough-control screen rendered; Session 3's Fendt UT
       rejected it outright -- a clean accept here would support the
       "Fendt-UT-specific" theory from the reference-parser follow-up above.)
+      If it's *also* rejected with the same "Faulty Object 0 ... bitmask 9",
+      per `Documentation/EndOfObjectPool_ErrorBitmask_Research.md` that's a
+      "method/attribute not supported" complaint about the WorkingSet object
+      specifically -- worth trying the WorkingSet-attribute bisection ideas
+      from that doc's §4 if there's time on-site.
 
 **Results:** *(fill in after the visit)*
 
@@ -209,5 +231,7 @@ this is the rig where it should.
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
 on 2026-08-10 (Bos content folded into Session 3 above, van Mastwijk content
 became this Session 4 placeholder) -- that file no longer exists separately.
-`ISOBUS_TC_Manufacturer_Comparison.md` (the TC-GEO-per-brand licensing
-research) remains a separate, standalone reference doc.*
+`ISOBUS_TC_Manufacturer_Comparison.md` (TC-GEO-per-brand licensing research)
+and `EndOfObjectPool_ErrorBitmask_Research.md` (decodes the Session 3 VT
+rejection's "bitmask value 9" against the actual ISO 11783-6 text) remain
+separate, standalone reference docs.*
