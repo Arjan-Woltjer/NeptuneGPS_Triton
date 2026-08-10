@@ -221,8 +221,14 @@ this is the rig where it should.
       If it's *also* rejected with the same "Faulty Object 0 ... bitmask 9",
       per `Documentation/EndOfObjectPool_ErrorBitmask_Research.md` that's a
       "method/attribute not supported" complaint about the WorkingSet object
-      specifically -- worth trying the WorkingSet-attribute bisection ideas
-      from that doc's §4 if there's time on-site.
+      specifically -- try `VTObjectPool.cpp`'s new `VT_WORKINGSET_BISECT_VARIANT`
+      switch (0=production, 1=selectable=false, 2=no language codes,
+      3=language "en" instead of "nl"; ships as 0, no behavior change until
+      set), one variant per flash, watching `IsobusDebugMenu`'s VT state line
+      to see if any variant gets past `WaitForEndOfObjectPoolResponse`. The
+      AgIsoStack vendor patch documented in `Documentation/
+      AgIsoStackVendorPatches.md` (#2) will print the decoded error bit
+      directly in the serial log if it still fails, instead of a raw number.
 
 **Results:** *(fill in after the visit)*
 

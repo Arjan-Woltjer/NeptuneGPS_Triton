@@ -51,14 +51,28 @@ static const uint8_t kWhite = 1;
 // ----------------------------------------------------------------
 
 // Type 0: WorkingSet
-static void appendWorkingSet(uint16_t id, uint8_t bgColour, uint16_t activeMask) {
+//
+// selectable/numLanguages/languageCode default to the real production values
+// -- only overridden by the VT_WORKINGSET_BISECT_VARIANT block in
+// BuildObjectPool() below, added 2026-08-10 after decoding a real Fendt UT's
+// object pool rejection ("Faulty Object 0, Parent 65535, bitmask 9") as
+// specifically "method or attribute not supported by the VT" on the
+// WorkingSet object itself -- see Documentation/
+// EndOfObjectPool_ErrorBitmask_Research.md. Session 3's own bisection only
+// ever varied DataMask/SoftKeyMask content, never the WorkingSet's own
+// fields, so this is genuinely untested territory, not a confirmed fix.
+static void appendWorkingSet(uint16_t id, uint8_t bgColour, uint16_t activeMask,
+                              bool selectable = true, uint8_t numLanguages = 1,
+                              const char* languageCode = "nl") {
     pu16(id); pu8(0);
     pu8(bgColour);
-    pu8(1);          // selectable = true
+    pu8(selectable ? 1 : 0);
     pu16(activeMask);
     pu8(0); pu8(0);  // 0 object refs, 0 macros
-    pu8(1);          // 1 language
-    pu8('n'); pu8('l');
+    pu8(numLanguages);
+    for (uint8_t i = 0; i < numLanguages; i++) {
+        pu8(languageCode[0]); pu8(languageCode[1]);
+    }
 }
 
 // Type 1: DataMask
@@ -158,6 +172,18 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // bug in our bytes/upload path) or accepts it (a Fendt-UT-specific quirk).
 #define VT_POOL_MINIMAL_BISECT_TEST 0
 
+// WorkingSet-attribute bisection -- 2026-08-10, see appendWorkingSet()'s own
+// comment for the full rationale. Unlike VT_POOL_MINIMAL_BISECT_TEST above,
+// this applies to the REAL 23-object pool (not a stripped-down substitute),
+// isolating just the WorkingSet object's own fields as the variable while
+// everything else (DataMask, keys, labels, numbers) stays exactly as
+// shipped. Set to 0 for normal/production builds.
+//   0 = production values (selectable=true, 1 language "nl")
+//   1 = selectable=false
+//   2 = 0 languages declared (omit the language list entirely)
+//   3 = selectable=true but language code "en" instead of "nl"
+#define VT_WORKINGSET_BISECT_VARIANT 0
+
 // ----------------------------------------------------------------
 // Public entry point -- call once in setup() before VT init
 // ----------------------------------------------------------------
@@ -184,7 +210,15 @@ void BuildObjectPool() {
     const uint16_t ROW_Y[4] = { 10, 50, 90, 130 };
 
     // ---- Top-level structure ----
+#if VT_WORKINGSET_BISECT_VARIANT == 1
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/false);
+#elif VT_WORKINGSET_BISECT_VARIANT == 2
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true, /*numLanguages=*/0);
+#elif VT_WORKINGSET_BISECT_VARIANT == 3
+    appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true, /*numLanguages=*/1, "en");
+#else
     appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask);
+#endif
 
     appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 8);
     appendObjRef(Label_Position, LBL_X, ROW_Y[0]);

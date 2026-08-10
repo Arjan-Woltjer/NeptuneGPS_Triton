@@ -66,6 +66,43 @@ indicator proves insufficient during real testing.
 
 ---
 
+### 2. `VirtualTerminalClient` End of Object Pool error-bit decoding -- added 2026-08-10
+
+**Files:** `isobus_virtual_terminal_client.cpp`
+
+**What:** in the `EndOfObjectPoolMessage` handler, after the existing raw
+`LOG_ERROR("... Pool error bitmask value N")` line, added per-bit decoding
+of `objectPoolErrorBitmask` (byte 6 of the response) into readable
+`LOG_ERROR` lines: bit 0 = "method or attribute not supported by the VT",
+bit 1 = "unknown object reference (missing object)", bit 2 = "any other
+error". Bit 3 ("pool deleted from volatile memory") is suppressed unless
+it's the *only* bit set, because ISO 11783-6 states a VT should delete the
+object pool from volatile memory on any error at all -- it rides along with
+essentially every rejection and isn't itself diagnostic.
+
+**Why:** this library only ever logged the raw integer -- upstream doesn't
+decode ISO 11783-6's own defined bit layout for this byte anywhere (neither
+the client's log line nor the reference `VirtualTerminalServer`, which
+hardcodes the byte to `0` on send with an unimplemented `/// @todo`). Session
+3 (2026-08-10, Bos, Fendt UT) hit exactly this: `"Pool error bitmask value
+9"` required a manual trip to the actual ISO/FDIS 11783-6:2004(E) standard
+text to decode as bit 0 + bit 3 (see `Documentation/
+EndOfObjectPool_ErrorBitmask_Research.md` for the full byte tables and
+sourcing) -- a future rejection will now say "method or attribute not
+supported by the VT" directly in the serial log, no manual decode needed.
+
+**Exact change:** in the `EndOfObjectPoolMessage` case's `else` branch
+(after the existing `vtRanOutOfMemory`/`otherErrors` `LOG_ERROR` calls),
+added an `if (0 != objectPoolErrorBitmask)` block testing bits 0/1/2 with
+`LOG_ERROR` each, and bit 3 only if no other bit is set. See the source
+directly for the exact code (small enough not to duplicate here).
+
+**Consumed by:** nothing programmatic -- this is a logging-only change, read
+directly off the serial debug console during live testing (same channel as
+the existing raw bitmask line).
+
+---
+
 ## Historical / no longer applied
 
 ### CANNetworkManager Meyer's-singleton patch -- applied 2026-08-04, gone by 2026-08-08
@@ -95,15 +132,22 @@ caveat.
 
 ## TODO: upstream
 
-Both of the above are small, self-contained additions with no behavioral
-change to existing code (`get_state()` is a pure accessor; the singleton
-conversion only changed *when* the object is constructed, not what it does).
-Worth proposing upstream to `Open-Agriculture/AgIsoStack-Arduino` so this
-project stops needing to carry them at all:
+All three of the above are small, self-contained additions with no
+behavioral change to existing code (`get_state()` is a pure accessor; the
+error-bit decoding only adds log lines, changes no control flow; the
+singleton conversion only changed *when* the object is constructed, not
+what it does). Worth proposing upstream to `Open-Agriculture/AgIsoStack-Arduino`
+(and/or the base `AgIsoStack-plus-plus` repo, since this handler is shared
+code) so this project stops needing to carry them at all:
 
 - [ ] `VirtualTerminalClient::get_state()` -- straightforward, mirrors the
       existing `TaskControllerClient::get_state()` precedent almost exactly.
-      Lowest-effort PR of the two.
+      Lowest-effort PR of the three.
+- [ ] End of Object Pool error-bit decoding -- pure logging addition, ISO
+      11783-6 §C.2.5's bit layout is public standard text, not proprietary.
+      Worth checking whether upstream would rather have this as named
+      constants/an enum (mirroring `TaskControllerClient::ServerOptions`'s
+      existing style) than inline bit literals before submitting.
 - [ ] Reconsider the `CANNetworkManager` singleton-vs-eager-global question
       upstream, if the hang symptom is ever reproduced cleanly enough to
       write up as a bug report (a Teensy-specific global-static-init timing
