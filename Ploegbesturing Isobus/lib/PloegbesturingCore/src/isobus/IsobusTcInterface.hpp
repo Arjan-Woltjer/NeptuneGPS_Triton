@@ -96,6 +96,24 @@ public:
     inline unsigned long GetLastValueCommandMs() const   { return lastValueCommandMs; }
     inline unsigned long GetValueRequestCount() const   { return valueRequestCount; }
 
+    // Whether the CONNECTED TC itself reports TC-GEO support -- read from its
+    // own ParameterVersion handshake message (isobus_task_controller_client.cpp,
+    // TechnicalDataMessageCommands::ParameterVersion), not something we
+    // configure. Added 2026-08-10 to settle session 3's "does this TC
+    // implement TC-GEO at all" theory directly instead of inferring it from
+    // DDI silence -- see Documentation/ISOBUS_TC_Manufacturer_Comparison.md
+    // (TC-GEO is a separately licensed/gated feature on most brands) and
+    // Documentation/TCGEO_Field_Test_Log.md. Meaningless before IsConnected()
+    // returns true; returns false (not "unknown") until then.
+    inline bool SupportsTcGeoWithPosition() const {
+        return tcClient && tcClient->get_connected_tc_option_supported(
+            isobus::TaskControllerClient::ServerOptions::SupportsTCGEOWithPositionBasedControl);
+    }
+    inline bool SupportsTcGeoWithoutPosition() const {
+        return tcClient && tcClient->get_connected_tc_option_supported(
+            isobus::TaskControllerClient::ServerOptions::SupportsTCGEOWithoutPositionBasedControl);
+    }
+
 private:
     // --- TC callbacks (static, AgIsoStack uses raw function pointers) ---
     // Value types are int32_t, matching the AgIsoStack-Arduino version

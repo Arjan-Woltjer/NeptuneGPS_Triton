@@ -227,6 +227,14 @@ void IsobusDebugMenu::printFullDump() {
     } else {
         serialDebug->print("  Connected:    ");
         serialDebug->println(tcInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("  TC-GEO (with/without pos): ");
+        if (tcInterface->IsConnected()) {
+            serialDebug->print(tcInterface->SupportsTcGeoWithPosition() ? "Y" : "N");
+            serialDebug->print("/");
+            serialDebug->println(tcInterface->SupportsTcGeoWithoutPosition() ? "Y" : "N");
+        } else {
+            serialDebug->println("(not connected)");
+        }
         serialDebug->print("  Task active:  ");
         // Advisory only -- see IsobusTcInterface::IsTaskActive()'s comment.
         serialDebug->println(tcInterface->IsTaskActive() ? "Y" : "N");
