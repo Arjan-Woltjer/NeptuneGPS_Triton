@@ -185,6 +185,53 @@ static void appendNumberVariable(uint16_t id, uint32_t initValue) {
     pu32(initValue);
 }
 
+// Type 20: PictureGraphic (bitmap) -- used for the WorkingSet's app-switcher
+// icon. Byte layout confirmed 2026-08-10 by decoding AgIsoStack's own
+// reference pool's "avatar" icon object by hand (id, type=20, width(2),
+// actualWidth(2), actualHeight(2), format(1), options(1), transparency
+// colour(1), numBytesRawData(4), numMacros(1), then raw pixel data) against
+// their real parser (isobus_virtual_terminal_working_set_base.cpp's
+// PictureGraphic case) -- not guessed. Monochrome only (1 bpp, 8 pixels/byte,
+// MSB = leftmost pixel of each byte, each row starts a fresh byte) since
+// that's all this icon needs and it keeps the pool small.
+static void appendPictureGraphic(uint16_t id, uint16_t width, uint16_t height,
+                                  const uint8_t* rawData, uint32_t rawDataLen) {
+    pu16(id); pu8(20);
+    pu16(width);         // design width
+    pu16(width);         // actual width (no scaling)
+    pu16(height);        // actual height
+    pu8(0);              // format: Monochrome
+    pu8(0);              // options: opaque, not flashing, not RLE
+    pu8(0);              // transparency colour (unused, opaque)
+    pu32(rawDataLen);
+    pu8(0);              // 0 macros
+    for (uint32_t i = 0; i < rawDataLen; i++) pu8(rawData[i]);
+}
+
+// 16x16 monochrome plough pictogram -- a narrowing hitch/frame down to a
+// triangular share resting on a full-width ground line. 1 bit/pixel, 2
+// bytes/row (width=16 is byte-aligned, no row padding needed), row-major,
+// MSB-first. Authored by hand row-by-row, not sourced from an image file --
+// see the GitHub issue this closes for the design intent.
+static const uint8_t kIconPloughData[32] = {
+    0x00, 0x00,  // row 0
+    0x1F, 0xF0,  // row 1  -- hitch top bar
+    0x10, 0x10,  // row 2  -- hitch sides
+    0x10, 0x10,  // row 3
+    0x10, 0x10,  // row 4
+    0x08, 0x20,  // row 5  -- narrowing
+    0x04, 0x40,  // row 6
+    0x02, 0x80,  // row 7
+    0x01, 0x00,  // row 8  -- point
+    0x03, 0x80,  // row 9  -- share top
+    0x07, 0xC0,  // row 10 -- share widening
+    0x0F, 0xE0,  // row 11 -- share widest
+    0xFF, 0xFF,  // row 12 -- ground line
+    0x00, 0x00,  // row 13
+    0x00, 0x00,  // row 14
+    0x00, 0x00,  // row 15
+};
+
 // Type 23: FontAttributes
 static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
     pu16(id); pu8(23);
@@ -280,34 +327,43 @@ void BuildObjectPool() {
     // appendWorkingSet()'s own comment for the confirmed 2026-08-10 bug this
     // guards against. Every variant below keeps the 1-child fix; only the
     // field named in each variant differs from production.
+    //
+    // The WorkingSet's child is Icon_Plough (a PictureGraphic), not a random
+    // filler object -- added 2026-08-10 after decoding AgIsoStack's own
+    // reference pool's WorkingSet by hand and finding its 1 child is
+    // specifically its "avatar" icon (id 20000, at x=0, y=-4). Matching that
+    // exact pattern rather than inventing our own placement, since it's
+    // confirmed working on real hardware. See GitHub issue #14.
 #if VT_WORKINGSET_BISECT_VARIANT == 1
     appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/false,
                       /*numLanguages=*/1, /*numChildren=*/1);
-    appendObjRef(Label_Position, 0, 0);
+    appendObjRef(Icon_Plough, 0, -4);
     appendLanguageCode("nl");
 #elif VT_WORKINGSET_BISECT_VARIANT == 2
     appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
                       /*numLanguages=*/0, /*numChildren=*/1);
-    appendObjRef(Label_Position, 0, 0);
+    appendObjRef(Icon_Plough, 0, -4);
     // 0 languages declared -- no appendLanguageCode() call, deliberately.
 #elif VT_WORKINGSET_BISECT_VARIANT == 3
     appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
                       /*numLanguages=*/1, /*numChildren=*/1);
-    appendObjRef(Label_Position, 0, 0);
+    appendObjRef(Icon_Plough, 0, -4);
     appendLanguageCode("en");
 #elif VT_WORKINGSET_BISECT_VARIANT == 4
     appendWorkingSet(Plough_WorkingSet, /*bgColour=*/1, Plough_DataMask, /*selectable=*/true,
                       /*numLanguages=*/1, /*numChildren=*/1);
-    appendObjRef(Label_Position, 0, 0);
+    appendObjRef(Icon_Plough, 0, -4);
     appendLanguageCode("nl");
 #else
     // Production. See this block's own comment above for how the 1-child
     // reference here went from "untested" to "the confirmed fix."
     appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
                       /*numLanguages=*/1, /*numChildren=*/1);
-    appendObjRef(Label_Position, 0, 0);
+    appendObjRef(Icon_Plough, 0, -4);
     appendLanguageCode("nl");
 #endif
+
+    appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
     appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 8);
     appendObjRef(Label_Position, LBL_X, ROW_Y[0]);

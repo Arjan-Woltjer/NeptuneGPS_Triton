@@ -93,7 +93,11 @@ void IsobusVtInterface::Begin() {
     // this fixes) -- same discipline as the TC DDOP's TC01->TC02 bump in
     // Session 3, so no terminal that cached a pool under "MW01" confuses it
     // with this one.
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW02");
+    // Bumped MW02 -> MW03, 2026-08-10 (desktop, same day): WorkingSet's
+    // child changed from a placeholder OutputString to a real PictureGraphic
+    // icon (Icon_Plough) -- see VTObjectPool.cpp's appendPictureGraphic()
+    // call site and GitHub issue #14.
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW03");
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
