@@ -37,6 +37,21 @@
 #include "../../../../.pio/libdeps/teensy41_isobus/AgIsoStack/examples/VirtualTerminal/ObjectPool.cpp"
 #endif
 
+// Designed-pool test -- swaps in a pool authored/edited in AgIsoTerminalDesigner
+// (https://open-agriculture.github.io/AgIsoTerminalDesigner/) instead of the
+// hand-authored append() pool below, for on-hardware testing of a visually-
+// designed layout without touching production code. Generated header comes
+// from tools/vt_pool/iop_to_header.py converting a .iop file the designer
+// exported; see tools/vt_pool/ for the round-trip (export_pool_msvc.ps1 goes
+// the other way, dumping the current production pool as .iop so it can be
+// opened in the designer for inspection/editing in the first place). Same
+// on/off convention as VT_POOL_USE_AGISOSTACK_REFERENCE above -- REVERT to 0
+// after testing. Generated header is gitignored, not committed.
+#define VT_POOL_USE_DESIGNED_POOL 0
+#if VT_POOL_USE_DESIGNED_POOL
+#include "../../../../tools/vt_pool/generated/VTObjectPool_Designed.hpp"
+#endif
+
 namespace triton
 {
 
@@ -298,6 +313,12 @@ void BuildObjectPool() {
     // rejected identically, the cause is provably not in anything we authored.
     VT3PoolData = VT3TestPool;
     VT3PoolSize = sizeof(VT3TestPool);
+    return;
+#endif
+
+#if VT_POOL_USE_DESIGNED_POOL
+    VT3PoolData = kDesignedPool;
+    VT3PoolSize = kDesignedPoolSize;
     return;
 #endif
 
