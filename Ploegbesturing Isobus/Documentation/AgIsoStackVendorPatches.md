@@ -140,15 +140,26 @@ what it does). Worth proposing upstream to `Open-Agriculture/AgIsoStack-Arduino`
 (and/or the base `AgIsoStack-plus-plus` repo, since this handler is shared
 code) so this project stops needing to carry them at all:
 
-- [ ] `VirtualTerminalClient::get_state()` -- straightforward, mirrors the
-      existing `TaskControllerClient::get_state()` precedent almost exactly.
-      Lowest-effort PR of the three.
-- [ ] End of Object Pool error-bit decoding -- pure logging addition, ISO
-      11783-6 §C.2.5's bit layout is public standard text, not proprietary.
-      Worth checking whether upstream would rather have this as named
-      constants/an enum (mirroring `TaskControllerClient::ServerOptions`'s
-      existing style) than inline bit literals before submitting.
+- [x] `VirtualTerminalClient::get_state()` -- opened as a draft PR
+      2026-08-11: https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/14
+      (branch `add-vt-client-get-state` on the `Arjan-Woltjer/AgIsoStack-Arduino`
+      fork). Build-verified against this project's real teensy41_isobus env
+      before submitting (a real consumer, `IsobusVtInterface.cpp`, calls the
+      new accessor).
+- [x] End of Object Pool error-bit decoding -- opened as a draft PR
+      2026-08-11: https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/15
+      (branch `decode-eop-error-bits`, same fork). PR body asks maintainers
+      whether they'd prefer named constants/an enum over inline bit literals
+      before merging -- open question, not yet answered.
 - [ ] Reconsider the `CANNetworkManager` singleton-vs-eager-global question
       upstream, if the hang symptom is ever reproduced cleanly enough to
       write up as a bug report (a Teensy-specific global-static-init timing
       issue, not obviously reproducible off-target).
+
+**Once either PR merges upstream:** bump `platformio.ini`'s
+`lib_deps` past whatever release/commit includes it, then remove the
+corresponding "Active patches" entry above (and, if PR #14 merges, drop the
+`.pio/libdeps/` hand-patch entirely rather than reapplying it after the next
+`pio pkg update`/clean rebuild). Until then, both PRs are drafts on
+`Arjan-Woltjer/AgIsoStack-Arduino` -- mark them "ready for review" on GitHub
+when satisfied with the wording.
