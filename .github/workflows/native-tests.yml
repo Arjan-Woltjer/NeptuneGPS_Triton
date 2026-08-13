@@ -51,8 +51,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
 
+      # Scoped to exactly this one URL, not "https://github.com/" generally -- a blanket
+      # rewrite would also redirect the main repo's own checkout below onto this deploy
+      # key, which has no access to it and fails with "Repository not found."
       - name: Use SSH for the SteeringActuator submodule
-        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+        run: git config --global url."git@github.com:Arjan-Woltjer/SteeringActuator.git".insteadOf "https://github.com/Arjan-Woltjer/SteeringActuator.git"
 
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -112,8 +115,11 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
 
+      # Scoped to exactly this one URL, not "https://github.com/" generally -- a blanket
+      # rewrite would also redirect the main repo's own checkout below onto this deploy
+      # key, which has no access to it and fails with "Repository not found."
       - name: Use SSH for the SteeringActuator submodule
-        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+        run: git config --global url."git@github.com:Arjan-Woltjer/SteeringActuator.git".insteadOf "https://github.com/Arjan-Woltjer/SteeringActuator.git"
 
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
