@@ -40,8 +40,23 @@ jobs:
           - 'Loofdoes Spuitcomputer'
           - 'Ploegbesturing'
           - 'Ploegbesturing Isobus'
+          - 'Motorcontroller'
     steps:
+      # Motorcontroller/lib/SteeringActuator is a submodule of the private
+      # Arjan-Woltjer/SteeringActuator repo -- the default GITHUB_TOKEN below only has
+      # access to this repo, not that one, so submodule fetch needs its own read-only
+      # deploy key over SSH instead. A no-op for every other project in this matrix (none
+      # of them have submodules), so it's set up once here rather than per-project.
+      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
+
+      - name: Use SSH for the SteeringActuator submodule
+        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: true
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
@@ -87,8 +102,22 @@ jobs:
             env: teensy41_serial
           - project: 'OTA Framework'
             env: triton_io
+          - project: 'Motorcontroller'
+            env: seeed_xiao
     steps:
+      # See the native-tests job above for why this is needed: Motorcontroller/lib/
+      # SteeringActuator is a submodule of a private repo the default GITHUB_TOKEN can't
+      # reach. No-op for every other project/env pair in this matrix.
+      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
+
+      - name: Use SSH for the SteeringActuator submodule
+        run: git config --global url."git@github.com:".insteadOf "https://github.com/"
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          submodules: true
 
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
