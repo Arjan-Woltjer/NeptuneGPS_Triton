@@ -19,21 +19,21 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#include "CalibrationPlough.hpp"
-#include "GuidanceSource.hpp"
-#include "ImplementPlough.hpp"
+#include "calibration/CalibrationPlough.hpp"
+#include "guidance/GuidanceSource.hpp"
+#include "implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
-#include "LanguagePlough.hpp"
+#include "config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 
 #ifdef ISOBUS
-#include "IsobusDebugMenu.hpp"
-#include "IsobusGuidanceChannel.hpp"
-#include "IsobusVtInterface.hpp"
-#include "IsobusTcInterface.hpp"
+#include "isobus/IsobusDebugMenu.hpp"
+#include "isobus/IsobusGuidanceChannel.hpp"
+#include "isobus/IsobusVtInterface.hpp"
+#include "isobus/IsobusTcInterface.hpp"
 #else
-#include "SerialGuidanceChannel.hpp"
+#include "serial/SerialGuidanceChannel.hpp"
 #endif
 
 // Serial ports

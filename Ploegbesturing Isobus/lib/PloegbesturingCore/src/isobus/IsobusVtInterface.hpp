@@ -29,8 +29,8 @@
 #include <Arduino.h>
 #include <AgIsoStack.hpp>
 
-#include "ImplementPlough.hpp"
-#include "GuidanceSource.hpp"
+#include "../implement/ImplementPlough.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
 namespace triton
 {

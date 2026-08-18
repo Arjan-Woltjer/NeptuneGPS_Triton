@@ -32,7 +32,7 @@
 #include "IsobusGuidanceChannel.hpp"
 #include "IsobusTcInterface.hpp"
 #include "IsobusVtInterface.hpp"
-#include "GuidanceSource.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
 namespace triton
 {

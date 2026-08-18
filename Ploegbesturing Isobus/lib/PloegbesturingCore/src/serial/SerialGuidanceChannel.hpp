@@ -23,7 +23,7 @@
 
 #include "CanSerialParser.hpp"
 #include "GpsParser.hpp"
-#include "GuidanceSource.hpp"
+#include "../guidance/GuidanceSource.hpp"
 #include "NmeaParser.hpp"
 #include "TrimbleParser.hpp"
 

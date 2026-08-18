@@ -30,7 +30,7 @@ using namespace triton;
 // constructs fresh instances after resetAll() re-erases the fake EEPROM,
 // rather than sharing one static instance across tests.
 // ---------------------------------------------------------------------------
-static GuidanceSource       mockGuidance;
+static GuidanceSource       mockGuidance(nullptr);
 static VehicleTractor   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
@@ -38,12 +38,15 @@ static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
 
-    mockGuidance.xte = 0;
-    mockGuidance.lastXteFix = 0;
-    mockGuidance.ggaFixAge = 0;
-    mockGuidance.vtgFixAge = 0;
-    mockGuidance.rtkQuality = true;
-    mockGuidance.minSpeed = true;
+    // Fresh gga/vtg/xte fixes (all timestamped at millis()=0, matching "now"),
+    // rtk-equivalent quality (SetQuality(4) matches GuidanceSource's own
+    // default rtkQuality=4, so IsRtkQuality() reads true), and fast enough for
+    // MinSpeed() -- everything Update()'s AUTO-eligibility check needs to pass
+    // by default. Individual tests below make exactly one of these stale/bad.
+    mockGuidance.SetXte(0);
+    mockGuidance.NoteGgaFixReceived();
+    mockGuidance.SetSpeedKnots(10.0f);
+    mockGuidance.SetQuality(4);
     mockTractor.hitch = false;
 
     digitalReadValue(LEFT_BUTTON_2, false);
@@ -163,10 +166,11 @@ test(InterfacePlough, update_staleGgaFix_selectsHold) {
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
+    // gga fix received at t=0 (resetAll's NoteGgaFixReceived()), never refreshed
+    // -> stale once millis() reaches 2001. vtg/xte refreshed here to stay fresh.
     millisValue(2001);
-    mockGuidance.ggaFixAge = 0;     // 2001 - 0 = 2001 > 2000 -> stale
-    mockGuidance.vtgFixAge = 2001;  // fresh
-    mockGuidance.lastXteFix = 2001;  // fresh
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh); keeps MinSpeed() true
+    mockGuidance.SetXte(0);             // lastXteFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
@@ -176,10 +180,11 @@ test(InterfacePlough, update_staleVtgFix_selectsHold) {
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
+    // vtg fix (SetSpeedKnots) from resetAll() at t=0 is never refreshed here
+    // -> stale once millis() reaches 2001. gga/xte refreshed to stay fresh.
     millisValue(2001);
-    mockGuidance.ggaFixAge = 2001;  // fresh
-    mockGuidance.vtgFixAge = 0;     // stale
-    mockGuidance.lastXteFix = 2001;  // fresh
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    mockGuidance.SetXte(0);             // lastXteFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
@@ -189,10 +194,11 @@ test(InterfacePlough, update_staleXteFix_selectsHold) {
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
+    // xte fix (SetXte) from resetAll() at t=0 is never refreshed here -> stale
+    // once millis() reaches 2001. gga/vtg refreshed to stay fresh.
     millisValue(2001);
-    mockGuidance.ggaFixAge = 2001;  // fresh
-    mockGuidance.vtgFixAge = 2001;  // fresh
-    mockGuidance.lastXteFix = 0;     // stale
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh); keeps MinSpeed() true
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
@@ -202,7 +208,7 @@ test(InterfacePlough, update_notRtkQuality_selectsHold) {
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    mockGuidance.rtkQuality = false;
+    mockGuidance.SetQuality(0);  // 0 != rtkQuality(4) -> IsRtkQuality() false
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
@@ -212,7 +218,7 @@ test(InterfacePlough, update_belowMinSpeed_selectsHold) {
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    mockGuidance.minSpeed = false;
+    mockGuidance.SetSpeedKnots(0.0f);  // GetSpeedMs()=0 < MINSPEED(0.5) -> MinSpeed() false
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }

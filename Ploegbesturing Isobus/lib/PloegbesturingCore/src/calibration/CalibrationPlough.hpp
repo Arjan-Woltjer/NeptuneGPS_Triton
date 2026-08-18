@@ -23,11 +23,11 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ImplementPlough.hpp"
+#include "../implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfacePlough.hpp"
-#include "GuidanceSource.hpp"
-#include "LanguagePlough.hpp"
+#include "../InterfacePlough.hpp"
+#include "../guidance/GuidanceSource.hpp"
+#include "../config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton

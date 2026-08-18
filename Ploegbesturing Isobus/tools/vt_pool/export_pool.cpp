@@ -9,7 +9,7 @@
 // (confirmed by reading them), only <Arduino.h> for integer typedefs and the
 // ARDUINO compile-time guard -- so this links clean with nothing but the
 // stub and this file.
-#include "VTObjectPool.hpp"
+#include "../../lib/PloegbesturingCore/src/isobus/VTObjectPool.hpp"
 
 #include <cstdio>
 

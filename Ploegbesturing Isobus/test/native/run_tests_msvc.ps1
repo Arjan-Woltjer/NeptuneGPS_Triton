@@ -8,6 +8,9 @@ $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PloegbesturingCore\src"
 $serial  = "$root\lib\PloegbesturingCore\src\serial"
+$config  = "$root\lib\PloegbesturingCore\src\config"
+$implement = "$root\lib\PloegbesturingCore\src\implement"
+$isobus  = "$root\lib\PloegbesturingCore\src\isobus"
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PloegbesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -48,7 +51,12 @@ $aunitSources = @(
 # GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
 # (default) preprocessor expands wrong (see Salacia's/Loofdoes' platformio.ini/
 # test README for the same issue, hit there first).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$serial`""
+# The only PloegbesturingCore -I needed is $lib itself -- every cross-file
+# include inside the library is a relative path (matching Salacia's
+# SalaciaFirmwareCore convention), and $lib is only for the test_*.cpp files
+# below reaching in via library-root-relative paths ("implement/
+# ImplementPlough.hpp" etc.).
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches
@@ -59,7 +67,7 @@ Write-Host "=== Building PloegbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$serial\NmeaParser.cpp`" `"$serial\TrimbleParser.cpp`" `"$serial\CanSerialParser.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$serial\NmeaParser.cpp`" `"$serial\TrimbleParser.cpp`" `"$serial\CanSerialParser.cpp`" `"$isobus\IsobusPgnDecode.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

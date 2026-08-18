@@ -19,7 +19,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "ImplementPlough.hpp"
+#include "implement/ImplementPlough.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -35,13 +35,12 @@ using namespace triton;
 // positionCalibrationPoints={34,42,50}, offset=160, shares=4, error=2,
 // maxCorrection=50, kp=100 -- see ImplementPlough.cpp's constructor).
 // ---------------------------------------------------------------------------
-static GuidanceSource mockGuidance;
+static GuidanceSource mockGuidance(nullptr);
 
 static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
-    mockGuidance.xte = 0;
-    mockGuidance.lastXteFix = 0;
+    mockGuidance.SetXte(0);  // xte=0, lastXteFix=millis()=0
     digitalReadValue(PLOUGHSIDE_PIN_2, false);
 }
 
@@ -255,8 +254,8 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
 test(ImplementPlough, setSetpoint_withinMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
-    mockGuidance.xte = 30;
-    mockGuidance.lastXteFix = 1;  // > impl's internal lastXteFix(0) -> triggers recompute
+    millisValue(1);  // > impl's internal lastXteFix(0) -> SetXte's timestamp triggers recompute
+    mockGuidance.SetXte(30);
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 30));
 }
@@ -264,8 +263,8 @@ test(ImplementPlough, setSetpoint_withinMaxCorrection) {
 test(ImplementPlough, setSetpoint_clampsAboveMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
-    mockGuidance.xte = 100;  // pe=100 > maxCorrection(50) -> clamped to 50
-    mockGuidance.lastXteFix = 1;
+    millisValue(1);
+    mockGuidance.SetXte(100);  // pe=100 > maxCorrection(50) -> clamped to 50
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 50));
 }
@@ -273,8 +272,8 @@ test(ImplementPlough, setSetpoint_clampsAboveMaxCorrection) {
 test(ImplementPlough, setSetpoint_clampsBelowNegativeMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
-    mockGuidance.xte = -100;  // pe=-100 <= -maxCorrection(-50) -> clamped to -50
-    mockGuidance.lastXteFix = 1;
+    millisValue(1);
+    mockGuidance.SetXte(-100);  // pe=-100 <= -maxCorrection(-50) -> clamped to -50
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - (-50)));
 }

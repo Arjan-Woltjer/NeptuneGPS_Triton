@@ -12,6 +12,10 @@ $root   = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $stubs  = "$root\test\native\support"
 $isobus = "$root\lib\PloegbesturingCore\src\isobus"
 $src    = "$PSScriptRoot\export_pool.cpp"
+# export_pool.cpp includes VTObjectPool.hpp via a relative path now (matches
+# the rest of the project's no-search-path convention), so $isobus is only
+# needed below to name VTObjectPool.cpp's own location for the compile line,
+# not as an /I flag.
 $out    = "$env:TEMP\vt_pool_export"
 
 $outIop = if ($args.Count -gt 0) { $args[0] } else { "$root\tools\vt_pool\generated\plough_pool.iop" }
@@ -37,7 +41,7 @@ if (-not $vcvars) {
 # #ifdef ARDUINO. Real Arduino/PlatformIO builds get this from the
 # framework; the native stub deliberately doesn't define it (see
 # test/native/support/Arduino.h's own comment), so it must be passed here.
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DARDUINO=1 /I`"$stubs`" /I`"$isobus`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DARDUINO=1 /I`"$stubs`""
 
 Write-Host ""
 Write-Host "=== Building export_pool ===" -ForegroundColor Cyan

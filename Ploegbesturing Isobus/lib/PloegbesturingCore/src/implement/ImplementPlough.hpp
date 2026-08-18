@@ -21,9 +21,9 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "GuidanceSource.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
-#include "ConfigImplementPlough.hpp"
+#include "../config/ConfigImplementPlough.hpp"
 
 namespace triton
 {

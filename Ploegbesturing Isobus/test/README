@@ -5,16 +5,18 @@ natively (no Teensy attached):
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test, or a
   descriptive group name for a related set (`test_GpsParsers.cpp` covers
-  `NmeaParser`/`TrimbleParser`/`CanSerialParser`).
+  `NmeaParser`/`TrimbleParser`/`CanSerialParser`). `test_IsobusPgnDecode.cpp`
+  covers `IsobusPgnDecode` -- the byte-level PGN decode pulled out of
+  `IsobusGuidanceChannel` (see "Known gaps" below).
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
-  `native_main.cpp` (the host `int main()` entry point). `GuidanceSource.hpp`
-  here is a fake with the same API shape as the real class in
-  `lib/PloegbesturingCore/src/guidance/` -- both `ImplementPlough`/
-  `InterfacePlough` tests (which poke raw fields directly) and
-  `test_GpsParsers.cpp` (which calls real `Set*()`/`Get*()` methods) resolve
-  to this same fake, since `[env:native]`'s `-I test/native/support` is
-  searched before the real header's directory.
+  `native_main.cpp` (the host `int main()` entry point). These stand in only
+  for *external* headers (the Arduino framework, MeijWorks Libs' `VehicleTractor`/
+  `InterfaceI2CLCD`) -- `GuidanceSource` is not one of them: every test uses the
+  real class from `lib/PloegbesturingCore/src/guidance/GuidanceSource.hpp`
+  directly (`GuidanceSource mockGuidance(nullptr);`, real `Set*()`/`Get*()`
+  calls), same as `teensy41_isobus`/`teensy41_serial` do. No native fake exists
+  for it.
 - `native/PloegbesturingNativeTests.cpp` -- the single AUnit driver (`setup()`/
   `loop()`), matching Salacia's/Loofdoes' `SalaciaNativeTests.cpp`/
   `LoofdoesNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
@@ -72,9 +74,15 @@ built directly), mirroring Salacia's own base-env + variant pattern.
   native coverage by design -- the real logic worth testing (PGN byte-decode
   math, sentence parsing) lives in the natively-tested classes each of them
   calls into (`GuidanceSource`, `NmeaParser`/`TrimbleParser`/
-  `CanSerialParser`). `IsobusDebugMenu` only reads `IsobusGuidanceChannel`'s
-  message counters and `GuidanceSource`'s existing getters -- it has no
-  decode/parsing logic of its own.
+  `CanSerialParser`, and -- as of `IsobusPgnDecode` -- `IsobusGuidanceChannel`'s
+  own PGN decode too). `IsobusGuidanceChannel`'s `On*()` callbacks now only
+  extract `data`/`length`/source-address from a real `isobus::CANMessage` and
+  apply an `IsobusPgnDecode::Decode*()` result -- the CAN/AgIsoStack plumbing
+  around that (address claim, PGN request/retry, callback registration)
+  remains untested by design, same reasoning as `SerialGuidanceChannel`.
+  `IsobusDebugMenu` only reads `IsobusGuidanceChannel`'s message counters and
+  `GuidanceSource`'s existing getters -- it has no decode/parsing logic of
+  its own.
 - `teensy41_isobus`: the JD/Trimble/CNH legacy proprietary-PGN decode and the
   standard NMEA2000 PGN decode both build and link against the real AgIsoStack
   package, but haven't been verified against real CAN traffic on target
