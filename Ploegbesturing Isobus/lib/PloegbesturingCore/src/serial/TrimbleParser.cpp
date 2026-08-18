@@ -23,14 +23,14 @@
 namespace triton
 {
 
-bool TrimbleParser::claimsSentenceType(const char* h) {
-    if (strcmp(h, "ROXTE") != 0) return false;
+bool TrimbleParser::claimsSentenceType(const char* header) {
+    if (strcmp(header, "ROXTE") != 0) return false;
     newXte = 0;
     return true;
 }
 
-void TrimbleParser::parseTerm(byte n, const char* t) {
-    if (n == 1) newXte = (int)(atof(t) * 100);
+void TrimbleParser::parseTerm(byte termNumber, const char* term) {
+    if (termNumber == 1) newXte = (int)(atof(term) * 100);
 }
 
 void TrimbleParser::commitTo(GuidanceSource* state) {

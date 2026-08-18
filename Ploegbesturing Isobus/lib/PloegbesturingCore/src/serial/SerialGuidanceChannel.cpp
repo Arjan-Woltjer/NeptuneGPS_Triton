@@ -109,7 +109,7 @@ bool SerialGuidanceChannel::Update() {
                         dispatchTerm();
                         // Commit: TrimbleParser uses parity directly as checksum
                         if (activeParse && activeParse->useParityAsChecksum()) {
-                            activeParse->commitTo(guidance);
+                            activeParse->commitTo(guidance); // already committed in dispatchTerm(), why does this call again?
                             validSentence = true;
                         }
                     }
@@ -133,12 +133,13 @@ bool SerialGuidanceChannel::Update() {
 // Returns true when a valid sentence was just committed to state.
 bool SerialGuidanceChannel::dispatchTerm() {
     if (isChecksumTerm) {
-        if (!activeParse) return false;
+        if (!activeParse) {
+            return false;
+        }
+
         // TrimbleParser: outer packet already verified, so parity == parity always
-        byte computed = activeParse->useParityAsChecksum()
-                        ? parity
-                        : (GpsParser::hexToInt(term[0]) << 4) + GpsParser::hexToInt(term[1]);
-        if (computed == parity) {
+        if (activeParse->useParityAsChecksum() ||
+           (GpsParser::hexToInt(term[0]) << 4) + GpsParser::hexToInt(term[1]) == parity) {
             activeParse->commitTo(guidance);
             return true;
         }

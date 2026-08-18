@@ -23,14 +23,14 @@
 namespace triton
 {
 
-bool CanSerialParser::claimsSentenceType(const char* h) {
-    if (strcmp(h, "0CFEF31C") == 0 || strcmp(h, "18FEF31C") == 0 || strcmp(h, "1DF8051C") == 0) {
+bool CanSerialParser::claimsSentenceType(const char* header) {
+    if (strcmp(header, "0CFEF31C") == 0 || strcmp(header, "18FEF31C") == 0 || strcmp(header, "1DF8051C") == 0) {
         type = CAN_POS;
-    } else if (strcmp(h, "0CFEE81C") == 0 || strcmp(h, "18FEE81C") == 0 || strcmp(h, "1DF8021C") == 0) {
+    } else if (strcmp(header, "0CFEE81C") == 0 || strcmp(header, "18FEE81C") == 0 || strcmp(header, "1DF8021C") == 0) {
         type = CAN_SPD;
-    } else if (strcmp(h, "0CFFFF2A") == 0 || strcmp(h, "1DF9031C") == 0) {
+    } else if (strcmp(header, "0CFFFF2A") == 0 || strcmp(header, "1DF9031C") == 0) {
         type = CAN_XTE;
-    } else if (strcmp(h, "1CEBACAA") == 0) {
+    } else if (strcmp(header, "1CEBACAA") == 0) {
         type = CAN_XTE2;
     } else {
         return false;
@@ -41,58 +41,58 @@ bool CanSerialParser::claimsSentenceType(const char* h) {
     return true;
 }
 
-void CanSerialParser::parseTerm(byte n, const char* t) {
-    if (n != 1) return;
+void CanSerialParser::parseTerm(byte termNumber, const char* term) {
+    if (termNumber != 1) return;
 
     unsigned long val = 0;
 
     switch (type) {
         case CAN_POS:
             for (int i = 7; i >= 0; i -= 2)
-                val = (val << 8) + (hexToInt(t[i - 1]) << 4) + hexToInt(t[i]);
+                val = (val << 8) + (hexToInt(term[i - 1]) << 4) + hexToInt(term[i]);
             newLat = float(long(val - 2100000000)) / 10000000;
 
             val = 0;
             for (int i = 15; i >= 8; i -= 2)
-                val = (val << 8) + (hexToInt(t[i - 1]) << 4) + hexToInt(t[i]);
+                val = (val << 8) + (hexToInt(term[i - 1]) << 4) + hexToInt(term[i]);
             newLon = float(long(val - 2100000000)) / 10000000;
             break;
 
         case CAN_SPD:
-            val = ((unsigned long)hexToInt(t[2]) << 12) | ((unsigned long)hexToInt(t[3]) << 8)
-                | ((unsigned long)hexToInt(t[0]) << 4) | hexToInt(t[1]);
+            val = ((unsigned long)hexToInt(term[2]) << 12) | ((unsigned long)hexToInt(term[3]) << 8)
+                | ((unsigned long)hexToInt(term[0]) << 4) | hexToInt(term[1]);
             newCourse = float(val) / 128;
 
-            val = ((unsigned long)hexToInt(t[6]) << 12) | ((unsigned long)hexToInt(t[7]) << 8)
-                | ((unsigned long)hexToInt(t[4]) << 4) | hexToInt(t[5]);
+            val = ((unsigned long)hexToInt(term[6]) << 12) | ((unsigned long)hexToInt(term[7]) << 8)
+                | ((unsigned long)hexToInt(term[4]) << 4) | hexToInt(term[5]);
             newSpeed = float(val) / 256;
 
-            val = ((unsigned long)hexToInt(t[14]) << 12) | ((unsigned long)hexToInt(t[15]) << 8)
-                | ((unsigned long)hexToInt(t[12]) << 4) | hexToInt(t[13]);
+            val = ((unsigned long)hexToInt(term[14]) << 12) | ((unsigned long)hexToInt(term[15]) << 8)
+                | ((unsigned long)hexToInt(term[12]) << 4) | hexToInt(term[13]);
             newAlt = float(val) / 8 - 2500;
             break;
 
         case CAN_XTE: {
-            val = ((unsigned long)hexToInt(t[8]) << 12) | ((unsigned long)hexToInt(t[9]) << 8)
-                | ((unsigned long)hexToInt(t[6]) << 4) | hexToInt(t[7]);
+            val = ((unsigned long)hexToInt(term[8]) << 12) | ((unsigned long)hexToInt(term[9]) << 8)
+                | ((unsigned long)hexToInt(term[6]) << 4) | hexToInt(term[7]);
             newXte = int(val - 32000) >> 1;
-            newQuality = (t[2] == '1') ? 4 : 0;
+            newQuality = (term[2] == '1') ? 4 : 0;
             break;
         }
 
         case CAN_XTE2: {
-            int temp = (hexToInt(t[0]) << 4) + hexToInt(t[1]);
-            int temp2 = (hexToInt(t[10]) << 4) + hexToInt(t[11]);
+            int temp = (hexToInt(term[0]) << 4) + hexToInt(term[1]);
+            int temp2 = (hexToInt(term[10]) << 4) + hexToInt(term[11]);
             if (temp == 2 && temp2 == 7) {
                 union { unsigned long a; float b; } tofloat;
-                tofloat.a = ((unsigned long)hexToInt(t[2]) << 28)
-                          | ((unsigned long)hexToInt(t[3]) << 24)
-                          | ((unsigned long)hexToInt(t[4]) << 20)
-                          | ((unsigned long)hexToInt(t[5]) << 16)
-                          | ((unsigned long)hexToInt(t[6]) << 12)
-                          | ((unsigned long)hexToInt(t[7]) << 8)
-                          | ((unsigned long)hexToInt(t[8]) << 4)
-                          | hexToInt(t[9]);
+                tofloat.a = ((unsigned long)hexToInt(term[2]) << 28)
+                          | ((unsigned long)hexToInt(term[3]) << 24)
+                          | ((unsigned long)hexToInt(term[4]) << 20)
+                          | ((unsigned long)hexToInt(term[5]) << 16)
+                          | ((unsigned long)hexToInt(term[6]) << 12)
+                          | ((unsigned long)hexToInt(term[7]) << 8)
+                          | ((unsigned long)hexToInt(term[8]) << 4)
+                          | hexToInt(term[9]);
                 newXte = (int)(tofloat.b * 100);
             }
             newQuality = 4;  // TODO: parse actual quality flag
