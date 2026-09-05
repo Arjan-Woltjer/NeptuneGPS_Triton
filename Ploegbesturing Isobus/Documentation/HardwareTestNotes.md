@@ -469,6 +469,53 @@ outbound traffic).
 listener backing them), `IsobusDebugMenu.cpp` (surfaces the new counter in
 both the full dump and the periodic line).
 
+## Follow-up (off-tractor) -- 2026-09-05: #17 root-caused, not a terminal quirk
+
+Chasing "leading theory is a terminal-side quirk" further by reading the
+vendored AgIsoStack source directly (rather than waiting for another
+hardware session) found the real cause, and it isn't the InCommand 1200 at
+all -- **it almost certainly never stopped broadcasting its VT status
+message.** The frames are silently dropped in our own stack after our VT
+partner control function is wrongly evicted from AgIsoStack's own
+control-function table, a known, still-open upstream bug:
+[Open-Agriculture/AgIsoStack-plus-plus#584](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/issues/584)
+(filed 2025-06-03, independently reproduced against current `main` as
+recently as 2026-07-09).
+
+Full chain, and why it explains #18 (no auto-reconnect) too, is written up
+in `Documentation/AgIsoStackVendorPatches.md` (patch #3) rather than
+duplicated here. Short version: `IsobusVtInterface::Begin()` binds our VT
+partner via AgIsoStack's "adopt an already-active control function" path,
+because the InCommand 1200 -- the tractor's own screen -- is already on the
+bus and already address-claimed before Ploegbesturing powers up. That path
+never marks the adopted partner as "recently claimed," so the first PGN
+60928 (Address Claim) request seen anywhere on the bus afterward -- a normal
+reflex for another node noticing a newly-joined implement -- makes AgIsoStack
+evict our partner 755ms later even though the real device was never invalid.
+Once evicted, every subsequent VT status frame from the real, still-
+broadcasting InCommand 1200 gets silently dropped before reaching *any*
+listener, including the independent `vtstat` counter added earlier this
+session -- which is exactly why it froze in lockstep with AgIsoStack's own
+tracking. That agreement looked like corroboration that the terminal itself
+had gone quiet; both listeners actually shared the same broken lookup.
+
+This also reframes why Session 4 (single VT, CNH) only saw an intermittent
+version of a similar drop while Session 5 (InCommand 1200 **plus** the
+tractor's own built-in VT live simultaneously) hit it 100% of the time --
+more real ECUs on the bus makes a PGN 60928 request in the first few seconds
+after joining far more likely.
+
+**Fixed** (not yet field-verified): vendor patch propagating the missing
+liveness flag, plus bumping `IsobusVtInterface::Begin()`'s log level
+Warning -> Info so a future capture would show AgIsoStack's own `[NM]`
+control-function lifecycle lines directly instead of needing this level of
+source-diving again. Filed upstream:
+[AgIsoStack-Arduino#16](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/16).
+Posted the full analysis to GitHub issues #17 and #18, tying them together
+as one root cause. **Next hardware session's job:** confirm the InCommand
+1200 stays connected past the old ~2-3s cutoff, and cross-check any `[NM]`
+lines the Info log level now surfaces against this theory.
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`

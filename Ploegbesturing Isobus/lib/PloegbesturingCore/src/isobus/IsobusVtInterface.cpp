@@ -61,7 +61,15 @@ void IsobusVtInterface::Begin() {
     BuildObjectPool();
 
     CANStackLogger::set_can_stack_logger_sink(&logger);
-    CANStackLogger::set_log_level(CANStackLogger::LoggingLevel::Warning);
+    // Bumped Warning -> Info 2026-09-05: at Warning, AgIsoStack's own [NM]
+    // control-function lifecycle lines (address claims, "is now offline")
+    // are invisible on the serial console -- confirmed by re-reading Session
+    // 5's captured logs, which contain zero [NM] lines despite a control-
+    // function eviction being the leading theory for GitHub issue #17's VT
+    // Status Timeout (see Documentation/AgIsoStackVendorPatches.md patch #3
+    // and HardwareTestNotes.md Session 5). Info is the cheapest way to see
+    // these events directly instead of inferring them.
+    CANStackLogger::set_log_level(CANStackLogger::LoggingLevel::Info);
 
     diagnostics = std::make_shared<DiagnosticProtocol>(controlFunction);
     diagnostics->initialize();

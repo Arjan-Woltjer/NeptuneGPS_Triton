@@ -103,6 +103,86 @@ the existing raw bitmask line).
 
 ---
 
+### 3. `CANNetworkManager::update_new_partners()` -- carry over CF liveness -- added 2026-09-05
+
+**Files:** `can_network_manager.cpp`
+
+**What:** when a `PartneredControlFunction` is late-bound to a control
+function that's already active in the table (i.e. the real device -- VT, TC,
+etc. -- claimed its address on the bus *before* our own `Begin()` created the
+partner filter for it), the adoption code already copies `address` and
+`controlFunctionNAME` onto the partner. It did not also copy
+`claimedAddressSinceLastAddressClaimRequest`, so the newly-adopted partner
+starts that flag at its default-constructed `false` even though the CF it
+was just adopted from already has it `true`. Added one line copying it over,
+right next to the existing address/NAME copies:
+
+```cpp
+partner->claimedAddressSinceLastAddressClaimRequest = currentActiveControlFunction->claimedAddressSinceLastAddressClaimRequest;
+```
+
+**Why:** this is a known, still-open upstream bug --
+[Open-Agriculture/AgIsoStack-plus-plus#584](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/issues/584)
+(filed 2025-06-03, independently re-confirmed against current `main` as
+recently as 2026-07-09, no merged fix as of this writing). Root-caused
+against **our own** hardware symptom, not just read off the upstream report:
+GitHub issue #17 (`IsobusVtInterface`'s VT Status Timeout ~2-3s after connect
+on an Ag Leader InCommand 1200, see `HardwareTestNotes.md` Session 5). Full
+chain, traced through this vendored source:
+
+1. `IsobusVtInterface::Begin()` calls `create_partnered_control_function()`
+   for the VT. On this rig the InCommand 1200 was already on the bus and
+   already address-claimed (it's the tractor's own main screen, running
+   before Ploegbesturing powers up) -- so our partner gets bound via
+   `update_new_partners()`'s "adopt an already-active CF" branch (this
+   patch's location), never via `update_control_functions()`'s
+   "brand new claim" branch (which *does* get its flag set correctly, via a
+   separate call to `update_address_table()` on the same inbound frame).
+2. Any node broadcasting a PGN 60928 (Address Claim) *request* --
+   unremarkable on a real tractor bus, and arguably *expected* right after a
+   new implement joins, since a VT/TC re-enumerating its connected
+   implements is a completely normal reflex -- resets
+   `claimedAddressSinceLastAddressClaimRequest` to `false` for every tracked
+   CF and starts a 755 ms clock (`MAX_ADDRESS_CLAIM_RESOLUTION_TIME`).
+3. 755 ms later, `prune_inactive_control_functions()` evicts any CF whose
+   flag is still `false` -- including our VT partner, since (pre-patch) it
+   was never `true` to begin with. Its `controlFunctionTable` slot is set to
+   `nullptr` and it's marked `ControlFunctionState::Offline`.
+4. `process_can_message_for_global_and_partner_callbacks()` only dispatches
+   a broadcast (destination-less) message to *any* global PGN callback if
+   `message.get_source_control_function()` resolves non-null. Once step 3
+   nulls that table slot, **every subsequent VT Status Message frame from
+   the real, still-broadcasting InCommand 1200 is silently dropped** before
+   reaching either AgIsoStack's own `VirtualTerminalClient::process_rx_message`
+   (registered globally, `isobus_virtual_terminal_client.cpp:55`) or
+   `IsobusVtInterface`'s own independent `OnVtToEcuMessage` diagnostic
+   listener (registered the same way) -- which is exactly why both counters
+   froze in perfect lockstep in Session 5's captures. That agreement looked
+   like corroboration that "the terminal itself stopped broadcasting," but
+   both listeners share the exact same broken lookup, so it proved nothing
+   about the physical bus.
+5. This also explains GitHub issue #18 (no automatic reconnect): a
+   compliant VT normally only broadcasts Address Claim once, at its own
+   startup, not spontaneously to satisfy us -- so once evicted, nothing
+   naturally repopulates the table slot, and `get_address_valid()` genuinely
+   (if wrongly) reports invalid from then on.
+
+Ties #17 and #18 together as one root cause rather than two unrelated
+findings. Also explains why Session 4 (single VT, CNH) only saw an
+intermittent version of this while Session 5 (InCommand 1200 **plus** the
+tractor's own built-in VT live simultaneously) hit it 100% of the time --
+more real ECUs on the bus means a PGN 60928 request is far more likely to
+occur in the first few seconds after we join.
+
+**Not yet field-verified** -- see `HardwareTestNotes.md` for the next
+session's result. Per project convention, stays on `isobus-tc-client` (not
+merged to main) until confirmed on real hardware.
+
+**Consumed by:** nothing programmatic -- this changes control-flow inside
+AgIsoStack itself, not anything Triton-side calls directly.
+
+---
+
 ## Historical / no longer applied
 
 ### CANNetworkManager Meyer's-singleton patch -- applied 2026-08-04, gone by 2026-08-08
@@ -132,11 +212,11 @@ caveat.
 
 ## TODO: upstream
 
-All three of the above are small, self-contained additions with no
+The first two active patches are small, self-contained additions with no
 behavioral change to existing code (`get_state()` is a pure accessor; the
-error-bit decoding only adds log lines, changes no control flow; the
-singleton conversion only changed *when* the object is constructed, not
-what it does). Worth proposing upstream to `Open-Agriculture/AgIsoStack-Arduino`
+error-bit decoding only adds log lines, changes no control flow). Patch #3
+is a real one-line control-flow fix for a genuine bug, but is equally
+self-contained. Worth proposing upstream to `Open-Agriculture/AgIsoStack-Arduino`
 (and/or the base `AgIsoStack-plus-plus` repo, since this handler is shared
 code) so this project stops needing to carry them at all:
 
@@ -151,15 +231,24 @@ code) so this project stops needing to carry them at all:
       (branch `decode-eop-error-bits`, same fork). PR body asks maintainers
       whether they'd prefer named constants/an enum over inline bit literals
       before merging -- open question, not yet answered.
+- [x] `update_new_partners()` CF liveness carry-over -- opened as a draft PR
+      2026-09-05: https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/16
+      (branch `fix-partner-cf-liveness-carryover`, same fork). Also fixes the
+      upstream `AgIsoStack-plus-plus` report of the same bug -- commented on
+      https://github.com/Open-Agriculture/AgIsoStack-plus-plus/issues/584
+      linking this PR, since that repo shares this exact source file. Not yet
+      re-verified on the InCommand 1200 hardware that surfaced it -- next
+      hardware session's job.
 - [ ] Reconsider the `CANNetworkManager` singleton-vs-eager-global question
       upstream, if the hang symptom is ever reproduced cleanly enough to
       write up as a bug report (a Teensy-specific global-static-init timing
       issue, not obviously reproducible off-target).
 
-**Once either PR merges upstream:** bump `platformio.ini`'s
+**Once any PR merges upstream:** bump `platformio.ini`'s
 `lib_deps` past whatever release/commit includes it, then remove the
 corresponding "Active patches" entry above (and, if PR #14 merges, drop the
 `.pio/libdeps/` hand-patch entirely rather than reapplying it after the next
-`pio pkg update`/clean rebuild). Until then, both PRs are drafts on
+`pio pkg update`/clean rebuild). Until then, all three PRs are drafts on
 `Arjan-Woltjer/AgIsoStack-Arduino` -- mark them "ready for review" on GitHub
-when satisfied with the wording.
+when satisfied with the wording (PR #16 additionally wants real-hardware
+re-verification against the InCommand 1200 before that).
