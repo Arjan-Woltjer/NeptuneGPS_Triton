@@ -27,14 +27,25 @@ namespace triton
 // both must stay numerically identical.
 static constexpr float kMetersPerSecondPerKnot = 0.51444444f;
 
+// Shared plausibility guard for both position decoders. The legacy encoding
+// carries no documented "not available" sentinel, so a range check is the
+// only defence against publishing garbage as a position.
+namespace {
+bool GIsPlausibleLatLon(float lat, float lon) {
+    return (lat >= -90.0f) && (lat <= 90.0f) && (lon >= -180.0f) && (lon <= 180.0f);
+}
+}  // namespace
+
 // ------------------------------------------------------------------
 // PGN 129025 - Position, Rapid Update (single frame, 8 bytes)
 //   Bytes 0-3: int32 latitude  (1e-7 deg; 0x7FFFFFFF = N/A)
 //   Bytes 4-7: int32 longitude (1e-7 deg; 0x7FFFFFFF = N/A)
-// Lat/lon are decoded-and-discarded: nothing in this project consumes the
-// coordinate value, only the fix-age timestamp (HOLD-mode staleness
-// watchdog in InterfacePlough::Update()) -- same as VehicleGps's CAN_POS
-// handling before this port.
+// Coordinates are now decoded as well as the fix-age timestamp. They remain
+// diagnostics only -- the control path (InterfacePlough's HOLD-mode staleness
+// watchdog) consumes the timestamp, not the position -- but the values were
+// already being computed here and thrown away, and their absence is what made
+// the debug dump read "Lat/Lon: 0.000000 / 0.000000" on a live rig. See
+// HardwareTestNotes.md Session 1 bug #6.
 // ------------------------------------------------------------------
 PositionResult DecodePositionNmea2000(const uint8_t* data, uint8_t length) {
     PositionResult result;
@@ -44,6 +55,18 @@ PositionResult DecodePositionNmea2000(const uint8_t* data, uint8_t length) {
     auto rawLon = int32_t(uint32_t(data[4]) | (uint32_t(data[5]) << 8) | (uint32_t(data[6]) << 16) | (uint32_t(data[7]) << 24));
 
     result.fixPresent = (rawLat != int32_t(0x7FFFFFFF) && rawLon != int32_t(0x7FFFFFFF));
+    if (!result.fixPresent) return result;
+
+    // Already decoded above and previously thrown away -- same omission as the
+    // legacy decoder's, just less visible because the raw values were right
+    // there. 1e-7 degree units, signed, no bias (unlike the legacy encoding).
+    const float lat = float(rawLat) / 10000000.0f;
+    const float lon = float(rawLon) / 10000000.0f;
+    if (GIsPlausibleLatLon(lat, lon)) {
+        result.hasCoordinates = true;
+        result.latitude  = lat;
+        result.longitude = lon;
+    }
     return result;
 }
 
@@ -110,9 +133,31 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
 // Update(long id, const uint8_t* data, byte len).
 // ------------------------------------------------------------------
 PositionResult DecodeLegacyPosition(const uint8_t* data, uint8_t length) {
-    (void)data;
     PositionResult result;
     result.fixPresent = (length == 8);
+    if (!result.fixPresent) return result;
+
+    // Legacy encoding, distinct from NMEA2000 129025's: little-endian uint32
+    // biased by 2100000000, in 1e-7 degree units, latitude then longitude.
+    // Taken from CanSerialParser's CAN_POS case, which decodes the same wire
+    // format off the serial transport and whose math is covered by the
+    // known_good_sentences fixtures -- this is the sibling implementation
+    // HardwareTestNotes.md Session 1 bug #6 pointed at when noting that this
+    // decoder, unlike that one, never produced coordinates at all.
+    constexpr uint32_t kLegacyLatLonBias = 2100000000u;
+    const uint32_t rawLat = uint32_t(data[0]) | (uint32_t(data[1]) << 8) |
+                            (uint32_t(data[2]) << 16) | (uint32_t(data[3]) << 24);
+    const uint32_t rawLon = uint32_t(data[4]) | (uint32_t(data[5]) << 8) |
+                            (uint32_t(data[6]) << 16) | (uint32_t(data[7]) << 24);
+
+    const float lat = float(int32_t(rawLat - kLegacyLatLonBias)) / 10000000.0f;
+    const float lon = float(int32_t(rawLon - kLegacyLatLonBias)) / 10000000.0f;
+
+    if (GIsPlausibleLatLon(lat, lon)) {
+        result.hasCoordinates = true;
+        result.latitude  = lat;
+        result.longitude = lon;
+    }
     return result;
 }
 

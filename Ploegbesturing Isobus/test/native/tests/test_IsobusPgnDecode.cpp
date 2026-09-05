@@ -39,6 +39,28 @@ test(IsobusPgnDecode, positionNmea2000_validLatLon_fixPresent) {
     assertTrue(r.fixPresent);
 }
 
+// 52.0 deg = 520000000 in 1e-7 units = 0x1EFE9200; 5.0 deg = 50000000 =
+// 0x02FAF080. Both little-endian, signed, no bias (unlike the legacy encoding).
+test(IsobusPgnDecode, positionNmea2000_validLatLon_decodesCoordinates) {
+    uint8_t d[8] = { 0x00, 0x92, 0xFE, 0x1E, 0x80, 0xF0, 0xFA, 0x02 };
+    auto r = DecodePositionNmea2000(d, 8);
+    assertTrue(r.fixPresent);
+    assertTrue(r.hasCoordinates);
+    assertTrue(near(r.latitude, 52.0f, 1e-5f));
+    assertTrue(near(r.longitude, 5.0f, 1e-5f));
+}
+
+test(IsobusPgnDecode, positionNmea2000_implausibleLatLon_keepsFixDropsCoordinates) {
+    // Latitude decodes to ~214.7 deg -- out of range, so the coordinate is
+    // rejected. fixPresent must survive regardless: it drives the staleness
+    // watchdog InterfacePlough gates plough control on, and a bad coordinate
+    // must never cost us a fix.
+    uint8_t d[8] = { 0xFF, 0xFF, 0xFF, 0x7E, 0x80, 0xF0, 0xFA, 0x02 };
+    auto r = DecodePositionNmea2000(d, 8);
+    assertTrue(r.fixPresent);
+    assertFalse(r.hasCoordinates);
+}
+
 test(IsobusPgnDecode, positionNmea2000_latSentinel_notFixPresent) {
     // 0x7FFFFFFF little-endian in bytes 0-3 = N/A latitude.
     uint8_t d[8] = { 0xFF, 0xFF, 0xFF, 0x7F, 0x01, 0x00, 0x00, 0x00 };
@@ -121,6 +143,25 @@ test(IsobusPgnDecode, legacyPosition_fullFrame_fixPresent) {
     uint8_t d[8] = { 0 };
     auto r = DecodeLegacyPosition(d, 8);
     assertTrue(r.fixPresent);
+    // All-zero decodes to -210 deg once the 2100000000 bias is removed, which
+    // is out of range -- so no coordinate, but the fix still counts.
+    assertFalse(r.hasCoordinates);
+}
+
+// Cross-validation against the already-verified sibling decoder: these are the
+// exact payload bytes of known_good_sentences fixture
+// "$0CFEF31C,00072A9C80652680", which test_GpsParsers asserts CanSerialParser
+// decodes as lat=52.0degN lon=5.0degE. Both transports carry the same legacy
+// wire format, so agreeing here means this decoder matches math that was
+// verified against real hardware years ago -- the same trick the John Deere
+// XTE test uses. See HardwareTestNotes.md Session 1 bug #6.
+test(IsobusPgnDecode, legacyPosition_validLatLon_matchesSerialParserFixture) {
+    uint8_t d[8] = { 0x00, 0x07, 0x2A, 0x9C, 0x80, 0x65, 0x26, 0x80 };
+    auto r = DecodeLegacyPosition(d, 8);
+    assertTrue(r.fixPresent);
+    assertTrue(r.hasCoordinates);
+    assertTrue(near(r.latitude, 52.0f, 1e-5f));
+    assertTrue(near(r.longitude, 5.0f, 1e-5f));
 }
 
 test(IsobusPgnDecode, legacyPosition_shortFrame_notFixPresent) {

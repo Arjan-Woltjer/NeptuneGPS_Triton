@@ -90,6 +90,21 @@ static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 // ------------------------------------------------------------------
 struct PositionResult {
     bool fixPresent = false;  // true => NoteGgaFixReceived() should be called
+    // true => latitude/longitude below are meaningful and SetPosition() should
+    // be called. Separate from fixPresent on purpose: fixPresent drives the
+    // GGA fix-age timer that InterfacePlough gates plough control on, and must
+    // keep its existing meaning exactly. Coordinates are diagnostics only --
+    // nothing in the control path reads them (checked 2026-09-05: the sole
+    // consumer of GuidanceSource::GetLatitude/GetLongitude is
+    // IsobusDebugMenu's dump) -- so a coordinate that fails the plausibility
+    // check must never cost us a fix.
+    bool  hasCoordinates = false;
+    // Degrees. float, matching GuidanceSource's own storage and the serial
+    // parsers' behaviour -- which caps useful precision at roughly 1e-5 deg
+    // (~1 m). Fine for confirming a receiver is sane on the debug dump; not
+    // good enough to do geodesy with.
+    float latitude  = 0.0f;
+    float longitude = 0.0f;
 };
 
 struct SpeedResult {

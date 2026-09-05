@@ -172,7 +172,17 @@ void IsobusGuidanceChannel::OnPositionNmea2000(const CANMessage& msg, void* cont
 
     const auto& d = msg.get_data();
     auto result = DecodePositionNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    if (result.fixPresent) self->guidance->NoteGgaFixReceived();
+    // NoteGgaFixReceived() stays gated on fixPresent alone, unchanged: it
+    // drives the staleness watchdog InterfacePlough gates plough control on,
+    // so an implausible coordinate must never cost us a fix. SetPosition()
+    // stamps the same timestamp, so publishing coordinates cannot shorten or
+    // extend the fix age either way.
+    if (result.fixPresent) {
+        self->guidance->NoteGgaFixReceived();
+        if (result.hasCoordinates) {
+            self->guidance->SetPosition(result.latitude, result.longitude);
+        }
+    }
 }
 
 void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context) {
@@ -199,7 +209,13 @@ void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* contex
 
     const auto& d = msg.get_data();
     auto result = DecodeLegacyPosition(d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    if (result.fixPresent) self->guidance->NoteGgaFixReceived();
+    // Same split as OnPositionNmea2000 above, and for the same reason.
+    if (result.fixPresent) {
+        self->guidance->NoteGgaFixReceived();
+        if (result.hasCoordinates) {
+            self->guidance->SetPosition(result.latitude, result.longitude);
+        }
+    }
 }
 
 void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) {
