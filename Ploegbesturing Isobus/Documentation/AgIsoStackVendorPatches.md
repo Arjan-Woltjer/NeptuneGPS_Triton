@@ -344,6 +344,59 @@ release that will eventually make that unnecessary.
 
 ---
 
+### 5. `CANNetworkManager::update_address_table()` -- credit a restored CF -- added 2026-09-05
+
+**Files:** `can_network_manager.cpp`
+
+**What:** when the roll-call prune has evicted a control function and that CF
+later re-announces its address, `update_address_table()` puts it back into
+`controlFunctionTable` but never sets
+`claimedAddressSinceLastAddressClaimRequest` on it. One line added, right
+after the table assignment:
+
+```cpp
+currentControlFunction->claimedAddressSinceLastAddressClaimRequest = true;
+```
+
+**Why:** the restored CF re-enters the table already eligible for pruning, so
+`prune_inactive_control_functions()` evicts it again on the very next
+roll-call. This is what turned a single eviction into a self-sustaining cycle
+rather than a transient one -- the unbroken `is now offline` -> `has claimed
+address` -> `is now offline` churn every 1-2 seconds, observed for 300+
+seconds in Session 6 (see `HardwareTestNotes.md`). The flag is true by
+definition at that point: the only way to reach that branch is by processing
+that CF's own Address Claim message, which is precisely what the flag
+records, and the sibling branch immediately above does exactly this for a CF
+already in the table.
+
+**Relationship to patch #4.** Patch #4 stops our *partners* being pruned at
+all, so with both applied this one is invisible to us -- it matters for every
+non-partner CF on the bus, and for anyone who takes patch #4's reasoning but
+not patch #4. Kept deliberately separate for that reason, and because unlike
+patch #4 it contradicts nothing upstream believes: it breaks no existing test
+and was accepted as a clean defect when filed.
+
+**Upstream:** offered as
+[AgIsoStack-plus-plus#718](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/pull/718)
+(against current `main`, whose loop shape differs from this vendored 0.1.5 --
+same fix, different surrounding code) and mirrored to the Arduino fork as
+[AgIsoStack-Arduino#17](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/17),
+which is the one that would actually retire this entry, since `lib_deps`
+points at that fork. If either merges, drop this entry after bumping
+`lib_deps`.
+
+**Not field-verified.** Applied and build-verified only
+(`teensy41_isobus` builds clean). With patch #4 also applied it should be a
+no-op for our own VT/TC partners by construction, which is why it was safe to
+apply without a tractor -- but that reasoning is exactly what a field session
+should confirm rather than assume. Worth re-testing whether patch #4 is still
+needed at all once this one is in: a durable restore may be enough on its own
+to degrade the failure from permanent to transient.
+
+**Consumed by:** nothing programmatic -- control-flow inside AgIsoStack.
+
+---
+
 ## Historical / no longer applied
 
 ### CANNetworkManager Meyer's-singleton patch -- applied 2026-08-04, gone by 2026-08-08
@@ -400,6 +453,19 @@ code) so this project stops needing to carry them at all:
       linking this PR, since that repo shares this exact source file. Not yet
       re-verified on the InCommand 1200 hardware that surfaced it -- next
       hardware session's job.
+- [x] `update_address_table()` restored-CF liveness flag (patch #5) -- opened
+      2026-09-05 as
+      [AgIsoStack-plus-plus#718](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/pull/718)
+      (canonical repo, against `main`) and mirrored to the fork as
+      [AgIsoStack-Arduino#17](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/17).
+      Backed by [plus-plus#717](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/issues/717),
+      which carries the field evidence.
+- [ ] Partnered CFs exempt from the roll-call prune (patch #4) -- **NOT
+      offered as a PR, deliberately.** Upstream's own
+      `CoreTest.InvalidatingControlFunctions` asserts the behaviour this
+      patch changes, so it is a design decision for the maintainers rather
+      than a defect to assert. Put to them as a question on #717 instead. If
+      they decline it, patch #4 is ours to carry indefinitely.
 - [ ] Reconsider the `CANNetworkManager` singleton-vs-eager-global question
       upstream, if the hang symptom is ever reproduced cleanly enough to
       write up as a bug report (a Teensy-specific global-static-init timing
