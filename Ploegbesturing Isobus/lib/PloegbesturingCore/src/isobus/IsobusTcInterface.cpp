@@ -83,8 +83,10 @@ constexpr std::int32_t kHitchOffsetYMm = 0;
 // Constructor
 // ------------------------------------------------------------------
 IsobusTcInterface::IsobusTcInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
-                                      std::shared_ptr<InternalControlFunction> controlFunction)
-    : serialDebug(serialDebug), implement(implement), guidance(guidance), controlFunction(controlFunction) {
+                                      std::shared_ptr<InternalControlFunction> controlFunction,
+                                      std::shared_ptr<PartneredControlFunction> primaryVtPartner)
+    : serialDebug(serialDebug), implement(implement), guidance(guidance), controlFunction(controlFunction),
+      primaryVtPartner(primaryVtPartner) {
 }
 
 // ------------------------------------------------------------------
@@ -228,7 +230,14 @@ void IsobusTcInterface::Begin() {
 
     buildDdop();
 
-    tcClient = std::make_shared<TaskControllerClient>(partner, controlFunction, nullptr);
+    // Third argument is the *primary VT's* partnered control function, not a
+    // VirtualTerminalClient. AgIsoStack uses it in
+    // select_language_command_partner(): for a TC server older than version 4
+    // it sources language/unit data from the VT, and only falls back to a
+    // global request -- warning "no VT was provided ... might not be ideal" --
+    // when this is null. Every TC met so far reports version 3, so this path
+    // is always taken. See GitHub issue #21.
+    tcClient = std::make_shared<TaskControllerClient>(partner, controlFunction, primaryVtPartner);
 
     tcClient->configure(ddop,
                         0,      // maxNumberBoomsSupported -- plough has no booms

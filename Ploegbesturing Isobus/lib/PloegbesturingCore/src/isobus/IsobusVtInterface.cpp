@@ -197,8 +197,21 @@ void IsobusVtInterface::updateVtVariables() {
 
     const int32_t position = static_cast<int32_t>(implement->GetPosition());
     const int32_t setpoint = static_cast<int32_t>(implement->GetSetpoint());
-    // XTE is signed (cm); bias by +1000 so the uint32 variable stays non-negative
-    const int32_t xte      = static_cast<int32_t>(guidance->GetXte() + 1000);
+    // XTE is signed (cm); bias by +1000 so the uint32 variable stays
+    // non-negative. That bias silently assumes +/-10 m, so enforce it rather
+    // than implying it: an out-of-range value used to wrap through the
+    // uint32_t cast below and render as a plausible-looking huge number.
+    // Session 6 (2026-09-05) saw exactly that -- the VT displayed
+    // 42949532.47, which decodes as (uint32)(-14049), i.e. a GetXte() of
+    // -15049 from the then-broken Ag Leader decode (GitHub issue #20).
+    // Clamping makes a bad reading peg visibly at the limit instead.
+    constexpr int32_t kXteBias      = 1000;   // cm, = 10 m
+    constexpr int32_t kXteBiasedMin = 0;      // -10 m or worse
+    constexpr int32_t kXteBiasedMax = 2000;   // +10 m or worse
+    int32_t xteBiased = static_cast<int32_t>(guidance->GetXte()) + kXteBias;
+    if (xteBiased < kXteBiasedMin) xteBiased = kXteBiasedMin;
+    if (xteBiased > kXteBiasedMax) xteBiased = kXteBiasedMax;
+    const int32_t xte = xteBiased;
     const int32_t offset   = static_cast<int32_t>(implement->GetOffset());
 
     // See the header's comment on these fields for why this is on-change +

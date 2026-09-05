@@ -64,8 +64,17 @@ namespace triton
 // IsobusVtInterface.
 class IsobusTcInterface {
 public:
+    // primaryVtPartner is the VT's own partnered control function, from
+    // IsobusVtInterface::GetPartner() -- pass it whenever a VT interface
+    // exists, and construct this AFTER IsobusVtInterface::Begin() so it is
+    // populated. TaskControllerClient uses it to source ISO 11783-7
+    // language/unit data when the connected TC server is older than version 4
+    // (which every TC we have met so far is). Passing nullptr is supported
+    // and simply restores the previous behaviour: a global language request,
+    // which AgIsoStack itself warns "might not be ideal".
     IsobusTcInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
-                       std::shared_ptr<isobus::InternalControlFunction> controlFunction);
+                       std::shared_ptr<isobus::InternalControlFunction> controlFunction,
+                       std::shared_ptr<isobus::PartneredControlFunction> primaryVtPartner = nullptr);
 
     // Call once from setup(), after the control function's address is claimed.
     void Begin();
@@ -170,6 +179,7 @@ private:
 
     std::shared_ptr<isobus::InternalControlFunction>        controlFunction;
     std::shared_ptr<isobus::PartneredControlFunction>       partner;
+    std::shared_ptr<isobus::PartneredControlFunction>       primaryVtPartner;
     std::shared_ptr<isobus::DeviceDescriptorObjectPool>     ddop;
     std::shared_ptr<isobus::TaskControllerClient>           tcClient;
 

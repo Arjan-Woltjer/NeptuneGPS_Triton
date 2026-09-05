@@ -131,7 +131,11 @@ void setup() {
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
 
-    gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
+    // Constructed after gVtInterface->Begin() so the VT's partner exists --
+    // the TC client uses it for language/unit data on TC servers older than
+    // version 4. See IsobusTcInterface's constructor comment.
+    gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction(),
+                                                  gVtInterface->GetPartner());
     gTcInterface->Begin();
 
     gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface);

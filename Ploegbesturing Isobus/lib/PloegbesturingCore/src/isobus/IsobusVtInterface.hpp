@@ -108,6 +108,13 @@ public:
     bool         IsPartnerAddressValid() const { return partner && partner->get_address_valid(); }
     std::uint8_t GetPartnerAddress() const { return partner ? partner->get_address() : 0xFE; }
 
+    // The VT's partnered control function itself. IsobusTcInterface passes
+    // this to TaskControllerClient as its `primaryVT`, which is what the TC
+    // client uses to source ISO 11783-7 language/unit data when the connected
+    // TC server is older than version 4 -- see IsobusTcInterface::Begin().
+    // Null until Begin() has run.
+    std::shared_ptr<isobus::PartneredControlFunction> GetPartner() const { return partner; }
+
     // Reconnect watchdog counters (GitHub issue #18) -- see the private
     // reconnect fields for why this exists.
     unsigned int  GetReconnectAttemptCount() const { return reconnectAttempts; }
