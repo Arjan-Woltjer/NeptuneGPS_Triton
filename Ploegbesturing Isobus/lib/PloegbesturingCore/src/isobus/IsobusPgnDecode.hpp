@@ -45,16 +45,27 @@ static constexpr std::uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
 static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
                                                                  // proprietary PGN, source address
                                                                  // must be rechecked in the callback
-// PGN 0xFFFF is heavily overloaded across manufacturers, and two distinct
-// source addresses have each been verified live on real hardware for this
-// PGN's legacy XTE broadcast:
-//  - 0x2A: the original VehicleGps-era assumption (implied by the old fixed
-//    CAN ID 0x0CFFFF2A), confirmed correct years ago against a real John
-//    Deere system.
-//  - 0x80: seen on 2026-08-08 via IsobusDebugMenu's per-PGN "last SA="
-//    readout -- that rig was later identified as an Ag Leader/Raven system,
-//    not John Deere. Different brand, same overloaded PGN.
-// Neither observation invalidates the other -- both stay valid.
+// PGN 0xFFFF is heavily overloaded across manufacturers. Two source
+// addresses have been seen broadcasting XTE on it, and they are NOT
+// interchangeable -- only one of them is decoded:
+//  - 0x2A: John Deere (implied by the old fixed CAN ID 0x0CFFFF2A, and by
+//    the captured fixture known_good_sentences.txt:32, whose xte/quality
+//    math is cross-tested against CanSerialParser). Confirmed years ago
+//    against a real John Deere system, and re-confirmed 2026-09-05.
+//    DECODED.
+//  - 0x80: Ag Leader/Raven, seen 2026-08-08 via IsobusDebugMenu's per-PGN
+//    "last SA=" readout. Session 1 widened the John Deere decoder to accept
+//    it, assuming both vendors shared this PGN's payload layout. Session 6
+//    (2026-09-05) disproved that against live ground truth -- see
+//    DecodeLegacyXteJohnDeere() and GitHub issue #20. DIAGNOSTICS ONLY: its
+//    raw bytes are still captured (deriving the real layout needs them),
+//    but nothing is committed to GuidanceSource.
+//
+// Note this is only John Deere's *proprietary* XTE path. The same equipment
+// family also broadcasts standard NMEA2000 XTE (PGN 129283, legacy CAN ID
+// 1DF9031C, SA 0x1C) alongside its position/speed PGNs -- that path is
+// handled by DecodeXteNmea2000() below, which needs no source-address
+// filter because the PGN is not overloaded.
 static constexpr std::uint8_t  kSourceAddressJohnDeere     = 0x2A;
 static constexpr std::uint8_t  kSourceAddressAgLeaderRaven = 0x80;
 static constexpr std::uint32_t kPgnXteTrimbleLegacy = 0xEB00;  // 60160, PDU1 -- legacy filter required

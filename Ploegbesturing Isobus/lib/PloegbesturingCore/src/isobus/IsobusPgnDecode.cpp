@@ -141,15 +141,35 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
     // PGN 0xFFFF is a heavily-overloaded manufacturer-proprietary PGN --
     // IsobusGuidanceChannel dispatches by PGN alone, so the sender's source
     // address must be rechecked here to replicate the legacy exact-CAN-ID
-    // filter's actual specificity. See kSourceAddressJohnDeere/
-    // kSourceAddressAgLeaderRaven's own comment for why both stay valid.
+    // filter's actual specificity.
     if (sourceAddress != kSourceAddressJohnDeere && sourceAddress != kSourceAddressAgLeaderRaven) {
         return result;
     }
 
+    // Raw diagnostics are captured for BOTH senders, decoded or not: deriving
+    // Ag Leader's real payload layout needs exactly this data off a live bus
+    // (GitHub issue #20). Matches this header's documented convention that
+    // diagnostic fields populate whenever the length guard passed,
+    // independent of `valid`.
     unsigned long val = (unsigned long)((data[4] << 8) | data[3]);
     result.rawWord = uint16_t(val);
     result.rawByte1 = data[1];
+
+    // ...but only John Deere's payload is actually decoded. Session 6
+    // (2026-09-05) disproved Session 1's assumption that Ag Leader/Raven
+    // (0x80) shares John Deere's layout on this PGN: against live ground
+    // truth the terminal's own XTE swung 144 -> 8 -> 118 -> 14 cm while
+    // data[3..4] produced only two distinct values across ~400 consecutive
+    // samples, and data[1] reads 0x03, which the John Deere quality nibble
+    // check below can never accept. Decoding it anyway produced a
+    // confidently wrong number and a permanently failing quality gate, which
+    // is worse than no reading at all -- so 0x80 is diagnostics-only until
+    // a raw capture establishes its real layout. See issue #20 and
+    // HardwareTestNotes.md Session 6, phases 4d and 5.
+    if (sourceAddress != kSourceAddressJohnDeere) {
+        return result;
+    }
+
     result.valid = true;
     result.hasQuality = true;
     result.xteHundredthsMeter = int(val - 32000) >> 1;

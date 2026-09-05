@@ -157,12 +157,15 @@ test(IsobusPgnDecode, legacySpeed_wrongLength_lengthNotOk) {
 }
 
 // --- DecodeLegacyXteJohnDeere ---------------------------------------------------
-// Regression coverage for HardwareTestNotes.md's Session 1 corrections
-// (2026-08-18): both 0x2A (verified years ago on a real John Deere system)
-// and 0x80 (an Ag Leader/Raven system, misidentified as JD in 2026-08-08
-// testing) are valid source addresses on this shared/overloaded PGN -- one
-// must not replace the other. Quality is the nibble check (d[1] high nibble
-// == 0x1), not an exact-byte match.
+// Only 0x2A (John Deere, verified years ago on real hardware and re-confirmed
+// 2026-09-05) is decoded on this shared/overloaded PGN. Quality is the nibble
+// check (d[1] high nibble == 0x1), not an exact-byte match.
+//
+// 0x80 (Ag Leader/Raven) is deliberately NOT decoded -- see the
+// agLeaderRavenAddress_ test below and GitHub issue #20. Session 1
+// (2026-08-18) widened this decoder to accept it on the assumption that both
+// vendors share the payload layout; Session 6 (2026-09-05) disproved that
+// against live ground truth.
 
 // Bytes match known-good CanSerialParser fixture "0CFFFF2A,001000007D000000"
 // (known_good_sentences.txt) -- CAN ID 0x0CFFFF2A encodes source address
@@ -177,10 +180,30 @@ test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_acceptedZeroXte) {
     assertEqual((int)r.quality, 4);
 }
 
-test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderRavenAddress_acceptedNonZeroXte) {
-    // val = (d[4]<<8)|d[3] = 0x7D40 = 32064 -> xte = (32064-32000)>>1 = 32.
+// Ag Leader/Raven is diagnostics-only: nothing is committed to guidance, but
+// the raw bytes must still be captured, because deriving this vendor's real
+// payload layout from a live bus needs exactly them (GitHub issue #20).
+// Field evidence for not decoding it (Session 6, 2026-09-05): against the
+// terminal's own XTE swinging 144 -> 8 -> 118 -> 14 cm, these byte offsets
+// produced only two distinct values across ~400 consecutive samples, and
+// d[1] reads 0x03, which the quality nibble check can never accept.
+test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderRavenAddress_diagnosticsOnlyNotDecoded) {
+    // Same bytes that yield xte=32/quality=4 for John Deere below -- proving
+    // the rejection is by source address, not by payload content.
     uint8_t d[8] = { 0x00, 0x10, 0x00, 0x40, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x80, d, 8);
+    assertFalse(r.valid);
+    assertFalse(r.hasQuality);
+    // ...but the diagnostics are still populated.
+    assertTrue(r.lengthOk);
+    assertEqual((int)r.rawWord, 0x7D40);
+    assertEqual((int)r.rawByte1, 0x10);
+}
+
+test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_sameBytesStillDecoded) {
+    // val = (d[4]<<8)|d[3] = 0x7D40 = 32064 -> xte = (32064-32000)>>1 = 32.
+    uint8_t d[8] = { 0x00, 0x10, 0x00, 0x40, 0x7D, 0x00, 0x00, 0x00 };
+    auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
     assertEqual(r.xteHundredthsMeter, 32);
     assertEqual((int)r.quality, 4);
@@ -190,6 +213,12 @@ test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_rejected) {
     uint8_t d[8] = { 0x00, 0x10, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x2B, d, 8);
     assertFalse(r.valid);
+    // A wholly unknown sender yields no diagnostics either -- unlike 0x80,
+    // which is a known sender we deliberately don't decode. This PGN is
+    // shared across manufacturers, so most traffic on it isn't XTE at all
+    // and its bytes would be meaningless in the debug readout.
+    assertEqual((int)r.rawWord, 0);
+    assertEqual((int)r.rawByte1, 0);
 }
 
 test(IsobusPgnDecode, legacyXteJohnDeere_qualityNibbleRange_notExactByte) {

@@ -244,10 +244,17 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
 
     const auto& d = msg.get_data();
     auto result = DecodeLegacyXteJohnDeere(sourceAddress, d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    if (!result.valid) return;
 
+    // Raw diagnostics are stored whenever the decoder got far enough to read
+    // them, independent of `valid` -- matching IsobusPgnDecode.hpp's stated
+    // convention, and load-bearing for GitHub issue #20: an Ag Leader/Raven
+    // sender (SA 0x80) is deliberately not decoded any more, but its raw
+    // bytes are exactly what a future capture needs to derive its real
+    // layout, so they must still reach IsobusDebugMenu's readout.
     self->counters.lastXteJohnDeereLegacyRawWord  = result.rawWord;
     self->counters.lastXteJohnDeereLegacyRawByte1 = result.rawByte1;
+
+    if (!result.valid) return;
     self->guidance->SetXte(result.xteHundredthsMeter, result.quality);
 }
 
