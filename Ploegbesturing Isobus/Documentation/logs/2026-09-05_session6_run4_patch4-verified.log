@@ -1,0 +1,160 @@
+Session 6, 2026-09-05. VERIFICATION OF VENDOR PATCH #4 (Partnered control
+functions exempt from the PGN 60928 roll-call prune). Written and flashed on
+the tractor, in the configuration that had been failing all afternoon:
+Ag Leader InCommand 1200 + the full New Holland tractor ECU population, with
+the New Holland VT disabled in the tractor's own settings.
+
+Pre-patch, this exact configuration connected and then died in ~3 seconds,
+every single time. See 2026-09-05_session6_run3_dual-vt-churn.log.
+
+=============================================================================
+PART A -- steady state after the patch
+=============================================================================
+Timestamps are seconds since the logging script attached; the patch flash
+reset the board, so these are close to board-relative.
+
+[   8.392] [ISOBUS] addr=0x81 claimed=Y load=17.8% msgs=644 aiso=21(30221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=22/162ms tc=Y drp=0mm tcq=0
+   ^^ vt=Y AND tc=Y together, ~8s in. Pre-patch it was dead by now.
+
+--- operator driving plough width from the VT, live ---
+[   9.392] VT: Wider pressed
+[  10.394] VT: Wider pressed
+[  11.408] VT: Narrower pressed
+[  12.423] VT: Narrower pressed
+[  13.424] [ISOBUS] ... vt=Y(21/22) vtstat=27/162ms tc=Y drp=0mm tcq=0
+
+--- five minutes later, unchanged ---
+[ 303.638] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9789 aiso=316(325221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=318/155ms tc=Y drp=0mm tcq=0
+
+--- meanwhile the prune cycle is running continuously the whole time.
+--- external CF 205 churns offline/online every ~2s -- this is the
+--- update_address_table() restore-without-liveness-flag bug in action on a
+--- non-partner CF. Harmless to us now; our partners are exempt.
+[ 780.104] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 781.113] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 782.121] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 783.130] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+      ... (repeats every 2s, unbroken) ...
+
+TALLY OVER ~800 SECONDS:
+  tc=Y samples          : 448        tc=N : 0
+  vt=Y                  : every sample
+  VT/TC Status Timeouts : 0
+  TC errors             : 0
+  CF evictions survived : 235
+  drp / tcq             : 0 (see PART C)
+
+Note on a misleading metric: this run logged ZERO "NACK-ing PGN request for
+PGN 60928" lines, which initially looked like the roll-calls had simply
+stopped. That proxy is wrong -- a BROADCAST roll-call is never NACKed, only
+a request addressed specifically to us is. The 235 evictions prove the prune
+cycle was running throughout. Prune activity, not NACK count, is the correct
+measure.
+
+Pre/post comparison (evictions in window vs. whether our partner was lost):
+  pre-patch, New Holland alone (healthy)      0 evictions  -- no prunes ran
+  pre-patch, InCommand alone (healthy)       23 evictions  -- survived on timing
+  pre-patch, dual VT (failing)               62 evictions  -- partner lost
+  pre-patch, NH disabled (failing, ~3s)       6 evictions  -- partner lost
+  POST-PATCH, NH disabled, 800s             235 evictions  -- ZERO losses
+
+=============================================================================
+PART B -- the worst case: a second terminal joining mid-session
+=============================================================================
+The New Holland VT powered back on while Triton was connected to the
+InCommand 1200. Earlier the same afternoon this exact action killed a healthy
+VT+TC session in ~4 seconds (run 3, scenario 3).
+
+--- the enumeration burst that used to be fatal ---
+[ 132.305] I] [NM]: External control function with name 000000000000000lx has claimed address 203452081 on channel 536903720.
+[ 138.812] I] [NM]: External control function with name 000000000000000lx has claimed address 203452081 on channel 2147516416.
+[ 144.105] I] [NM]: External control function with name 000000000000000lx has claimed address 203452081 on channel 2147516672.
+[ 144.113] I] [NM]: External control function with name 000000000000000lx has claimed address 203452081 on channel 536903720.
+
+--- and straight through it, without a flicker ---
+[ 183.406] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=38622 aiso=1246(1255394ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=57 vtgAge=56 xteAge=56 vt=Y(21/22) vtstat=1254/355ms tc=Y drp=0mm tcq=0
+[ 184.307] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 184.307] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 184.658] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=38653 aiso=1247(1256394ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=57 vtgAge=56 xteAge=56 vt=Y(21/22) vtstat=1255/358ms tc=Y drp=0mm tcq=0
+
+TALLY:
+  vt=Y : 185 samples    vt=N : 0
+  tc=Y : 185 samples    tc=N : 0
+  Status Timeouts : 0   TC errors : 0
+  evictions survived : 104
+  vtstat 1255  ->  ~21 MINUTES of unbroken VT + TC connection
+  "Partnered control function ... has claimed address" : 0
+      ^^ we did NOT rebind to the newly-arrived VT; stayed on the InCommand.
+         The function-code-only NAMEFilter ambiguity did not bite here.
+
+Operator confirmed throughout: working set live and responsive on the
+InCommand 1200 screen.
+
+=============================================================================
+PART C -- full status dump (the TC diagnostic that had never been readable)
+=============================================================================
+Captured while VT and TC were both connected and a field task was running
+with an AB line selected -- conditions that had never coexisted before.
+
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 17.2 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      1
+  PGN 65267  Position legacy:   10127
+  PGN 65256  Speed legacy:      10127   last SA=0x80 raw=0x0
+  PGN 65535  XTE JD legacy:     10128   last SA=0x80 word=0xBFF byte1=0x3
+  PGN 60160  XTE Trimble legacy:3   last SA=0x80
+  PGN 64770  AISO stop:         1013   last 1022512 ms ago
+  TOTAL:                        31399
+--- Guidance telemetry ---
+  XTE:          -144.65 m
+  Speed:        0.00 m/s (0.00 kn)
+  Quality:      0   RTK quality=4  IsRtkQuality=N
+  GGA fix age:  72 ms
+  VTG fix age:  71 ms
+  XTE fix age:  70 ms
+  Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  3
+  VT status msgs: 1018   last 469 ms ago
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/N
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 1022512 ms ago
+  GNSS quality (DDI 514):  0, last 1022512 ms ago
+  Value commands (any DDI): 0  last DDI=(none)
+  Value requests (any DDI): 0
+
+KEY READINGS:
+  * TC-GEO (with pos) = Y. The terminal SUPPORTS TC-GEO with position. With a
+    task active and an AB line selected it still sends 0 Value Commands and
+    0 Value Requests. This kills the Session 3 TC-GEO licensing theory, and
+    is strictly worse than Session 3's Trimble, which at least issued 2 Value
+    Requests proving it had parsed our DDOP.
+  * XTE decode reads the WRONG VENDOR'S PAYLOAD. Ground truth taken live from
+    the Ag Leader screen went 144 -> 8 -> 118 -> 14 cm while our decoded value
+    took only two values in ~400 samples (-144.65 and -142.09, i.e. val 3070
+    and 3582) with xteAge ~57ms throughout. The field is frozen.
+    Root cause: PGN 0xFFFF is manufacturer-proprietary and overloaded.
+    Session 1 added SA 0x80 (Ag Leader/Raven) as an accepted sender for the
+    JOHN DEERE decoder, assuming a shared layout. It is not shared -- we read
+    John Deere byte offsets (data[3..4]) out of an Ag Leader message.
+    Same cause explains quality byte 0x03 failing (d[1] & 0xF0) == 0x10 ->
+    Quality 0, IsRtkQuality=N: d[1] is not a John Deere quality byte here.
+    NOTE, recorded as a caution: an intermediate analysis concluded this was
+    a 100x scale error, because (val-32000)/200 yields -144.65 cm against a
+    measured 144 cm -- a near-perfect match on a SINGLE data point. The
+    subsequent readings disproved it. One matching point was never enough.
+    Fix requires a raw 8-byte capture of PGN 65535 from SA 0x80 against
+    ground truth, then deriving the Ag Leader layout. Note this session also
+    counted only 1x PGN 129283 and 3x PGN 60160, so neither standard NMEA2000
+    XTE nor the Trimble legacy PGN is a usable alternative source here.
+  * Lat/Lon still 0.000000 -- Session 1 bug #6, still open.
+  * "last ... ms ago" for AISO/DDI equals board uptime, i.e. those timestamps
+    are never set. Cosmetic, but worth a look.

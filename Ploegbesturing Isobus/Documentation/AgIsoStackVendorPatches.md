@@ -189,12 +189,127 @@ tractor's own built-in VT live simultaneously) hit it 100% of the time --
 more real ECUs on the bus means a PGN 60928 request is far more likely to
 occur in the first few seconds after we join.
 
-**Not yet field-verified** against #17, #18, or #19 -- see `HardwareTestNotes.md`
-for the next session's result. Per project convention, stays on
-`isobus-tc-client` (not merged to main) until confirmed on real hardware.
+**Field-verified 2026-09-05 (Session 6).** Confirmed against both #17 and
+#19: with a single terminal on the bus the VT holds indefinitely (160 s
+against New Holland's own VT, `vtstat` climbing 1 Hz throughout) and the
+Task Controller connects and activates its DDOP for the first time in the
+project's history. Necessary but **not sufficient** on a busy bus -- see
+patch #4 below, which this patch's own field test uncovered.
 
 **Consumed by:** nothing programmatic -- this changes control-flow inside
 AgIsoStack itself, not anything Triton-side calls directly.
+
+---
+
+### 4. `CANNetworkManager::prune_inactive_control_functions()` -- exempt Partnered CFs -- added 2026-09-05
+
+**Files:** `can_network_manager.cpp`
+
+**What:** the roll-call prune already spares `Internal` control functions.
+Spare `Partnered` ones too:
+
+```cpp
+(ControlFunction::Type::Internal  != controlFunction->get_type()) &&
+(ControlFunction::Type::Partnered != controlFunction->get_type())
+```
+
+**Why:** patch #3 fixed the *initial* adoption of an already-active partner,
+but not the recurring cycle. Every PGN 60928 (Address Claimed) **request** --
+a bus roll-call, which any terminal issues when it notices a new implement --
+clears `claimedAddressSinceLastAddressClaimRequest` on every tracked CF and
+starts a 755 ms timer, after which this prune evicts anything that hasn't
+re-announced. Our VT/TC partners get caught by that, and once evicted,
+`process_can_message_for_global_and_partner_callbacks()` silently drops
+every subsequent status frame -- the exact #17 failure, recurring.
+
+Worse, it is self-sustaining. `update_address_table()` restores a
+previously-pruned CF to the table when it re-announces:
+
+```cpp
+if (targetControlFunction != nullptr)
+    targetControlFunction->claimedAddressSinceLastAddressClaimRequest = true;
+else
+    // restore a pruned CF...
+    controlFunctionTable[channelIndex][claimedAddress] = currentControlFunction;
+    // ...without ever setting the liveness flag on it
+```
+
+so the restored CF is immediately eligible for pruning again on the next
+roll-call. Observed on hardware as an `is now offline` -> `has claimed
+address` -> `is now offline` churn every 1-2 seconds, running unbroken for
+300+ seconds with the VT and TC dead the entire time.
+
+**Field evidence (Session 6), counting `NACK-ing PGN request for PGN 60928`:**
+
+| Window | Duration | 60928 requests | Result |
+|---|---|---|---|
+| New Holland VT alone | 160 s | 0 | VT stable |
+| InCommand 1200 alone | 22 s | 0 | VT **and** TC stable |
+| every failing window | -- | ~1 per 2 s | dies in ~3-4 s, never recovers |
+
+**Rationale for the fix:** a partnered CF is one the application explicitly
+bound to and is actively conversing with. A bus roll-call should not be able
+to evict it out from under a live session. Genuine partner loss is still
+detected, at the layer that should own it: `VirtualTerminalClient`'s
+`VT_STATUS_TIMEOUT_MS` and `TaskControllerClient`'s server-status timeout.
+Deliberately applied *without* also fixing the `update_address_table()`
+restore bug above, so the field result would be attributable to one change --
+that restore bug is real and should go into the same upstream PR.
+
+**Result:** in the configuration that had been failing in ~3 s all
+afternoon (InCommand 1200 + full tractor ECU population), VT and TC both
+came up and held for 5+ minutes: 304 consecutive `tc=Y` samples, zero
+`tc=N`, zero Status Timeouts, zero evictions, `vtstat` climbing 1 Hz, with
+the operator driving the plough width from the VT throughout.
+
+**Proven against the triggering event.** An initial reading of this run
+suggested the roll-calls had simply stopped, because it logged zero
+`NACK-ing PGN request for PGN 60928` lines. That proxy was wrong: a
+*broadcast* roll-call is not NACKed, only a request addressed specifically
+to us is, so the NACK count says nothing about broadcast roll-calls. The
+correct evidence is prune activity itself, and there was plenty:
+
+| | evictions in window | partner lost? |
+|---|---|---|
+| pre-patch, New Holland alone (healthy) | 0 | -- no prunes ran |
+| pre-patch, InCommand alone (healthy) | 23 | no (survived by timing) |
+| pre-patch, dual VT (failing) | 62 | yes |
+| pre-patch, NH disabled (failing, died ~3 s) | 6 | yes |
+| **post-patch, NH disabled, 800 s** | **235** | **no -- 0 losses** |
+
+Pre-patch this was effectively a dice roll on every roll-call: does the
+partner's own Address Claim response credit the liveness flag before the
+755 ms prune fires? Sometimes (the 23-eviction healthy window), often not.
+Post-patch the partner is unconditionally exempt, and **235 consecutive
+prune cycles were survived in the exact configuration that had been dying
+in ~3 seconds**, with an external CF (address 205) visibly churning
+offline/online every 2 s throughout -- itself a live demonstration of the
+`update_address_table()` restore-without-flag bug, now harmless to us.
+
+**Also proven against the worst case: a fresh terminal joining mid-session.**
+This is the heaviest form of the event -- it produced the mass multi-address
+eviction storm that killed a healthy VT+TC session in ~4 s earlier the same
+afternoon (Session 6 Phase 3b, scenario 3). Repeated post-patch, with the
+New Holland VT powered back on while Triton was connected to the InCommand
+1200:
+
+```
+[132.305] External CF has claimed address 203452081 on channel 536903720
+[138.812] External CF has claimed address 203452081 on channel 2147516416
+[144.105] External CF has claimed address 203452081 on channel 2147516672
+      ...the same enumeration burst that was previously fatal...
+
+185 consecutive samples: vt=Y AND tc=Y, zero drops
+0 Status Timeouts, 0 TC errors, 104 evictions of other CFs survived
+vtstat 1255 -> ~21 minutes of unbroken VT+TC connection
+```
+
+Operator confirmed the working set stayed live and responsive on the
+InCommand 1200 throughout. Note also `Partnered control function ... has
+claimed address`: **0** -- we did not rebind to the newly-arrived VT, so the
+function-code-only `NAMEFilter` ambiguity did not bite here either.
+
+**Consumed by:** nothing programmatic -- control-flow inside AgIsoStack.
 
 ---
 

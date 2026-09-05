@@ -530,6 +530,447 @@ the InCommand 1200's VT stays connected past the old ~2-3s cutoff, the TC
 now connects too, and cross-check any `[NM]` lines the Info log level now
 surfaces against this theory.
 
+## Session 6 -- 2026-09-05 (afternoon) -- #17/#18/#19 fix confirmed on hardware
+
+**Rig:** same as Session 5 -- New Holland tractor, its own built-in VT, plus
+an Ag Leader InCommand 1200 (with Ag Leader GPS). Both terminals available,
+powered independently through the session so the same firmware could be
+tested against each one alone and against both together.
+
+**Firmware:** `isobus-tc-client` at `935de81` -- Session 5's `vtstat` counter
+plus the off-tractor root-cause work (vendor patch #3 propagating
+`claimedAddressSinceLastAddressClaimRequest` through
+`update_new_partners()`, and the VT log level bumped Warning -> Info).
+
+**Headline:** #17 (VT Status Timeout) and #19 (TC never connects) are both
+resolved and confirmed on hardware. A *second*, deeper instance of the same
+eviction pathology was then found, root-caused to PGN 60928 address-claim
+roll-calls, fixed on the tractor as vendor patch #4, and verified -- VT and
+TC now hold together for 5+ minutes on a full bus, the first time in the
+project's history. #18 (no automatic reconnect) remains unresolved and is
+now understood as the thing that turns each eviction into a permanent
+outage. Separately, XTE was found to be misscaled by 100x, unnoticed since
+Session 1.
+
+### Phase 1 -- New Holland VT alone: stable
+
+First real confirmation. VT reached `Connected` (`21/22`) about a second
+after `loop()` started and **held for the entire 160-second capture** with
+no drop of any kind. `vtstat` climbed steadily 1 -> 164 at almost exactly
+1 Hz throughout -- i.e. the terminal's status broadcast was arriving
+continuously and, critically, was still being *dispatched to our listener*,
+which is precisely what the eviction bug used to break. Compare Session 5,
+where the same counter froze at 4 within ~2 seconds every time.
+
+Also confirmed live by the operator: the plough working set rendered on
+screen with live data, and adjusting the plough's working width updated the
+displayed values in real time. `VT: Wider pressed` / `VT: Narrower pressed`
+appear in the log at each press, so the soft-key path (990e23b) is
+field-verified too, first time.
+
+An `[NM]` line appears at startup now that the log level is Info -- but its
+arguments print as garbage (`name 000000000000000lx`, absurd address/channel
+numbers). That's a format-string/`vsnprintf` mismatch inside AgIsoStack's own
+logging on this toolchain, not something our patch introduced; the lines are
+still useful as *event* markers (which is how they're used below), just not
+for their values. Worth a small upstream fix eventually.
+
+### Phase 2 -- InCommand 1200 alone: VT **and** TC both connect
+
+With New Holland powered down and the InCommand 1200 as the only terminal,
+a fresh Triton boot produced the cleanest result of the whole project so far:
+
+- VT connected (`21/22`) within ~1s of the terminal appearing on the bus,
+  `vtstat` climbing steadily at ~1 Hz.
+- **`[TC]: DDOP Activated without error.` -- the Task Controller connected**,
+  `tc=Y`, and stayed connected for as long as the configuration was left
+  alone. This is the **first successful TC connection in the project's
+  history** (Sessions 3-5 never got past `tc=N`).
+- The InCommand 1200 mirrored Ploegbesturing's own screen content, operator-
+  confirmed visually -- not just the app-switcher icon, the actual working
+  set.
+
+This settles #19: the TC failure was never about TC-GEO licensing or a gap in
+`IsobusTcInterface`'s discovery. It was the same control-function eviction
+knocking out the TC partner exactly as it did the VT partner, precisely as
+the 2026-09-05 off-tractor analysis predicted (commit `935de81`). Note
+`W] [TC]: The TC is < version 4 but no VT was provided` and `DDOP will be
+generated using the server's version instead of the specified version. New
+version: 3` -- worth revisiting whether we should hand the TC client our VT
+instance, but it activated cleanly regardless.
+
+`drp=0mm` / `tcq=0` throughout -- DDI 513/514 still never arrived, so
+TC-GEO data exchange itself remains unproven. The connection and DDOP
+activation are confirmed; the geo-referenced data flow is not. That part of
+Session 3's original question is still open.
+
+### Phase 3 -- the real trigger: PGN 60928 address-claim roll-calls
+
+Every configuration that failed today had one thing in common, and it is not
+the number of VTs. Counting `NACK-ing PGN request for PGN 60928` lines across
+the whole session:
+
+| Window | Duration | PGN 60928 requests | Result |
+|---|---|---|---|
+| New Holland VT alone | 160 s | **0** | VT stable throughout |
+| InCommand 1200 alone | 22 s | **0** | VT **and** TC stable |
+| Every failing window | -- | ~1 every 2 s | dies in ~3-4 s, never recovers |
+
+The transition is visible to the second, in the capture where a healthy
+VT+TC session was killed by powering the second terminal back on:
+
+```
+[ 622.850 .. 644.293]  vt=Y(21/22) tc=Y, vtstat 2 -> 24   <- zero 60928 requests
+[ 645.299]  tc=N                                          <- TC drops
+[ 645.814]  NACK-ing PGN request for PGN 60928            <- first request
+[ 646.808]  E] [VT]: Status Timeout                       <- VT drops
+[ 647.545]  ...requests every ~2 s from here on, forever
+```
+
+PGN 60928 is the ISO 11783 / J1939 **Address Claimed** message; a *request*
+for it is a bus roll-call asking every node to re-announce its address --
+exactly what a terminal does when it notices a new implement. In AgIsoStack,
+each such request clears `claimedAddressSinceLastAddressClaimRequest` on
+every tracked control function and starts a 755 ms timer, after which
+`prune_inactive_control_functions()` evicts anything that hasn't
+re-announced. That is the same prune that caused #17; patch #3 fixed only the
+*initial* partner adoption, not this recurring cycle.
+
+**Why it never recovers** -- found by reading `update_address_table()`:
+
+```cpp
+if (targetControlFunction != nullptr)
+    targetControlFunction->claimedAddressSinceLastAddressClaimRequest = true;
+else
+    // a previously-pruned CF re-announces: restore it to the table...
+    controlFunctionTable[channelIndex][claimedAddress] = currentControlFunction;
+    // ...but the liveness flag is NEVER set on the restored CF
+```
+
+A CF that has been pruned once goes back into the table with the flag still
+`false`, so the next roll-call prunes it again immediately. That is exactly
+the prune/re-adopt churn observed for 300+ seconds straight: `is now
+offline` -> `has claimed address` -> `is now offline`, every 1-2 seconds,
+indefinitely.
+
+### Phase 3b -- both VTs live simultaneously
+
+Every configuration with **two VTs on the bus at once** broke, consistently
+and unrecoverably. Three separate ways of reaching that state, same outcome:
+
+1. **Second terminal joins an established connection.** Triton was connected
+   and stable to New Holland for 160s; powering on the InCommand 1200
+   triggered a burst of `[NM]` control-function offline/claim activity, and
+   ~4s later `E] [VT]: Status Timeout`. Never recovered.
+2. **Triton reboots with both already settled.** Fresh boot, both terminals
+   long since address-claimed and quiet. VT connected normally, held ~4s,
+   then the same `Status Timeout`, then stuck. This rules out "it's just the
+   join-moment storm" -- the steady state with two VTs is itself unstable.
+3. **Second terminal joins a working VT+TC session.** From Phase 2's healthy
+   state, New Holland coming back online dropped **both**: first
+   `E] [TC]: Server Status Message Timeout. The TC may be offline.`
+   (`tc=N`), then ~1.5s later `E] [VT]: Status Timeout` (`vt=N`). Neither
+   came back.
+
+After each of these, the log settles into a **continuous churn** -- two
+addresses alternately claiming and going offline every 1-2 seconds,
+indefinitely (observed for 300+ seconds straight in one capture), with
+`vt=N(0/22)` and `tc=N` frozen throughout. Guidance PGN traffic keeps
+flowing normally the whole time (`msgs=` climbing ~31/s, busload steady
+~19%), so this is specifically the partner/control-function layer thrashing,
+not a bus or loop problem.
+
+**A dead end worth recording:** the first theory here was that
+`IsobusVtInterface::Begin()`'s `NAMEFilter` matches on function code alone,
+so two VT-function devices confuse the single partner slot (a risk flagged
+back in Session 4). **That theory is wrong.** Disabling the New Holland VT
+from the tractor's own settings -- leaving exactly one VT on the bus --
+reproduced the failure unchanged (connect, ~3 s, `Status Timeout`, stuck).
+What actually correlates is the roll-call traffic in Phase 3 above, not the
+VT count. The two-VT cases fail because a joining terminal enumerates the
+bus, not because there are two of them.
+
+### Phase 4 -- the fix, written and verified on the tractor
+
+With the mechanism understood, applied as **vendor patch #4** (see
+`AgIsoStackVendorPatches.md`): exempt `Partnered` control functions from the
+roll-call prune, alongside the `Internal` exemption already there.
+
+```cpp
+(ControlFunction::Type::Internal  != controlFunction->get_type()) &&
+(ControlFunction::Type::Partnered != controlFunction->get_type())
+```
+
+Rationale: a partner is a CF we explicitly bound to and are actively
+conversing with. A bus roll-call must not silently evict it out from under a
+live session -- and genuine partner loss is already detected at the right
+layer, by the client's own status timeout (`VT_STATUS_TIMEOUT_MS`, and the
+TC's server-status timeout). Deliberately applied *alone*, without also
+fixing the `update_address_table()` restore bug found above, so the result
+would be attributable to a single change.
+
+**Result, in the exact configuration that had been dying in ~3 seconds all
+afternoon** (InCommand 1200 + full tractor ECU population, New Holland VT
+disabled):
+
+```
+t = 303.6 s   ->  5+ minutes uptime, still going
+tc=Y     : 304 consecutive samples      tc=N : 0
+vt=Y     : every sample, vtstat 318 and climbing ~1 Hz
+Status Timeouts : 0        CF evictions : 0        TC errors : 0
+```
+
+Operator-confirmed live: working set on screen, plough width adjustments
+tracking in real time (`VT: Wider/Narrower pressed` throughout). **VT and TC
+both stable, together, on a full bus, for the first time in the project.**
+
+**And it was tested against the real event.** A first look at this run
+suggested the roll-calls had stopped, because it logged zero `NACK-ing PGN
+request for PGN 60928` lines -- but that proxy is wrong. A *broadcast*
+roll-call is never NACKed; only a request addressed specifically to us is.
+The honest measure is prune activity, and there was plenty of it:
+
+| | evictions | partner lost? |
+|---|---|---|
+| pre-patch, New Holland alone (healthy) | 0 | -- no prunes ran |
+| pre-patch, InCommand alone (healthy) | 23 | no (survived on timing) |
+| pre-patch, dual VT (failing) | 62 | yes |
+| pre-patch, NH disabled (failing, died ~3 s) | 6 | yes |
+| **post-patch, NH disabled, 800 s** | **235** | **no -- zero losses** |
+
+So pre-patch, every roll-call was a dice roll: does the partner's Address
+Claim response credit the liveness flag before the 755 ms prune fires?
+Sometimes yes, usually not. Post-patch the partner is exempt outright, and
+**235 consecutive prune cycles were survived in the exact configuration that
+had been dying in three seconds** -- with external CF address 205 visibly
+churning offline/online every 2 s the whole time, a live demonstration of
+the `update_address_table()` restore bug that no longer touches us.
+
+### Phase 4b -- the worst case, tested and survived
+
+Finally, the heaviest version of the trigger: powering the New Holland VT
+back on *while* Triton was connected to the InCommand 1200. Earlier the same
+afternoon this exact action killed a healthy VT+TC session in about four
+seconds (Phase 3b, scenario 3). Post-patch:
+
+```
+[132.305] External CF has claimed address 203452081 on channel 536903720
+[138.812] External CF has claimed address 203452081 on channel 2147516416
+[144.105] External CF has claimed address 203452081 on channel 2147516672
+      ^^ the same enumeration burst that was previously fatal
+
+185 consecutive samples: vt=Y AND tc=Y, zero drops
+0 Status Timeouts, 0 TC errors, 104 evictions of other CFs survived
+vtstat 1255 -> ~21 minutes unbroken VT + TC connection
+```
+
+Operator confirmed the plough working set stayed live and responsive on the
+InCommand 1200 the whole time. `Partnered control function ... has claimed
+address` count: **0** -- we never rebound to the newly-arrived VT, so the
+function-code-only `NAMEFilter` ambiguity did not cause trouble here either.
+
+**Patch #4 is therefore verified against both the steady-state prune cycle
+and the worst-case terminal-join storm.** Before today the record for a held
+VT connection on a full bus was roughly three seconds.
+
+### Phase 4c -- the TC diagnostic that had never been readable
+
+With the TC finally connected *and stable*, `IsobusDebugMenu`'s full dump
+could be read for the first time -- including the `TC-GEO (with/without
+pos):` line added in `086d5d6` specifically to settle Session 3's licensing
+question, and never once reachable since:
+
+```
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/N     <- supports TC-GEO WITH position
+  Task active:  Y
+  Value commands (any DDI): 0  last DDI=(none)
+  Value requests (any DDI): 0
+```
+
+Operator-confirmed alongside this: a field task was running the whole time,
+the AB line was selected, and the terminal was actively computing XTE.
+
+**This kills the TC-GEO licensing theory from Session 3.** The InCommand
+1200 *advertises TC-GEO with position support*, a task is active, guidance
+is live -- and it sends us nothing whatsoever. Note this is strictly worse
+than Session 3's Trimble, which at least issued 2 Value Requests (one per
+declared settable DDI), proving it had parsed our DDOP. This TC activates
+our DDOP without error and then never engages with our process data at all.
+
+So the open question is no longer "is TC-GEO licensed on this terminal" but
+**"why does a TC-GEO-capable server ignore our declared process data"** --
+candidates being the DDOP's device-element structure, the server-version-3
+downgrade (`W] [TC]: The TC is < version 4 but no VT was provided`, and
+`DDOP will be generated using the server's version instead of the specified
+version. New version: 3`), or how the implement's DRP/offsets are declared.
+That is desk work against `IsobusTcInterface::buildDdop()` and ISO 11783-10,
+not another field session.
+
+### Phase 4d -- XTE quality byte is wrong for this rig too
+
+The same dump captured the raw legacy-XTE diagnostics added in Session 1:
+
+```
+PGN 65535 XTE JD legacy: 10128  last SA=0x80 word=0xBFF byte1=0x3
+Quality: 0   RTK quality=4  IsRtkQuality=N
+```
+
+The quality byte from this unit is `0x03`. Our check is
+`(d[1] & 0xF0) == 0x10` -- high nibble must be 1 -- so it fails, and
+`Quality` sits at 0 with `IsRtkQuality=N`. **We are therefore rejecting the
+guidance quality outright on this rig**, which gates the plough control
+logic.
+
+This is not a separate defect: Phase 5 below shows it shares one root cause
+with the frozen XTE value. Both come from applying the John Deere payload
+layout -- byte offsets *and* quality convention, reverse-engineered years
+ago against a real John Deere unit -- to an Ag Leader/Raven message on the
+same proprietary PGN. `d[1]` simply is not a John Deere quality byte here.
+
+Also still true from Session 1 bug #6: `Lat/Lon: 0.000000 / 0.000000` --
+the legacy position PGN still never decodes coordinates.
+
+### Phase 5 -- the legacy XTE decode reads the wrong payload entirely
+
+Found by accident: the VT rendered the cross-track error as
+**42949532.47**. That decodes exactly -- raw `4294953247` =
+`(uint32)(-14049)`, i.e. `updateVtVariables()`'s `GetXte() + 1000` went
+negative and wrapped -- so `GetXte()` was `-15049`, an absurd XTE.
+
+Chasing it produced a wrong answer first, then the right one. Recorded in
+that order deliberately, because the wrong answer was seductive.
+
+**The wrong answer (a 100x scale error).** Operator read 144 cm off the Ag
+Leader screen while our periodic line showed `xte=-144.65m`. Working back
+through the decode:
+
+```cpp
+unsigned long val = (data[4] << 8) | data[3];
+result.xteHundredthsMeter = int(val - 32000) >> 1;   // (val - 32000) / 2
+```
+
+`-14465` implies `val = 3070`, matching the captured `word=0xBFF` (3071)
+exactly. Change the divisor from 2 to 200 and it yields **-144.65 cm**
+against a measured **144 cm**. That is a near-perfect match, it made the
+offset (32000) and field (`data[3..4]`) look correct, and it neatly
+retro-explained Session 1's *"implausible 167.67 m"* as 1.68 m. It was
+wrong.
+
+**The right answer.** Further ground-truth readings taken moments later --
+the operator called out 8 cm, then 118 cm, then 14 cm -- while our decoded
+value moved not at all:
+
+```
+terminal:  144 -> 8 -> 118 -> 14 cm
+ours:      only ever -144.65 or -142.09   (val = 3070 or 3582)
+```
+
+Two distinct values across ~400 samples, with `xteAge` at ~57 ms
+throughout, so messages were arriving and being accepted continuously. The
+field we read is essentially **frozen** while real XTE swings by more than a
+metre. The 144.65 / 144 agreement was a coincidence, and a single matching
+data point was never enough to conclude from.
+
+**Root cause:** PGN 0xFFFF (65535) is manufacturer-proprietary and, as the
+decode's own comment says, "heavily overloaded". Session 1's correction
+added Ag Leader/Raven (SA `0x80`) as an accepted sender for the **John
+Deere** decoder, on the assumption that both vendors use the same payload
+layout. This rig says otherwise: same PGN number, different vendor payload.
+We are reading John Deere byte offsets out of an Ag Leader message.
+
+That single cause explains both symptoms at once -- the near-constant value
+(`data[3..4]` isn't Ag Leader's XTE field) and the quality byte reading
+`0x03` instead of matching the John Deere high-nibble convention
+(`(d[1] & 0xF0) == 0x10`), which is why `Quality` sits at 0 and
+`IsRtkQuality` at N. See Phase 4d.
+
+**Consequences:**
+- The legacy XTE path is not merely misscaled, it is decoding a foreign
+  vendor's payload. It cannot be fixed by adjusting a constant.
+- Fixing it needs a raw capture: all 8 bytes of PGN 65535 from SA `0x80`
+  logged against ground-truth readings like the ones taken today, then the
+  Ag Leader layout derived. That is the CAN sniff Session 3 recommended and
+  which still has not been done.
+- Worth checking the alternatives first: this session counted exactly **1**
+  PGN 129283 (standard NMEA2000 XTE) message and 3 of PGN 60160, so neither
+  is currently a usable source on this rig either.
+- Independently, `updateVtVariables()` should clamp before casting to
+  `uint32_t`, so an out-of-range value degrades visibly instead of
+  rendering as 42 million. The `+1000` bias assumes ±10 m; that assumption
+  should be stated or enforced rather than implied.
+
+**Sign convention remains unverified.** The operator's left/right calls were
+corrected mid-sequence, so the recorded magnitudes (144, 8, 118, 14 cm) are
+reliable but their signs are not. Establish this properly during the raw
+capture.
+
+### On #18 (no automatic reconnect)
+
+Still unresolved, and today explained *why* AgIsoStack's own retry path never
+fired. `StateMachineState::Disconnected` re-enters the handshake only
+`if (partnerControlFunction->get_address_valid())` -- and that was genuinely
+false, because the partner had been evicted from `controlFunctionTable` with
+its address set to `NULL_CAN_ADDRESS`. The retry logic was working exactly as
+written; its precondition was being destroyed underneath it.
+
+So #18 was never an independent bug -- it is what turned every eviction into
+a *permanent* outage rather than a stutter, which is why a serial replug
+never helped and only a power cycle did.
+
+It is still worth fixing. Patch #4 stops roll-calls evicting partners, but
+does not make us resilient to a partner genuinely disappearing and returning
+-- a terminal power-cycled, a connector knocked loose, a real bus fault. In
+those cases `get_address_valid()` legitimately goes false and, on current
+evidence, we would again sit in `Disconnected` forever. An implement needing
+a manual reset after any hiccup is not field-acceptable. Same applies to
+`IsobusTcInterface`, whose `WaitForServerStatusMessage` has no timeout at all
+and so cannot self-recover under any circumstances.
+
+**Issues filed from this session:** #20 (legacy XTE decodes the wrong
+vendor's payload), #21 (TC reports TC-GEO support but sends no DDI 513/514),
+#22 (upstream the AgIsoStack eviction fixes). #17 and #19 closed as fixed
+and verified.
+
+**Raw logs:** `Documentation/logs/2026-09-05_session6_*.log`.
+
+**Code changed this session:** AgIsoStack **vendor patch #4** (Partnered CFs
+exempt from the roll-call prune) -- documented in
+`AgIsoStackVendorPatches.md`, applied to the gitignored
+`.pio/libdeps/teensy41_isobus` tree per the existing convention, so it does
+not appear in the repo diff. No Triton-side source changed.
+
+**Open at end of session 6** (all desk work -- nothing here needs a tractor):
+- **Upstream patch #4 properly.** It is verified on hardware against both
+  the steady-state prune cycle and the terminal-join storm; it should go to
+  `Open-Agriculture/AgIsoStack-Arduino` together with the
+  `update_address_table()` restore-without-liveness-flag fix, which was left
+  deliberately unapplied today so patch #4's field result stayed
+  attributable to one change. Both belong in the same PR as one coherent
+  fix to the same pathology.
+- **Why does a TC-GEO-capable TC ignore our process data** (Phase 4c)?
+  Prime suspects: DDOP device-element structure, the server-version-3
+  downgrade, or how the DRP/offsets are declared. Check
+  `IsobusTcInterface::buildDdop()` against ISO 11783-10.
+- **Legacy XTE decodes the wrong vendor's payload** (Phase 5, with Phase 4d
+  as the same root cause). Needs a raw 8-byte capture of PGN 65535 from
+  SA `0x80` against ground truth, then the Ag Leader layout derived -- the
+  CAN sniff Session 3 asked for. Not fixable by adjusting a constant. Also
+  clamp in `updateVtVariables()` before the `uint32_t` cast, and establish
+  the sign convention while capturing.
+- **#18 auto-reconnect watchdog** -- still the difference between a
+  transient bus event and a dead session needing a power cycle. Less urgent
+  now that the main eviction cause is fixed, but still correct to have.
+- **Session 1 bug #6** -- legacy position PGN still never decodes lat/lon,
+  confirmed still true today.
+- Our stack NACKs PGN 60928 requests ("no callback could handle it")
+  instead of answering with an Address Claim. Written off as benign in
+  Session 1; it is at minimum the visible marker of the event that was
+  killing us. Note it also misled today's analysis briefly -- a *broadcast*
+  roll-call produces no NACK, so NACK count is not a proxy for roll-call
+  activity. Prune activity is.
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`

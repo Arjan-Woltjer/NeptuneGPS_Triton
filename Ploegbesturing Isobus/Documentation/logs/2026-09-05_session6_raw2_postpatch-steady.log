@@ -1,0 +1,1129 @@
+[   0.010] --- connected ---
+[   0.342] === ISOBUS DEBUG MENU ===
+[   0.342] 1. Full status dump
+[   0.342] 2. Periodic summary line (OFF - press to toggle)
+[   0.342] 3. Reset message counters
+[   0.342] q. Exit
+[   0.342] Periodic summary line: ON
+[   0.342] === ISOBUS DEBUG MENU ===
+[   0.342] 1. Full status dump
+[   1.340] 2. Periodic summary line (ON - press to toggle)
+[   1.340] 3. Reset message counters
+[   1.340] q. Exit
+[   1.340] Exiting.
+[   1.340] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=396 aiso=13(22221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=14/162ms tc=Y drp=0mm tcq=0
+[   2.342] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=427 aiso=14(23221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=63 vt=Y(21/22) vtstat=15/163ms tc=Y drp=0mm tcq=0
+[   3.345] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=458 aiso=15(24221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=63 vt=Y(21/22) vtstat=16/166ms tc=Y drp=0mm tcq=0
+[   3.345] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=489 aiso=16(25221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=17/161ms tc=Y drp=0mm tcq=0
+[   4.358] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=520 aiso=17(26221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=18/167ms tc=Y drp=0mm tcq=0
+[   5.362] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=551 aiso=18(27221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=63 vt=Y(21/22) vtstat=19/162ms tc=Y drp=0mm tcq=0
+[   6.367] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=582 aiso=19(28221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=20/162ms tc=Y drp=0mm tcq=0
+[   7.383] [ISOBUS] addr=0x81 claimed=Y load=17.9% msgs=613 aiso=20(29221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=63 vt=Y(21/22) vtstat=21/162ms tc=Y drp=0mm tcq=0
+[   8.392] VT: Wider pressed
+[   8.392] [ISOBUS] addr=0x81 claimed=Y load=17.8% msgs=644 aiso=21(30221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=22/162ms tc=Y drp=0mm tcq=0
+[   9.392] VT: Wider pressed
+[   9.392] VT: Wider pressed
+[   9.392] [ISOBUS] addr=0x81 claimed=Y load=18.4% msgs=675 aiso=22(31221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=23/162ms tc=Y drp=0mm tcq=0
+[  10.394] VT: Wider pressed
+[  10.394] [ISOBUS] addr=0x81 claimed=Y load=17.5% msgs=706 aiso=23(32221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=63 vt=Y(21/22) vtstat=24/161ms tc=Y drp=0mm tcq=0
+[  11.408] VT: Narrower pressed
+[  11.408] VT: Narrower pressed
+[  11.408] [ISOBUS] addr=0x81 claimed=Y load=18.1% msgs=737 aiso=24(33221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=25/161ms tc=Y drp=0mm tcq=0
+[  12.423] VT: Narrower pressed
+[  12.423] VT: Narrower pressed
+[  12.423] VT: Narrower pressed
+[  12.423] [ISOBUS] addr=0x81 claimed=Y load=18.1% msgs=768 aiso=25(34221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=26/162ms tc=Y drp=0mm tcq=0
+[  13.424] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=799 aiso=26(35221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=27/162ms tc=Y drp=0mm tcq=0
+[  14.437] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=830 aiso=27(36221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=28/167ms tc=Y drp=0mm tcq=0
+[  15.442] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=861 aiso=28(37221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=29/162ms tc=Y drp=0mm tcq=0
+[  16.456] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=892 aiso=29(38221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=30/167ms tc=Y drp=0mm tcq=0
+[  17.458] [ISOBUS] addr=0x81 claimed=Y load=18.3% msgs=923 aiso=30(39221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=62 vt=Y(21/22) vtstat=31/162ms tc=Y drp=0mm tcq=0
+[  18.462] [ISOBUS] addr=0x81 claimed=Y load=17.9% msgs=954 aiso=31(40221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=32/167ms tc=Y drp=0mm tcq=0
+[  19.476] [ISOBUS] addr=0x81 claimed=Y load=17.9% msgs=985 aiso=32(41221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=33/162ms tc=Y drp=0mm tcq=0
+[  20.492] [ISOBUS] addr=0x81 claimed=Y load=17.8% msgs=1016 aiso=33(42221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=34/165ms tc=Y drp=0mm tcq=0
+[  21.499] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1047 aiso=34(43221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=35/162ms tc=Y drp=0mm tcq=0
+[  22.505] [ISOBUS] addr=0x81 claimed=Y load=17.9% msgs=1078 aiso=35(44221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=36/167ms tc=Y drp=0mm tcq=0
+[  23.513] [ISOBUS] addr=0x81 claimed=Y load=18.4% msgs=1109 aiso=36(45221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=62 vt=Y(21/22) vtstat=37/161ms tc=Y drp=0mm tcq=0
+[  24.513] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=1140 aiso=37(46221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=38/162ms tc=Y drp=0mm tcq=0
+[  25.522] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=1171 aiso=38(47221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=39/165ms tc=Y drp=0mm tcq=0
+[  26.530] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1202 aiso=39(48221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=62 vt=Y(21/22) vtstat=40/166ms tc=Y drp=0mm tcq=0
+[  27.536] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1233 aiso=40(49221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=41/165ms tc=Y drp=0mm tcq=0
+[  28.537] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1264 aiso=41(50221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=42/167ms tc=Y drp=0mm tcq=0
+[  29.540] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1295 aiso=42(51221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=43/162ms tc=Y drp=0mm tcq=0
+[  30.544] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1326 aiso=43(52221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=44/165ms tc=Y drp=0mm tcq=0
+[  31.552] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1357 aiso=44(53221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=45/167ms tc=Y drp=0mm tcq=0
+[  32.558] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1388 aiso=45(54221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=46/165ms tc=Y drp=0mm tcq=0
+[  33.560] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1419 aiso=46(55221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=47/167ms tc=Y drp=0mm tcq=0
+[  34.561] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1450 aiso=47(56221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=48/165ms tc=Y drp=0mm tcq=0
+[  35.561] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1481 aiso=48(57221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=49/167ms tc=Y drp=0mm tcq=0
+[  36.576] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1512 aiso=49(58221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=50/165ms tc=Y drp=0mm tcq=0
+[  37.583] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1543 aiso=50(59221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=51/165ms tc=Y drp=0mm tcq=0
+[  38.585] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1574 aiso=51(60221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=52/167ms tc=Y drp=0mm tcq=0
+[  39.599] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1605 aiso=52(61221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=53/166ms tc=Y drp=0mm tcq=0
+[  40.608] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1636 aiso=53(62221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=54/165ms tc=Y drp=0mm tcq=0
+[  41.616] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1667 aiso=54(63221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=55/165ms tc=Y drp=0mm tcq=0
+[  42.623] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1698 aiso=55(64221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=56/165ms tc=Y drp=0mm tcq=0
+[  43.627] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1729 aiso=56(65221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=57/161ms tc=Y drp=0mm tcq=0
+[  44.636] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1760 aiso=57(66221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=58/165ms tc=Y drp=0mm tcq=0
+[  45.645] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1791 aiso=58(67221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=59/161ms tc=Y drp=0mm tcq=0
+[  46.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1822 aiso=59(68221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=60/161ms tc=Y drp=0mm tcq=0
+[  47.656] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1853 aiso=60(69221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=61/167ms tc=Y drp=0mm tcq=0
+[  48.659] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1884 aiso=61(70221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=62/161ms tc=Y drp=0mm tcq=0
+[  49.674] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1915 aiso=62(71221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=63/165ms tc=Y drp=0mm tcq=0
+[  50.691] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=1946 aiso=63(72221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=64/167ms tc=Y drp=0mm tcq=0
+[  51.705] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=1977 aiso=64(73221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=65/161ms tc=Y drp=0mm tcq=0
+[  52.709] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2008 aiso=65(74221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=66/167ms tc=Y drp=0mm tcq=0
+[  53.713] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2039 aiso=66(75221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=67/167ms tc=Y drp=0mm tcq=0
+[  54.724] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2070 aiso=67(76221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=68/165ms tc=Y drp=0mm tcq=0
+[  55.736] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2101 aiso=68(77221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=69/165ms tc=Y drp=0mm tcq=0
+[  56.747] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2132 aiso=69(78221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=70/165ms tc=Y drp=0mm tcq=0
+[  57.765] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2163 aiso=70(79221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=71/164ms tc=Y drp=0mm tcq=0
+[  58.768] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2194 aiso=71(80221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=72/167ms tc=Y drp=0mm tcq=0
+[  59.769] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2225 aiso=72(81221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=73/165ms tc=Y drp=0mm tcq=0
+[  60.781] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2256 aiso=73(82221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=74/165ms tc=Y drp=0mm tcq=0
+[  61.784] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2287 aiso=74(83221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=75/165ms tc=Y drp=0mm tcq=0
+[  62.792] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2318 aiso=75(84221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=76/167ms tc=Y drp=0mm tcq=0
+[  63.793] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2349 aiso=76(85221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=77/167ms tc=Y drp=0mm tcq=0
+[  64.795] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2380 aiso=77(86221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=78/164ms tc=Y drp=0mm tcq=0
+[  65.810] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2411 aiso=78(87221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=79/164ms tc=Y drp=0mm tcq=0
+[  66.812] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2442 aiso=79(88221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=80/167ms tc=Y drp=0mm tcq=0
+[  67.821] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2473 aiso=80(89221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=81/165ms tc=Y drp=0mm tcq=0
+[  68.828] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2504 aiso=81(90221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=82/167ms tc=Y drp=0mm tcq=0
+[  69.840] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2535 aiso=82(91221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=83/164ms tc=Y drp=0mm tcq=0
+[  70.840] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2566 aiso=83(92221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=84/164ms tc=Y drp=0mm tcq=0
+[  71.846] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2597 aiso=84(93221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=85/165ms tc=Y drp=0mm tcq=0
+[  72.862] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2628 aiso=85(94221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=86/164ms tc=Y drp=0mm tcq=0
+[  73.869] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2659 aiso=86(95221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=87/167ms tc=Y drp=0mm tcq=0
+[  74.878] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2690 aiso=87(96221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=88/164ms tc=Y drp=0mm tcq=0
+[  75.886] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2721 aiso=88(97221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=89/165ms tc=Y drp=0mm tcq=0
+[  76.891] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2752 aiso=89(98221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=90/165ms tc=Y drp=0mm tcq=0
+[  77.894] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2783 aiso=90(99221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=91/167ms tc=Y drp=0mm tcq=0
+[  78.895] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2814 aiso=91(100221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=92/165ms tc=Y drp=0mm tcq=0
+[  79.902] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2845 aiso=92(101221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=93/166ms tc=Y drp=0mm tcq=0
+[  80.904] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2876 aiso=93(102221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=94/164ms tc=Y drp=0mm tcq=0
+[  81.908] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2907 aiso=94(103221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=95/165ms tc=Y drp=0mm tcq=0
+[  82.915] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=2938 aiso=95(104221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=96/167ms tc=Y drp=0mm tcq=0
+[  83.918] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=2969 aiso=96(105221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=97/165ms tc=Y drp=0mm tcq=0
+[  84.932] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3000 aiso=97(106221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=58 vtgAge=57 xteAge=56 vt=Y(21/22) vtstat=98/165ms tc=Y drp=0mm tcq=0
+[  85.938] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3031 aiso=98(107221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=99/165ms tc=Y drp=0mm tcq=0
+[  86.948] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3062 aiso=99(108221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=100/165ms tc=Y drp=0mm tcq=0
+[  87.951] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3093 aiso=100(109221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=101/164ms tc=Y drp=0mm tcq=0
+[  88.960] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3124 aiso=101(110221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=102/164ms tc=Y drp=0mm tcq=0
+[  89.966] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3155 aiso=102(111221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=103/165ms tc=Y drp=0mm tcq=0
+[  90.978] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3186 aiso=103(112221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=104/167ms tc=Y drp=0mm tcq=0
+[  91.990] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3217 aiso=104(113221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=105/165ms tc=Y drp=0mm tcq=0
+[  93.006] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3248 aiso=105(114221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=106/167ms tc=Y drp=0mm tcq=0
+[  94.018] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3279 aiso=106(115221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=107/165ms tc=Y drp=0mm tcq=0
+[  95.026] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3310 aiso=107(116221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=108/167ms tc=Y drp=0mm tcq=0
+[  96.029] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3341 aiso=108(117221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=109/165ms tc=Y drp=0mm tcq=0
+[  97.044] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3372 aiso=109(118221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=110/165ms tc=Y drp=0mm tcq=0
+[  98.048] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3403 aiso=110(119221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=111/165ms tc=Y drp=0mm tcq=0
+[  99.055] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3434 aiso=111(120221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=112/166ms tc=Y drp=0mm tcq=0
+[ 100.061] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3465 aiso=112(121221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=113/165ms tc=Y drp=0mm tcq=0
+[ 101.077] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3496 aiso=113(122221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=114/167ms tc=Y drp=0mm tcq=0
+[ 102.088] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3527 aiso=114(123221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=115/167ms tc=Y drp=0mm tcq=0
+[ 103.090] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3558 aiso=115(124221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=116/165ms tc=Y drp=0mm tcq=0
+[ 104.095] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3589 aiso=116(125221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=117/167ms tc=Y drp=0mm tcq=0
+[ 105.107] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3620 aiso=117(126221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=118/167ms tc=Y drp=0mm tcq=0
+[ 106.110] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3651 aiso=118(127221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=119/164ms tc=Y drp=0mm tcq=0
+[ 107.119] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3682 aiso=119(128221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=120/167ms tc=Y drp=0mm tcq=0
+[ 108.128] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3713 aiso=120(129221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=121/147ms tc=Y drp=0mm tcq=0
+[ 109.142] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3744 aiso=121(130221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=122/167ms tc=Y drp=0mm tcq=0
+[ 110.147] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3775 aiso=122(131221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=123/165ms tc=Y drp=0mm tcq=0
+[ 111.155] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3806 aiso=123(132221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=124/167ms tc=Y drp=0mm tcq=0
+[ 112.162] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3837 aiso=124(133221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=125/165ms tc=Y drp=0mm tcq=0
+[ 113.170] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3868 aiso=125(134221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=126/165ms tc=Y drp=0mm tcq=0
+[ 114.173] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3899 aiso=126(135221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=127/164ms tc=Y drp=0mm tcq=0
+[ 115.180] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3930 aiso=127(136221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=128/165ms tc=Y drp=0mm tcq=0
+[ 116.183] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=3961 aiso=128(137221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=129/167ms tc=Y drp=0mm tcq=0
+[ 117.188] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=3992 aiso=129(138221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=130/165ms tc=Y drp=0mm tcq=0
+[ 118.196] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4023 aiso=130(139221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=131/167ms tc=Y drp=0mm tcq=0
+[ 119.210] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4054 aiso=131(140221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=132/165ms tc=Y drp=0mm tcq=0
+[ 120.217] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4085 aiso=132(141221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=133/165ms tc=Y drp=0mm tcq=0
+[ 121.229] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4116 aiso=133(142221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=134/165ms tc=Y drp=0mm tcq=0
+[ 122.243] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4147 aiso=134(143221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=135/167ms tc=Y drp=0mm tcq=0
+[ 123.253] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4178 aiso=135(144221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=136/166ms tc=Y drp=0mm tcq=0
+[ 124.259] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4209 aiso=136(145221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=137/167ms tc=Y drp=0mm tcq=0
+[ 125.263] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4240 aiso=137(146221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=138/165ms tc=Y drp=0mm tcq=0
+[ 126.278] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4271 aiso=138(147221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=139/167ms tc=Y drp=0mm tcq=0
+[ 127.280] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4302 aiso=139(148221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=140/165ms tc=Y drp=0mm tcq=0
+[ 128.289] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4333 aiso=140(149221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=141/167ms tc=Y drp=0mm tcq=0
+[ 129.296] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4364 aiso=141(150221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=142/167ms tc=Y drp=0mm tcq=0
+[ 130.312] [ISOBUS] addr=0x81 claimed=Y load=17.5% msgs=4395 aiso=142(151221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=143/165ms tc=Y drp=0mm tcq=0
+[ 131.323] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=4426 aiso=143(152221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=144/164ms tc=Y drp=0mm tcq=0
+[ 132.333] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4457 aiso=144(153221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=145/165ms tc=Y drp=0mm tcq=0
+[ 133.332] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4488 aiso=145(154221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=146/165ms tc=Y drp=0mm tcq=0
+[ 134.333] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4519 aiso=146(155221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=147/167ms tc=Y drp=0mm tcq=0
+[ 135.344] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4550 aiso=147(156221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=148/165ms tc=Y drp=0mm tcq=0
+[ 136.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4581 aiso=148(157221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=149/166ms tc=Y drp=0mm tcq=0
+[ 137.344] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4612 aiso=149(158221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=150/163ms tc=Y drp=0mm tcq=0
+[ 138.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4643 aiso=150(159221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=151/167ms tc=Y drp=0mm tcq=0
+[ 138.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4674 aiso=151(160221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=152/163ms tc=Y drp=0mm tcq=0
+[ 139.358] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4705 aiso=152(161221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=153/164ms tc=Y drp=0mm tcq=0
+[ 140.361] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4736 aiso=153(162221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=154/164ms tc=Y drp=0mm tcq=0
+[ 141.373] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4767 aiso=154(163221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=155/166ms tc=Y drp=0mm tcq=0
+[ 142.388] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4798 aiso=155(164221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=156/165ms tc=Y drp=0mm tcq=0
+[ 143.400] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4829 aiso=156(165221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=157/167ms tc=Y drp=0mm tcq=0
+[ 144.405] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4860 aiso=157(166221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=158/163ms tc=Y drp=0mm tcq=0
+[ 145.408] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=4891 aiso=158(167221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=159/164ms tc=Y drp=0mm tcq=0
+[ 146.412] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4922 aiso=159(168221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=160/166ms tc=Y drp=0mm tcq=0
+[ 147.412] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=4953 aiso=160(169221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=161/165ms tc=Y drp=0mm tcq=0
+[ 148.421] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=4984 aiso=161(170221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=162/165ms tc=Y drp=0mm tcq=0
+[ 149.426] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5015 aiso=162(171221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=163/165ms tc=Y drp=0mm tcq=0
+[ 150.439] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=5046 aiso=163(172221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=164/164ms tc=Y drp=0mm tcq=0
+[ 151.450] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5077 aiso=164(173221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=165/164ms tc=Y drp=0mm tcq=0
+[ 152.453] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5108 aiso=165(174221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=166/167ms tc=Y drp=0mm tcq=0
+[ 153.461] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5139 aiso=166(175221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=167/164ms tc=Y drp=0mm tcq=0
+[ 154.469] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5170 aiso=167(176221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=168/167ms tc=Y drp=0mm tcq=0
+[ 155.482] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5201 aiso=168(177221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=169/167ms tc=Y drp=0mm tcq=0
+[ 156.495] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5232 aiso=169(178221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=170/164ms tc=Y drp=0mm tcq=0
+[ 157.505] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=5263 aiso=170(179221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=171/164ms tc=Y drp=0mm tcq=0
+[ 158.508] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5294 aiso=171(180221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=172/165ms tc=Y drp=0mm tcq=0
+[ 159.522] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5325 aiso=172(181221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=173/164ms tc=Y drp=0mm tcq=0
+[ 160.524] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5356 aiso=173(182221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=174/166ms tc=Y drp=0mm tcq=0
+[ 161.530] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5387 aiso=174(183221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=175/163ms tc=Y drp=0mm tcq=0
+[ 162.540] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5418 aiso=175(184221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=176/164ms tc=Y drp=0mm tcq=0
+[ 163.544] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5449 aiso=176(185221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=177/165ms tc=Y drp=0mm tcq=0
+[ 164.554] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=5480 aiso=177(186221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=179/164ms tc=Y drp=0mm tcq=0
+[ 165.561] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5511 aiso=178(187221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=180/164ms tc=Y drp=0mm tcq=0
+[ 166.565] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5542 aiso=179(188221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=181/164ms tc=Y drp=0mm tcq=0
+[ 167.577] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5573 aiso=180(189221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=182/166ms tc=Y drp=0mm tcq=0
+[ 168.578] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5604 aiso=181(190221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=183/167ms tc=Y drp=0mm tcq=0
+[ 169.578] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5635 aiso=182(191221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=184/167ms tc=Y drp=0mm tcq=0
+[ 170.344] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 171.346] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5666 aiso=183(192221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=185/164ms tc=Y drp=0mm tcq=0
+[ 171.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 172.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5697 aiso=184(193221ms) xte=-139.53m spd=1.36m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=186/164ms tc=Y drp=0mm tcq=0
+[ 172.346] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 173.346] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5728 aiso=185(194221ms) xte=-139.53m spd=1.15m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=187/163ms tc=Y drp=0mm tcq=0
+[ 173.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 174.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5759 aiso=186(195221ms) xte=-139.53m spd=1.10m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=188/156ms tc=Y drp=0mm tcq=0
+[ 174.346] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 174.884] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5790 aiso=187(196221ms) xte=-139.53m spd=0.98m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=189/166ms tc=Y drp=0mm tcq=0
+[ 175.636] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 175.636] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5821 aiso=188(197221ms) xte=-139.53m spd=0.66m/s q=0 ggaAge=66 vtgAge=65 xteAge=57 vt=Y(21/22) vtstat=190/164ms tc=Y drp=0mm tcq=0
+[ 176.652] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 176.652] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5852 aiso=189(198221ms) xte=-139.53m spd=0.36m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=191/167ms tc=Y drp=0mm tcq=0
+[ 177.345] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 178.332] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5883 aiso=190(199221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=192/166ms tc=Y drp=0mm tcq=0
+[ 178.332] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 179.334] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5914 aiso=191(200221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=193/164ms tc=Y drp=0mm tcq=0
+[ 179.334] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 179.636] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=5945 aiso=192(201221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=194/166ms tc=Y drp=0mm tcq=0
+[ 180.650] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 180.650] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=5976 aiso=193(202221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=195/167ms tc=Y drp=0mm tcq=0
+[ 181.341] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 182.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6007 aiso=194(203221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=196/167ms tc=Y drp=0mm tcq=0
+[ 182.346] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 183.342] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6038 aiso=195(204221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=197/164ms tc=Y drp=0mm tcq=0
+[ 183.342] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 184.335] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6069 aiso=196(205221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=198/164ms tc=Y drp=0mm tcq=0
+[ 184.335] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 185.346] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6100 aiso=197(206221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=199/164ms tc=Y drp=0mm tcq=0
+[ 185.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 185.637] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6131 aiso=198(207221ms) xte=-139.53m spd=0.32m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=200/167ms tc=Y drp=0mm tcq=0
+[ 186.648] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 186.648] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6162 aiso=199(208221ms) xte=-139.53m spd=1.20m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=201/163ms tc=Y drp=0mm tcq=0
+[ 187.337] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 188.339] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6193 aiso=200(209221ms) xte=-139.53m spd=1.05m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=202/164ms tc=Y drp=0mm tcq=0
+[ 188.339] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 188.885] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6224 aiso=201(210221ms) xte=-139.53m spd=0.77m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=203/164ms tc=Y drp=0mm tcq=0
+[ 189.635] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 189.635] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6255 aiso=202(211221ms) xte=-139.53m spd=0.48m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=204/162ms tc=Y drp=0mm tcq=0
+[ 190.636] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 190.636] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6286 aiso=203(212221ms) xte=-139.53m spd=0.29m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=205/167ms tc=Y drp=0mm tcq=0
+[ 191.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 192.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6317 aiso=204(213221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=206/162ms tc=Y drp=0mm tcq=0
+[ 192.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 193.332] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6348 aiso=205(214221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=207/164ms tc=Y drp=0mm tcq=0
+[ 193.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 194.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6379 aiso=206(215221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=64 vt=Y(21/22) vtstat=208/166ms tc=Y drp=0mm tcq=0
+[ 194.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 195.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6410 aiso=207(216221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=63 vt=Y(21/22) vtstat=209/164ms tc=Y drp=0mm tcq=0
+[ 195.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 195.632] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6441 aiso=208(217221ms) xte=-139.53m spd=0.46m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=210/164ms tc=Y drp=0mm tcq=0
+[ 196.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 196.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6472 aiso=209(218221ms) xte=-139.53m spd=1.18m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=211/163ms tc=Y drp=0mm tcq=0
+[ 197.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 198.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6503 aiso=210(219221ms) xte=-139.53m spd=0.95m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=212/164ms tc=Y drp=0mm tcq=0
+[ 198.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 199.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6534 aiso=211(220221ms) xte=-139.53m spd=0.67m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=213/163ms tc=Y drp=0mm tcq=0
+[ 199.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 200.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6565 aiso=212(221221ms) xte=-139.53m spd=0.33m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=214/167ms tc=Y drp=0mm tcq=0
+[ 200.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 201.340] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6596 aiso=213(222221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=215/164ms tc=Y drp=0mm tcq=0
+[ 201.340] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 201.628] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6627 aiso=214(223221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=216/162ms tc=Y drp=0mm tcq=0
+[ 202.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 202.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6658 aiso=215(224221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=217/167ms tc=Y drp=0mm tcq=0
+[ 203.333] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 204.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6689 aiso=216(225221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=218/167ms tc=Y drp=0mm tcq=0
+[ 204.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 204.883] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6720 aiso=217(226221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=219/164ms tc=Y drp=0mm tcq=0
+[ 205.637] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 205.637] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6751 aiso=218(227221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=220/163ms tc=Y drp=0mm tcq=0
+[ 206.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 206.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6782 aiso=219(228221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=221/164ms tc=Y drp=0mm tcq=0
+[ 207.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 208.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6813 aiso=220(229221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=64 vtgAge=64 xteAge=63 vt=Y(21/22) vtstat=222/164ms tc=Y drp=0mm tcq=0
+[ 208.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 209.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6844 aiso=221(230221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=223/165ms tc=Y drp=0mm tcq=0
+[ 209.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 210.335] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6875 aiso=222(231221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=224/167ms tc=Y drp=0mm tcq=0
+[ 210.335] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 211.345] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6906 aiso=223(232221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=66 vt=Y(21/22) vtstat=225/167ms tc=Y drp=0mm tcq=0
+[ 211.345] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 211.633] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6937 aiso=224(233221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=226/164ms tc=Y drp=0mm tcq=0
+[ 212.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 212.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=6968 aiso=225(234221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=227/165ms tc=Y drp=0mm tcq=0
+[ 213.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 214.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=6999 aiso=226(235221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=228/167ms tc=Y drp=0mm tcq=0
+[ 214.346] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 215.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7030 aiso=227(236221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=229/164ms tc=Y drp=0mm tcq=0
+[ 215.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 216.341] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7061 aiso=228(237221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=230/166ms tc=Y drp=0mm tcq=0
+[ 216.341] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 217.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7092 aiso=229(238221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=231/164ms tc=Y drp=0mm tcq=0
+[ 217.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 217.636] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7123 aiso=230(239221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=64 vtgAge=64 xteAge=63 vt=Y(21/22) vtstat=232/164ms tc=Y drp=0mm tcq=0
+[ 218.673] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 218.673] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7154 aiso=231(240221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=233/164ms tc=Y drp=0mm tcq=0
+[ 219.338] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 220.338] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7185 aiso=232(241221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=67 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=234/164ms tc=Y drp=0mm tcq=0
+[ 220.338] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 220.884] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7216 aiso=233(242221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=235/167ms tc=Y drp=0mm tcq=0
+[ 221.638] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 221.638] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7247 aiso=234(243221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=236/166ms tc=Y drp=0mm tcq=0
+[ 222.644] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 222.644] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7278 aiso=235(244221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=237/164ms tc=Y drp=0mm tcq=0
+[ 223.337] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 224.340] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7309 aiso=236(245221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=238/167ms tc=Y drp=0mm tcq=0
+[ 224.340] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 224.880] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7340 aiso=237(246221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=239/167ms tc=Y drp=0mm tcq=0
+[ 225.637] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 225.637] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7371 aiso=238(247221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=63 vtgAge=63 xteAge=62 vt=Y(21/22) vtstat=240/164ms tc=Y drp=0mm tcq=0
+[ 226.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 226.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7402 aiso=239(248221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=241/167ms tc=Y drp=0mm tcq=0
+[ 227.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 228.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7433 aiso=240(249221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=242/150ms tc=Y drp=0mm tcq=0
+[ 228.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 229.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7464 aiso=241(250221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=243/164ms tc=Y drp=0mm tcq=0
+[ 229.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 229.638] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7495 aiso=242(251221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=244/163ms tc=Y drp=0mm tcq=0
+[ 230.639] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 230.639] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7526 aiso=243(252221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=245/164ms tc=Y drp=0mm tcq=0
+[ 231.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 232.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7557 aiso=244(253221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=246/164ms tc=Y drp=0mm tcq=0
+[ 232.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 233.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7588 aiso=245(254221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=247/164ms tc=Y drp=0mm tcq=0
+[ 233.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 234.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7619 aiso=246(255221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=248/164ms tc=Y drp=0mm tcq=0
+[ 234.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 235.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7650 aiso=247(256221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=249/167ms tc=Y drp=0mm tcq=0
+[ 235.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 235.645] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7681 aiso=248(257221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=250/164ms tc=Y drp=0mm tcq=0
+[ 236.647] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 236.647] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7712 aiso=249(258221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=251/164ms tc=Y drp=0mm tcq=0
+[ 237.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 238.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7743 aiso=250(259221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=252/155ms tc=Y drp=0mm tcq=0
+[ 238.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 239.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7774 aiso=251(260221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=253/168ms tc=Y drp=0mm tcq=0
+[ 239.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 240.348] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7805 aiso=252(261221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=254/167ms tc=Y drp=0mm tcq=0
+[ 240.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 241.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7836 aiso=253(262221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=255/165ms tc=Y drp=0mm tcq=0
+[ 241.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 241.636] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7867 aiso=254(263221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=256/167ms tc=Y drp=0mm tcq=0
+[ 242.638] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 242.638] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7898 aiso=255(264221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=257/164ms tc=Y drp=0mm tcq=0
+[ 243.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 244.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7929 aiso=256(265221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=258/164ms tc=Y drp=0mm tcq=0
+[ 244.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 244.892] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=7960 aiso=257(266221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=259/167ms tc=Y drp=0mm tcq=0
+[ 245.639] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 245.639] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=7991 aiso=258(267221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=260/164ms tc=Y drp=0mm tcq=0
+[ 246.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 246.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8022 aiso=259(268221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=261/164ms tc=Y drp=0mm tcq=0
+[ 247.339] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 248.341] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8053 aiso=260(269221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=262/164ms tc=Y drp=0mm tcq=0
+[ 248.341] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 248.882] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8084 aiso=261(270221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=263/167ms tc=Y drp=0mm tcq=0
+[ 249.630] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 249.630] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8115 aiso=262(271221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=264/167ms tc=Y drp=0mm tcq=0
+[ 250.632] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 250.632] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8146 aiso=263(272221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=265/164ms tc=Y drp=0mm tcq=0
+[ 251.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 252.339] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8177 aiso=264(273221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=266/164ms tc=Y drp=0mm tcq=0
+[ 252.339] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 253.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8208 aiso=265(274221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=267/167ms tc=Y drp=0mm tcq=0
+[ 253.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 253.639] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8239 aiso=266(275221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=268/167ms tc=Y drp=0mm tcq=0
+[ 254.647] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 254.647] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8270 aiso=267(276221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=269/164ms tc=Y drp=0mm tcq=0
+[ 255.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 256.348] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8301 aiso=268(277221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=270/164ms tc=Y drp=0mm tcq=0
+[ 256.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 257.341] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8332 aiso=269(278221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=271/155ms tc=Y drp=0mm tcq=0
+[ 257.341] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 258.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8363 aiso=270(279221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=272/164ms tc=Y drp=0mm tcq=0
+[ 258.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 258.891] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8394 aiso=271(280221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=273/164ms tc=Y drp=0mm tcq=0
+[ 259.640] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 259.640] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8425 aiso=272(281221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=274/164ms tc=Y drp=0mm tcq=0
+[ 260.641] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 260.641] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8456 aiso=273(282221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=275/166ms tc=Y drp=0mm tcq=0
+[ 261.338] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 262.340] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8487 aiso=274(283221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=276/164ms tc=Y drp=0mm tcq=0
+[ 262.340] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 262.889] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8518 aiso=275(284221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=277/164ms tc=Y drp=0mm tcq=0
+[ 263.636] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 263.636] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8549 aiso=276(285221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=278/164ms tc=Y drp=0mm tcq=0
+[ 264.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 264.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8580 aiso=277(286221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=279/164ms tc=Y drp=0mm tcq=0
+[ 265.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 266.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8611 aiso=278(287221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=280/164ms tc=Y drp=0mm tcq=0
+[ 266.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 267.349] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8642 aiso=279(288221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=281/166ms tc=Y drp=0mm tcq=0
+[ 267.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 268.348] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8673 aiso=280(289221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=59 vtgAge=56 xteAge=55 vt=Y(21/22) vtstat=282/164ms tc=Y drp=0mm tcq=0
+[ 268.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 269.349] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=8704 aiso=281(290221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=283/164ms tc=Y drp=0mm tcq=0
+[ 269.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 269.641] [ISOBUS] addr=0x81 claimed=Y load=17.9% msgs=8735 aiso=282(291221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=284/164ms tc=Y drp=0mm tcq=0
+[ 270.655] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 270.655] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8766 aiso=283(292221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=285/163ms tc=Y drp=0mm tcq=0
+[ 271.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 272.348] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8797 aiso=284(293221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=286/164ms tc=Y drp=0mm tcq=0
+[ 272.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 273.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8828 aiso=285(294221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=287/164ms tc=Y drp=0mm tcq=0
+[ 273.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 274.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8859 aiso=286(295221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=288/166ms tc=Y drp=0mm tcq=0
+[ 274.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 275.349] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8890 aiso=287(296221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=289/164ms tc=Y drp=0mm tcq=0
+[ 275.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 275.637] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8921 aiso=288(297221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=290/164ms tc=Y drp=0mm tcq=0
+[ 276.638] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 276.638] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=8952 aiso=289(298221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=291/166ms tc=Y drp=0mm tcq=0
+[ 277.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 278.344] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=8983 aiso=290(299221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=292/166ms tc=Y drp=0mm tcq=0
+[ 278.344] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 279.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9014 aiso=291(300221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=293/164ms tc=Y drp=0mm tcq=0
+[ 279.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 280.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9045 aiso=292(301221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=294/166ms tc=Y drp=0mm tcq=0
+[ 280.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 281.346] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9076 aiso=293(302221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=295/165ms tc=Y drp=0mm tcq=0
+[ 281.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 281.641] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9107 aiso=294(303221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=296/166ms tc=Y drp=0mm tcq=0
+[ 282.657] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 282.657] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9138 aiso=295(304221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=297/164ms tc=Y drp=0mm tcq=0
+[ 283.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 284.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9169 aiso=296(305221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=298/166ms tc=Y drp=0mm tcq=0
+[ 284.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 285.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9200 aiso=297(306221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=299/164ms tc=Y drp=0mm tcq=0
+[ 285.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 286.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9231 aiso=298(307221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=300/166ms tc=Y drp=0mm tcq=0
+[ 286.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 287.348] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9262 aiso=299(308221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=64 xteAge=64 vt=Y(21/22) vtstat=301/169ms tc=Y drp=0mm tcq=0
+[ 287.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 287.640] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9293 aiso=300(309221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=302/163ms tc=Y drp=0mm tcq=0
+[ 288.642] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 288.642] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9324 aiso=301(310221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=303/163ms tc=Y drp=0mm tcq=0
+[ 289.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 290.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9355 aiso=302(311221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=304/166ms tc=Y drp=0mm tcq=0
+[ 290.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 291.338] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9386 aiso=303(312221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=305/169ms tc=Y drp=0mm tcq=0
+[ 291.338] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 292.340] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9417 aiso=304(313221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=306/163ms tc=Y drp=0mm tcq=0
+[ 292.340] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 292.889] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9448 aiso=305(314221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=64 xteAge=64 vt=Y(21/22) vtstat=307/163ms tc=Y drp=0mm tcq=0
+[ 293.640] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 293.640] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9479 aiso=306(315221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=308/163ms tc=Y drp=0mm tcq=0
+[ 294.647] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 294.647] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9510 aiso=307(316221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=66 xteAge=65 vt=Y(21/22) vtstat=309/169ms tc=Y drp=0mm tcq=0
+[ 295.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 296.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9541 aiso=308(317221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=59 vtgAge=59 xteAge=58 vt=Y(21/22) vtstat=310/163ms tc=Y drp=0mm tcq=0
+[ 296.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 297.335] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9572 aiso=309(318221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=311/164ms tc=Y drp=0mm tcq=0
+[ 297.335] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 298.341] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9603 aiso=310(319221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=312/163ms tc=Y drp=0mm tcq=0
+[ 298.341] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 298.888] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9634 aiso=311(320221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=313/169ms tc=Y drp=0mm tcq=0
+[ 299.635] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 299.635] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9665 aiso=312(321221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=314/163ms tc=Y drp=0mm tcq=0
+[ 300.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 300.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9696 aiso=313(322221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=315/169ms tc=Y drp=0mm tcq=0
+[ 301.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 302.335] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9727 aiso=314(323221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=316/164ms tc=Y drp=0mm tcq=0
+[ 302.335] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 303.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9758 aiso=315(324221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=317/169ms tc=Y drp=0mm tcq=0
+[ 303.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 303.638] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9789 aiso=316(325221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=318/155ms tc=Y drp=0mm tcq=0
+[ 304.649] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 304.649] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9820 aiso=317(326221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=319/163ms tc=Y drp=0mm tcq=0
+[ 305.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 306.340] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9851 aiso=318(327221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=320/169ms tc=Y drp=0mm tcq=0
+[ 306.340] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 307.345] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9882 aiso=319(328221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=321/164ms tc=Y drp=0mm tcq=0
+[ 307.345] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 307.641] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9913 aiso=320(329221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=322/169ms tc=Y drp=0mm tcq=0
+[ 308.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 308.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=9944 aiso=321(330221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=323/169ms tc=Y drp=0mm tcq=0
+[ 309.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 310.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=9975 aiso=322(331221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=65 vtgAge=65 xteAge=64 vt=Y(21/22) vtstat=324/164ms tc=Y drp=0mm tcq=0
+[ 310.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 311.339] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10006 aiso=323(332221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=325/164ms tc=Y drp=0mm tcq=0
+[ 311.339] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 312.348] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10037 aiso=324(333221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=326/169ms tc=Y drp=0mm tcq=0
+[ 312.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 312.891] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10068 aiso=325(334221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=327/164ms tc=Y drp=0mm tcq=0
+[ 313.635] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 313.635] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10099 aiso=326(335221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=328/164ms tc=Y drp=0mm tcq=0
+[ 314.641] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 314.641] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10130 aiso=327(336221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=64 vtgAge=63 xteAge=63 vt=Y(21/22) vtstat=329/169ms tc=Y drp=0mm tcq=0
+[ 315.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 316.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10161 aiso=328(337221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=330/164ms tc=Y drp=0mm tcq=0
+[ 316.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 317.338] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10192 aiso=329(338221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=67 xteAge=65 vt=Y(21/22) vtstat=331/169ms tc=Y drp=0mm tcq=0
+[ 317.338] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 318.338] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10223 aiso=330(339221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=332/163ms tc=Y drp=0mm tcq=0
+[ 318.338] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 319.351] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10254 aiso=331(340221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=333/169ms tc=Y drp=0mm tcq=0
+[ 319.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 319.639] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10285 aiso=332(341221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=334/163ms tc=Y drp=0mm tcq=0
+[ 320.649] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 320.649] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10316 aiso=333(342221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=335/164ms tc=Y drp=0mm tcq=0
+[ 321.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 322.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10347 aiso=334(343221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=65 vt=Y(21/22) vtstat=336/164ms tc=Y drp=0mm tcq=0
+[ 322.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 323.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10378 aiso=335(344221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=67 vt=Y(21/22) vtstat=337/166ms tc=Y drp=0mm tcq=0
+[ 323.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 324.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10409 aiso=336(345221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=338/169ms tc=Y drp=0mm tcq=0
+[ 324.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 325.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10440 aiso=337(346221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=339/164ms tc=Y drp=0mm tcq=0
+[ 325.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 325.636] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10471 aiso=338(347221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=340/169ms tc=Y drp=0mm tcq=0
+[ 326.651] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 326.651] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10502 aiso=339(348221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=341/169ms tc=Y drp=0mm tcq=0
+[ 327.344] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 328.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10533 aiso=340(349221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=342/165ms tc=Y drp=0mm tcq=0
+[ 328.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 328.884] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10564 aiso=341(350221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=343/164ms tc=Y drp=0mm tcq=0
+[ 329.643] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 329.643] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10595 aiso=342(351221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=344/167ms tc=Y drp=0mm tcq=0
+[ 330.656] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 330.656] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10626 aiso=343(352221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=345/164ms tc=Y drp=0mm tcq=0
+[ 331.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 332.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10657 aiso=344(353221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=67 xteAge=67 vt=Y(21/22) vtstat=346/169ms tc=Y drp=0mm tcq=0
+[ 332.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 333.349] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10688 aiso=345(354221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=347/169ms tc=Y drp=0mm tcq=0
+[ 333.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 334.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10719 aiso=346(355221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=348/164ms tc=Y drp=0mm tcq=0
+[ 334.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 335.349] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10750 aiso=347(356221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=349/170ms tc=Y drp=0mm tcq=0
+[ 335.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 335.631] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10781 aiso=348(357221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=350/164ms tc=Y drp=0mm tcq=0
+[ 336.639] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 336.639] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10812 aiso=349(358221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=68 vtgAge=68 xteAge=67 vt=Y(21/22) vtstat=351/164ms tc=Y drp=0mm tcq=0
+[ 337.342] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 338.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10843 aiso=350(359221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=352/167ms tc=Y drp=0mm tcq=0
+[ 338.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 338.886] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10874 aiso=351(360221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=353/170ms tc=Y drp=0mm tcq=0
+[ 339.641] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 339.641] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10905 aiso=352(361221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=354/164ms tc=Y drp=0mm tcq=0
+[ 340.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 340.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10936 aiso=353(362221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=355/170ms tc=Y drp=0mm tcq=0
+[ 341.342] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 342.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=10967 aiso=354(363221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=356/165ms tc=Y drp=0mm tcq=0
+[ 342.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 343.341] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=10998 aiso=355(364221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=357/170ms tc=Y drp=0mm tcq=0
+[ 343.341] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 344.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11029 aiso=356(365221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=358/167ms tc=Y drp=0mm tcq=0
+[ 344.352] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 345.349] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11060 aiso=357(366221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=359/167ms tc=Y drp=0mm tcq=0
+[ 345.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 345.637] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11091 aiso=358(367221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=360/167ms tc=Y drp=0mm tcq=0
+[ 346.643] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 346.643] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11122 aiso=359(368221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=361/170ms tc=Y drp=0mm tcq=0
+[ 347.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 348.352] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11153 aiso=360(369221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=362/164ms tc=Y drp=0mm tcq=0
+[ 348.352] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 349.351] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11184 aiso=361(370221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=363/167ms tc=Y drp=0mm tcq=0
+[ 349.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 350.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11215 aiso=362(371221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=364/170ms tc=Y drp=0mm tcq=0
+[ 350.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 351.351] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11246 aiso=363(372221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=365/167ms tc=Y drp=0mm tcq=0
+[ 351.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 351.635] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11277 aiso=364(373221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=366/164ms tc=Y drp=0mm tcq=0
+[ 352.641] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 352.641] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11308 aiso=365(374221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=367/168ms tc=Y drp=0mm tcq=0
+[ 353.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 354.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11339 aiso=366(375221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=368/164ms tc=Y drp=0mm tcq=0
+[ 354.346] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 355.344] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11370 aiso=367(376221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=369/167ms tc=Y drp=0mm tcq=0
+[ 355.344] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 356.340] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11401 aiso=368(377221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=370/167ms tc=Y drp=0mm tcq=0
+[ 356.340] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 357.347] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11432 aiso=369(378221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=371/166ms tc=Y drp=0mm tcq=0
+[ 357.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 357.626] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11463 aiso=370(379221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=372/166ms tc=Y drp=0mm tcq=0
+[ 358.629] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 358.629] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11494 aiso=371(380221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=373/169ms tc=Y drp=0mm tcq=0
+[ 359.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 360.344] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11525 aiso=372(381221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=374/167ms tc=Y drp=0mm tcq=0
+[ 360.344] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 361.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11556 aiso=373(382221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=375/170ms tc=Y drp=0mm tcq=0
+[ 361.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 361.631] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11587 aiso=374(383221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=376/167ms tc=Y drp=0mm tcq=0
+[ 362.632] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 362.632] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11618 aiso=375(384221ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=377/168ms tc=Y drp=0mm tcq=0
+[ 363.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 364.348] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11649 aiso=376(385221ms) xte=-139.53m spd=0.45m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=378/170ms tc=Y drp=0mm tcq=0
+[ 364.348] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 365.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11680 aiso=377(386221ms) xte=-139.53m spd=0.72m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=379/167ms tc=Y drp=0mm tcq=0
+[ 365.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 366.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11711 aiso=378(387221ms) xte=-139.53m spd=0.86m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=380/167ms tc=Y drp=0mm tcq=0
+[ 366.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 366.888] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11742 aiso=379(388221ms) xte=-139.53m spd=0.60m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=381/167ms tc=Y drp=0mm tcq=0
+[ 367.640] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 367.640] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11773 aiso=380(389221ms) xte=-139.53m spd=0.64m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=382/167ms tc=Y drp=0mm tcq=0
+[ 368.652] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 368.652] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11804 aiso=381(390221ms) xte=-139.53m spd=1.08m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=383/167ms tc=Y drp=0mm tcq=0
+[ 369.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 370.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11835 aiso=382(391221ms) xte=-139.53m spd=1.36m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=384/167ms tc=Y drp=0mm tcq=0
+[ 370.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 371.351] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11866 aiso=383(392221ms) xte=-139.53m spd=1.63m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=385/167ms tc=Y drp=0mm tcq=0
+[ 371.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 372.343] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11897 aiso=384(393221ms) xte=-139.53m spd=1.76m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=386/167ms tc=Y drp=0mm tcq=0
+[ 372.343] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 373.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11928 aiso=385(394221ms) xte=-139.53m spd=1.86m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=387/167ms tc=Y drp=0mm tcq=0
+[ 373.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 373.634] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=11959 aiso=386(395221ms) xte=-139.53m spd=1.92m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=388/168ms tc=Y drp=0mm tcq=0
+[ 374.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 374.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=11990 aiso=387(396221ms) xte=-139.53m spd=1.90m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=389/167ms tc=Y drp=0mm tcq=0
+[ 375.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 376.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12021 aiso=388(397221ms) xte=-139.53m spd=1.92m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=390/167ms tc=Y drp=0mm tcq=0
+[ 376.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 377.349] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12052 aiso=389(398221ms) xte=-139.53m spd=1.88m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=391/170ms tc=Y drp=0mm tcq=0
+[ 377.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 377.637] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=12083 aiso=390(399221ms) xte=-139.53m spd=1.93m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=392/168ms tc=Y drp=0mm tcq=0
+[ 378.649] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 378.649] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12114 aiso=391(400221ms) xte=-139.53m spd=1.91m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=393/168ms tc=Y drp=0mm tcq=0
+[ 379.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 380.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12145 aiso=392(401221ms) xte=-139.53m spd=1.90m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=394/167ms tc=Y drp=0mm tcq=0
+[ 380.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 381.346] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12176 aiso=393(402221ms) xte=-139.53m spd=1.78m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=395/167ms tc=Y drp=0mm tcq=0
+[ 381.346] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 382.353] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12207 aiso=394(403221ms) xte=-139.53m spd=1.82m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=396/167ms tc=Y drp=0mm tcq=0
+[ 382.353] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 383.347] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=12238 aiso=395(404221ms) xte=-138.25m spd=1.82m/s q=0 ggaAge=68 vtgAge=68 xteAge=67 vt=Y(21/22) vtstat=397/168ms tc=Y drp=0mm tcq=0
+[ 383.347] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 383.636] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=12269 aiso=396(405221ms) xte=-139.53m spd=1.80m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=398/168ms tc=Y drp=0mm tcq=0
+[ 384.643] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 384.643] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12300 aiso=397(406221ms) xte=-139.53m spd=1.41m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=399/168ms tc=Y drp=0mm tcq=0
+[ 385.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 386.350] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12331 aiso=398(407221ms) xte=-139.53m spd=0.90m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=400/170ms tc=Y drp=0mm tcq=0
+[ 386.350] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 386.883] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12362 aiso=399(408221ms) xte=-139.53m spd=0.66m/s q=0 ggaAge=70 vtgAge=69 xteAge=67 vt=Y(21/22) vtstat=401/168ms tc=Y drp=0mm tcq=0
+[ 387.633] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 387.633] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12393 aiso=400(409221ms) xte=-139.53m spd=1.05m/s q=0 ggaAge=68 vtgAge=68 xteAge=67 vt=Y(21/22) vtstat=402/168ms tc=Y drp=0mm tcq=0
+[ 388.649] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 388.649] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12424 aiso=401(410221ms) xte=-139.53m spd=1.74m/s q=0 ggaAge=69 vtgAge=68 xteAge=67 vt=Y(21/22) vtstat=403/170ms tc=Y drp=0mm tcq=0
+[ 389.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 390.352] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12455 aiso=402(411221ms) xte=-139.53m spd=1.98m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=404/170ms tc=Y drp=0mm tcq=0
+[ 390.352] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 391.352] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12486 aiso=403(412221ms) xte=-139.53m spd=2.00m/s q=0 ggaAge=70 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=405/170ms tc=Y drp=0mm tcq=0
+[ 391.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 392.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12517 aiso=404(413221ms) xte=-139.53m spd=2.02m/s q=0 ggaAge=61 vtgAge=60 xteAge=60 vt=Y(21/22) vtstat=406/168ms tc=Y drp=0mm tcq=0
+[ 392.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 393.352] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12548 aiso=405(414221ms) xte=-139.53m spd=2.00m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=407/167ms tc=Y drp=0mm tcq=0
+[ 393.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 393.630] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12579 aiso=406(415221ms) xte=-139.53m spd=2.03m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=408/168ms tc=Y drp=0mm tcq=0
+[ 394.640] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 394.640] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12610 aiso=407(416221ms) xte=-139.53m spd=2.02m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=409/167ms tc=Y drp=0mm tcq=0
+[ 395.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 396.346] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12641 aiso=408(417221ms) xte=-139.53m spd=2.01m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=410/168ms tc=Y drp=0mm tcq=0
+[ 396.346] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 397.344] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12672 aiso=409(418221ms) xte=-139.53m spd=1.99m/s q=0 ggaAge=70 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=411/169ms tc=Y drp=0mm tcq=0
+[ 397.344] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 398.342] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12703 aiso=410(419221ms) xte=-139.53m spd=2.00m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=412/168ms tc=Y drp=0mm tcq=0
+[ 398.342] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 399.352] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12734 aiso=411(420221ms) xte=-139.53m spd=1.99m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=413/168ms tc=Y drp=0mm tcq=0
+[ 399.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 399.638] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12765 aiso=412(421221ms) xte=-139.53m spd=2.01m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=414/168ms tc=Y drp=0mm tcq=0
+[ 400.641] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 400.641] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12796 aiso=413(422221ms) xte=-139.53m spd=1.96m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=415/170ms tc=Y drp=0mm tcq=0
+[ 401.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 402.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12827 aiso=414(423221ms) xte=-139.53m spd=1.99m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=416/167ms tc=Y drp=0mm tcq=0
+[ 402.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 403.351] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12858 aiso=415(424221ms) xte=-139.53m spd=1.95m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=417/168ms tc=Y drp=0mm tcq=0
+[ 403.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 403.628] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12889 aiso=416(425221ms) xte=-139.53m spd=1.91m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=418/171ms tc=Y drp=0mm tcq=0
+[ 404.638] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 404.638] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12920 aiso=417(426221ms) xte=-139.53m spd=1.88m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=419/168ms tc=Y drp=0mm tcq=0
+[ 405.353] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 406.353] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=12951 aiso=418(427221ms) xte=-139.53m spd=1.86m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=420/169ms tc=Y drp=0mm tcq=0
+[ 406.353] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 407.345] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=12982 aiso=419(428221ms) xte=-139.53m spd=1.92m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=421/168ms tc=Y drp=0mm tcq=0
+[ 407.345] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 408.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13013 aiso=420(429221ms) xte=-139.53m spd=1.81m/s q=0 ggaAge=70 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=422/168ms tc=Y drp=0mm tcq=0
+[ 408.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 408.891] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13044 aiso=421(430221ms) xte=-139.53m spd=1.74m/s q=0 ggaAge=70 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=423/169ms tc=Y drp=0mm tcq=0
+[ 409.641] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 409.641] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13075 aiso=422(431221ms) xte=-139.53m spd=1.31m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=424/170ms tc=Y drp=0mm tcq=0
+[ 410.645] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 410.645] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13106 aiso=423(432221ms) xte=-139.53m spd=1.43m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=425/168ms tc=Y drp=0mm tcq=0
+[ 411.353] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 412.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13137 aiso=424(433221ms) xte=-139.53m spd=1.30m/s q=0 ggaAge=69 vtgAge=68 xteAge=68 vt=Y(21/22) vtstat=426/169ms tc=Y drp=0mm tcq=0
+[ 412.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 413.350] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13168 aiso=425(434221ms) xte=-139.53m spd=1.31m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=427/168ms tc=Y drp=0mm tcq=0
+[ 413.350] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 413.644] [ISOBUS] addr=0x81 claimed=Y load=17.7% msgs=13199 aiso=426(435221ms) xte=-142.09m spd=1.25m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=428/170ms tc=Y drp=0mm tcq=0
+[ 414.652] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 414.652] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13230 aiso=427(436221ms) xte=-142.09m spd=1.19m/s q=0 ggaAge=70 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=429/171ms tc=Y drp=0mm tcq=0
+[ 415.351] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 416.352] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13261 aiso=428(437221ms) xte=-142.09m spd=1.18m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=430/167ms tc=Y drp=0mm tcq=0
+[ 416.352] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 417.352] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13292 aiso=429(438221ms) xte=-142.09m spd=1.22m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=431/171ms tc=Y drp=0mm tcq=0
+[ 417.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 418.352] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13323 aiso=430(439221ms) xte=-142.09m spd=1.15m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=432/168ms tc=Y drp=0mm tcq=0
+[ 418.352] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 419.353] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13354 aiso=431(440221ms) xte=-142.09m spd=1.12m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=433/171ms tc=Y drp=0mm tcq=0
+[ 419.353] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 419.639] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13385 aiso=432(441221ms) xte=-142.09m spd=0.80m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=434/168ms tc=Y drp=0mm tcq=0
+[ 420.655] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 420.655] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13416 aiso=433(442221ms) xte=-142.09m spd=0.51m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=435/168ms tc=Y drp=0mm tcq=0
+[ 421.354] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 422.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13447 aiso=434(443221ms) xte=-142.09m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=436/169ms tc=Y drp=0mm tcq=0
+[ 422.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 423.353] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13478 aiso=435(444221ms) xte=-142.09m spd=0.40m/s q=0 ggaAge=71 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=437/168ms tc=Y drp=0mm tcq=0
+[ 423.353] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 424.352] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13509 aiso=436(445221ms) xte=-142.09m spd=0.84m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=438/171ms tc=Y drp=0mm tcq=0
+[ 424.352] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 425.353] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13540 aiso=437(446221ms) xte=-142.09m spd=1.02m/s q=0 ggaAge=70 vtgAge=69 xteAge=69 vt=Y(21/22) vtstat=439/171ms tc=Y drp=0mm tcq=0
+[ 425.353] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 425.638] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13571 aiso=438(447221ms) xte=-142.09m spd=1.08m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=440/168ms tc=Y drp=0mm tcq=0
+[ 426.641] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 426.641] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13602 aiso=439(448221ms) xte=-142.09m spd=1.11m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=441/168ms tc=Y drp=0mm tcq=0
+[ 427.340] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 428.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13633 aiso=440(449221ms) xte=-142.09m spd=1.07m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=442/168ms tc=Y drp=0mm tcq=0
+[ 428.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 428.884] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13664 aiso=441(450221ms) xte=-142.09m spd=1.05m/s q=0 ggaAge=71 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=443/170ms tc=Y drp=0mm tcq=0
+[ 429.634] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 429.634] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13695 aiso=442(451221ms) xte=-142.09m spd=1.11m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=444/171ms tc=Y drp=0mm tcq=0
+[ 430.638] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 430.638] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=13726 aiso=443(452221ms) xte=-144.65m spd=1.10m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=445/168ms tc=Y drp=0mm tcq=0
+[ 431.348] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 432.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13757 aiso=444(453221ms) xte=-144.65m spd=1.07m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=446/168ms tc=Y drp=0mm tcq=0
+[ 432.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 433.352] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13788 aiso=445(454221ms) xte=-144.65m spd=1.07m/s q=0 ggaAge=69 vtgAge=69 xteAge=68 vt=Y(21/22) vtstat=447/168ms tc=Y drp=0mm tcq=0
+[ 433.352] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 433.634] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13819 aiso=446(455221ms) xte=-144.65m spd=1.07m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=448/171ms tc=Y drp=0mm tcq=0
+[ 434.640] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 434.640] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13850 aiso=447(456221ms) xte=-144.65m spd=1.09m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=449/168ms tc=Y drp=0mm tcq=0
+[ 435.349] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 436.351] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13881 aiso=448(457221ms) xte=-144.65m spd=1.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=450/168ms tc=Y drp=0mm tcq=0
+[ 436.351] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 436.892] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13912 aiso=449(458221ms) xte=-144.65m spd=0.76m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=451/171ms tc=Y drp=0mm tcq=0
+[ 437.639] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 437.639] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=13943 aiso=450(459221ms) xte=-144.65m spd=0.51m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=452/169ms tc=Y drp=0mm tcq=0
+[ 438.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 438.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=13974 aiso=451(460221ms) xte=-144.65m spd=0.24m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=453/169ms tc=Y drp=0mm tcq=0
+[ 439.341] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 440.349] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=14005 aiso=452(461221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=454/171ms tc=Y drp=0mm tcq=0
+[ 440.349] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 440.887] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=14036 aiso=453(462221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=70 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=455/169ms tc=Y drp=0mm tcq=0
+[ 441.631] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 441.640] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=14067 aiso=454(463221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=456/169ms tc=Y drp=0mm tcq=0
+[ 442.646] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 442.646] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=14098 aiso=455(464221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=69 vt=Y(21/22) vtstat=457/168ms tc=Y drp=0mm tcq=0
+[ 443.341] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 444.347] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=14129 aiso=456(465221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=458/169ms tc=Y drp=0mm tcq=0
+[ 444.347] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 445.342] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=14160 aiso=457(466221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=459/171ms tc=Y drp=0mm tcq=0
+[ 445.342] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 446.345] [ISOBUS] addr=0x81 claimed=Y load=17.6% msgs=14191 aiso=458(467221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=460/171ms tc=Y drp=0mm tcq=0
+[ 446.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 614.733] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=14222 aiso=459(468221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=71 vtgAge=70 xteAge=70 vt=Y(21/22) vtstat=461/168ms tc=Y drp=0mm tcq=0
+[ 614.733] --- disconnected (ClearCommError failed (PermissionError(13, 'Het apparaat herkent de opdracht niet.', None, 22))) ---
+[ 615.238] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[ 615.751] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[ 616.265] --- connected ---
+[ 616.567] [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=19489 aiso=629(638221ms) xte=-144.65m spd=0.00m/s q=0 ggaAge=74 vtgAge=73 xteAge=73 vt=Y(21/22) vtstat=632/171ms tc=Y drp=0mm tcq=0
+[ 616.567] === ISOBUS DEBUG MENU ===
+[ 616.567] 1. Full status dump
+[ 616.892] 2. Periodic summary line (ON - press to toggle)
+[ 616.892] 3. Reset message counters
+[ 616.892] q. Exit
+[ 616.892] Periodic summary line: OFF
+[ 616.892] === ISOBUS DEBUG MENU ===
+[ 616.892] 1. Full status dump
+[ 616.892] 2. Periodic summary line (OFF - press to toggle)
+[ 616.892] 3. Reset message counters
+[ 616.892] q. Exit
+[ 616.892] Exiting.
+[ 617.901] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 617.901] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 618.906] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 619.918] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 620.932] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 621.943] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 622.950] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 623.953] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 624.966] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 625.979] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 626.980] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 627.983] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 628.997] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 630.000] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 631.012] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 632.021] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 633.026] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 634.030] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 635.045] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 636.053] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 637.059] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 638.067] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 639.076] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 640.077] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 641.081] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 642.087] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 643.091] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 644.095] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 645.100] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 646.103] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 647.106] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 648.118] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 649.125] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 650.133] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 651.137] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 652.147] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 653.152] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 654.157] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 655.170] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 656.176] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 657.186] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 658.188] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 659.188] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 660.197] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 661.205] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 662.207] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 663.210] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 664.225] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 665.226] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 666.236] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 667.240] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 668.245] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 669.251] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 670.257] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 671.261] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 672.266] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 673.267] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 674.273] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 675.286] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 676.287] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 677.302] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 678.317] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 679.332] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 680.345] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 681.360] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 682.372] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 683.375] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 684.390] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 685.397] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 686.402] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 687.415] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 688.430] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 689.430] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 690.444] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 691.445] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 692.447] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 693.459] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 694.472] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 695.485] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 696.490] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 697.503] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 698.513] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 699.515] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 700.515] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 701.517] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 702.539] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 703.550] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 704.570] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 705.570] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 706.570] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 707.574] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 708.583] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 709.587] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 710.593] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 711.604] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 712.605] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 713.611] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 714.614] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 715.620] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 716.630] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 717.636] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 718.641] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 719.665] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 719.665] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 721.694] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 721.694] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 723.719] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 723.719] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 725.737] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 725.737] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 727.757] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 727.758] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 729.772] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 729.772] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 731.787] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 731.787] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 733.801] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 733.801] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 735.806] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 735.806] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 737.813] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 737.813] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 739.816] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 739.816] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 741.820] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 741.820] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 743.832] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 743.832] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 745.837] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 745.837] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 747.841] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 747.841] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 749.855] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 749.855] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 751.878] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 751.878] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 753.879] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 753.879] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 754.893] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 755.904] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 756.905] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 757.920] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 758.934] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 759.943] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 760.945] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 761.961] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 762.964] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 763.976] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 764.991] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 765.995] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 767.000] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 768.001] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 769.020] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 770.021] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 771.039] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 772.055] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 773.060] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 774.066] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 775.080] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 776.081] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 777.087] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 778.095] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 779.098] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 780.104] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 781.113] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 782.121] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 783.130] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 784.138] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 785.144] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 786.147] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 787.150] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 788.159] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 789.163] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 790.168] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 791.180] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 792.186] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 793.201] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 794.203] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 795.205] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 796.222] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 797.239] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 798.248] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 799.263] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 800.270] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 801.276] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 802.283] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 803.298] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 804.299] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 805.304] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 806.311] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 807.320] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 808.325] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 809.334] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 810.336] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 811.338] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 812.343] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 813.353] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 814.361] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 815.366] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 816.374] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 817.387] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 818.407] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 819.413] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 820.428] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 821.431] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 822.444] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 823.458] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 824.471] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 825.473] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 826.480] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 827.485] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 828.492] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 829.503] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 830.520] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 831.526] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 832.531] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 833.534] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 834.543] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 835.547] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 836.551] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 837.555] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 838.561] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 839.569] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 840.599] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 841.606] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 842.610] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 843.612] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 844.612] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 845.617] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 846.625] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 847.626] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 848.630] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 849.636] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 850.647] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 851.656] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 851.656] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 853.657] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 853.657] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 855.674] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 855.674] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 857.700] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 857.700] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 859.707] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 859.707] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 861.710] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 861.710] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 863.724] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 863.724] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 865.755] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 865.755] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 867.773] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 867.773] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 869.775] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 869.775] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 871.792] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 871.792] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 873.810] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 873.810] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 875.827] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 875.827] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 877.838] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 877.838] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 879.854] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 879.854] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 881.872] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 881.872] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 883.883] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 883.883] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 885.899] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 885.899] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 886.900] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 887.900] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 888.911] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 889.926] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 890.941] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 891.957] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 892.964] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 893.965] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 894.973] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 895.983] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 896.988] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 897.999] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 899.013] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 900.027] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 901.034] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 902.034] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 903.035] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 904.040] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 905.046] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 906.056] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 907.057] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 908.065] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 909.068] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 910.074] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 911.089] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 912.094] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 913.105] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 914.108] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 915.109] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 916.111] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 917.121] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 918.122] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 919.127] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 920.143] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 921.147] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 922.150] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 923.163] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 924.178] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 925.193] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 926.206] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 927.210] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 928.218] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 929.220] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 930.235] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 931.237] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 932.239] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 933.240] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 934.246] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 935.257] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 936.268] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 937.269] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 938.273] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 939.278] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 940.280] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 941.291] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 942.297] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 943.302] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 944.306] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 945.308] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 946.318] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 947.322] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 948.324] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 949.332] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 950.342] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 951.360] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 952.390] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 953.394] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 954.409] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 955.415] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 956.421] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 957.427] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 958.440] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 959.441] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 960.443] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 961.455] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 962.476] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 963.491] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 964.497] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 965.497] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 966.501] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 967.504] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 968.516] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 969.524] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 970.533] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 971.540] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 972.554] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 973.556] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 974.558] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 975.566] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 976.571] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 977.574] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 978.576] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 979.582] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 980.584] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+
+[killed]

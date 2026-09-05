@@ -1,0 +1,113 @@
+Session 6, 2026-09-05. TWO VTs LIVE SIMULTANEOUSLY (New Holland's own
+built-in VT + Ag Leader InCommand 1200). Firmware: isobus-tc-client @
+935de81 -- i.e. WITH the #17 fix applied and confirmed working in both
+single-VT configurations (see run 1 and run 2).
+
+THE NEW PROBLEM, filed as GitHub issue #20. With two VT-function devices on
+the bus, the VT (and TC) connection cannot be held at all, and never
+recovers. Reached three independent ways, same outcome every time.
+
+Timestamps are seconds since the logging script attached to COM4; the board
+was rebooted twice during this window, so board-relative time resets there.
+
+=============================================================================
+SCENARIO 1 -- second terminal joins an established, stable connection
+=============================================================================
+Continuing directly from run 1 (VT stable to New Holland for 160s). The
+InCommand 1200 is powered on at ~t=164.
+
+[ 163.319] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=230 aiso=161(170428ms) xte=0.00m spd=0.00m/s q=0 ggaAge=170428 vtgAge=170428 xteAge=170428 vt=Y(21/22) vtstat=162/481ms tc=N drp=0mm tcq=0
+[ 164.113] I] [NM]: Partnered control function with name 000000000000000lx has claimed address 203452081 on channel 2684387840.
+[ 165.130] [ISOBUS] addr=0x81 claimed=Y load=16.5% msgs=265 aiso=163(172428ms) xte=-158.73m spd=0.00m/s q=0 ggaAge=93 vtgAge=93 xteAge=92 vt=Y(21/22) vtstat=164/481ms tc=N drp=0mm tcq=0
+   ^^ note xte/ggaAge suddenly real: Ag Leader's GPS is now on the bus too.
+      (That XTE value comes from the ordinary guidance PGN path, NOT from
+      the TC -- tc=N here. Easy to misread as TC activity; it isn't.)
+
+--- mass control-function eviction as the new terminal enumerates ---
+[ 165.391] I] [NM]: Control function with address 38 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 165.391] I] [NM]: Control function with address 43 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 165.391] I] [NM]: Control function with address 128 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 165.391] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 165.391] I] [NM]: Control function with address 233 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 165.391] I] [NM]: Control function with address 240 and NAME 000000000000000lx is now offline on channel 197783967.
+[ 165.391] I] [NM]: Control function with address 245 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 166.113] I] [NM]: Control function with address 247 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 166.544] [ISOBUS] addr=0x81 claimed=Y load=16.2% msgs=306 aiso=164(173428ms) xte=-158.73m spd=0.00m/s q=0 ggaAge=93 vtgAge=93 xteAge=92 vt=Y(21/22) vtstat=164/1481ms tc=N drp=0mm tcq=0
+[ 167.113] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 167.636] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 168.110] E] [VT]: Status Timeout
+[ 169.112] [ISOBUS] addr=0x81 claimed=Y load=13.9% msgs=368 aiso=166(175428ms) xte=-158.73m spd=0.00m/s q=0 ggaAge=91 vtgAge=90 xteAge=87 vt=N(0/22) vtstat=164/3481ms tc=N drp=0mm tcq=0
+
+--- and then: continuous churn, two addresses alternately claiming and
+--- going offline, every 1-2s, for the next 300+ seconds. Never recovers.
+[ 176.525] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 176.525] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 177.116] I] [NM]: External control function with name 000000000000000lx has claimed address 197275905 on channel 536876800.
+[ 178.117] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 179.116] I] [NM]: External control function with name 000000000000000lx has claimed address 197275905 on channel 536876800.
+[ 180.286] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 180.532] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+   ... (this pattern repeats unchanged for the rest of the capture) ...
+[ 321.288] [ISOBUS] addr=0x81 claimed=Y load=13.9% msgs=5115 aiso=319(328428ms) xte=-142.09m spd=0.00m/s q=0 ggaAge=94 vtgAge=93 xteAge=92 vt=N(0/22) vtstat=164/156481ms tc=N drp=0mm tcq=0
+   ^^ 150+ seconds later: still vt=N(0/22), vtstat still frozen at 164.
+      Guidance traffic (msgs=) keeps climbing ~31/s throughout, so the CAN
+      layer and main loop are fine -- this is the partner/control-function
+      layer thrashing, nothing else.
+
+=============================================================================
+SCENARIO 2 -- fresh Triton boot with both terminals already settled
+=============================================================================
+Rules out "it's just the join-moment storm": both terminals had been up and
+quiet for minutes. Board rebooted at ~t=427.
+
+[ 427.700] IsobusGuidanceChannel: claiming address address claimed: 0x81
+[ 429.850] I] [NM]: A partner with name 000000000000000lx has claimed address 2684361992 on channel 197275905.
+[ 429.850] I] [NM]: A partner with name 000000000000000lx has claimed address 2684387840 on channel 203452081.
+   ^^ two partners matched -- both terminals answer our VT NAMEFilter.
+[ 430.033] [ISOBUS] addr=0x81 claimed=Y load=9.5% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=7426 vtgAge=7426 xteAge=7426 vt=N(1/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[ 431.035] I] [VT]: VT Server has a matching label for MW03   . It will be loaded and upload will be skipped.
+[ 431.035] [ISOBUS] addr=0x81 claimed=Y load=15.7% msgs=37 aiso=1(8426ms) xte=-142.09m spd=0.00m/s q=0 ggaAge=20 vtgAge=19 xteAge=18 vt=Y(21/22) vtstat=3/21ms tc=N drp=0mm tcq=0
+[ 432.292] I] [NM]: Control function with address 38 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 432.292] I] [NM]: Control function with address 43 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 432.292] I] [NM]: Control function with address 128 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 432.531] I] [NM]: Control function with address 245 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 433.539] [ISOBUS] addr=0x81 claimed=Y load=14.1% msgs=99 aiso=3(10426ms) xte=-142.09m spd=0.00m/s q=0 ggaAge=19 vtgAge=19 xteAge=18 vt=Y(21/22) vtstat=5/1011ms tc=N drp=0mm tcq=0
+[ 434.853] E] [VT]: Status Timeout
+[ 435.852] [ISOBUS] addr=0x81 claimed=Y load=13.6% msgs=161 aiso=5(12426ms) xte=-142.09m spd=0.00m/s q=0 ggaAge=21 vtgAge=20 xteAge=20 vt=N(0/22) vtstat=5/3011ms tc=N drp=0mm tcq=0
+   ^^ connected ~4s, then gone. Stuck at vt=N(0/22) for the following 60+
+      seconds (trimmed) with no retry -- quieter than scenario 1 (no
+      visible churn), same dead end.
+
+=============================================================================
+SCENARIO 3 -- second terminal joins a working VT *and* TC session
+=============================================================================
+Continuing directly from run 2 (InCommand 1200 alone: vt=Y, tc=Y, both
+healthy). New Holland's VT is powered back on at ~t=640. Both connections
+die, TC first.
+
+[ 639.937] [ISOBUS] addr=0x81 claimed=Y load=20.4% msgs=589 aiso=18(96426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=74 vtgAge=73 xteAge=73 vt=Y(21/22) vtstat=19/975ms tc=Y drp=0mm tcq=0
+[ 640.292] I] [NM]: Control function with address 43 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 640.292] I] [NM]: Control function with address 128 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 640.292] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 640.292] I] [NM]: Control function with address 233 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 640.670] I] [NM]: External control function with name 000000000000000lx has claimed address 203452081 on channel 2147516672.
+[ 640.678] I] [NM]: Partnered control function with name 000000000000000lx has claimed address 203452081 on channel 2684387840.
+[ 640.685] I] [NM]: Partnered control function with name 000000000000000lx has claimed address 203452081 on channel 2147491072.
+[ 641.429] I] [NM]: Control function with address 128 and NAME 000000000000000lx is now offline on channel 203452081.
+[ 642.282] I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+[ 643.296] I] [NM]: Control function with address 38 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 643.805] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 645.299] E] [TC]: Server Status Message Timeout. The TC may be offline.
+[ 645.299] [ISOBUS] addr=0x81 claimed=Y load=20.2% msgs=750 aiso=23(101426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=75 vtgAge=74 xteAge=73 vt=Y(21/22) vtstat=24/1670ms tc=N drp=0mm tcq=0
+[ 646.808] E] [VT]: Status Timeout
+[ 647.545] [ISOBUS] addr=0x81 claimed=Y load=19.7% msgs=812 aiso=25(103426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=75 vtgAge=75 xteAge=74 vt=N(0/22) vtstat=24/3670ms tc=N drp=0mm tcq=0
+
+--- same permanent churn as scenario 1, both vt and tc down for good ---
+[ 651.297] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+[ 651.545] I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
+[ 651.810] I] [NM]: External control function with name 000000000000000lx has claimed address 197275905 on channel 536876800.
+[ 652.295] I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+   ... (repeats unchanged) ...
+[ 719.543] [ISOBUS] addr=0x81 claimed=Y load=19.4% msgs=3044 aiso=97(175426ms) xte=-135.69m spd=0.00m/s q=0 ggaAge=74 vtgAge=73 xteAge=73 vt=N(0/22) vtstat=24/75670ms tc=N drp=0mm tcq=0
+   ^^ 70+ seconds after the drop: still vt=N(0/22), tc=N, vtstat frozen
+      at 24. No recovery, ever, without a power cycle.
