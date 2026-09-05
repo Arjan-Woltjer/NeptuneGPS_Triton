@@ -266,6 +266,19 @@ void IsobusDebugMenu::printFullDump() {
         }
         serialDebug->print("  Value requests (any DDI): ");
         serialDebug->println(tcInterface->GetValueRequestCount());
+        // Tramline Control probe (GitHub issue #21) -- the arrival is the
+        // result, not the value; see IsobusTcInterface::HasTramlineSetpoint().
+        serialDebug->print("  Tramline setpoint (DDI 506): ");
+        if (tcInterface->HasTramlineSetpoint()) {
+            serialDebug->print(tcInterface->GetTramlineSetpointLevel());
+            serialDebug->print("  -> terminal DOES implement Tramline Control (");
+            serialDebug->print(millis() - tcInterface->GetTramlineSetpointMs());
+            serialDebug->println(" ms ago)");
+        } else if (tcInterface->IsConnected()) {
+            serialDebug->println("(none yet -- no Tramline Control seen on this terminal)");
+        } else {
+            serialDebug->println("(not connected)");
+        }
     }
 }
 

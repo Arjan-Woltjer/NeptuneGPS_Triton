@@ -46,6 +46,26 @@ constexpr std::uint16_t kObjOffsetY      = 4;
 constexpr std::uint16_t kObjFunction     = 5;
 constexpr std::uint16_t kObjDeviation    = 6;
 constexpr std::uint16_t kObjQuality      = 7;
+constexpr std::uint16_t kObjTramlineLevel         = 8;  // DDI 505, probe -- see buildDdop()
+constexpr std::uint16_t kObjTramlineSetpointLevel = 9;  // DDI 506, probe -- see buildDdop()
+
+// DDI 505 value: bitfield of Tramline Control Levels we support.
+//   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
+//
+// Deliberately ZERO -- "I participate in the Tramline Control handshake but
+// support no level." This is a probe (GitHub issue #21), not a capability
+// claim: Level 1 means "the implement calculates the tramline tracks", which
+// a plough does not do and must not advertise.
+//
+// A tramline-capable TC should still answer with DDI 506 = 0 ("No common
+// Level", the spec's explicit no-match case), which is all the probe needs:
+// ANY 506 arriving proves the terminal implements Tramline Control, and
+// therefore that DDI 513/514 are reachable if we build the feature out
+// properly. Silence is the other answer -- but see the caveat in the issue:
+// if a terminal short-circuits the reply for a zero-capability implement,
+// silence is ambiguous, and the next step is to re-run once with bit 0 set
+// before concluding the terminal lacks the feature entirely.
+constexpr std::int32_t kTramlineControlLevelsSupported = 0;
 
 // TODO: measure against the actual plough frame before trusting DDI 513 --
 // see Triton_TC_Client_Design.md sec 4.3 ("the offsets are part of the
@@ -83,13 +103,16 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC02",  // Structure label -- bumped from TC01 for this
+                      "TC03",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
-                               // child-object references added, see below).
+                               // child-object references added, see below),
+                               // then TC02 -> TC03 for the Tramline Control
+                               // probe (DDI 505/506 added, see below).
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by
-                               // this label.
+                               // this label, and AgIsoStack logs an explicit
+                               // error if an updated pool reuses one.
                       localizationLabel,
                       {},  // no extended structure label
                       controlFunction->get_NAME().get_full_name());
@@ -144,10 +167,42 @@ void IsobusTcInterface::buildDdop() {
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjQuality);
 
+    // --- Tramline Control probe (GitHub issue #21) --------------------
+    // 513/514 are OPTIONAL members of the AEF Tramline Control DDI set, not
+    // standalone process data. Per "Tramline Control -- Basic Requirements
+    // v1.16" (ISO 11783-11 DDE supplement, attached to the DDI 505 entity on
+    // isobus.net), a Level 1 system also requires DDIs 505, 506, 515, 507,
+    // 508, 509, 510 and 511 in the DDOP. Declaring only the two optional ones
+    // -- which is what this DDOP did until now -- leaves them as orphan
+    // objects a TC has no reason to ever write to, which is the most likely
+    // explanation for never having seen a single Value Command in the
+    // project's history.
+    //
+    // This declares just the handshake pair, as a probe rather than a
+    // build-out. Per sec 2.2.2/2.2.3 the implement declares 505 (supported
+    // levels; "shall not change during runtime", so a DPT not a DPD) and the
+    // TC replies with 506 naming the level to use, or 0 for "no common
+    // level". Both "shall be listed in the DDOP only once", and 506 "shall be
+    // placed in the same device element as DDI 505".
+    //
+    // Placement matches the spec's own example 1b (sec 3.5.2), which groups
+    // the tramline DDIs in a dedicated function element -- here alongside
+    // 513/514, which already live on Ploughbody.
+    ddop->add_device_property("Tramline Control Level", kTramlineControlLevelsSupported,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlLevel),
+                               NULL_OBJECT_ID, kObjTramlineLevel);
+    // Settable: the TC writes this one to us, same direction as 513/514.
+    ddop->add_device_process_data("Setpoint Tramline Control Level",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjTramlineSetpointLevel);
+
     // Same attachment requirement as the Connector's Offset X/Y above.
     auto functionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjFunction));
     functionElement->add_reference_to_child_object(kObjDeviation);
     functionElement->add_reference_to_child_object(kObjQuality);
+    functionElement->add_reference_to_child_object(kObjTramlineLevel);
+    functionElement->add_reference_to_child_object(kObjTramlineSetpointLevel);
 }
 
 // ------------------------------------------------------------------
@@ -232,6 +287,18 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
         case static_cast<std::uint16_t>(DataDescriptionIndex::GNSSQuality):  // 514
             self->tcGnssQuality     = static_cast<uint8_t>(processVariableValue);
             self->lastQualityUpdate = millis();
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel):  // 506
+            // The Tramline Control probe's answer (GitHub issue #21). Latched
+            // separately from lastValueCommandDdi, which any later DDI would
+            // overwrite -- the whole point of the probe is that this arrived
+            // AT ALL, so it must survive to be read off the debug menu later.
+            // Value 0 ("no common level") counts as a positive result: it
+            // still proves the terminal implements Tramline Control.
+            self->tramlineSetpointLevel   = static_cast<int>(processVariableValue);
+            self->tramlineSetpointSeen    = true;
+            self->lastTramlineSetpointMs  = millis();
             break;
 
         default:

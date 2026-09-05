@@ -96,6 +96,24 @@ public:
     inline unsigned long GetLastValueCommandMs() const   { return lastValueCommandMs; }
     inline unsigned long GetValueRequestCount() const   { return valueRequestCount; }
 
+    // Tramline Control probe result (GitHub issue #21). DDI 513/514 are
+    // optional members of the AEF Tramline Control DDI set, so a TC only has
+    // reason to send them to an implement that declared the feature. The DDOP
+    // now declares the handshake pair (DDI 505 supported-levels, and 506
+    // which the TC writes back) purely to find out whether this terminal
+    // implements Tramline Control at all.
+    //
+    // HasTramlineSetpoint() is the answer, and it is the *arrival* that
+    // matters, not the value: a TC with no level in common with us is
+    // required to reply 0, so even 0 proves the feature exists on that
+    // terminal. False after a real connection means it very likely does not
+    // implement Tramline Control, and no DDOP work will ever yield 513/514
+    // from it -- see the caveat on kTramlineControlLevelsSupported in the .cpp
+    // before treating silence as final.
+    inline bool          HasTramlineSetpoint() const     { return tramlineSetpointSeen; }
+    inline int           GetTramlineSetpointLevel() const { return tramlineSetpointLevel; }
+    inline unsigned long GetTramlineSetpointMs() const    { return lastTramlineSetpointMs; }
+
     // Whether the CONNECTED TC itself reports TC-GEO support -- read from its
     // own ParameterVersion handshake message (isobus_task_controller_client.cpp,
     // TechnicalDataMessageCommands::ParameterVersion), not something we
@@ -159,6 +177,12 @@ private:
     std::uint16_t   lastValueCommandDdi  = 0xFFFF;  // 0xFFFF = none received yet
     unsigned long   lastValueCommandMs   = 0;
     unsigned long   valueRequestCount    = 0;
+
+    // See HasTramlineSetpoint() above. Latched, never cleared -- a probe
+    // result that arrived once is the finding, even if nothing follows it.
+    bool            tramlineSetpointSeen   = false;
+    int             tramlineSetpointLevel  = -1;  // -1 = nothing received yet
+    unsigned long   lastTramlineSetpointMs = 0;
 };
 
 }  // namespace triton
