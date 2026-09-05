@@ -248,6 +248,16 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print("   last ");
         serialDebug->print(vtInterface->GetVtStatusMessageAgeMs());
         serialDebug->println(" ms ago");
+        // Partner address/validity: the thing that silently went false in
+        // #17 and was readable nowhere at the time. If this reads valid=N
+        // while the terminal is plainly alive on screen, that is the
+        // control-function eviction, not the terminal.
+        serialDebug->print("  Partner: addr=0x");
+        serialDebug->print(vtInterface->GetPartnerAddress(), HEX);
+        serialDebug->print(" valid=");
+        serialDebug->print(vtInterface->IsPartnerAddressValid() ? "Y" : "N");
+        serialDebug->print("  reconnect attempts=");
+        serialDebug->println(vtInterface->GetReconnectAttemptCount());
     }
 
     serialDebug->println("--- Task Controller ---");
@@ -290,6 +300,14 @@ void IsobusDebugMenu::printFullDump() {
         }
         serialDebug->print("  Value requests (any DDI): ");
         serialDebug->println(tcInterface->GetValueRequestCount());
+        // Partner address/validity: the thing that silently went false in
+        // both #17 and #19 and was readable nowhere at the time.
+        serialDebug->print("  Partner: addr=0x");
+        serialDebug->print(tcInterface->GetPartnerAddress(), HEX);
+        serialDebug->print(" valid=");
+        serialDebug->print(tcInterface->IsPartnerAddressValid() ? "Y" : "N");
+        serialDebug->print("  reconnect attempts=");
+        serialDebug->println(tcInterface->GetReconnectAttemptCount());
         // Tramline Control probe (GitHub issue #21) -- the arrival is the
         // result, not the value; see IsobusTcInterface::HasTramlineSetpoint().
         serialDebug->print("  Tramline setpoint (DDI 506): ");

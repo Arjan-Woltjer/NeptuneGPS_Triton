@@ -92,9 +92,11 @@ void IsobusVtInterface::Begin() {
     // at state 0/22 "Disconnected" indefinitely against a live Fendt
     // Universal Terminal. AgIsoStack's own header (can_control_function.hpp)
     // and its VirtualTerminal.ino example both use the factory form.
-    auto partnerVT = CANNetworkManager::CANNetwork.create_partnered_control_function(0, vtNameFilters);
+    // Kept as a member (not a local) so IsPartnerAddressValid()/
+    // GetPartnerAddress() can surface it -- see their comment in the header.
+    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, vtNameFilters);
 
-    vtClient = std::make_shared<VirtualTerminalClient>(partnerVT, controlFunction);
+    vtClient = std::make_shared<VirtualTerminalClient>(partner, controlFunction);
     // Bumped MW01 -> MW02, 2026-08-10 (van Mastwijk): the pool's structure
     // genuinely changed (WorkingSet gained a real child object, see
     // VTObjectPool.cpp's appendWorkingSet() comment for the confirmed bug
@@ -130,6 +132,61 @@ void IsobusVtInterface::Update() {
 
     diagnostics->update();
     vtClient->update();
+    updateReconnectWatchdog();
+}
+
+// ----------------------------------------------------------------
+// Reconnect watchdog -- see the header's reconnect fields for the rationale
+// and for why initialize() alone is not enough. GitHub issue #18.
+// ----------------------------------------------------------------
+void IsobusVtInterface::updateReconnectWatchdog() {
+    // How long a post-connection outage is tolerated before forcing a clean
+    // re-attempt. Comfortably longer than AgIsoStack's own 3 s
+    // VT_STATUS_TIMEOUT_MS plus a normal automatic re-handshake, so a
+    // connection that is recovering on its own is never interrupted.
+    constexpr unsigned long kReconnectAfterMs = 10000UL;
+    // Minimum spacing between attempts, so a partner that is genuinely gone
+    // produces one line every 10 s rather than a churning callback list.
+    constexpr unsigned long kReconnectRetryIntervalMs = 10000UL;
+
+    const unsigned long now = millis();
+
+    if (IsConnected()) {
+        hasEverConnected    = true;
+        disconnectedSinceMs = 0;
+        return;
+    }
+
+    // Never armed before the first successful connection: the initial
+    // handshake has its own timing, and a watchdog firing during it would
+    // interrupt a connection that was progressing normally.
+    if (!hasEverConnected) return;
+
+    if (disconnectedSinceMs == 0) {
+        disconnectedSinceMs = now;
+        return;
+    }
+    if (now - disconnectedSinceMs < kReconnectAfterMs) return;
+    if (reconnectAttempts != 0 && (now - lastReconnectTryMs) < kReconnectRetryIntervalMs) return;
+
+    lastReconnectTryMs = now;
+    reconnectAttempts++;
+
+    serialDebug->print("VT: disconnected ");
+    serialDebug->print((now - disconnectedSinceMs) / 1000);
+    serialDebug->print("s after having been connected -- forcing reconnect attempt ");
+    serialDebug->print(reconnectAttempts);
+    serialDebug->print(" (partner addr=0x");
+    serialDebug->print(GetPartnerAddress(), HEX);
+    serialDebug->print(" valid=");
+    serialDebug->print(IsPartnerAddressValid() ? "Y" : "N");
+    serialDebug->println(")");
+
+    // terminate() then initialize(): see the header. terminate()'s
+    // delete-object-pool branch only runs when Connected, which we are not,
+    // so this is just a callback teardown and a state-machine reset.
+    vtClient->terminate();
+    vtClient->initialize(false);
 }
 
 // ----------------------------------------------------------------

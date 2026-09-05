@@ -222,11 +222,13 @@ void IsobusTcInterface::Begin() {
     // CANNetworkManager's partneredControlFunctions list, so it can never be
     // matched against an incoming Address Claim and get_address_valid()
     // stays false forever.
-    auto partnerTC = CANNetworkManager::CANNetwork.create_partnered_control_function(0, tcNameFilters);
+    // Kept as a member (not a local) so IsPartnerAddressValid()/
+    // GetPartnerAddress() can surface it -- see their comment in the header.
+    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, tcNameFilters);
 
     buildDdop();
 
-    tcClient = std::make_shared<TaskControllerClient>(partnerTC, controlFunction, nullptr);
+    tcClient = std::make_shared<TaskControllerClient>(partner, controlFunction, nullptr);
 
     tcClient->configure(ddop,
                         0,      // maxNumberBoomsSupported -- plough has no booms
@@ -253,7 +255,56 @@ void IsobusTcInterface::Begin() {
 void IsobusTcInterface::Update() {
     if (tcClient) {
         tcClient->update();
+        updateReconnectWatchdog();
     }
+}
+
+// ------------------------------------------------------------------
+// Reconnect watchdog -- see the header's reconnect fields. GitHub issue #18.
+// ------------------------------------------------------------------
+void IsobusTcInterface::updateReconnectWatchdog() {
+    // Longer than the VT's equivalent: TaskControllerClient's own connect
+    // sequence includes a six-second WaitForStartUpDelay, so anything
+    // shorter risks cutting off a re-attempt that is already in progress.
+    constexpr unsigned long kReconnectAfterMs         = 15000UL;
+    constexpr unsigned long kReconnectRetryIntervalMs = 15000UL;
+
+    const unsigned long now = millis();
+
+    if (IsConnected()) {
+        hasEverConnected    = true;
+        disconnectedSinceMs = 0;
+        return;
+    }
+
+    // Deliberately not armed before the first successful connection. A TC
+    // that has never connected is the #19 case, whose cause was the partner
+    // being evicted from AgIsoStack's control-function table -- restarting
+    // the client would not have helped, and firing during the normal
+    // six-second startup delay would interrupt a connection in progress.
+    if (!hasEverConnected) return;
+
+    if (disconnectedSinceMs == 0) {
+        disconnectedSinceMs = now;
+        return;
+    }
+    if (now - disconnectedSinceMs < kReconnectAfterMs) return;
+    if (reconnectAttempts != 0 && (now - lastReconnectTryMs) < kReconnectRetryIntervalMs) return;
+
+    lastReconnectTryMs = now;
+    reconnectAttempts++;
+
+    serialDebug->print("TC: disconnected ");
+    serialDebug->print((now - disconnectedSinceMs) / 1000);
+    serialDebug->print("s after having been connected -- forcing restart ");
+    serialDebug->print(reconnectAttempts);
+    serialDebug->print(" (partner addr=0x");
+    serialDebug->print(GetPartnerAddress(), HEX);
+    serialDebug->print(" valid=");
+    serialDebug->print(IsPartnerAddressValid() ? "Y" : "N");
+    serialDebug->println(")");
+
+    tcClient->restart();
 }
 
 // ------------------------------------------------------------------

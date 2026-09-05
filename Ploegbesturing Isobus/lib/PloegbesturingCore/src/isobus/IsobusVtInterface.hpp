@@ -99,6 +99,19 @@ public:
         return vtStatusMessageCount == 0 ? 0 : millis() - lastVtStatusMessageMs;
     }
 
+    // The bound VT partner's own address and validity. Added 2026-09-05: the
+    // whole of GitHub issue #17 turned on partnerControlFunction->
+    // get_address_valid() silently going false (the partner evicted from
+    // AgIsoStack's control-function table), and neither of those was visible
+    // anywhere -- the diagnosis needed source-diving instead of reading a
+    // debug line. Surface both so the next occurrence is legible.
+    bool         IsPartnerAddressValid() const { return partner && partner->get_address_valid(); }
+    std::uint8_t GetPartnerAddress() const { return partner ? partner->get_address() : 0xFE; }
+
+    // Reconnect watchdog counters (GitHub issue #18) -- see the private
+    // reconnect fields for why this exists.
+    unsigned int  GetReconnectAttemptCount() const { return reconnectAttempts; }
+
     // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
     // release, cleared by the call itself (edge-triggered, matching a
     // discrete VT tap rather than a held physical button). Direction mapping
@@ -129,6 +142,7 @@ private:
     GuidanceSource*  guidance;
 
     std::shared_ptr<isobus::InternalControlFunction>    controlFunction;
+    std::shared_ptr<isobus::PartneredControlFunction>   partner;
     std::shared_ptr<isobus::DiagnosticProtocol>         diagnostics;
     std::shared_ptr<isobus::VirtualTerminalClient>      vtClient;
     isobus::EventCallbackHandle                         softKeyListener;
@@ -168,7 +182,25 @@ private:
     unsigned int  vtStatusMessageCount  = 0;
     unsigned long lastVtStatusMessageMs = 0;
 
+    // Reconnect watchdog (GitHub issue #18). AgIsoStack's own state machine
+    // already retries from Disconnected as soon as the partner's address is
+    // valid again, so this exists for the cases where that never happens: the
+    // client wedged in an intermediate state, or a partner that came back but
+    // did not re-trigger the retry. Only armed after a first successful
+    // connection, so it can never interfere with the initial handshake.
+    //
+    // Note the obvious implementation does NOT work: VirtualTerminalClient::
+    // initialize() is guarded by `if (!initialized)`, so calling it again on
+    // a live client is a no-op. A real re-attempt needs terminate() first,
+    // which drops the PGN callbacks and resets the state machine so
+    // initialize() will actually rebuild them.
+    bool          hasEverConnected     = false;
+    unsigned long disconnectedSinceMs  = 0;
+    unsigned long lastReconnectTryMs   = 0;
+    unsigned int  reconnectAttempts    = 0;
+
     void updateVtVariables();
+    void updateReconnectWatchdog();
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
     static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);
 };

@@ -114,6 +114,16 @@ public:
     inline int           GetTramlineSetpointLevel() const { return tramlineSetpointLevel; }
     inline unsigned long GetTramlineSetpointMs() const    { return lastTramlineSetpointMs; }
 
+    // The bound TC partner's own address and validity -- same rationale as
+    // IsobusVtInterface's equivalents: GitHub issue #17's root cause was this
+    // going false invisibly, and #19 was the same thing happening to this
+    // partner. Neither was readable anywhere.
+    inline bool         IsPartnerAddressValid() const { return partner && partner->get_address_valid(); }
+    inline std::uint8_t GetPartnerAddress() const { return partner ? partner->get_address() : 0xFE; }
+
+    // Reconnect watchdog counter (GitHub issue #18).
+    inline unsigned int GetReconnectAttemptCount() const { return reconnectAttempts; }
+
     // Whether the CONNECTED TC itself reports TC-GEO support -- read from its
     // own ParameterVersion handshake message (isobus_task_controller_client.cpp,
     // TechnicalDataMessageCommands::ParameterVersion), not something we
@@ -152,12 +162,14 @@ private:
                                void*         parentPointer);
 
     void buildDdop();
+    void updateReconnectWatchdog();
 
     Stream*           serialDebug;
     ImplementPlough*  implement;
     GuidanceSource*   guidance;
 
     std::shared_ptr<isobus::InternalControlFunction>        controlFunction;
+    std::shared_ptr<isobus::PartneredControlFunction>       partner;
     std::shared_ptr<isobus::DeviceDescriptorObjectPool>     ddop;
     std::shared_ptr<isobus::TaskControllerClient>           tcClient;
 
@@ -183,6 +195,22 @@ private:
     bool            tramlineSetpointSeen   = false;
     int             tramlineSetpointLevel  = -1;  // -1 = nothing received yet
     unsigned long   lastTramlineSetpointMs = 0;
+
+    // Reconnect watchdog (GitHub issue #18). This matters more here than on
+    // the VT side: TaskControllerClient's WaitForServerStatusMessage state
+    // has NO timeout at all, so a TC client that stops hearing its server
+    // cannot recover under any circumstances without external intervention.
+    // Only armed after a first successful connection.
+    //
+    // Uses TaskControllerClient::restart(), which is purpose-built for this
+    // (it just sets the state machine back to Disconnected). Do NOT call
+    // initialize() again instead: unlike the VT client's, this one registers
+    // its PGN callbacks unconditionally, so a second call would double-
+    // register them.
+    bool            hasEverConnected    = false;
+    unsigned long   disconnectedSinceMs = 0;
+    unsigned long   lastReconnectTryMs  = 0;
+    unsigned int    reconnectAttempts   = 0;
 };
 
 }  // namespace triton
