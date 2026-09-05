@@ -1,0 +1,52 @@
+Session 5, 2026-09-05, Ag Leader InCommand 1200 (New Holland tractor).
+Run 2 -- first capture with the new vtstat=<count>/<age-ms> counter
+(IsobusVtInterface::GetVtStatusMessageCount()/GetVtStatusMessageAgeMs()),
+natural behaviour, updateVtVariables() NOT yet disabled (see run 3 for the
+isolation test that ruled it out as the cause). Firmware: isobus-tc-client
+at a5db807 plus the new counter, uncommitted at the time of this run.
+
+Timestamps are seconds since the logging script attached to COM4, which in
+this run happened after the board had already fully booted, so t=0 does not
+correspond to board reset.
+
+Lines from t=9.8 to t=126.9 repeat the same steady-state
+(vt=N(0/22) vtstat=4/<growing age>ms, msgs= climbing ~31/s, aiso= climbing
+1/s, busload steady ~17%) with no change of any kind -- trimmed here to the
+first and last few for brevity. The full, untrimmed capture is available in
+this session's transcript if more granularity is ever needed.
+
+[   0.000] --- connected ---
+[   0.670] IsobusGuidanceChannel: claiming address address claimed: 0x81
+[   1.675] IsobusDebugMenu: send any character to open the status menu.
+[   2.817] === ISOBUS DEBUG MENU ===
+[   2.817] 1. Full status dump
+[   2.817] 2. Periodic summary line (OFF - press to toggle)
+[   2.817] 3. Reset message counters
+[   2.817] q. Exit
+[   2.817] Periodic summary line: ON
+[   2.817] === ISOBUS DEBUG MENU ===
+[   2.817] 1. Full status dump
+[   3.817] 2. Periodic summary line (ON - press to toggle)
+[   3.817] 3. Reset message counters
+[   3.817] q. Exit
+[   3.817] Exiting.
+[   3.817] [ISOBUS] addr=0x81 claimed=Y load=12.2% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=9426 vtgAge=9426 xteAge=9426 vt=N(1/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[   4.813] [ISOBUS] addr=0x81 claimed=Y load=19.0% msgs=37 aiso=1(10426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=32 xteAge=10426 vt=Y(21/22) vtstat=2/726ms tc=N drp=0mm tcq=0
+[   5.819] [ISOBUS] addr=0x81 claimed=Y load=17.8% msgs=68 aiso=2(11426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=32 xteAge=11426 vt=Y(21/22) vtstat=4/726ms tc=N drp=0mm tcq=0
+[   5.819] W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+[   6.784] [ISOBUS] addr=0x81 claimed=Y load=17.0% msgs=99 aiso=3(12426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=34 vtgAge=34 xteAge=12426 vt=Y(21/22) vtstat=4/1726ms tc=N drp=0mm tcq=0
+[   6.784] W] [PR]: NACK-ing PGN request for PGN 60928 because no callback could handle it.
+[   7.093] W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+[   7.093] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=130 aiso=4(13426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=34 vtgAge=33 xteAge=13426 vt=Y(21/22) vtstat=4/2726ms tc=N drp=0mm tcq=0
+[   7.819] E] [VT]: Status Timeout
+[   7.819] W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+[   8.817] [ISOBUS] addr=0x81 claimed=Y load=17.0% msgs=161 aiso=5(14426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=33 xteAge=14426 vt=N(0/22) vtstat=4/3726ms tc=N drp=0mm tcq=0
+[   9.817] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=192 aiso=6(15426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=33 xteAge=15426 vt=N(0/22) vtstat=4/4726ms tc=N drp=0mm tcq=0
+
+... (steady-state repeats unchanged, vtstat count frozen at 4, vt=N(0/22),
+    for the rest of this ~128s capture) ...
+
+[ 124.254] [ISOBUS] addr=0x81 claimed=Y load=16.8% msgs=3757 aiso=121(130426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=32 xteAge=130426 vt=N(0/22) vtstat=4/119726ms tc=N drp=0mm tcq=0
+[ 125.263] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=3788 aiso=122(131426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=33 xteAge=131426 vt=N(0/22) vtstat=4/120726ms tc=N drp=0mm tcq=0
+[ 126.264] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=3819 aiso=123(132426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=33 xteAge=132426 vt=N(0/22) vtstat=4/121726ms tc=N drp=0mm tcq=0
+[ 127.795] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=3881 aiso=125(134426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33 vtgAge=33 xteAge=134426 vt=N(0/22) vtstat=4/123726ms tc=N drp=0mm tcq=0

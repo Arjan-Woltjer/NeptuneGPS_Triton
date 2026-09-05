@@ -83,6 +83,22 @@ public:
     // pool (see VTObjectPool.cpp).
     const char* GetVtVersionName() const;
 
+    // Raw count/age of VT Status Messages (PGN 0xE600/VirtualTerminalToECU,
+    // function 0xFE) actually seen on the bus, independent of AgIsoStack's
+    // own internal state machine -- added 2026-09-05 to tell apart "the VT
+    // isn't sending its mandatory status broadcast" from "it's sending it,
+    // we're just not acting on it in time" after a reproducible
+    // Status Timeout ~3s post-Connect on an Ag Leader InCommand 1200 (see
+    // HardwareTestNotes.md). AgIsoStack's own VirtualTerminalClient tracks
+    // this internally (lastVTStatusTimestamp_ms) but doesn't expose it, so
+    // this is a second, independent global PGN listener alongside the
+    // client's own -- CANNetworkManager supports multiple listeners per PGN,
+    // this doesn't steal or alter the message the client itself reacts to.
+    unsigned int  GetVtStatusMessageCount() const { return vtStatusMessageCount; }
+    unsigned long GetVtStatusMessageAgeMs() const {
+        return vtStatusMessageCount == 0 ? 0 : millis() - lastVtStatusMessageMs;
+    }
+
     // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
     // release, cleared by the call itself (edge-triggered, matching a
     // discrete VT tap rather than a held physical button). Direction mapping
@@ -149,8 +165,12 @@ private:
     bool pendingWiderPress    = false;
     bool pendingNarrowerPress = false;
 
+    unsigned int  vtStatusMessageCount  = 0;
+    unsigned long lastVtStatusMessageMs = 0;
+
     void updateVtVariables();
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
+    static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);
 };
 
 }  // namespace triton

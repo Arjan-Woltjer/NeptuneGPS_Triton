@@ -103,6 +103,12 @@ void IsobusVtInterface::Begin() {
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     vtClient->initialize(false);
+
+    // See the header's GetVtStatusMessageCount()/GetVtStatusMessageAgeMs()
+    // comment -- independent raw counter for the VT's own periodic status
+    // broadcast, alongside (not replacing) vtClient's internal tracking.
+    CANNetworkManager::CANNetwork.add_global_parameter_group_number_callback(
+        static_cast<std::uint32_t>(CANLibParameterGroupNumber::VirtualTerminalToECU), OnVtToEcuMessage, this);
 }
 
 // ----------------------------------------------------------------
@@ -217,6 +223,15 @@ const char* IsobusVtInterface::GetVtVersionName() const {
         case VirtualTerminalClient::VTVersion::Version6:          return "6";
         default:                                                  return "(unknown)";
     }
+}
+
+void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parentPointer) {
+    if (parentPointer == nullptr || message.get_data_length() < 1) return;
+    if (message.get_uint8_at(0) != static_cast<std::uint8_t>(VirtualTerminalClient::Function::VTStatusMessage)) return;
+
+    IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
+    self->vtStatusMessageCount++;
+    self->lastVtStatusMessageMs = millis();
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {

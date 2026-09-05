@@ -219,6 +219,11 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->println(vtInterface->GetStateName());
         serialDebug->print("  VT version:  ");
         serialDebug->println(vtInterface->GetVtVersionName());
+        serialDebug->print("  VT status msgs: ");
+        serialDebug->print(vtInterface->GetVtStatusMessageCount());
+        serialDebug->print("   last ");
+        serialDebug->print(vtInterface->GetVtStatusMessageAgeMs());
+        serialDebug->println(" ms ago");
     }
 
     serialDebug->println("--- Task Controller ---");
@@ -306,7 +311,11 @@ void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print(vtInterface->GetStateStep());
         serialDebug->print("/");
         serialDebug->print(vtInterface->GetStateTotalSteps());
-        serialDebug->print(")");
+        serialDebug->print(") vtstat=");
+        serialDebug->print(vtInterface->GetVtStatusMessageCount());
+        serialDebug->print("/");
+        serialDebug->print(vtInterface->GetVtStatusMessageAgeMs());
+        serialDebug->print("ms");
     }
     if (tcInterface != nullptr) {
         serialDebug->print(" tc=");

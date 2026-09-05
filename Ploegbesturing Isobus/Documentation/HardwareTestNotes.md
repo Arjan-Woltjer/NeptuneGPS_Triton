@@ -346,6 +346,129 @@ CNH VT3/VT4 here) and confirmed by exact byte arithmetic, not inference:
 - Fendt re-test with the WorkingSet-child fix -- see above, a real
   candidate for also resolving Session 3's original rejection.
 
+## Session 5 -- 2026-09-05
+
+**Rig:** New Holland tractor. Two VTs live simultaneously: an Ag Leader
+InCommand 1200 (with Ag Leader's own GPS/guidance) and the tractor's own
+built-in New Holland VT. Triton's partner filter matches on function code
+alone (see Session 4's note on this) and bound to the InCommand 1200 both
+times it connected today; the New Holland VT was never isolated/tested on
+its own this session.
+
+**Goal:** confirm our HMI (VT object pool) uploads and renders correctly on
+a terminal we hadn't tried live before, following on from Session 4's
+WorkingSet fix (only verified against CNH's own VT and a Fendt UT so far).
+
+**Firmware:** `isobus-tc-client` at `a5db807` (includes everything through
+the 2026-08-18 reorg -- soft keys, app-switcher icon, WorkingSet fix, VT
+flooding throttle -- none of it field-verified until today).
+
+**Confirmed working:**
+- VT object pool upload/render: **confirmed working.** The InCommand 1200
+  reaches `Connected` (`21/22`) reliably on every power-cycle tested today,
+  and the app-switcher icon added 2026-08-10 was visually confirmed on
+  screen. This answers today's main question -- our HMI content and upload
+  path are correct on this terminal.
+
+**Bug found, not yet fixed -- reproducible VT Status Timeout:**
+
+Every single power-cycle (2 full cycles captured with a timestamped serial
+log) reproduced the exact same failure, ~100% reliably:
+
+1. VT reaches `Connected` (`21/22`) within ~1s of `loop()` starting.
+2. Stays connected and stable (busload steady ~17%, our own guidance-PGN
+   traffic counter climbing normally) for **~2-3 seconds**.
+3. `E] [VT]: Status Timeout` fires (AgIsoStack's own hardcoded
+   `VT_STATUS_TIMEOUT_MS = 3000`), state drops to `Disconnected` (`0/22`),
+   and **never recovers** -- stayed at `0/22` for the rest of both captures
+   (120+ seconds in one case) with zero automatic retry. A serial replug
+   does not reproduce it or clear it; only an actual Teensy reset does.
+
+Added a new, independent diagnostic to `IsobusVtInterface`
+(`GetVtStatusMessageCount()`/`GetVtStatusMessageAgeMs()`, wired into
+`IsobusDebugMenu` as `vtstat=<count>/<age>ms`): a second global PGN 0xE600
+(`VirtualTerminalToECU`) listener alongside AgIsoStack's own `vtClient`,
+counting `Function::VTStatusMessage` frames directly off the bus,
+independent of AgIsoStack's internal `lastVTStatusTimestamp_ms` (which isn't
+publicly exposed). Both captures showed the same pattern: **exactly 4 VT
+status messages received, then complete silence**, well inside the 3s
+window before our own watchdog fires:
+
+```
+vt=Y(21/22) vtstat=2/726ms   -- just connected
+vt=Y(21/22) vtstat=4/726ms   -- 2 more arrived (~1/s, as expected)
+vt=Y(21/22) vtstat=4/1726ms  -- stuck at 4, ~1s with nothing
+vt=Y(21/22) vtstat=4/2726ms  -- stuck at 4, ~2.7s with nothing
+E] [VT]: Status Timeout
+vt=N(0/22) vtstat=4/3726ms   -- never increments again
+```
+
+Since our own guidance-PGN message counter (`msgs=`) keeps climbing at a
+steady rate throughout -- before, during, and after the freeze -- this rules
+out a general CAN-receive/main-loop stall on our end. **The InCommand 1200
+itself stops broadcasting its own mandatory VT status message ~1.5-2s after
+we connect**, not us failing to hear something it keeps sending.
+
+**Isolation test, ruling out our own outbound traffic as the cause:**
+Session 4's leading theory for a similar (but intermittent) drop on CNH was
+VT redraw load from `updateVtVariables()`'s unconditional traffic -- already
+throttled by 2026-08-10's fix, present in this build. To test whether *any*
+of our post-connect outbound traffic (the on-change/1s-heartbeat variable
+updates) provokes this, fully disabled the `updateVtVariables()` call
+(`#if 0`'d in `IsobusVtInterface::Update()`), rebuilt, reflashed, and
+repeated the power-cycle. **Identical failure signature** -- exactly 4
+status messages, then the same timeout at the same ~2-3s mark. Reverted the
+test change (confirmed innocent); this rules out our own outbound VT
+traffic entirely. Root cause of *why* the InCommand 1200 stops broadcasting
+is still open -- current leading theory is a terminal-side quirk/limitation,
+not a Triton bug, but that's not yet confirmed against Ag Leader's own
+documentation or a dealer (same shape of open question as Session 3's
+TC-GEO licensing angle for Bos/Trimble). Filed as
+[GitHub issue #17](https://github.com/Arjan-Woltjer/NeptuneGPS_Triton/issues/17).
+
+**Second, separate finding -- no automatic reconnect:** AgIsoStack's own
+state machine (`isobus_virtual_terminal_client.cpp`'s `Disconnected` case)
+should auto-retry as soon as `partnerControlFunction->get_address_valid()`
+is true, which the VT's claimed address should still be. On real hardware,
+across both captures, it never did -- stuck at `0/22` with zero retries
+until a physical reset. Not yet chased down why the automatic path doesn't
+fire in practice. A watchdog in `IsobusVtInterface::Update()` that forces
+`vtClient->initialize(...)` again after a prolonged disconnect would at
+least recover automatically without a manual reset, regardless of root
+cause -- proposed, not yet implemented or tested. Filed as
+[GitHub issue #18](https://github.com/Arjan-Woltjer/NeptuneGPS_Triton/issues/18).
+
+**Not reached this session:**
+- New Holland's own built-in VT was never isolated/tested (InCommand 1200
+  was live the whole time and Triton bound to it both cycles) -- open
+  question whether the same ~4-message cutoff is InCommand-1200-specific or
+  more general.
+- **Task Controller never connected at all, either cycle** -- the periodic
+  line's `tc=`/`drp=`/`tcq=` fields stayed flat at `tc=N drp=0mm tcq=0` for
+  the entire duration of both captures (through the VT fault and for 120+s
+  afterward). Notable because the InCommand 1200 is the terminal
+  `ISOBUS_TC_Manufacturer_Comparison.md` identifies as shipping with TC-GEO
+  standard, no unlock required -- Session 4's original reason for wanting to
+  test against it. Not clear yet whether this is downstream of the VT
+  connection never staying up long enough, or a separate, unexamined gap in
+  `IsobusTcInterface`'s own partner discovery. Filed as
+  [GitHub issue #19](https://github.com/Arjan-Woltjer/NeptuneGPS_Triton/issues/19).
+
+**Raw logs:** timestamped serial captures for all three runs referenced
+above are saved under `Documentation/logs/`:
+`2026-09-05_session5_run1_vt-connect-fault.log` (first connect/fault
+correlation, predates the vtstat counter),
+`2026-09-05_session5_run2_vtstat-baseline.log` (natural failure with the new
+counter), `2026-09-05_session5_run3_isolation-test-no-burst.log`
+(`updateVtVariables()` disabled -- the isolation test that ruled out our own
+outbound traffic).
+
+**Code changed this session** (uncommitted as of end of session, on
+`isobus-tc-client`): `IsobusVtInterface.hpp/.cpp` (new
+`GetVtStatusMessageCount()`/`GetVtStatusMessageAgeMs()` + the PGN 0xE600
+listener backing them), `IsobusDebugMenu.cpp` (surfaces the new counter in
+both the full dump and the periodic line).
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
