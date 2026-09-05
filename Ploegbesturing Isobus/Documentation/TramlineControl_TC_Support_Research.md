@@ -200,7 +200,7 @@ Reference 2 of that document cites the AEF article *"AEF Announces Update: TRAM 
 
 That is a miscitation. That article is about **Tramline Control**: the AEF renaming its TRAM functionality to TRACK on 17 December 2025, ahead of releasing the guideline and certificates as "TRACK Generation 1". It has nothing to do with TC-GEO. The TC-GEO naming point in §1 of that document may well still be correct, but it is not supported by the source attached to it and needs a different citation.
 
-Flagging rather than editing, since that document is outside the scope of this task.
+**Resolved 2026-09-05.** That document has now been corrected, and the check turned up more than a bad citation: the *claim* was wrong too. Two AEF primary sources were consulted — the AEF Tour page, which lists "TC-GEO (Task-Controller geo-based)" and never uses the phrase "variable rate control", and AEF's own "ISOBUS in Functionalities" leaflet, which expands it as "Task Controller geo-based (variables)". AEF publishes no customer-facing marketing name for TC-GEO at all. "Variable rate control" is industry/vendor description, not an AEF functionality name. `ISOBUS_TC_Manufacturer_Comparison.md` sec. 1 now says so, carries a dated correction, and its reference 2 points at the leaflet instead.
 
 ---
 

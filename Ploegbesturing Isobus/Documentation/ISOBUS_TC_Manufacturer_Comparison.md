@@ -14,7 +14,9 @@ TC-GEO is a single AEF-certified functionality, not two separate ones. It covers
 
 There is no separate "logging-only" vs. "control" AEF certification split — a terminal is either TC-GEO certified (and can do both) or it isn't. The commercial gating seen below (paid unlock, tiered SKU, subscription) is a vendor decision layered *on top of* one standardized AEF functionality, not a reflection of two different standards.
 
-AEF's technical name for the functionality is "TC-GEO"; their customer-facing marketing term for the same thing is "Variable Rate Control."
+AEF's own name for the functionality is "TC-GEO — Task Controller geo-based"; it publishes no separate customer-facing marketing name for it. The phrase "variable rate control" is used widely in vendor and trade material to describe the prescription-map capability TC-GEO provides, but it is an industry description, not an AEF functionality name — worth knowing when reading vendor documentation, but don't expect it on a certificate or in the AEF database.
+
+**Correction (2026-09-05):** this line previously claimed "Variable Rate Control" was AEF's *customer-facing marketing term* for TC-GEO, citing the AEF article "AEF Announces Update: TRAM becomes TRACK". That was a miscitation — that article is entirely about the Tramline Control functionality being renamed TRACK (17 December 2025) and says nothing about TC-GEO. The underlying claim doesn't survive checking either: the AEF Tour page (ref. 1) lists "TC-GEO (Task-Controller geo-based)" and does not use the phrase "variable rate control" anywhere, and AEF's own "ISOBUS in Functionalities" leaflet (ref. 2, now cited in its place) expands it as "Task Controller geo-based (variables)". The general pattern the original line was reaching for is real — AEF does distinguish technical from customer-facing names, which is exactly what the TRAM/TRACK article describes for tramline control — but it does not apply to TC-GEO. Found via `TramlineControl_TC_Support_Research.md` §7.
 
 The AEF (Agricultural Industry Electronics Foundation) was founded in 2008 by John Deere, CNH, Claas, AGCO, Kverneland Group, Grimme and Pöttinger to standardize ISOBUS interoperability and certify implements/terminals/FMIS software against it. The AEF ISOBUS database (aef-isobus-database.org) is the authoritative compatibility lookup, listing certified functionalities per product: UT, AUX-N/AUX-O, TC-BAS, TC-SC, TC-GEO, TECU.
 
@@ -76,7 +78,7 @@ Ag Leader ties TC availability to the specific *display model*, not purely to a 
 
 ### AEF / general ISOBUS standard
 1. AEF Online — "AEF Tour" (TC-GEO definition, documentation + control) — https://www.aef-online.org/aef-tour/index.html
-2. AEF Online — "AEF Announces Update: TRAM becomes TRACK" (TC-GEO technical vs. customer-facing naming) — https://www.aef-online.org/aef-news/aef-announces-update-tram-becomes-track.html
+2. AEF Online — "ISOBUS in Functionalities" leaflet, PDF, 10/2015 (AEF's own functionality names; expands TC-GEO as "Task Controller geo-based (variables)") — https://www.aef-online.org/fileadmin/user_upload/Content/pdfs/AEF_handfan_EN.pdf — *replaced the previously cited "TRAM becomes TRACK" article, which is about Tramline Control and did not support the claim attached to it; see the correction in sec. 1. Dated 2015, but its TC-GEO naming matches the current AEF Tour page (ref. 1).*
 3. AEF Online — "Data Management Update" (FMIS-side TC-GEO conformance test, Sept 2021) — https://www.aef-online.org/aef-news/data-management-update.html
 4. Precision Farming Dealer — "AEF Releases Enhanced ISOBUS Conformance Test" — https://www.precisionfarmingdealer.com/articles/4871-aef-releases-enhanced-isobus-conformance-test
 5. Farm Progress — "AEF's challenge: Encouraging manufacturers to get ISOBUS-certified" (database functionality list) — https://www.farmprogress.com/farming-equipment/aef-s-latest-challenge-encouraging-manufacturers-to-get-isobus-certified
