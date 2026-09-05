@@ -309,6 +309,37 @@ InCommand 1200 throughout. Note also `Partnered control function ... has
 claimed address`: **0** -- we did not rebind to the newly-arrived VT, so the
 function-code-only `NAMEFilter` ambiguity did not bite here either.
 
+**Upstream status (2026-09-05): this patch deliberately diverges from
+upstream's tested behaviour, and may never be accepted.** Filed as
+[AgIsoStack-plus-plus#717](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/issues/717).
+While preparing that, it turned out `CoreTest.InvalidatingControlFunctions`
+in upstream's own suite *explicitly asserts* that a **partnered** control
+function which misses a roll-call goes address-invalid and reports Offline:
+
+```cpp
+// Now, if we wait a while, that partner didn't claim again, so it should be invalid.
+EXPECT_FALSE(testPartner->get_address_valid());
+EXPECT_EQ(testControlFunctionState, ControlFunctionState::Offline);
+```
+
+That is a named, intentional test, so pruning partners is upstream *design*,
+not an oversight -- and defensible on paper, since ISO 11783-5 requires a CF
+to answer a Request for Address Claimed. Our argument against it is about
+margin and consequence, not principle: 755 ms is tight on a loaded bus, that
+rig issued roll-calls every ~3 s, and losing the race once is unrecoverable
+rather than transient. That argument has been put to the maintainers as a
+design question rather than a bug report.
+
+**Practical consequence for us:** treat this patch as long-lived. Only the
+companion fix (the `update_address_table()` restore path) was offered as a
+PR -- [#718](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/pull/718)
+-- because that one breaks no test and is unambiguous. If #718 merges and
+we take it, the failure may degrade from permanent to transient even without
+this patch, at which point it's worth re-testing whether this one is still
+needed. Until then it must be reapplied by hand after every `pio pkg
+update` / clean `.pio` rebuild, and unlike patches #1-#3 there is no upstream
+release that will eventually make that unnecessary.
+
 **Consumed by:** nothing programmatic -- control-flow inside AgIsoStack.
 
 ---
