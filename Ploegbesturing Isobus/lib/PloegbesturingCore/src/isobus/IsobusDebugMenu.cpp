@@ -35,6 +35,19 @@ static constexpr std::uint8_t kCanChannel = 0;
 
 static constexpr unsigned long kPeriodicIntervalMs = 1000UL;
 
+// Print an 8-byte CAN payload as 16 zero-padded hex characters, no
+// separators. Arduino's print(x, HEX) drops leading zeros, which would make
+// the field variable-width and ruin offline column alignment when deriving a
+// payload layout from a capture (GitHub issue #20) -- 0x03 must read as "03",
+// not "3", or byte boundaries shift.
+static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
+    static const char kHexDigits[] = "0123456789ABCDEF";
+    for (uint8_t i = 0; i < 8; i++) {
+        out->print(kHexDigits[(payload[i] >> 4) & 0x0F]);
+        out->print(kHexDigits[payload[i] & 0x0F]);
+    }
+}
+
 // ------------------------------------------------------------------
 // Constructor / Begin
 // ------------------------------------------------------------------
@@ -159,6 +172,17 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(counters.lastXteJohnDeereLegacyRawWord, HEX);
     serialDebug->print(" byte1=0x");
     serialDebug->println(counters.lastXteJohnDeereLegacyRawByte1, HEX);
+    // All 8 bytes -- the word/byte1 fields above are the John Deere layout's
+    // fields specifically, which is exactly the assumption GitHub issue #20
+    // is trying to replace for Ag Leader. Deriving that layout needs the
+    // whole payload, so print it whole.
+    serialDebug->print("             full payload:     ");
+    GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
+    serialDebug->print("  (");
+    serialDebug->print(counters.xteJohnDeereLegacy > 0
+                           ? (millis() - counters.lastXteJohnDeereLegacyPayloadMs)
+                           : 0);
+    serialDebug->println(" ms ago)");
     serialDebug->print("  PGN 60160  XTE Trimble legacy:");
     serialDebug->print(counters.xteTrimbleLegacy);
     serialDebug->print("   last SA=0x");
@@ -316,6 +340,22 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->print(now - guidance->GetVtgFixAge());
     serialDebug->print(" xteAge=");
     serialDebug->print(now - guidance->GetXteTimestamp());
+
+    // Raw PGN 65535 payload, on the periodic line specifically so a serial
+    // capture is time-correlated: deriving Ag Leader's layout (GitHub issue
+    // #20) means matching these bytes against XTE values an operator reads
+    // aloud off the terminal, which only works if each sample carries the
+    // same timestamp as everything else on the line. Sampled at the periodic
+    // rate rather than per message -- the underlying PGN arrives ~10 Hz, but
+    // real XTE moves on the scale of seconds, so 1 Hz is ample and keeps the
+    // log readable. Source address is included because the whole point is
+    // that this PGN is shared between vendors with different layouts.
+    if (counters.xteJohnDeereLegacy > 0) {
+        serialDebug->print(" xteraw=");
+        serialDebug->print(counters.lastXteJohnDeereLegacySourceAddress, HEX);
+        serialDebug->print(":");
+        GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
+    }
 
     if (vtInterface != nullptr) {
         serialDebug->print(" vt=");

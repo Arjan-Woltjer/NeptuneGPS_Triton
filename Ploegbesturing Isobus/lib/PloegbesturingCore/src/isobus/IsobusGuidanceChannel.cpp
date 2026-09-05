@@ -253,6 +253,12 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
     // layout, so they must still reach IsobusDebugMenu's readout.
     self->counters.lastXteJohnDeereLegacyRawWord  = result.rawWord;
     self->counters.lastXteJohnDeereLegacyRawByte1 = result.rawByte1;
+    if (result.lengthOk) {
+        for (uint8_t i = 0; i < 8; i++) {
+            self->counters.lastXteJohnDeereLegacyPayload[i] = result.rawPayload[i];
+        }
+        self->counters.lastXteJohnDeereLegacyPayloadMs = millis();
+    }
 
     if (!result.valid) return;
     self->guidance->SetXte(result.xteHundredthsMeter, result.quality);

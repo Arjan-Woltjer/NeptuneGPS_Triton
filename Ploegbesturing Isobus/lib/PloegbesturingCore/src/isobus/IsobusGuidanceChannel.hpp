@@ -90,6 +90,13 @@ public:
         uint8_t  lastXteJohnDeereLegacySourceAddress   = 0xFF;
         uint16_t lastXteJohnDeereLegacyRawWord         = 0;  // d[4]<<8|d[3], before the -32000/>>1 decode
         uint8_t  lastXteJohnDeereLegacyRawByte1         = 0;  // d[1], expected 0x15 for quality=4
+        // All 8 payload bytes of the last accepted PGN 65535 message. The
+        // word/byte1 fields above cover only 3 of them, which is not enough
+        // to derive Ag Leader's layout on this overloaded PGN (GitHub issue
+        // #20) -- that needs every byte, logged over time against
+        // ground-truth XTE read off the terminal.
+        uint8_t  lastXteJohnDeereLegacyPayload[8]      = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        uint32_t lastXteJohnDeereLegacyPayloadMs       = 0;
         uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
 
         inline uint32_t Total() const {

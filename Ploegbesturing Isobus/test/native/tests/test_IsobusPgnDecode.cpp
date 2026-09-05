@@ -198,6 +198,23 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderRavenAddress_diagnosticsOnlyNot
     assertTrue(r.lengthOk);
     assertEqual((int)r.rawWord, 0x7D40);
     assertEqual((int)r.rawByte1, 0x10);
+    // The whole payload is captured too, not just the three John Deere
+    // fields -- deriving Ag Leader's own layout needs every byte (#20).
+    for (int i = 0; i < 8; i++) {
+        assertEqual((int)r.rawPayload[i], (int)d[i]);
+    }
+}
+
+test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_capturesNoPayload) {
+    // An unrecognised sender yields no payload capture either -- this PGN is
+    // shared across manufacturers, so most traffic on it is not XTE at all
+    // and logging its bytes would pollute the capture we derive layouts from.
+    uint8_t d[8] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88 };
+    auto r = DecodeLegacyXteJohnDeere(0x2B, d, 8);
+    assertFalse(r.valid);
+    for (int i = 0; i < 8; i++) {
+        assertEqual((int)r.rawPayload[i], 0);
+    }
 }
 
 test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_sameBytesStillDecoded) {

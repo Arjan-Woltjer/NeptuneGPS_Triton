@@ -107,6 +107,14 @@ struct XteResult {
     byte     quality = 0;
     uint16_t rawWord = 0;        // diagnostic, JD/AgLeader-Raven legacy only
     byte     rawByte1 = 0;       // diagnostic, JD/AgLeader-Raven legacy only
+    // Full 8-byte payload, diagnostic, JD/AgLeader-Raven legacy only. rawWord
+    // and rawByte1 above expose only 3 of these 8 bytes, which is not enough
+    // to reverse-engineer Ag Leader's layout on this overloaded PGN -- see
+    // GitHub issue #20. Deriving it needs every byte logged against
+    // ground-truth XTE read off the terminal, so capture the lot.
+    // Populated on the same terms as rawWord/rawByte1: length guard passed
+    // and the source address is one we recognise, independent of `valid`.
+    byte     rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 };
 
 struct AisoResult {
