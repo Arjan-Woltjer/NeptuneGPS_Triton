@@ -166,17 +166,32 @@ chain, traced through this vendored source:
    startup, not spontaneously to satisfy us -- so once evicted, nothing
    naturally repopulates the table slot, and `get_address_valid()` genuinely
    (if wrongly) reports invalid from then on.
+6. **Also very likely explains GitHub issue #19** (TC never connected at
+   all, same Session 5 rig): `IsobusTcInterface::Begin()` binds its own TC
+   partner via the identical `NAMEFilter` + `create_partnered_control_function()`
+   pattern (`IsobusTcInterface.cpp:161-170`), adopted the same way if the
+   InCommand 1200's TC function was already claimed before we powered up.
+   `TaskControllerClient`'s `WaitForServerStatusMessage` state
+   (`isobus_task_controller_client.cpp:769-773`) has **no timeout at all** --
+   it waits indefinitely for the TC server's first status broadcast, which
+   only ever reaches it via the same `process_can_message_for_global_and_
+   partner_callbacks()` gate. If the TC partner is evicted before that first
+   broadcast arrives, the client is stuck forever with nothing to time out
+   or retry -- matching #19's "zero state change, zero capability query, for
+   120+ seconds" exactly, independently of the VT's own connection state
+   (the "downstream of the VT" theory #19 raised was likely a red herring;
+   this is a third, independently-evicted partner hitting the same bug).
 
-Ties #17 and #18 together as one root cause rather than two unrelated
-findings. Also explains why Session 4 (single VT, CNH) only saw an
+Ties #17, #18, and #19 together as one root cause rather than three
+unrelated findings. Also explains why Session 4 (single VT, CNH) only saw an
 intermittent version of this while Session 5 (InCommand 1200 **plus** the
 tractor's own built-in VT live simultaneously) hit it 100% of the time --
 more real ECUs on the bus means a PGN 60928 request is far more likely to
 occur in the first few seconds after we join.
 
-**Not yet field-verified** -- see `HardwareTestNotes.md` for the next
-session's result. Per project convention, stays on `isobus-tc-client` (not
-merged to main) until confirmed on real hardware.
+**Not yet field-verified** against #17, #18, or #19 -- see `HardwareTestNotes.md`
+for the next session's result. Per project convention, stays on
+`isobus-tc-client` (not merged to main) until confirmed on real hardware.
 
 **Consumed by:** nothing programmatic -- this changes control-flow inside
 AgIsoStack itself, not anything Triton-side calls directly.

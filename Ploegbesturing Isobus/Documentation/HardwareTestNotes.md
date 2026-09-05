@@ -505,16 +505,30 @@ tractor's own built-in VT live simultaneously) hit it 100% of the time --
 more real ECUs on the bus makes a PGN 60928 request in the first few seconds
 after joining far more likely.
 
+**Also very likely explains #19 (TC never connected at all)**, checked the
+same day: `IsobusTcInterface::Begin()` binds its own TC partner via the
+identical `NAMEFilter` + `create_partnered_control_function()` pattern, and
+`TaskControllerClient`'s `WaitForServerStatusMessage` state has **no
+timeout at all** -- it waits indefinitely for the TC server's first status
+broadcast, gated through the exact same broken dispatch. If the TC partner
+gets evicted before that first broadcast arrives, the client is stuck
+forever with nothing to time out or retry -- matching #19's "zero state
+change, zero capability query, for 120+ seconds" independently of whatever
+happened to the VT. The "downstream of the VT" theory #19 raised was likely
+a red herring; more probably a third, separately-evicted partner hitting
+the same bug. See `AgIsoStackVendorPatches.md` patch #3 for the full chain.
+
 **Fixed** (not yet field-verified): vendor patch propagating the missing
 liveness flag, plus bumping `IsobusVtInterface::Begin()`'s log level
 Warning -> Info so a future capture would show AgIsoStack's own `[NM]`
 control-function lifecycle lines directly instead of needing this level of
 source-diving again. Filed upstream:
 [AgIsoStack-Arduino#16](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/16).
-Posted the full analysis to GitHub issues #17 and #18, tying them together
-as one root cause. **Next hardware session's job:** confirm the InCommand
-1200 stays connected past the old ~2-3s cutoff, and cross-check any `[NM]`
-lines the Info log level now surfaces against this theory.
+Posted the full analysis to GitHub issues #17, #18, and #19, tying all
+three together as one root cause. **Next hardware session's job:** confirm
+the InCommand 1200's VT stays connected past the old ~2-3s cutoff, the TC
+now connects too, and cross-check any `[NM]` lines the Info log level now
+surfaces against this theory.
 
 ---
 
