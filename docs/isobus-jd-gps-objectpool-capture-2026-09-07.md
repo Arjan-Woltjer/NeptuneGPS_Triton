@@ -41,7 +41,7 @@ The relevant traffic, in order of appearance when the JD unit powers up:
 |---|---|---|---|
 | Address Claim | 60928 (0xEE00) | global broadcast | Carries the 64-bit NAME: manufacturer code (John Deere has its own registered SAE code), function code, device class, ECU instance. This is the "JD GPS joined the bus" event. |
 | VT discovery | VT Status (from VT), Working Set Maintenance (from ECU) | broadcast / to VT | ECU waits for a VT Status message, then starts talking to that VT's address. |
-| Object Pool Transfer | 0xE800 (ECU→VT) wrapped in TP or ETP | **destination-specific**, ECU → VT | Pools over 8 bytes go through Transport Protocol (TP.CM 60416 / TP.DT 60160), larger ones through Extended TP (ETP.CM 0xC800 / ETP.DT 0xC700). The frames are addressed to the VT but are still visible to everyone. |
+| Object Pool Transfer | 0xE700 "ECU to VT" (59136), VT function byte 0x11, wrapped in TP or ETP | **destination-specific**, ECU → VT | Pools over 8 bytes go through Transport Protocol (TP.CM 0xEC00 / TP.DT 0xEB00), larger ones through Extended TP (ETP.CM 0xC800 / ETP.DT 0xC700). The frames are addressed to the VT but are still visible to everyone. The VT answers on 0xE600 "VT to ECU". |
 
 The object-pool payload itself is defined in ISO 11783-6 as a serialized list
 of VT objects (working set, data masks, soft key masks, containers, output
@@ -101,9 +101,24 @@ Pipeline:
    the `asammdf` GUI/Python API, or their `mdf_iter` / `canedge_browser`
    Python packages. The CAN frame table has arbitration ID, DLC, data bytes,
    timestamp and channel. No ISOBUS-specific step yet.
-2. **Convert the frame stream into something Wireshark reads**: a pcap with
-   SocketCAN link-layer frames, or a candump-style text log. This is a short
-   script and the only glue that has to be written.
+2. **Convert the frame stream into something Wireshark reads.**
+   `Ploegbesturing Isobus/tools/mf4_to_pcap.py` does this: it reads the MF4
+   (via `mdf_iter`, falling back to `asammdf`) and writes a SocketCAN pcap
+   (link type 227). With `--summary` it also prints every address claim with
+   its decoded NAME, every TP/ETP session with source, destination and
+   enclosed PGN, and flags the "ECU to VT / Object Pool Transfer" session
+   explicitly, so the addresses for step 4 come straight out of the log:
+
+   ```
+   pip install mdf_iter
+   python mf4_to_pcap.py 00000001.MF4 00000002.MF4 -o jd.pcap --channel 1 --summary
+   ```
+
+   Verified against a synthetic MF4 (address claims, a TP object-pool upload,
+   NMEA broadcasts): the pcap round-trips and the pool bytes reassemble
+   exactly. The `mdf_iter` path could not be exercised on a real CANedge file
+   here; if it prints "found no CAN frames" on tomorrow's log, the asammdf
+   fallback kicks in automatically.
 3. **Open it in Wireshark.** Wireshark's built-in `packet-isobus.c` (ISO 11783
    transport layer, PGN identification, address claim / NAME decode) and
    `packet-isobus-vt.c` (ISO 11783-6 Virtual Terminal) reassemble the TP/ETP
@@ -122,8 +137,10 @@ Checklist for tomorrow:
       correct bit rate, passive tap, no extra termination.
 - [ ] Logging running *before* the JD unit powers on — the pool is uploaded
       once per VT connection, at join time.
-- [ ] Pull the `.MF4` files, extract frames, convert to pcap, open in Wireshark
-      with the ISOBUS dissectors enabled.
+- [ ] Pull the `.MF4` files (plain MF4; `.MFC`/`.MFE` need CSS's
+      `mdf2finalized` first), run `tools/mf4_to_pcap.py --summary`, open the
+      pcap in Wireshark. If frames show as plain "CAN", enable the ISOBUS
+      heuristic under Analyze > Enabled Protocols or use Decode As.
 - [ ] Note the JD unit's claimed address and NAME for later use in the
       firmware's own detection (Option A, step 1).
 
