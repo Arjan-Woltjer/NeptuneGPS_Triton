@@ -1049,8 +1049,9 @@ only these three exist.
 ### CANedge full-bus capture -- the raw data #20 has been waiting for
 
 A full CAN log was recorded with the CANedge logger across this session, with
-**ground truth called out live, in this order: 71 cm, then 1 cm, then 0 cm**,
-the last part of the log being the deliberate drive to zero.
+**ground truth called out live, in this order: 71 cm, then 1 cm, then 0 cm,
+then 99 cm on the other side of the line, then back to 0 cm.** Five points, two
+zero crossings, both sides of the line represented.
 
 That descending sequence is the important part, and it is exactly what #20
 needs. Session 6's mistake was deriving a confident "100x scale error" from a
@@ -1060,12 +1061,25 @@ containing *changes* of known size and direction cannot be satisfied by a
 frozen field, so it can distinguish a scale error, a byte-offset error and a
 dead decode from one another, which no single static point can.
 
-The 71 -> 1 -> 0 spread is particularly useful because it spans two orders of
-magnitude: a candidate byte pair must track all three values, which kills most
-wrong-offset hypotheses outright rather than leaving them merely unlikely. Note
-also that all three are same-sign approaches to zero, so this sequence still
-does **not** establish the sign convention -- that remains open from session 6,
-and needs a crossing to the other side of the line to settle.
+The spread is particularly useful because it spans two orders of magnitude: a
+candidate byte pair must track all four values, which kills most wrong-offset
+hypotheses outright rather than leaving them merely unlikely.
+
+**And the sequence crosses the line twice.** 71 -> 1 -> 0 approaches zero from
+one side, 99 cm is then on the other, and the return to 0 crosses back. Two
+crossings beat one: a decode can fake a single sign flip through an unrelated
+bit that happened to toggle once, but reproducing an out-and-back through zero
+on the correct field is not something a wrong hypothesis does by accident.
+That crossing is what the sign convention has
+been missing since session 6, when the operator's left/right calls were
+corrected mid-sequence and the recorded magnitudes (144, 8, 118, 14 cm) were
+left reliable but unsigned. Here the ordering itself carries the sign: whatever
+field encodes XTE must be large, shrink through 1 to 0, then grow again to
+roughly 99 with the opposite sign (or with a separate side/direction flag
+flipping). A decode that reproduces the magnitudes but not that flip is wrong,
+and one that reproduces both is almost certainly right. Session 6's open
+"sign convention remains unverified" item should be closeable from this log
+alone.
 
 Pair this against PGN 65535 frames from SA `0x80`. The payloads logged on the
 serial side during session 7 sat around `510301FF0B0009FF` / `510302FF10000DFF`
@@ -1115,11 +1129,13 @@ that took part in run 2 -- the next real DDOP tree change must go to TC05.
   this is done the session's main result is provisional.
 - If it was mapped, close #21 against this terminal as "no Tramline Control
   support" and move the DDI 513/514 question to a different brand's TC.
-- **#20 now has its capture** -- the CANedge log plus the 71 / 1 / 0 cm ground
-  truth above. Next step is off-tractor: convert the MF4, find the PGN 65535
-  SA `0x80` frames, and derive the Ag Leader layout that tracks all three
-  values. Record the MF4's location here first. Sign convention still not
-  established -- all three points approach zero from the same side.
+- **#20 now has its capture** -- the CANedge log plus five ground-truth points
+  (71 / 1 / 0 / 99-other-side / 0) with two zero crossings. Next step is
+  off-tractor: convert the MF4, find the PGN 65535 SA `0x80` frames, and derive
+  the Ag Leader layout that tracks all five values *and* the sign flip. Record
+  the MF4's location here first. On this data the sign convention should be
+  derivable too, closing session 6's "sign convention remains unverified"
+  without another tractor session.
 - #18 auto-reconnect watchdog still unexercised -- nothing disconnected.
 
 ---
