@@ -7,12 +7,26 @@ $root      = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit     = "$root\.pio\libdeps\native\AUnit\src"
 $stubs     = "$root\test\native\support"
 $lib       = "$root\lib\MotorcontrollerCore\src"
-$sharedLib = "$root\..\..\Shared Firmware Libs\SteeringActuator\src"
+# The SteeringActuator git submodule (lib/SteeringActuator), matching what
+# platformio.ini's [env:native] compiles. This used to point at the sibling
+# "Shared Firmware Libs\SteeringActuator" directory the library lived in before it
+# was extracted into its own repo -- which meant this script silently compiled a
+# different checkout than CI and PlatformIO did (they were 6 commits apart on
+# 2026-09-08), and could not work at all in a standalone clone of this repo, the
+# very case the submodule migration existed to fix.
+$sharedLib = "$root\lib\SteeringActuator\src"
 $test      = "$root\test\native\tests"
 $driver    = "$root\test\native\MotorcontrollerNativeTests.cpp"
 $out       = "$env:TEMP\msvc_test"
 
 New-Item -ItemType Directory -Force -Path $out | Out-Null
+
+# An uninitialized submodule is an empty directory, which otherwise surfaces as a
+# confusing MSVC C1083 "cannot open source file" much further down.
+if (-not (Test-Path "$sharedLib\SteeringActuator.cpp")) {
+    Write-Error "SteeringActuator sources not found at $sharedLib -- the submodule is not checked out. Run: git submodule update --init Motorcontroller/lib/SteeringActuator"
+    exit 1
+}
 
 $vcvars = $null
 $vcvarsArch = ""
