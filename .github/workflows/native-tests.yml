@@ -47,7 +47,7 @@ jobs:
       # access to this repo, not that one, so submodule fetch needs its own read-only
       # deploy key over SSH instead. A no-op for every other project in this matrix (none
       # of them have submodules), so it's set up once here rather than per-project.
-      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
 
@@ -109,7 +109,7 @@ jobs:
       # See the native-tests job above for why this is needed: Motorcontroller/lib/
       # SteeringActuator is a submodule of a private repo the default GITHUB_TOKEN can't
       # reach. No-op for every other project/env pair in this matrix.
-      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
 
@@ -177,7 +177,7 @@ jobs:
       # <SteeringActuator.hpp>` -- cppcheck needs the headers present to parse, even
       # though check_src_filters excludes that library from analysis. No-op for every
       # other project in this matrix. Same pattern as the two jobs above.
-      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+      - uses: webfactory/ssh-agent@e83874834305fe9a4a2997156cb26c5de65a8555 # v0.10.0
         with:
           ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
 
