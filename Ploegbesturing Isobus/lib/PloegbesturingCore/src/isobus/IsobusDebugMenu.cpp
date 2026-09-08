@@ -18,6 +18,10 @@
 */
 #include "IsobusDebugMenu.hpp"
 
+#include <vector>
+
+#include "VTObjectPool.hpp"
+
 // The header is itself empty unless ISOBUS is defined (see its own comment) --
 // guard the body too, so this compiles to an empty translation unit instead
 // of failing on undeclared isobus:: symbols when PlatformIO's LDF pulls this
@@ -96,6 +100,8 @@ void IsobusDebugMenu::printMenu() {
     serialDebug->print(periodicEnabled ? "ON" : "OFF");
     serialDebug->println(" - press to toggle)");
     serialDebug->println("3. Reset message counters");
+    serialDebug->println("4. Dump DDOP as hex (open in AgIsoDDOPGenerator)");
+    serialDebug->println("5. Dump VT object pool as hex");
     serialDebug->println("q. Exit");
 }
 
@@ -115,6 +121,31 @@ void IsobusDebugMenu::handleMenu(char c) {
         case '3':
             guidanceChannel->ResetMessageCounters();
             serialDebug->println("Counters reset.");
+            printMenu();
+            break;
+        case '4': {
+            // The DDOP the firmware actually builds, not the one we think it
+            // builds. A pool that fails to serialise here is a pool a
+            // terminal would refuse, so the failure path is worth as much as
+            // the success path.
+            std::vector<std::uint8_t> pool;
+            if (tcInterface != nullptr && tcInterface->GenerateDdopBinary(pool) && !pool.empty()) {
+                printHexBlob("DDOP", pool.data(), static_cast<uint32_t>(pool.size()));
+            } else {
+                serialDebug->println("DDOP not available (not built yet, or AgIsoStack refused to serialise it).");
+            }
+            printMenu();
+            break;
+        }
+        case '5':
+            // VT3PoolData/VT3PoolSize are whatever BuildObjectPool() settled
+            // on -- the designed pool, the generated one or the test pool --
+            // so this reports what would really be uploaded.
+            if (VT3PoolData != nullptr && VT3PoolSize > 0) {
+                printHexBlob("VTPOOL", VT3PoolData, VT3PoolSize);
+            } else {
+                serialDebug->println("VT object pool not built yet.");
+            }
             printMenu();
             break;
         case 'q':
@@ -419,6 +450,38 @@ void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print(tcInterface->GetTcGnssQuality());
     }
     serialDebug->println();
+}
+
+void IsobusDebugMenu::printHexBlob(const char* label, const uint8_t* data, uint32_t length) {
+    static const char kHex[] = "0123456789ABCDEF";
+    constexpr uint32_t kBytesPerLine = 32;
+
+    serialDebug->print("----- BEGIN ");
+    serialDebug->print(label);
+    serialDebug->print(" ");
+    serialDebug->print(length);
+    serialDebug->println(" bytes -----");
+
+    for (uint32_t i = 0; i < length; i++) {
+        serialDebug->write(kHex[(data[i] >> 4) & 0x0F]);
+        serialDebug->write(kHex[data[i] & 0x0F]);
+        if (((i + 1) % kBytesPerLine) == 0) {
+            serialDebug->println();
+        }
+    }
+    if ((length % kBytesPerLine) != 0) {
+        serialDebug->println();
+    }
+
+    serialDebug->print("----- END ");
+    serialDebug->print(label);
+    serialDebug->println(" -----");
+    // Printed with the data on purpose: a hex dump nobody can turn back into
+    // a file is not worth capturing.
+    serialDebug->println("Strip the BEGIN/END lines, then:");
+    serialDebug->print("  python -c \"import sys;open('");
+    serialDebug->print(label);
+    serialDebug->println(".iop','wb').write(bytes.fromhex(''.join(sys.stdin.read().split())))\" < hex.txt");
 }
 
 }  // namespace triton

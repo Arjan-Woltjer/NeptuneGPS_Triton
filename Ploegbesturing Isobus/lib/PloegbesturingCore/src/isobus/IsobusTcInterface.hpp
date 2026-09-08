@@ -127,6 +127,17 @@ public:
     // as 0", which is the whole point of the exercise: a terminal that
     // populates track numbering tells us it speaks this part of the protocol
     // even if it declines the tramline handshake itself.
+    // Serialises the DDOP exactly as it would be uploaded, so the pool the
+    // firmware really builds can be inspected offline -- e.g. opened in
+    // AgIsoDDOPGenerator -- rather than trusted because it compiled. Returns
+    // false if the DDOP has not been built yet or AgIsoStack rejects it,
+    // which is itself the answer worth having: a pool that will not
+    // serialise is a pool a terminal would refuse.
+    //
+    // Allocates, and is deliberately debug-only and operator-triggered: the
+    // control path never does this.
+    bool GenerateDdopBinary(std::vector<std::uint8_t>& out);
+
     inline bool          HasGuidanceTrackInfo() const { return guidanceTrackSeen; }
     inline std::int32_t  GetAbLineId() const          { return abLineId; }
     inline std::int32_t  GetActualTrackNumber() const { return actualTrackNumber; }

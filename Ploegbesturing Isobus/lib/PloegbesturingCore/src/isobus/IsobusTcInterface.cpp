@@ -455,6 +455,14 @@ void IsobusTcInterface::updateReconnectWatchdog() {
 // Value command callback -- the TC writes to us here. This is where
 // 513/514 arrive.
 // ------------------------------------------------------------------
+bool IsobusTcInterface::GenerateDdopBinary(std::vector<std::uint8_t>& out) {
+    out.clear();
+    if (ddop == nullptr) {
+        return false;
+    }
+    return ddop->generate_binary_object_pool(out);
+}
+
 bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
                                        std::uint16_t DDI,
                                        std::int32_t  processVariableValue,
