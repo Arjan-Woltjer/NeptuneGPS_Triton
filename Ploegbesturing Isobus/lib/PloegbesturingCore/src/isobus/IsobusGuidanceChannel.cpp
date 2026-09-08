@@ -191,6 +191,10 @@ void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context
 
     const auto& d = msg.get_data();
     auto result = DecodeSpeedNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length()));
+    // COG travels in the same frame as SOG and was previously read past
+    // (GitHub issue #37). Each field is committed on its own flag: an
+    // unavailable speed must not cost us a good course.
+    if (result.hasCourse) self->guidance->SetCourseDeg(result.courseDeg);
     if (result.valid) self->guidance->SetSpeedKnots(result.speedKnots);
 }
 
@@ -236,6 +240,12 @@ void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) 
     auto result = DecodeLegacySpeed(d.data(), static_cast<uint8_t>(msg.get_data_length()));
     self->counters.lastSpeedLegacyRaw = result.rawValue;
     if (result.valid) self->guidance->SetSpeedKnots(result.speedKnots);
+    // This PGN is course + speed + altitude. Only speed used to be committed,
+    // so GetCourse()/GetAltitude() read a permanent 0.0 on the ISOBUS build
+    // while the values sat decoded on the bus (GitHub issue #37). Each field
+    // has its own sentinel and so its own flag.
+    if (result.hasCourse)   self->guidance->SetCourseDeg(result.courseDeg);
+    if (result.hasAltitude) self->guidance->SetAltitude(result.altitudeMeters);
 }
 
 void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* context) {
