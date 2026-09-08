@@ -91,6 +91,27 @@ constexpr std::uint16_t kObjTramlineSetpointLevel = 9;  // DDI 506, probe -- see
 // on the terminal's own setup screen, and `Task active: Y` does not settle that
 // (AgIsoStack warns the flag is unreliable per brand). Confirm the mapping
 // before treating the "no Tramline Control" reading as established.
+// SESSION 8 (2026-09-08, John Deere terminal) ANSWERED THIS, and the answer is
+// that the level value was never the blocker. That terminal has a Tramlines
+// option, it was switched on, GPS was live with an RTK fix, and it reported
+// `no compatible implements detected` -- both with this declared as 0 and,
+// after a reflash under label TC04, with it declared as 0x01. Level 1 is not
+// sufficient on its own.
+//
+// The reason is in Documentation/TramlineControl_TC_Support_Research.md sec 6:
+// Level 1's *required* DDI set is 505, 506, 507, 508, 509, 510, 511 and 515,
+// all in one device element. We declare two of those eight, so a terminal
+// declining to see a compatible implement is the correct behaviour, not a
+// quirk. It also makes session 7's Ag Leader silence far less likely to have
+// meant "no Tramline Control" -- more likely the same incomplete declaration,
+// meeting a terminal that says nothing rather than reporting it.
+//
+// Left at 0, deliberately, and NOT as a placeholder to be flipped: going
+// further means declaring the full eight-DDI set, which claims the implement
+// calculates tramline tracks. A plough does not. Whether Triton should present
+// itself as a tramline implement at all is a product decision that has not
+// been made -- the probes established that a terminal *would* talk to us, not
+// that we should ask it to.
 constexpr std::int32_t kTramlineControlLevelsSupported = 0;
 
 // TODO: measure against the actual plough frame before trusting DDI 513 --

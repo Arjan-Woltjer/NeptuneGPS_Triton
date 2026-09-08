@@ -1148,6 +1148,174 @@ that took part in run 2 -- the next real DDOP tree change must go to TC05.
   without another tractor session.
 - #18 auto-reconnect watchdog still unexercised -- nothing disconnected.
 
+
+## Session 8 -- 2026-09-08 (afternoon, John Deere tractor) -- the terminal tells us why
+
+Same day as session 7, different brand. Run on branch
+`spike/21-ddi-505-506-jd-terminal` off `main` (session 7 having reached main via
+PR #24 / #28). Both AgIsoStack vendor patches verified present before flashing.
+
+**Headline: this terminal has Tramline Control, it was switched on, and it says
+`no compatible implements detected`.** That single message is worth more than
+both of session 7's silent runs -- it converts #21 from "does any terminal
+implement this?" into "our DDOP is incomplete", and it gives an iterable signal.
+
+### Why our DDOP is rejected -- answered by our own research doc
+
+`TramlineControl_TC_Support_Research.md` sec 6 already specifies the Level 1
+**required** set: DDI **505** (as a DPT, bit 0 set), **506 in the same device
+element**, "and the rest of the Level 1 required set: **515, 507, 508, 509,
+510, 511**".
+
+We declare only 505 and 506. So `no compatible implements detected` is exactly
+what the spec predicts for our pool -- the terminal is not failing to answer,
+it is declining to recognise an implement that declares 2 of the 8 required
+DDIs. Session 7's Ag Leader silence is now much less likely to have been "that
+terminal lacks the feature", and much more likely to have been the same
+incomplete declaration meeting a terminal that simply says nothing instead of
+reporting it.
+
+### Runs
+
+| Run | DDI 505 | Label | DDOP result | Tramline screen | DDI 506 | Value cmds | Value reqs |
+|-----|---------|-------|-------------|-----------------|---------|------------|------------|
+| 1 | `0` | TC03 | Activated without error | (not read) | none | 0 | 0 |
+| 2 | `0x01` | TC04 | Activated without error | still "no compatible implements detected" | none | 0 | 0 |
+
+Run 2's TC04 reuses session 7's label deliberately: TC04 already denotes the
+Level-1 probe pool, this terminal had never seen it, and reusing a label for
+*identical* content is correct. The don't-reuse rule is about different content
+under the same label.
+
+So declaring Level 1 is **not sufficient** on its own -- the message persisted
+across the reflash. This is a much sharper result than a silent run.
+
+### Terminal differences worth recording
+
+- **TC-GEO reported `Y/Y`** (with *and* without position). The Ag Leader
+  reported `Y/N`.
+- `W] [TC]: Timeout waiting for version request from TC. This is not required,
+  so proceeding anways.` -- new on this brand, benign, stack proceeds.
+- VT object pool loaded from the terminal's NVM by matching label `MW03` -- the
+  VT side works on John Deere too. Session 3's Fendt/JD-era VT rejection has
+  never been retested until now; this is the first confirmation on this brand.
+- A recurring `[TP]: Received a Clear to Send (CTS) message with a global
+  destination, ignoring` / `End of Message Acknowledge ... global destination`
+  pair appears on this bus. **It is not ours**: a clean boot captured zero of
+  them while our DDOP uploaded successfully. Someone else on the JD bus is
+  sending destination-specific TP flow control to the global address, and
+  AgIsoStack correctly ignores it. Noise for us -- do not chase it.
+
+### XTE: the legacy JD decode is correct on John Deere hardware
+
+The important correction of the session. In the `teensy41_isobus` build there
+is **no serial GPS at all** -- `main.cpp` compiles the UART out under
+`#ifndef ISOBUS` and guidance arrives over CAN via `IsobusGuidanceChannel`.
+Only CAN is connected to this tractor.
+
+With GPS live (RTK, quality 4), our reading matched the terminal twice, on
+different magnitudes:
+
+| Terminal | Triton |
+|----------|--------|
+| -6 cm | `xte=-0.06m` |
+| -33 cm | `xte=-0.33m` |
+
+Both sign and scale agree. This is the first time the legacy XTE path has been
+confirmed correct against ground truth, and it supports #20's framing directly:
+the decode uses John Deere byte offsets, so it is right on a John Deere and
+wrong on an Ag Leader. #20 is a per-brand layout problem, not a broken decoder.
+
+**Unresolved, and the reason for the second CANedge log:** `xteraw` showed
+`F0:0000000000000000` -- all zeros -- at the same time as `xte=-0.33m`. Since
+`xteraw` records only the last PGN 65535 frame seen, and both `SA=0xF0` and
+`SA=0x1C` have been observed on that PGN here, the likely explanation is **two
+senders on PGN 65535, one emitting zeros and one emitting real XTE**. That also
+fits the alternation seen on screen. Do not treat this as established -- it is
+a hypothesis with a clean test: the CANedge capture will show both source
+addresses and their payloads directly.
+
+Note the earlier no-GPS period is also in the log, where PGN 65535 carried all
+zeros from every sender. Position/speed come from PGNs 65267/65256; the
+NMEA2000 PGNs (129025/129026/129283) stayed at 0 throughout.
+
+### #18's reconnect watchdog fired for the first time (end of session)
+
+The plough control had to be disconnected from the ISOBUS partway through the
+CANedge logging. That severed our end of the bus while the terminal stayed up,
+and the VT and TC watchdogs added for #18 engaged -- the first time they have
+ever been exercised on hardware:
+
+```
+E] [VT]: Status Timeout
+E] [TC]: Server Status Message Timeout. The TC may be offline.
+VT: disconnected 10s after having been connected -- forcing reconnect attempt 1
+TC: disconnected 105s after having been connected -- forcing restart 7
+VT: ... reconnect attempt 13        TC: ... forcing restart 8
+```
+
+**What this does and does not show.** It shows the watchdogs detect the loss and
+keep retrying on their own, with the partner records still valid
+(`partner addr=0x26 valid=Y`, `0xF7 valid=Y`) -- no wedge, no silent give-up,
+and the retry counters climbing steadily (VT to 13, TC to 8) rather than
+stalling. That is genuinely more than we knew before.
+
+It does **not** show recovery. Our CAN connection was physically removed, so
+there was nothing on the bus to reconnect *to*, and the board was powered down
+before it was plugged back in -- the serial port disappeared entirely at the end
+of the session. #18's actual question, whether a connection re-establishes by
+itself after a transient loss, is therefore still open. The next session can
+settle it cheaply and deliberately: with everything connected and working, pull
+the ISOBUS connector for ~15 s, plug it back in without touching power, and
+watch whether VT and TC return on their own. Do not close #18 until that is
+seen.
+
+### Two further ground-truth points, ours unpaired
+
+The operator called **a steady 21 cm** (with a short dedicated CANedge log taken
+at that value) and then **11 cm on the other side** at the end of the run. Our
+side was not captured for either: by then the link was dropping, so there is no
+Triton reading to pair them against.
+
+They are still worth having, because both are inside the CANedge capture. The
+second one crosses the line -- the earlier confirmed pairs were -6 and -33, both
+negative, so 11 cm on the other side is the first opposite-sign point on this
+brand and the one that pins the sign convention for the JD layout.
+
+### Board state left behind
+
+**The Teensy is still running run 2's firmware: DDI 505 = `0x01`, structure
+label TC04.** It was left that way deliberately so the CANedge capture records
+one consistent configuration. The *source* is reverted to `0`/TC03 before merge,
+so source and board disagree until the next flash -- reflash before drawing any
+conclusion from the board.
+
+### Open after session 8
+
+- **Next experiment, and it is now well-posed:** declare the full Level 1
+  required set -- 505, 506, 507, 508, 509, 510, 511, 515 -- in a single device
+  element, and see whether `no compatible implements detected` clears. That is
+  the direct test of the explanation above. It is desk work; the retest needs a
+  tractor.
+- Note the honesty question this raises, which is now a real decision rather
+  than a probe: declaring the full Level 1 set means claiming the implement
+  calculates tramline tracks. A plough does not. Whether Triton should present
+  itself as a tramline implement at all is a product question to settle before
+  building this out -- the probe answered "the terminal would talk to us if we
+  did", not "we should".
+- Watch for `SetValueAndAcknowledgeCommand (0x0A)` as well as `ValueCommand
+  (0x03)`: the research doc warns that TC version 4+ on both ends moves values
+  to the acknowledged PGN, and watching only 0x03 could produce a false
+  negative. Worth confirming our counters cover both before the next run.
+- CANedge log #2 to analyse at the office. Note it contains a mid-log gap where
+  the plough control was disconnected from the ISOBUS, so our control function
+  leaves and (if reconnected) rejoins -- a useful landmark. It also includes a
+  short dedicated log at a
+  steady 21 cm, and an 11 cm opposite-side point at the end): two-sender
+  hypothesis on PGN 65535,
+  and whether the TC ever addresses us at all.
+- #20's Ag Leader layout still needs session 7's capture; unchanged today.
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`

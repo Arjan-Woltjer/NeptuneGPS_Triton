@@ -1,0 +1,13 @@
+W] [VT]: Server response to a command timed out
+E] [VT]: Status Timeout
+E] [TC]: Server Status Message Timeout. The TC may be offline.
+VT: disconnected 10s after having been connected -- forcing reconnect attempt 1 (partner addr=0x26 valid=Y)
+I] [VT]: VT Client connection has been terminated.
+TC: disconnected 105s after having been connected -- forcing restart 7 (partner addr=0xF7 valid=Y)
+VT: disconnected 110s after having been connected -- forcing reconnect attempt 11 (partner addr=0x26 valid=Y)
+I] [VT]: VT Client connection has been terminated.
+VT: disconnected 120s after having been connected -- forcing reconnect attempt 12 (partner addr=0x26 valid=Y)
+I] [VT]: VT Client connection has been terminated.
+TC: disconnected 120s after having been connected -- forcing restart 8 (partner addr=0xF7 valid=Y)
+VT: disconnected 130s after having been connected -- forcing reconnect attempt 13 (partner addr=0x26 valid=Y)
+I] [VT]: VT Client connection has been terminated.

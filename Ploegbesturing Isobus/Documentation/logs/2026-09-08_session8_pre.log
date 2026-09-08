@@ -1,0 +1,158 @@
+--------------------------------
+-----------MeijWorks------------
+--------------------------------
+Ploughcontrol ISOBUS version 0.1
+(c) 2011 - 2026 by J.A. Woltjer 
+--------------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+-------------------------------
+Tractor using following data:
+-------------------------------
+Speed calibration
+250
+-------------------------------
+Simspeed
+1.00
+-------------------------------
+Sim time
+2
+-------------------------------
+Sim mode
+1
+-------------------------------
+Invert hitch signal
+0
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+IsobusGuidanceChannel: claiming address address claimed: 0x81
+IsobusDebugMenu: send any character to open the status menu.
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+q. Exit
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 20.9 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   1124
+  PGN 65256  Speed legacy:      1124   last SA=0x1C raw=0xFFFF
+  PGN 65535  XTE JD legacy:     22706   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (2 ms ago)
+  PGN 60160  XTE Trimble legacy:24   last SA=0x1C
+  PGN 64770  AISO stop:         225   last 234209 ms ago
+  TOTAL:                        25203
+--- Guidance telemetry ---
+  XTE:          0.00 m
+  Speed:        0.00 m/s (0.00 kn)
+  Quality:      0   RTK quality=4  IsRtkQuality=N
+  GGA fix age:  37 ms
+  VTG fix age:  234209 ms
+  XTE fix age:  234209 ms
+  Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 230   last 696 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 234209 ms ago
+  GNSS quality (DDI 514):  0, last 234209 ms ago
+  Value commands (any DDI): 0  last DDI=(none)
+  Value requests (any DDI): 0
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+q. Exit
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring

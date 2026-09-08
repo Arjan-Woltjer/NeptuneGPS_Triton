@@ -1,0 +1,48 @@
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+q. Exit
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 25.0 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   1738
+  PGN 65256  Speed legacy:      1739   last SA=0x1C raw=0x135
+  PGN 65535  XTE JD legacy:     35581   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (19 ms ago)
+  PGN 60160  XTE Trimble legacy:48   last SA=0x1C
+  PGN 64770  AISO stop:         347   last 357060 ms ago
+  TOTAL:                        39453
+--- Guidance telemetry ---
+  XTE:          0.41 m
+  Speed:        0.62 m/s (1.21 kn)
+  Quality:      4   RTK quality=4  IsRtkQuality=Y
+  GGA fix age:  134 ms
+  VTG fix age:  133 ms
+  XTE fix age:  119 ms
+  Lat/Lon/Alt/Course: 53.426056 / 6.720536 / 0.0 m / 0.0 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 351   last 317 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 357061 ms ago
+  GNSS quality (DDI 514):  0, last 357061 ms ago
+  Value commands (any DDI): 0  last DDI=(none)
+  Value requests (any DDI): 0
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+q. Exit

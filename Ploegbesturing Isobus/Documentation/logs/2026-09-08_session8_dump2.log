@@ -1,0 +1,60 @@
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+q. Exit
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 21.5 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   2099
+  PGN 65256  Speed legacy:      2099   last SA=0x1C raw=0xFFFF
+  PGN 65535  XTE JD legacy:     42408   last SA=0x1C word=0x0 byte1=0x0
+             full payload:     0000000000000000  (10 ms ago)
+  PGN 60160  XTE Trimble legacy:42   last SA=0x1C
+  PGN 64770  AISO stop:         420   last 429389 ms ago
+  TOTAL:                        47068
+--- Guidance telemetry ---
+  XTE:          0.00 m
+  Speed:        0.00 m/s (0.00 kn)
+  Quality:      0   RTK quality=4  IsRtkQuality=N
+  GGA fix age:  18 ms
+  VTG fix age:  429389 ms
+  XTE fix age:  429389 ms
+  Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 425   last 826 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 429389 ms ago
+  GNSS quality (DDI 514):  0, last 429389 ms ago
+  Value commands (any DDI): 0  last DDI=(none)
+  Value requests (any DDI): 0
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+q. Exit
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
