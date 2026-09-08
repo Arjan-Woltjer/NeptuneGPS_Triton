@@ -1,0 +1,83 @@
+name: Copilot review reminder
+
+# Comments on a pull request when it is opened, and when a draft is marked ready,
+# reminding the author to request a Copilot code review. Not de-duplicated: toggling
+# a pull request between draft and ready repeatedly will post the reminder each time.
+# Left that way on purpose -- de-duping means reading back every existing comment on
+# every run, and a second nudge on a pull request that went back into draft and out
+# again is not worth that.
+#
+# Copied from the Neptune-GPS superproject (Arjan-Woltjer/Neptune-GPS#163, rolled out
+# by Arjan-Woltjer/Neptune-GPS#164). GitHub Actions are per-repository and a submodule
+# pointer does not carry workflows across, so this repository needs its own copy.
+#
+# Why a reminder and not an automatic request: requesting Copilot as a reviewer cannot
+# be automated from a workflow on this account's plan. All three routes were tried
+# against a real pull request and none work:
+#
+#   - REST POST /pulls/{n}/requested_reviewers with "copilot-pull-request-reviewer[bot]"
+#     returns 200 and silently changes nothing (requested_reviewers stays empty).
+#   - The same call with the login "Copilot" behaves identically.
+#   - The GraphQL requestReviews mutation rejects the bot outright ("Could not
+#     resolve to User node"), because its userIds/teamIds inputs cannot address a Bot.
+#
+# The supported automatic path is a repository ruleset ("request Copilot review"), and
+# rulesets need GitHub Pro on a private repository. If that ever changes, delete this
+# workflow and use the ruleset instead: a real automatic review beats a reminder
+# nobody reads.
+
+on:
+  pull_request:
+    types: [opened, ready_for_review]
+
+# `pull-requests: write` alone is sufficient, and deliberately not widened to include
+# `issues: write`. A pull request conversation comment does go through the issues
+# comments API, so that suggestion is reasonable on its face -- but it was checked
+# rather than assumed: this workflow's first run in the superproject posted its comment
+# successfully with exactly these permissions. Granting write access to every issue in
+# the repository to fix a problem that does not exist is the wrong trade.
+permissions:
+  pull-requests: write
+
+jobs:
+  remind:
+    name: Remind to request a Copilot review
+    runs-on: ubuntu-latest
+    # Drafts get the nudge when they are marked ready, not while still in progress.
+    #
+    # The head-repo guard is for fork pull requests: on a `pull_request` event from a
+    # fork, GITHUB_TOKEN is read-only regardless of what `permissions` asks for, so the
+    # comment step would fail noisily and for no reason.
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    steps:
+      # The body goes through an environment variable rather than being inlined into
+      # the gh invocation: it contains backticks, asterisks and an apostrophe, and
+      # quoting all of those correctly through both YAML and sh is exactly the sort of
+      # thing that silently posts a mangled comment.
+      - name: Comment on the pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          BODY: |
+            Reminder: request a **Copilot code review** on this pull request.
+
+            Open the *Reviewers* menu in the sidebar and pick **Copilot**. It cannot be
+            requested from a workflow on this account's plan (see
+            `.github/workflows/copilot-review-reminder.yml` for what was tried and why),
+            so it needs the one manual click.
+
+            Worth doing even when the change looks small. On
+            Arjan-Woltjer/NeptuneGPS_Salacia#59 it caught a genuine ordering bug -- an
+            idle timeout checking its clock before refreshing it, which would have
+            dropped a client's request instead of serving it. Every test written
+            alongside that code passed against the buggy ordering, so it found a gap in
+            the test coverage, not just in the code.
+
+            It is not a substitute for bench testing, though. On that same firmware it
+            found neither Arjan-Woltjer/NeptuneGPS_Salacia#54 nor
+            Arjan-Woltjer/NeptuneGPS_Salacia#56 -- both needed a packet capture and a
+            live board. Static review and hardware testing catch disjoint sets.
+        run: gh pr comment "$PR_URL" --body "$BODY"

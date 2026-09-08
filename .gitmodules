@@ -1,0 +1,3 @@
+[submodule "Motorcontroller/lib/SteeringActuator"]
+	path = Motorcontroller/lib/SteeringActuator
+	url = https://github.com/Arjan-Woltjer/SteeringActuator.git
