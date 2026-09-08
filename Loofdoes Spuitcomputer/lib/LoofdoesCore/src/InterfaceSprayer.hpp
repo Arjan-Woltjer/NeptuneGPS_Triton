@@ -74,7 +74,7 @@ public:
         { ANALOG_IN1, 0 },
     };
 
-    InterfaceSprayer(Stream* serialDebug = nullptr);
+    explicit InterfaceSprayer(Stream* serialDebug = nullptr);
 
     void Update();
     void CheckDigitalInputs(byte delay);

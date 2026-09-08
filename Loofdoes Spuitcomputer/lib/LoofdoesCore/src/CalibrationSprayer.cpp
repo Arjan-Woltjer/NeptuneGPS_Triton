@@ -553,15 +553,6 @@ void CalibrationSprayer::handleEditPwmValue() {
 // Helpers
 // ---------------------------------------------------------------------------
 
-bool CalibrationSprayer::parseFloat(float* out) {
-    if (bufLen == 0) return false;
-    char* end;
-    float val = strtof(buf, &end);
-    if (end == buf) return false;
-    *out = val;
-    return true;
-}
-
 bool CalibrationSprayer::parseInt(int* out) {
     if (bufLen == 0) return false;
     char* end;

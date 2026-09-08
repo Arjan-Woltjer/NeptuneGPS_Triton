@@ -47,16 +47,16 @@ private:
     State             state;
 
     int                  analogPointIdx;
-    DoseCalibrationPoint newDosePoints[NUM_DOSE_CAL_POINTS];
+    DoseCalibrationPoint newDosePoints[NUM_DOSE_CAL_POINTS] = {};
 
     // PWM calibration: analog knob finds start threshold, then NUM_PWM_STEPS
     // equally-spaced points are auto-generated. Each point runs the pump for
     // exactly 60 seconds; volume collected (l) equals flow in l/min.
-    int                 editPointIdx;
+    int                 editPointIdx = 0;
     int                 currentPWM;
-    int                 pwmSteps[NUM_PWM_STEPS];
+    int                 pwmSteps[NUM_PWM_STEPS] = {};
     int                 pwmStepIdx;
-    PwmCalibrationPoint newPwmPoints[NUM_PWM_STEPS];
+    PwmCalibrationPoint newPwmPoints[NUM_PWM_STEPS] = {};
     unsigned long       runStartTime;
     unsigned long       lastCountdown;
 
@@ -88,7 +88,6 @@ private:
     void printPumpData();
     void printGpsData();
 
-    bool parseFloat(float* out);
     bool parseInt(int* out);
 };
 
