@@ -142,14 +142,22 @@ jobs:
       - name: Build firmware
         run: pio run -d "${{ matrix.project }}" -e "${{ matrix.env }}"
 
-  # `check_tool = cppcheck` is configured in three projects but was never invoked.
-  # Advisory for now: it reports on existing code this workflow did not write, so it
-  # does not gate merges until that backlog is triaged.
+  # Static analysis, and it gates merges. It used to be advisory (continue-on-error)
+  # because the reports were unreadable: `pio check` defaults to src_dir/include_dir, so
+  # every project's core library went unanalysed while third-party headers pulled in
+  # through our own includes filled the output -- 683 of 687 findings in Ploegbesturing
+  # Isobus, including both HIGH ones. check_src_filters plus a path suppression fixed
+  # that in each platformio.ini (#32, #33); every project here now reports 0 HIGH and
+  # 0 MEDIUM, so there is no backlog left to excuse a non-blocking job.
+  #
+  # --fail-on-defect high still gates on HIGH only. MEDIUM and LOW are reported but do
+  # not block, which is deliberate: a new MEDIUM should be visible without breaking an
+  # unrelated PR. Tightening to medium is a real option now that all nine projects sit
+  # at zero.
   static-analysis:
     name: cppcheck (${{ matrix.project }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
@@ -157,8 +165,28 @@ jobs:
           - 'Loofdoes Spuitcomputer'
           - 'Ploegbesturing'
           - 'Ploegbesturing Isobus'
+          - 'Motorcontroller'
+          - 'Pootmachinebesturing'
+          - 'Slangenpomp Spuitcomputer'
+          - 'Kilverbakbesturing'
+          - 'Kipperbesturing'
+          - 'Rooierbesturing'
     steps:
+      # Motorcontroller/lib/SteeringActuator is a submodule of a private repo the default
+      # GITHUB_TOKEN cannot reach, and MotorcontrollerCore does `#include
+      # <SteeringActuator.hpp>` -- cppcheck needs the headers present to parse, even
+      # though check_src_filters excludes that library from analysis. No-op for every
+      # other project in this matrix. Same pattern as the two jobs above.
+      - uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STEERING_ACTUATOR_DEPLOY_KEY }}
+
+      - name: Use SSH for the SteeringActuator submodule
+        run: git config --global url."git@github.com:Arjan-Woltjer/SteeringActuator.git".insteadOf "https://github.com/Arjan-Woltjer/SteeringActuator.git"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          submodules: true
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
