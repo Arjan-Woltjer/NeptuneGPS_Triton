@@ -356,9 +356,11 @@ void IsobusDebugMenu::printFullDump() {
         // silent: a terminal that populates track numbering speaks this part
         // of the protocol whether or not it completes the tramline handshake,
         // which is a different and useful answer.
-        serialDebug->print("  Guidance track (DDI 508-511): ");
+        serialDebug->print("  Guidance track (DDI 507-511): ");
         if (tcInterface->HasGuidanceTrackInfo()) {
-            serialDebug->print("abLine=");
+            serialDebug->print("seq=");
+            serialDebug->print(tcInterface->GetTramlineSequenceNumber());
+            serialDebug->print(" abLine=");
             serialDebug->print(tcInterface->GetAbLineId());
             serialDebug->print(" track=");
             serialDebug->print(tcInterface->GetActualTrackNumber());

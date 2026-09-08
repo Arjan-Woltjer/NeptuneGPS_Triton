@@ -139,6 +139,9 @@ public:
     bool GenerateDdopBinary(std::vector<std::uint8_t>& out);
 
     inline bool          HasGuidanceTrackInfo() const { return guidanceTrackSeen; }
+    inline std::int32_t  GetTramlineSequenceNumber() const { return tramlineSequenceNumber; }
+    inline bool          HasTrackControlState() const      { return trackControlStateSeen; }
+    inline std::int32_t  GetCommandedTrackControlState() const { return commandedTrackControlState; }
     inline std::int32_t  GetAbLineId() const          { return abLineId; }
     inline std::int32_t  GetActualTrackNumber() const { return actualTrackNumber; }
     inline std::int32_t  GetTrackNumberRight() const  { return trackNumberRight; }
@@ -240,12 +243,21 @@ private:
     std::int32_t    trackNumberLeft    = 0;
     unsigned long   lastGuidanceTrackMs = 0;
 
-    // DDIs 507 and 515, reported BY us. Static for now: the plough performs
-    // no tramline control, so it reports sequence 0 and state 0 (inactive).
-    // Named constants rather than literals at the call site so that the day
-    // something does drive them, there is one obvious place to look.
-    static constexpr std::int32_t kReportedTramlineSequence = 0;
-    static constexpr std::int32_t kReportedTramlineState    = 0;
+    // DDI 507, written to us by the TC. Starts at 1 and increments per
+    // sequence, so 0 remains a usable "never seen" marker.
+    std::int32_t    tramlineSequenceNumber = 0;
+
+    // DDI 515. Two different things, deliberately kept apart: what the TC
+    // asked us to be, and what we actually are. 515 shares DDI 160's
+    // definition, where the TC sets the state and the client replies with its
+    // own -- so a read must answer with ours.
+    bool            trackControlStateSeen      = false;
+    std::int32_t    commandedTrackControlState = 0;
+
+    // 0 = manual/off. Stays there until something really performs track
+    // control; see kTramlineControlLevelsSupported in the .cpp. A named
+    // constant so there is one obvious place to look the day that changes.
+    static constexpr std::int32_t kReportedTrackControlState = 0;
     unsigned long   lastTramlineSetpointMs = 0;
 
     // Reconnect watchdog (GitHub issue #18). This matters more here than on

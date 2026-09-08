@@ -273,18 +273,37 @@ void IsobusTcInterface::buildDdop() {
     // Both "shall be listed in the DDOP only once", and 506 "shall be placed
     // in the same device element as DDI 505".
     //
-    // Direction matters and is not uniform across the set:
-    //   505 implement -> TC   what we support        (DPT, static)
-    //   506 TC -> implement   the level to use       (Settable)
-    //   507 implement -> TC   tramline sequence no.  (we report)
-    //   508 TC -> implement   unique A-B line ID     (Settable)
-    //   509 TC -> implement   actual track number    (Settable)
-    //   510 TC -> implement   track number right     (Settable)
-    //   511 TC -> implement   track number left      (Settable)
-    //   515 implement -> TC   tramline control state (we report)
-    // 508-511 are the guidance-track information the TC contributes; at
-    // Levels 1 and 2 the implement is what calculates, which is why only
-    // those four plus 506 are Settable.
+    // Direction, verified against the AEF guideline itself
+    // (TramlineControl_BasicRequirements v1.16, now archived in
+    // NeptuneGPS Documentation/ISOBUS/reference/dd-attachments/) rather than
+    // inferred -- an earlier pass got two of these wrong:
+    //   505 implement -> TC   what we support        DPT, static
+    //   506 TC -> implement   the level to use       Settable
+    //   507 TC -> implement   tramline sequence no.  Settable
+    //   508 TC -> implement   unique A-B line ID     Settable
+    //   509 TC -> implement   actual track number    Settable
+    //   510 TC -> implement   track number right     Settable
+    //   511 TC -> implement   track number left      Settable
+    //   515 TC <-> implement  track control state    Settable + OnChange
+    //
+    // 507 reads like an implement-side counter but is not: sec 2.2.22 says it
+    // "has to be sent from the Tramline Controller to indicate a new Tramline
+    // Sequence to the Implement", and it is what ties 508-511 together into
+    // one consistent set -- 508 "shall be sent as first value after the
+    // Tramline Sequence".
+    //
+    // 515 is defined as having "the same purpose and definition like the
+    // Section Control State DDI 160", and DDI 160's own entry states that
+    // "the property flag 'setable' and the trigger method 'on change' should
+    // be used with this DDE": the TC sets the state, and the client replies
+    // with its own. So it is Settable in both directions of use, not a
+    // read-only report.
+    //
+    // Everything except 505 is therefore Settable. Note isobus.net has since
+    // renamed this family Tramline -> Track (505 is now "Supported Track
+    // Control Levels", 515 "Track Control State"); the vendored AgIsoStack
+    // enum still uses the older Tramline names, and the DDI numbers are what
+    // actually matter on the wire.
     //
     // Placement matches the spec's own example 1b (sec 3.5.2), which groups
     // the tramline DDIs in a dedicated function element -- here alongside
@@ -297,18 +316,17 @@ void IsobusTcInterface::buildDdop() {
                                    static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTramlineSetpointLevel);
-    // Reported by us, so not Settable. Nothing computes these yet -- see
-    // kTramlineControlLevelsSupported: they answer with static "inactive"
-    // values, which is honest for a plough and still satisfies the
-    // completeness the terminal is checking for.
+    // Written to us by the TC, like everything else here except 505. Nothing
+    // computes anything behind them yet -- see kTramlineControlLevelsSupported
+    // -- so a read of 515 answers with our real state, which is "manual/off".
     ddop->add_device_process_data("Tramline Sequence Number",
                                    static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber),
                                    NULL_OBJECT_ID,
-                                   0, kTriggers, kObjTramlineSequence);
+                                   kSettable, kTriggers, kObjTramlineSequence);
     ddop->add_device_process_data("Tramline Control State",
                                    static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState),
                                    NULL_OBJECT_ID,
-                                   0, kTriggers, kObjTramlineState);
+                                   kSettable, kTriggers, kObjTramlineState);
     // Guidance-track information the TC pushes to us. Latched for the debug
     // menu; nothing steers off them.
     ddop->add_device_process_data("Unique A-B Guidance Reference Line ID",
@@ -504,6 +522,21 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastTramlineSetpointMs  = millis();
             break;
 
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber):  // 507
+            // Starts at 1 and increments per sequence, so 0 stays a usable
+            // "never seen" marker.
+            self->tramlineSequenceNumber = processVariableValue;
+            self->guidanceTrackSeen      = true;
+            self->lastGuidanceTrackMs    = millis();
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState):  // 515
+            // What the TC asked us to be. What we actually are is answered in
+            // OnValueRequest, and it is not this.
+            self->commandedTrackControlState = processVariableValue;
+            self->trackControlStateSeen      = true;
+            break;
+
         case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID):  // 508
             self->abLineId            = processVariableValue;
             self->guidanceTrackSeen   = true;
@@ -568,15 +601,17 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
             processVariableValue = self->tcGnssQuality;
             break;
 
-        // Reported by us. Static -- the plough runs no tramline logic; see
-        // kTramlineControlLevelsSupported in the .cpp for what that means for
-        // the Level 1 claim.
         case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber):  // 507
-            processVariableValue = kReportedTramlineSequence;
+            processVariableValue = self->tramlineSequenceNumber;
             break;
 
+        // Per DDI 160, whose definition 515 shares: the TC sets the state and
+        // the client replies with its own. Ours is 0 = manual/off and will
+        // stay there until something actually performs track control -- see
+        // kTramlineControlLevelsSupported. Answering with the commanded value
+        // instead would be a lie the TC has no way to detect.
         case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState):  // 515
-            processVariableValue = kReportedTramlineState;
+            processVariableValue = kReportedTrackControlState;
             break;
 
         // Echoes of what the TC last wrote to us.
