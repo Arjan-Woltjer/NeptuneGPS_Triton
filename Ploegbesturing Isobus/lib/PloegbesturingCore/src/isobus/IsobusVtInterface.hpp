@@ -75,7 +75,7 @@ public:
     // upload progress (that would need the transport-protocol session's own
     // percentage, which AgIsoStack doesn't expose a public path to reach).
     // Backed by a locally-patched get_state() on VirtualTerminalClient --
-    // see Documentation/AgIsoStackVendorPatches.md.
+    // see NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md.
     int         GetStateStep() const;
     int         GetStateTotalSteps() const;
     const char* GetStateName() const;

@@ -90,7 +90,7 @@ static const uint8_t kWhite = 1;
 // object pool rejection ("Faulty Object 0, Parent 65535, bitmask 9") as
 // specifically "method or attribute not supported by the VT" on the
 // WorkingSet object itself -- see Documentation/
-// EndOfObjectPool_ErrorBitmask_Research.md. Session 3's own bisection only
+// NeptuneGPS Documentation/ISOBUS/research/EndOfObjectPool_ErrorBitmask_Research.md. Session 3's own bisection only
 // ever varied DataMask/SoftKeyMask content, never the WorkingSet's own
 // fields, so this is genuinely untested territory, not a confirmed fix.
 //
