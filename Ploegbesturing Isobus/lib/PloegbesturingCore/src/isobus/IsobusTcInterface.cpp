@@ -66,22 +66,32 @@ constexpr std::uint16_t kObjTramlineSetpointLevel = 9;  // DDI 506, probe -- see
 // silence is ambiguous, and the next step is to re-run once with bit 0 set
 // before concluding the terminal lacks the feature entirely.
 //
-// PROBE RUN 2 (2026-09-08, Ag Leader InCommand 1200) -- bit 0 = Level 1, and
-// this is that documented re-run. Run 1 declared 0 and the terminal answered
-// with nothing at all: 16 minutes connected, task active, TC-GEO-with-position
-// reported, DDOP activated without error, and still zero DDI 506, zero Value
-// Commands and zero Value Requests. That is precisely the ambiguous outcome
-// described above, so it does not yet distinguish "this terminal has no
-// Tramline Control" from "this terminal will not answer an implement that
-// claims no level".
+// THAT RE-RUN HAS NOW BEEN DONE, and both answers were silence -- see
+// Documentation/HardwareTestNotes.md session 7 (2026-09-08, Ag Leader
+// InCommand 1200). Run 1 declared 0 for 16 minutes; run 2 temporarily declared
+// 0x01 (Level 1) for 6 minutes, with the structure label bumped TC03 -> TC04
+// so the terminal could not serve run 1's cached pool. Both runs reported
+// connected, task active, TC-GEO-with-position, and `DDOP Activated without
+// error`, and both saw zero DDI 506, zero Value Commands and zero Value
+// Requests. So the ambiguity above is closed on this terminal: it very likely
+// does not implement Tramline Control at all, and no DDOP work will produce
+// DDI 513/514 from it.
 //
-// NOT SHIPPABLE AS-IS: Level 1 means "the implement calculates the tramline
-// tracks", which a plough does not do and must not advertise -- exactly what
-// the paragraph above says. This value is a diagnostic claim made solely to
-// force a reply, which is why it lives on a spike branch. Revert to 0, or
-// build the feature out honestly, before any of this reaches
-// isobus-tc-client.
-constexpr std::int32_t kTramlineControlLevelsSupported = 0x01;
+// Deliberately reverted to 0 here. The Level-1 declaration was a diagnostic
+// claim made solely to force a reply -- a plough does not calculate tramline
+// tracks and must not advertise that it does -- so it stays in the session log
+// and out of the firmware. Do not set this to a non-zero value again except as
+// a time-boxed probe on a spike branch; if a future terminal genuinely needs
+// Tramline Control, build the feature out honestly (DDIs 505, 506, 515, 507,
+// 508, 509, 510, 511 per the Basic Requirements doc) rather than claiming a
+// level this implement cannot honour.
+//
+// One caveat carried forward from session 7: zero Value *Requests* is equally
+// consistent with our implement never having been mapped into the running task
+// on the terminal's own setup screen, and `Task active: Y` does not settle that
+// (AgIsoStack warns the flag is unreliable per brand). Confirm the mapping
+// before treating the "no Tramline Control" reading as established.
+constexpr std::int32_t kTramlineControlLevelsSupported = 0;
 
 // TODO: measure against the actual plough frame before trusting DDI 513 --
 // see Triton_TC_Client_Design.md sec 4.3 ("the offsets are part of the
@@ -121,16 +131,20 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC04",  // Structure label -- bumped from TC01 for the
+                      "TC03",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
-                               // probe (DDI 505/506 added, see below), then
-                               // TC03 -> TC04 for probe run 2: DDI 505's
-                               // declared value changed, and without a bump
-                               // the terminal would keep serving run 1's
-                               // cached pool and the re-run would prove
-                               // nothing.
+                               // probe (DDI 505/506 added, see below).
+                               //
+                               // TC04 IS BURNED -- DO NOT REUSE IT. Session
+                               // 7's probe run 2 uploaded a pool under TC04
+                               // whose DDI 505 declared Level 1, and any
+                               // terminal that took part still caches it under
+                               // that label. Reverting DDI 505 to 0 makes this
+                               // pool identical to TC03's again, so TC03 is the
+                               // honest label to carry; the next real tree
+                               // change goes to TC05.
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by

@@ -1046,20 +1046,80 @@ only these three exist.
   still with `xte=0.00m` and `q=0` -- #20 unchanged, as expected, nothing was
   done about it today.
 
+### CANedge full-bus capture -- the raw data #20 has been waiting for
+
+A full CAN log was recorded with the CANedge logger across this session, with
+**ground truth called out live, in this order: 71 cm, then 1 cm, then 0 cm**,
+the last part of the log being the deliberate drive to zero.
+
+That descending sequence is the important part, and it is exactly what #20
+needs. Session 6's mistake was deriving a confident "100x scale error" from a
+single static reading that matched to within 0.5% -- three further readings
+then showed the field was frozen and the match was coincidence. A capture
+containing *changes* of known size and direction cannot be satisfied by a
+frozen field, so it can distinguish a scale error, a byte-offset error and a
+dead decode from one another, which no single static point can.
+
+The 71 -> 1 -> 0 spread is particularly useful because it spans two orders of
+magnitude: a candidate byte pair must track all three values, which kills most
+wrong-offset hypotheses outright rather than leaving them merely unlikely. Note
+also that all three are same-sign approaches to zero, so this sequence still
+does **not** establish the sign convention -- that remains open from session 6,
+and needs a crossing to the other side of the line to settle.
+
+Pair this against PGN 65535 frames from SA `0x80`. The payloads logged on the
+serial side during session 7 sat around `510301FF0B0009FF` / `510302FF10000DFF`
+while our decode reported `xte=0.00m` and `q=0` throughout, so whatever carries
+71 cm is in bytes we are currently misreading.
+
+Note the two clocks are independent: the CANedge log and the serial logs above
+have no shared timebase, so the called-out markers have to be located within
+the CANedge capture on its own terms rather than by correlating timestamps.
+
+**Better still, the sign convention is probably distillable from the log
+itself.** The 71 / 1 / 0 figures are what the terminal displayed, which means
+the terminal was transmitting that quantity on the bus the whole time -- so the
+capture should contain a *continuous* ground-truth series, not just three
+hand-called points. Two things follow. First, find the frames whose decoded
+value passes through 71, 1 and 0 in that order: those three points are enough to
+identify the carrier, and once identified it supplies ground truth at full rate
+for the entire session. Second, that series almost certainly crosses zero and
+goes negative somewhere in a full working log, and a zero crossing is exactly
+what the sign convention needs -- which would settle an item open since session
+6 without another trip to a tractor. Worth checking before planning any
+sign-establishing test drive.
+
+To do: convert the MF4 with the CANedge-to-SocketCAN-pcap converter that landed
+on `claude/triton-isobus-gps-objectpool-fsrrdf` (2026-09-07), then derive the Ag
+Leader byte layout against the 71 cm / 0 pair. **File location not yet recorded
+here -- add it before this note ages.**
+
+The same capture is also the independent check on session 7's own confound: if
+the TC never addressed us at all, that is visible on the bus directly, without
+relying on our own counters. This is the lesson from session 5's `vtstat` --
+a second measurement that shares the dispatch path of the thing it corroborates
+is not independent. A separate logger genuinely is.
+
 **Raw logs:** `Documentation/logs/2026-09-08_session7_*.log`.
 
-**Code state:** the Level-1 declaration in run 2 is a diagnostic claim only --
+**Code state:** the Level-1 declaration in run 2 was a diagnostic claim only --
 Level 1 means "the implement calculates the tramline tracks", which a plough
-does not do. It must be reverted to `0` (or the feature built out honestly)
-before anything from this branch reaches `isobus-tc-client`.
+does not do. It has been **reverted to `0`**, and the structure label with it
+(TC04 -> TC03, which the reverted pool matches byte for byte again). Only the
+findings, the logs and the updated commentary merge; the firmware behaviour is
+unchanged from where session 7 started. Note TC04 is now burned on any terminal
+that took part in run 2 -- the next real DDOP tree change must go to TC05.
 
 **Open after session 7:**
 - **Confirm the implement is mapped into the task on the InCommand** -- until
   this is done the session's main result is provisional.
 - If it was mapped, close #21 against this terminal as "no Tramline Control
   support" and move the DDI 513/514 question to a different brand's TC.
-- #20 (Ag Leader XTE payload layout) still needs the raw capture against
-  ground truth; today's session did not attempt it.
+- **#20 now has its capture** -- the CANedge log plus the 71 / 1 / 0 cm ground
+  truth above. Next step is off-tractor: convert the MF4, find the PGN 65535
+  SA `0x80` frames, and derive the Ag Leader layout that tracks all three
+  values. Record the MF4's location here first. Sign convention still not
+  established -- all three points approach zero from the same side.
 - #18 auto-reconnect watchdog still unexercised -- nothing disconnected.
 
 ---
