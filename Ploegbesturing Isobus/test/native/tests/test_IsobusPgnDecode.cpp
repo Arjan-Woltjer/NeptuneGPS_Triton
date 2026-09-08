@@ -181,6 +181,108 @@ test(IsobusPgnDecode, legacySpeed_validRaw_dividesBy256) {
     assertTrue(near(r.speedKnots, 2.0f, 0.001f));
 }
 
+// --- PGN 65256 is course + speed + altitude -- GitHub issue #37 ------------
+// The sibling decoder CanSerialParser::CAN_SPD has always read all three
+// fields off this identical wire format; this one read only speed.
+
+// Cross-validation against known_good_sentences fixture
+// "$0CFEE81C,002D00020000804F", which test_GpsParsers asserts CanSerialParser
+// decodes as course=90.0deg speed=2.0kn alt=44.0m. Agreeing here means all
+// three scales match math verified against real hardware years ago.
+test(IsobusPgnDecode, legacySpeed_allThreeFields_matchSerialParserFixture) {
+    uint8_t d[8] = { 0x00, 0x2D, 0x00, 0x02, 0x00, 0x00, 0x80, 0x4F };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.valid);
+    assertTrue(near(r.speedKnots, 2.0f, 0.001f));
+    assertTrue(r.hasCourse);
+    assertTrue(near(r.courseDeg, 90.0f, 0.01f));
+    assertTrue(r.hasAltitude);
+    assertTrue(near(r.altitudeMeters, 44.0f, 0.01f));
+}
+
+// Real frame from Documentation/canlogs/..._log25_xte-outside.MF4, SA 0x1C:
+// the rig parked at ~119 deg heading, 4.25 m up, speed effectively zero.
+test(IsobusPgnDecode, legacySpeed_realBusPayload_decodesCourseAndAltitude) {
+    uint8_t d[8] = { 0x49, 0x3B, 0x01, 0x00, 0xFB, 0x63, 0x42, 0x4E };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.valid);
+    assertTrue(near(r.speedKnots, 0.0039f, 0.001f));
+    assertTrue(r.hasCourse);
+    assertTrue(near(r.courseDeg, 118.57f, 0.01f));
+    assertTrue(r.hasAltitude);
+    assertTrue(near(r.altitudeMeters, 4.25f, 0.01f));
+}
+
+// Card session 24's no-reception frame: every field unavailable at once.
+test(IsobusPgnDecode, legacySpeed_allSentinels_nothingCommitted) {
+    uint8_t d[8] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.valid);
+    assertFalse(r.hasCourse);
+    assertFalse(r.hasAltitude);
+}
+
+// Each field carries its own sentinel, so an unavailable speed must not
+// suppress a good course and altitude. Session 24 happens to have all three
+// missing together, which would hide a decoder that gated them jointly.
+test(IsobusPgnDecode, legacySpeed_speedUnavailable_courseAndAltitudeStillDecoded) {
+    uint8_t d[8] = { 0x00, 0x2D, 0xFF, 0xFF, 0x00, 0x00, 0x80, 0x4F };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertFalse(r.valid);
+    assertTrue(r.hasCourse);
+    assertTrue(near(r.courseDeg, 90.0f, 0.01f));
+    assertTrue(r.hasAltitude);
+    assertTrue(near(r.altitudeMeters, 44.0f, 0.01f));
+}
+
+// Course raw 0xFF00 = 65280 -> 510 deg, past the 360 deg guard. Not the
+// sentinel, so only the plausibility check can reject it.
+test(IsobusPgnDecode, legacySpeed_implausibleCourse_dropped) {
+    uint8_t d[8] = { 0x00, 0xFF, 0x00, 0x02, 0x00, 0x00, 0x80, 0x4F };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.valid);
+    assertFalse(r.hasCourse);
+    assertTrue(r.hasAltitude);
+}
+
+// Altitude raw 0xFF00 = 65280 -> 5660 m, past the 5000 m guard.
+test(IsobusPgnDecode, legacySpeed_implausibleAltitude_dropped) {
+    uint8_t d[8] = { 0x00, 0x2D, 0x00, 0x02, 0x00, 0x00, 0x00, 0xFF };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.valid);
+    assertTrue(r.hasCourse);
+    assertFalse(r.hasAltitude);
+}
+
+// --- 129026 carries COG beside SOG -- same issue, other transport ----------
+
+// COG = 15708 * 0.0001 rad = 1.5708 rad = 90.0 deg.
+test(IsobusPgnDecode, speedNmea2000_cog_decodesToDegrees) {
+    uint8_t d[6] = { 0, 0, 0x5C, 0x3D, 0xE8, 0x03 };
+    auto r = DecodeSpeedNmea2000(d, 6);
+    assertTrue(r.valid);
+    assertTrue(r.hasCourse);
+    assertTrue(near(r.courseDeg, 90.0f, 0.05f));
+    // This PGN has no altitude field at all.
+    assertFalse(r.hasAltitude);
+}
+
+test(IsobusPgnDecode, speedNmea2000_cogSentinel_noCourse) {
+    uint8_t d[6] = { 0, 0, 0xFF, 0xFF, 0xE8, 0x03 };
+    auto r = DecodeSpeedNmea2000(d, 6);
+    assertTrue(r.valid);
+    assertFalse(r.hasCourse);
+}
+
+test(IsobusPgnDecode, speedNmea2000_sogSentinel_courseStillDecoded) {
+    uint8_t d[6] = { 0, 0, 0x5C, 0x3D, 0xFF, 0xFF };
+    auto r = DecodeSpeedNmea2000(d, 6);
+    assertFalse(r.valid);
+    assertTrue(r.hasCourse);
+    assertTrue(near(r.courseDeg, 90.0f, 0.05f));
+}
+
 test(IsobusPgnDecode, legacySpeed_sentinel_invalidButRawCaptured) {
     // Confirmed on hardware 2026-08-08: without this guard, 0xFFFF prints as
     // an impossible 131.70 m/s (256.00 kn) -- see HardwareTestNotes.md.

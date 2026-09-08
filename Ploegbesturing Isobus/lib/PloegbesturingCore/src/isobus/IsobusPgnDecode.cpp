@@ -34,7 +34,27 @@ namespace {
 bool GIsPlausibleLatLon(float lat, float lon) {
     return (lat >= -90.0f) && (lat <= 90.0f) && (lon >= -180.0f) && (lon <= 180.0f);
 }
+
+// Course and altitude get the same treatment (GitHub issue #37). Both do have
+// a documented 0xFFFF sentinel, checked at the call site, so these are the
+// second line of defence against a garbage frame rather than the only one --
+// worth having because this PGN family is proprietary and overloaded.
+bool GIsPlausibleCourseDeg(float degrees) {
+    return (degrees >= 0.0f) && (degrees <= 360.0f);
+}
+
+// Deliberately not a wide range: 5000 m comfortably clears any field on
+// Earth, while still rejecting the 5691.875 m that the legacy altitude
+// scaling produces from an all-ones frame should the sentinel check ever be
+// bypassed.
+bool GIsPlausibleAltitudeM(float meters) {
+    return (meters >= -500.0f) && (meters <= 5000.0f);
+}
 }  // namespace
+
+// 129026 reports course in radians; the rest of the codebase, GuidanceSource
+// included, works in degrees.
+static constexpr float kDegreesPerRadian = 57.2957795f;
 
 // ------------------------------------------------------------------
 // PGN 129025 - Position, Rapid Update (single frame, 8 bytes)
@@ -87,6 +107,23 @@ SpeedResult DecodeSpeedNmea2000(const uint8_t* data, uint8_t length) {
         result.valid = true;
         result.speedKnots = sog * 0.01f / kMetersPerSecondPerKnot;
     }
+
+    // COG sits beside SOG in the same frame and was previously read past
+    // (GitHub issue #37). 0.0001 radian units, so a full turn is 62832 and
+    // every valid value fits below the 0xFFFF not-available sentinel.
+    // Byte 1 bits 0-1 select the reference (0 = True, 1 = Magnetic); we take
+    // it as-is, matching the serial parsers, which do not distinguish either.
+    if (length >= 4) {
+        uint16_t cog = uint16_t(data[2]) | (uint16_t(data[3]) << 8);
+        if (cog != 0xFFFF) {
+            const float degrees = cog * 0.0001f * kDegreesPerRadian;
+            if (GIsPlausibleCourseDeg(degrees)) {
+                result.hasCourse = true;
+                result.courseDeg = degrees;
+            }
+        }
+    }
+    // 129026 carries no altitude -- hasAltitude stays false.
     return result;
 }
 
@@ -166,15 +203,45 @@ SpeedResult DecodeLegacySpeed(const uint8_t* data, uint8_t length) {
     if (length != 8) return result;
     result.lengthOk = true;
 
+    // This frame is not speed alone: it is course + speed + altitude, three
+    // independent 16-bit little-endian fields. The sibling decoder
+    // CanSerialParser::CAN_SPD has always read all three off the identical
+    // wire format; this one read only the middle one and discarded the rest,
+    // leaving GetCourse()/GetAltitude() permanently 0.0 on the ISOBUS build
+    // (GitHub issue #37). Scales cross-validate against known_good_sentences
+    // fixture "0CFEE81C,002D00020000804F" -> 90.0 deg / 2.0 kn / 44.0 m.
     unsigned long val = (unsigned long)((data[3] << 8) | data[2]);
     result.rawValue = uint16_t(val);
     // 0xFFFF = "speed not available", matching DecodeSpeedNmea2000's guard --
     // confirmed on hardware 2026-08-08: without this, an unavailable
     // reading was being printed as an impossible 131.70 m/s (256.00 kn).
-    if (val == 0xFFFF) return result;
+    // Each field carries its own sentinel, so an unavailable speed must not
+    // suppress a good course: card session 24 has all three unavailable at
+    // once (the whole frame is 0xFF), but that is one case, not the rule.
+    if (val != 0xFFFF) {
+        result.valid = true;
+        result.speedKnots = float(val) / 256.0f;
+    }
 
-    result.valid = true;
-    result.speedKnots = float(val) / 256.0f;
+    const uint16_t rawCourse = uint16_t((data[1] << 8) | data[0]);
+    if (rawCourse != 0xFFFF) {
+        const float degrees = float(rawCourse) / 128.0f;
+        if (GIsPlausibleCourseDeg(degrees)) {
+            result.hasCourse = true;
+            result.courseDeg = degrees;
+        }
+    }
+
+    // Altitude is bytes 6-7; bytes 4-5 are not part of any field the legacy
+    // parser reads, and their meaning is unknown.
+    const uint16_t rawAltitude = uint16_t((data[7] << 8) | data[6]);
+    if (rawAltitude != 0xFFFF) {
+        const float meters = float(rawAltitude) / 8.0f - 2500.0f;
+        if (GIsPlausibleAltitudeM(meters)) {
+            result.hasAltitude = true;
+            result.altitudeMeters = meters;
+        }
+    }
     return result;
 }
 

@@ -120,11 +120,21 @@ struct PositionResult {
     float longitude = 0.0f;
 };
 
+// Both speed-bearing PGNs carry more than speed: the legacy PGN 65256 frame is
+// course + speed + altitude, and NMEA2000's 129026 is COG + SOG. Each field is
+// independently available or not, so each gets its own has* flag alongside the
+// existing lengthOk/valid convention rather than a parallel result type
+// (GitHub issue #37). A decoder leaves a field's flag false when its sender
+// does not carry it -- 129026 has no altitude, for instance.
 struct SpeedResult {
     bool     lengthOk = false;   // true once the length guard passed (rawValue meaningful)
     bool     valid = false;      // true => SetSpeedKnots(speedKnots) should be called
     float    speedKnots = 0.0f;  // meaningful only when valid
     uint16_t rawValue = 0;       // diagnostic: pre-scale raw value
+    bool     hasCourse = false;  // true => SetCourseDeg(courseDeg) should be called
+    float    courseDeg = 0.0f;   // meaningful only when hasCourse
+    bool     hasAltitude = false;// true => SetAltitude(altitudeMeters) should be called
+    float    altitudeMeters = 0.0f; // meaningful only when hasAltitude
 };
 
 struct XteResult {
