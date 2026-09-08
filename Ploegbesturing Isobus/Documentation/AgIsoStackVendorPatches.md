@@ -1,16 +1,33 @@
-# AgIsoStack vendored-library patches
+# AgIsoStack fork patches
 
-Tracks every local modification made directly to the AgIsoStack source under
-`.pio/libdeps/teensy41_isobus/AgIsoStack/` (the copy `[env:teensy41_isobus]`'s
-`lib_deps` actually pulls and compiles against -- see `platformio.ini`).
+Tracks every modification this project carries on top of upstream AgIsoStack.
 
-**Why this file exists:** `.pio/` is gitignored (PlatformIO-fetched, not
-committed). Any edit made directly in `.pio/libdeps/` is invisible to git and
-will be **silently lost** the next time PlatformIO re-fetches the dependency
--- `pio pkg update`, deleting `.pio/` for a clean rebuild, or a fresh clone.
-There is no automatic reapplication today. If AgIsoStack-dependent behavior
-that used to work suddenly regresses after a clean build, check this list
-before chasing a code-logic bug.
+**These are now real commits, not hand-edits.** As of 2026-09-08 they live on
+the `neptune-0.1.5` branch of our fork,
+[Arjan-Woltjer/AgIsoStack-Arduino](https://github.com/Arjan-Woltjer/AgIsoStack-Arduino),
+tagged `0.1.5-neptune1` -- upstream `0.1.5` plus these five commits and nothing
+else. `platformio.ini`'s `lib_deps` pins that tag, so a fresh clone and CI
+compile exactly what a developer compiles. This document is the fork's
+changelog and rationale; `git log 0.1.5..neptune-0.1.5` on the fork is the
+authoritative diff.
+
+**How it used to work, and why that failed.** These patches were previously
+hand-applied directly to `.pio/libdeps/teensy41_isobus/AgIsoStack/`, which is
+gitignored. They were therefore invisible to git, silently lost on any
+`pio pkg update` or clean rebuild, and **never present in CI at all** -- which
+is why the Ploegbesturing Isobus workflow failed on every branch from
+2026-08-13 until this migration (issue #26). Patch #4 below was, at that point,
+present nowhere in the world except one developer's `.pio/` directory. Same
+reasoning that put NeptuneGPS Salacia's `lib/FlasherX` on a fork.
+
+**To change a patch:** edit it on the fork's `neptune-0.1.5` branch, cut a new
+tag, bump `lib_deps`. Do not edit `.pio/libdeps/` -- that is still gitignored
+and still silently discarded.
+
+**Verification (2026-09-08):** the tag's tree was diffed against the
+hand-patched `.pio` copy that had been field-verified on the InCommand 1200;
+the two are identical ignoring comments, and a clean rebuild from the tag
+produces byte-identical firmware (`FLASH code:282352, data:59568`).
 
 ---
 
@@ -471,11 +488,20 @@ code) so this project stops needing to carry them at all:
       write up as a bug report (a Teensy-specific global-static-init timing
       issue, not obviously reproducible off-target).
 
-**Once any PR merges upstream:** bump `platformio.ini`'s
-`lib_deps` past whatever release/commit includes it, then remove the
-corresponding "Active patches" entry above (and, if PR #14 merges, drop the
-`.pio/libdeps/` hand-patch entirely rather than reapplying it after the next
-`pio pkg update`/clean rebuild). Until then, all three PRs are drafts on
-`Arjan-Woltjer/AgIsoStack-Arduino` -- mark them "ready for review" on GitHub
-when satisfied with the wording (PR #16 additionally wants real-hardware
-re-verification against the InCommand 1200 before that).
+**Once any PR merges upstream:** rebase the fork's `neptune-0.1.5` branch onto
+the release that includes it, drop the now-redundant commit, cut a new tag, bump
+`platformio.ini`'s `lib_deps` to that tag, and remove the corresponding "Active
+patches" entry above. The fork shrinks by one commit each time; it disappears
+entirely only if patch #4 is also accepted, which upstream may reasonably
+decline (see its entry).
+
+**PR status as of 2026-09-08** (none merged; #14/#15 have been open since
+2026-08-11):
+
+| Patch | PR | State |
+|---|---|---|
+| #1 `get_state()` | [Arduino#14](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/14) | open, ready for review |
+| #2 EOP error bits | [Arduino#15](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/15) | open, ready for review |
+| #3 CF liveness carry-over | [Arduino#16](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/16) | open, **draft** -- wants InCommand 1200 re-verification |
+| #4 Partnered prune exemption | none, deliberately | question raised on [plus-plus#717](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/issues/717) |
+| #5 restored-CF credit | [plus-plus#718](https://github.com/Open-Agriculture/AgIsoStack-plus-plus/pull/718), [Arduino#17](https://github.com/Open-Agriculture/AgIsoStack-Arduino/pull/17) | open (#17 draft) |
