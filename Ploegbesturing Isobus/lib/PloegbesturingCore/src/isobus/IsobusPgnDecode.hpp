@@ -68,6 +68,19 @@ static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 
 // filter because the PGN is not overloaded.
 static constexpr std::uint8_t  kSourceAddressJohnDeere     = 0x2A;
 static constexpr std::uint8_t  kSourceAddressAgLeaderRaven = 0x80;
+
+// PGN 0xFFFF does not carry one message: data[0] is a message selector, and a
+// single source address sends several different messages under it. 0x77 is the
+// cross-track error message; everything else on this PGN has a different
+// layout and must not be run through the XTE decode (GitHub issue #30).
+//
+// Established from the CANedge full-bus captures in Documentation/canlogs/ and
+// card sessions 7/8/9: John Deere's guidance source (0x2A) interleaves 0x77 at
+// ~5 Hz with 0x92 at ~1 Hz, and SA 0x1C and 0xF0 on the same bus use eight and
+// seven distinct selectors respectively. Ag Leader/Raven (0x80) sends 0x51,
+// which issue #20's closing analysis identified as a DOP-like triple rather
+// than cross-track error at all -- so on that rig this PGN carries no XTE.
+static constexpr std::uint8_t  kMessageSelectorXte         = 0x77;
 static constexpr std::uint32_t kPgnXteTrimbleLegacy = 0xEB00;  // 60160, PDU1 -- legacy filter required
                                                                  // destination address 0xAC (fixed); our
                                                                  // claimed SA is dynamic, so whether this

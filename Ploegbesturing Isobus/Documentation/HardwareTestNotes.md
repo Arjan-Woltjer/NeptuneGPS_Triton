@@ -1307,14 +1307,185 @@ conclusion from the board.
   (0x03)`: the research doc warns that TC version 4+ on both ends moves values
   to the acknowledged PGN, and watching only 0x03 could produce a false
   negative. Worth confirming our counters cover both before the next run.
-- CANedge log #2 to analyse at the office. Note it contains a mid-log gap where
-  the plough control was disconnected from the ISOBUS, so our control function
-  leaves and (if reconnected) rejoins -- a useful landmark. It also includes a
-  short dedicated log at a
-  steady 21 cm, and an 11 cm opposite-side point at the end): two-sender
-  hypothesis on PGN 65535,
-  and whether the TC ever addresses us at all.
+- **CANedge logs: analysed the same evening -- see the follow-up section
+  below.** Both are now in `canlogs/` with their provenance. They confirmed the
+  XTE decode against both unpaired ground-truth calls, disproved the two-sender
+  hypothesis on PGN 65535, and turned up two firmware bugs. Note the plough
+  control was already off the bus in both, so there is no Triton traffic in
+  them and "does the TC ever address us" cannot be answered from these files.
 - #20's Ag Leader layout still needs session 7's capture; unchanged today.
+
+## Follow-up (off-tractor) -- 2026-09-08 evening: the CANedge logs, analysed
+
+The two full-bus captures taken during Session 8 are now in
+[`canlogs/`](canlogs/) with their provenance (2026-09-08, John Deere rig,
+owner van Os -- the files' own RTC timestamps are wrong and carry none of
+this). They settle the session's open question, and they turn up two real
+firmware bugs that no serial log could have shown.
+
+**Card `AD4F266A` session 24** -- 678 s, 232 578 frames, indoors, GPS module
+connected partway through with no reception.
+**Card `AD4F266A` session 25** -- 115 s, 45 419 frames, outdoors, RTK live,
+recorded across the operator's ground-truth calls.
+
+Triton is **not** on the bus in either file -- the plough control had already
+been unplugged (see "#18's reconnect watchdog", above). Every conclusion below
+is read off the vendors' own traffic.
+
+### Who is on this bus
+
+Session 24 caught a complete address-claim roll-call (eleven control
+functions, all manufacturer code 33). The ones that matter:
+
+| SA | Function | Identity | Role |
+|---|---|---|---|
+| `0x1C` | 23 (Navigation), industry group 0 | 254686 | **the GPS module** |
+| `0x26` | 29, Virtual Terminal | 938640 | display |
+| `0x2A` | 32, industry group 2 | 938640 | guidance, *inside the display* |
+| `0xF7` | 130, Task Controller | 938640 | display |
+| `0xFB` | 130, Task Controller | 625309 | a **second** TC, different device |
+| `0xF0` | 134 | 224876 | tractor ECU, by far the loudest talker |
+
+`0x2A` shares identity 938640 with the VT and TC, so the John Deere guidance
+source is a function *of the display*, not of the GPS receiver. `0x1C` -- the
+module physically connected at t = 462 s in session 24 -- is a separate device
+and is the one broadcasting position and speed.
+
+### The XTE sender goes silent when there is no fix
+
+This is what session 24 is for, and it is a clean negative result:
+
+| PGN | Session 24 (no reception) | Session 25 (RTK) |
+|---|---|---|
+| 65535 from `0x2A` (XTE, decoded) | **0 frames in 678 s** | 688 frames |
+| 65267 position + 65256 speed from `0x1C` | 1080 each | 574 each |
+| 129025 / 129026 / 129283 (NMEA2000) | **absent** | **absent** |
+
+So without a fix, `0x2A` does not send the XTE message at all -- it does not
+send zeros, it sends nothing. And the NMEA2000 guidance set is simply not
+broadcast on this brand, in either log, confirming from the bus side what
+Session 8 saw as permanently-zero counters. On a John Deere the legacy PGNs
+are all there is.
+
+### The XTE decode is right, and the sign convention is now pinned
+
+Session 8 left two operator ground-truth calls unpaired, because our board was
+already dropping off the bus. Session 25 contains both, and the legacy John
+Deere decoder reproduces them exactly:
+
+| Log time | Payload from `0x2A` | raw word | `(raw-32000)>>1` | Operator called |
+|---|---|---|---|---|
+| 0 -- 85 s | `77 15 10 D6 7C 59 89 FF` | 31958 | **-21 cm** | a steady 21 cm |
+| 90 -- 115 s | `77 15 10 16 7D 3F 89 FF` | 32022 | **+11 cm** | 11 cm, other side |
+
+(raw word being `d[4] << 8 | d[3]`.) `d[1] = 0x15`, so the high-nibble quality
+check yields quality 4 on both. Between them the value walks through 0, +2,
++5, +8 cm -- the line crossing, sample by sample.
+
+That is the third and fourth ground-truth confirmation of this decoder, and
+the first pair of **opposite signs**: the sign convention holds, negative and
+positive being the two sides of the line.
+
+**The receiver's own position confirms it independently.** PGN 65267 from
+`0x1C` shows the rig stationary within 0.20 m N-S / 0.36 m E-W for 88 s at
+**53.4260360 N, 6.7205691 E**, then stepping **0.38 m** at t = 88.7 s -- the
+same instant the XTE walks 0 -> +2 -> +5 -> +8 -> +11 (t = 87.89 to 88.70 s).
+A 32 cm cross-track change out of a 0.38 m displacement is a shift about 30
+degrees off perpendicular to the AB line. So this was a static test with the
+rig nudged once, not a driving pass, and the decoded XTE tracks measured
+motion rather than only the operator's spoken numbers.
+
+Note this does **not** mean the layout is per-brand. Issue #20's closing
+analysis established the sharper version: it is the same message *definition*
+everywhere, and what differs is the message selector in `data[0]` -- see
+below. On the Ag Leader rig the XTE message is simply not on the bus at all.
+On John Deere we do have an XTE feed, over the old proprietary PGN rather than
+NMEA2000, but a real one.
+
+### The two-sender hypothesis is wrong -- it was our own diagnostic
+
+Session 8 hypothesised two senders on PGN 65535, one emitting zeros, to
+explain `xteraw=F0:0000000000000000` printing while `xte=-0.33m` was live.
+The capture disproves it. There are **four** senders on PGN 65535 --
+`0x1C` (36 Hz), `0x2A` (6 Hz), `0xD2` (1 Hz) and `0xF0` (64 Hz) -- and
+**not one of them ever emits an all-zero payload**, in either log.
+
+The zeros are ours. In `DecodeLegacyXteJohnDeere()`, `result.lengthOk` is set
+*before* the source-address filter, and the early return for a non-John-Deere
+sender leaves `result.rawPayload` at its default zeros.
+`OnLegacyXteJohnDeere()` then copies that buffer under `if (result.lengthOk)`,
+while setting `lastXteJohnDeereLegacySourceAddress` **unconditionally**, for
+every sender. `0xF0` talks on this PGN ten times as often as `0x2A`, so the
+payload diagnostic is being wiped to zeros almost continuously and stamped
+with whichever address spoke last. It is showing an artifact, not the bus.
+
+The fix is to write the raw payload only when the sender passed the address
+filter. Note the original motivation for this diagnostic -- capturing Ag
+Leader's `0x80` bytes to derive its layout -- was dropped when #20 closed, so
+this is now a readout-correctness issue rather than a blocking one.
+
+### `0x2A` is itself multiplexed on byte 0, and we ignored it -- issue #30, now fixed
+
+Independently found and filed the same day from card sessions 7/8/9
+(**issue #30**); sessions 24/25 corroborate it and add the ground-truth pair
+above. **Fixed** -- see the selector check in `DecodeLegacyXteJohnDeere()`.
+`0x2A` does not send one message on PGN 65535 -- it alternates two, keyed by
+byte 0:
+
+    77 15 10 D6 7C 59 89 FF     ~5 Hz    the XTE message
+    92 FF 80 3E FC FF FF FF     ~1 Hz    something else entirely
+
+`DecodeLegacyXteJohnDeere()` has no byte-0 check. It accepts the `0x92` frame,
+reads its raw word as 64574, and returns `valid = true` with
+`xteHundredthsMeter = +16287` and, because `d[1] = 0xFF` fails the quality
+nibble, `quality = 0`. `OnLegacyXteJohnDeere()` then calls
+`SetXte(16287, 0)` on it unconditionally.
+
+So on a live John Deere bus, roughly once a second:
+
+- `GuidanceSource::xte` is overwritten with **+162.87 m**,
+- `quality` is knocked to 0, so `IsRtkQuality()` goes false and
+  `InterfacePlough`'s Hold branch trips,
+- and `lastXteFix` is refreshed anyway, so the 2000 ms staleness guard beside
+  it can never fire on this.
+
+It went unnoticed in the serial logs because the good message outnumbers the
+bad one five to one, so the 1 Hz periodic line usually samples a correct
+value. The fix is a byte-0 selector check (`d[0] == 0x77`) before decoding,
+keeping the existing quality-nibble check, and placed *after* the raw
+diagnostics so the selector gates what we believe rather than what we can see.
+
+The regression test was written first and confirmed failing against the
+unfixed decoder (`legacyXteJohnDeere_nonXteMessageSelector_notDecoded`,
+1 failed / 95). Four pre-existing John Deere fixtures had to gain the selector
+byte: they were **synthetic minimal frames**, built by zeroing every byte the
+decoder does not read (`data[0]`, `data[2]`, `data[5..7]` all `0x00`, and
+`data[1]` `0x10` where the bus sends `0x15`), so their `data[0] = 0x00` never
+represented real hardware. `CanSerialParser`'s CAN_XTE path has the same
+missing check but is **deliberately left alone**: it sits behind a
+CAN-to-serial bridge whose handling of `data[0]` we have no capture of.
+
+### `kPgnXteTrimbleLegacy` (60160) is the transport-protocol data PGN
+
+PGN 60160 = `0xEB00` is **TP.DT**, J1939's Transport Protocol Data Transfer.
+Every multi-frame message on any ISOBUS bus is carried on it -- session 24
+logged 5384 of them, most being `0xF0`'s object-pool upload to the VT.
+
+The decode itself is safe: `DecodeLegacyXteTrimble()` rechecks for source
+address `0xAA` and drops everything else, and no device on this bus uses that
+address. Two consequences that are not safe, though:
+
+- `counters.xteTrimbleLegacy` counts every TP data frame on the bus, so the
+  debug readout's Trimble count and its contribution to `Total()` are
+  meaningless noise on a busy bus.
+- `IsobusGuidanceChannel.cpp:160` issues
+  `request_parameter_group_number(kPgnXteTrimbleLegacy, ...)`, i.e. it asks a
+  control function to transmit the transport-protocol data PGN on request.
+  That request has no meaning.
+
+Worth recording that the legacy Trimble CAN ID `0x1CEBACAA` was therefore a
+raw TP.DT frame (SA `0xAA`, DA `0xAC`) -- which is why its decoder keys on
+`data[0] == 2 && data[5] == 7`: byte 0 is a TP sequence number.
 
 ---
 
