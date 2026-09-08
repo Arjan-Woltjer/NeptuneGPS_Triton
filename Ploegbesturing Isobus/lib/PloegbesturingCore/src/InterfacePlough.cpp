@@ -66,9 +66,9 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
 // ------------------------
 // Method for updating mode
 // ------------------------
-void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed) {
+void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed, bool vtCalibratePressed) {
     // Check buttons
-    CheckButtons(255, 0, vtWiderPressed, vtNarrowerPressed);
+    CheckButtons(255, 0, vtWiderPressed, vtNarrowerPressed, vtCalibratePressed);
 
     // ============================
     // Process tractor
@@ -137,7 +137,7 @@ void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed) {
 // --------------------------
 // Method for updating screen
 // --------------------------
-void InterfacePlough::UpdateScreen(boolean rewrite) {
+void InterfacePlough::UpdateScreen(bool rewrite) {
     short int temp = 0;
     short int temp2 = 0;
 
@@ -375,7 +375,7 @@ void InterfacePlough::UpdateScreen(boolean rewrite) {
 // ---------------------------
 // Method for checking buttons
 // ---------------------------
-short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPressed, bool vtNarrowerPressed) {
+short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPressed, bool vtNarrowerPressed, bool vtCalibratePressed) {
     if (button1Flag) {
         button1Timer = millis();
         button1Flag = false;
@@ -386,14 +386,31 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
         button2Flag = false;
     }
 
-    // vtWiderPressed/vtNarrowerPressed OR straight into the same conditions
-    // as the (disabled) JOY_LEFT_2/JOY_RIGHT_2 lines below -- an
-    // IsobusVtInterface's VT soft keys share this exact debounce/arbitration
-    // logic rather than a separate control path. See InterfacePlough.hpp's
-    // Update()/CheckButtons() comments and IsobusVtInterface.hpp for the
-    // Wider->LEFT / Narrower->RIGHT direction mapping rationale.
+    // VT soft keys get their own branches, each placed immediately after the
+    // physical branch it mirrors, so the physical buttons keep strict priority
+    // over the VT: LEFT/RIGHT/both-held win an arbitration against a VT press
+    // arriving in the same loop iteration. Direction mapping is Wider->LEFT
+    // slot (-1) / Narrower->RIGHT slot (+1) / Calibrate->both-held slot (2) --
+    // see IsobusVtInterface.hpp for why those pairings are the ones that make
+    // both input paths mean the same thing.
+    //
+    // They deliberately do NOT reuse the physical branches' delay1/delay2
+    // debounce (they were OR'd into those conditions until 2026-09-08). Those
+    // timers measure how long a level-triggered input has been *held*, and a
+    // VT press is a consume-once edge: IsobusVtInterface sets the flag on key
+    // release and ConsumeXxxPress() clears it, so it is true for exactly one
+    // loop iteration and can never satisfy a hold duration. With Update()'s
+    // real delay1 of 255 that made the both-held combo (255 * 4 = 1020 ms)
+    // unreachable from the VT entirely -- which is why vtCalibratePressed
+    // needs a branch of its own rather than an OR.
+    //
+    // Each VT branch still sets the same button1Flag/button2Flag its physical
+    // counterpart does, so the timers are re-seeded on the next call and a
+    // physical press following a VT press measures its hold from now instead
+    // of from a stale timestamp (that matters most after Calibrate(), which
+    // blocks for as long as the operator takes to walk the wizard).
     // Check for left/right button presses
-    if ((digitalRead(LEFT_BUTTON_2) || vtWiderPressed) && (digitalRead(RIGHT_BUTTON_2) || vtNarrowerPressed)) {
+    if ((digitalRead(LEFT_BUTTON_2)) && (digitalRead(RIGHT_BUTTON_2))) {
         if (millis() - button1Timer >= delay1 * 4) {
             button1Flag = true;
             buttons = 2;
@@ -405,7 +422,12 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
             return 0;
         }
     }
-    else if (digitalRead(LEFT_BUTTON_2) || vtWiderPressed) { // || digitalRead(JOY_LEFT_2)){
+    else if (vtCalibratePressed) {
+        button1Flag = true;
+        buttons = 2;
+        return 2;
+    }
+    else if (digitalRead(LEFT_BUTTON_2)) { // || digitalRead(JOY_LEFT_2)){
         if (millis() - button2Timer >= delay2) {
             button2Flag = true;
             buttons = -1;
@@ -417,7 +439,12 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
             return 0;
         }
     }
-    else if (digitalRead(RIGHT_BUTTON_2) || vtNarrowerPressed) { // || digitalRead(JOY_RIGHT_2)){
+    else if (vtWiderPressed) {
+        button2Flag = true;
+        buttons = -1;
+        return -1;
+    }
+    else if (digitalRead(RIGHT_BUTTON_2)) { // || digitalRead(JOY_RIGHT_2)){
         if (millis() - button2Timer >= delay2) {
             button2Flag = true;
             buttons = 1;
@@ -428,6 +455,11 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
             buttons = 0;
             return 0;
         }
+    }
+    else if (vtNarrowerPressed) {
+        button2Flag = true;
+        buttons = 1;
+        return 1;
     }
     else {
         button1Flag = true;

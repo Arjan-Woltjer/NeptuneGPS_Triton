@@ -64,13 +64,18 @@ public:
                     VehicleTractor* tractor,
                     GuidanceSource* guidance);
 
-    // vtWiderPressed/vtNarrowerPressed: consume-once signals from an
-    // IsobusVtInterface's VT soft keys (see that class's header comment).
+    // vtWiderPressed/vtNarrowerPressed/vtCalibratePressed: consume-once
+    // signals from an IsobusVtInterface's VT soft keys (see that class's
+    // header comment). Each maps onto one of CheckButtons()' three physical
+    // outcomes -- -1 (LEFT), +1 (RIGHT), 2 (both held, the calibration
+    // trigger main.cpp acts on) -- but through its own branch rather than the
+    // physical branch's hold debounce; CheckButtons()' body explains why.
     // Defaulted so non-ISOBUS builds and any other caller can omit them --
     // this class stays framework-agnostic, no AgIsoStack/ISOBUS dependency.
-    void Update(bool vtWiderPressed = false, bool vtNarrowerPressed = false);
-    void UpdateScreen(boolean rewrite);
-    short int CheckButtons(byte delay1, byte delay2, bool vtWiderPressed = false, bool vtNarrowerPressed = false);
+    void Update(bool vtWiderPressed = false, bool vtNarrowerPressed = false, bool vtCalibratePressed = false);
+    void UpdateScreen(bool rewrite);
+    short int CheckButtons(byte delay1, byte delay2,
+        bool vtWiderPressed = false, bool vtNarrowerPressed = false, bool vtCalibratePressed = false);
 
     inline short int GetButtons() {
         return buttons;

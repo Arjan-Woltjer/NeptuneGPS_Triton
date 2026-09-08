@@ -315,16 +315,35 @@ void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parent
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
     if (event.keyEvent != VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased) return;
 
-    // Wider/Narrower set a consume-once pending flag, picked up by main.cpp's
-    // loop() and OR'd into InterfacePlough::CheckButtons() -- see this
-    // class's own header comment and ConsumeWiderPress()/
-    // ConsumeNarrowerPress() for the full rationale. Auto has no existing
-    // target (InterfacePlough's AUTO mode is derived, not user-settable) so
-    // stays log-only.
+    // Wider/Narrower/Calibrate set a consume-once pending flag, picked up by
+    // main.cpp's loop() and passed into InterfacePlough::CheckButtons() --
+    // see this class's own header comment and the ConsumeXxxPress() accessors
+    // for the full rationale. Auto has no existing target (InterfacePlough's
+    // AUTO mode is derived, not user-settable) so stays log-only.
+    //
+    // Calibrate is a heavier action than the other two and carries two real
+    // caveats worth knowing before relying on it in the field:
+    //   1. It is a single tap, where the cab-button equivalent is holding
+    //      both buttons for delay1 * 4 = ~1 s. There is no hold gesture
+    //      available over a VT soft key (the VT reports discrete press and
+    //      release events, and this class acts on release), so an accidental
+    //      tap enters the wizard immediately.
+    //   2. CalibrationPlough::Calibrate() blocks main.cpp's loop() until the
+    //      operator finishes or cancels, and it drives itself from the LCD
+    //      and the physical buttons only -- it calls
+    //      InterfacePlough::CheckButtons(0, 0) with the VT flags left at
+    //      their defaults. So while the wizard is up, this class's Update()
+    //      (and with it CANNetworkManager) is not being pumped: the VT
+    //      connection will time out and have to be re-established by the
+    //      reconnect watchdog afterwards, and the wizard itself cannot be
+    //      driven from the VT. Triggering calibration from the VT is
+    //      therefore a "start it, then finish it at the cab display"
+    //      affordance, not full VT-side calibration -- see GitHub issue #31.
     switch (event.objectID) {
-        case Key_Wider:    pendingWiderPress = true;    serialDebug->println("VT: Wider pressed");    break;
-        case Key_Narrower: pendingNarrowerPress = true; serialDebug->println("VT: Narrower pressed"); break;
-        case Key_Auto:     serialDebug->println("VT: Auto pressed (not wired to control)");           break;
+        case Key_Wider:     pendingWiderPress = true;     serialDebug->println("VT: Wider pressed");     break;
+        case Key_Narrower:  pendingNarrowerPress = true;  serialDebug->println("VT: Narrower pressed");  break;
+        case Key_Calibrate: pendingCalibratePress = true; serialDebug->println("VT: Calibrate pressed"); break;
+        case Key_Auto:      serialDebug->println("VT: Auto pressed (not wired to control)");             break;
         default: break;
     }
 }

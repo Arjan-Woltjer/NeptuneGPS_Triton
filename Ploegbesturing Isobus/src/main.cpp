@@ -169,18 +169,25 @@ void loop() {
     gTcInterface->Update();
     gDebugMenu->Update();
 
-    // Update interface -- VT Wider/Narrower soft-key presses OR straight
-    // into InterfacePlough's existing button arbitration, see
+    // Update interface -- VT Wider/Narrower/Calibrate soft-key presses feed
+    // InterfacePlough's existing button arbitration, see
     // IsobusVtInterface.hpp/InterfacePlough.cpp for the full rationale.
-    gInterface->Update(gVtInterface->ConsumeWiderPress(), gVtInterface->ConsumeNarrowerPress());
+    // Every Consume*() call must happen on every iteration: they are the only
+    // thing that clears the pending flags, so short-circuiting one would leave
+    // a press latched until the next one arrives.
+    gInterface->Update(gVtInterface->ConsumeWiderPress(),
+                       gVtInterface->ConsumeNarrowerPress(),
+                       gVtInterface->ConsumeCalibratePress());
 #else
     // Update interface
     gInterface->Update();
 #endif
 
-    // Both buttons held -> enter the calibration wizard (blocking until it
-    // finishes/is cancelled). See CalibrationPlough.hpp for why this trigger
-    // lives here instead of inside InterfacePlough itself.
+    // Both buttons held (or the VT's Calibrate soft key) -> enter the
+    // calibration wizard (blocking until it finishes/is cancelled). See
+    // CalibrationPlough.hpp for why this trigger lives here instead of inside
+    // InterfacePlough itself, and GitHub issue #31 for what blocking here
+    // costs the ISOBUS stack when the trigger came from the VT.
     if (gInterface->GetButtons() == 2) {
         gCalibration->Calibrate();
     }

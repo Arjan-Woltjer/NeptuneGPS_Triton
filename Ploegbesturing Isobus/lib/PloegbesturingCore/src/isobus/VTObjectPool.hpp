@@ -69,13 +69,22 @@ enum PloughVtObjectId : uint16_t {
     // 2026-08-10) -- this is what a VT's implement/app-switcher list reads
     // to show something other than a blank/generic entry for Triton.
     Icon_Plough = 23,
+
+    // Calibration soft key -- appended after Icon_Plough rather than slotted
+    // in next to the other Key_/Label_ objects on purpose: renumbering an
+    // existing object ID would silently invalidate every ID already baked
+    // into IsobusVtInterface's send_change_numeric_value() calls and into any
+    // pool a VT has cached under this working set's version label.
+    Key_Calibrate   = 24,
+    Label_Calibrate = 25,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
 enum PloughKeyCode : uint8_t {
-    KeyCode_Wider    = 1,
-    KeyCode_Narrower = 2,
-    KeyCode_Auto     = 3,
+    KeyCode_Wider     = 1,
+    KeyCode_Narrower  = 2,
+    KeyCode_Auto      = 3,
+    KeyCode_Calibrate = 4,
 };
 
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().

@@ -40,16 +40,22 @@ namespace triton
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes.
 //
-// Soft-key handling: Wider/Narrower are wired to ImplementPlough via
-// ConsumeWiderPress()/ConsumeNarrowerPress() below (2026-08-10) -- main.cpp's
-// loop() passes these into InterfacePlough::Update(), which OR's them into
-// the same LEFT_BUTTON_2/RIGHT_BUTTON_2 conditions CheckButtons() already
-// uses for the physical buttons (and, disabled today, the joystick), so a
-// VT press goes through identical debounce/arbitration logic rather than a
-// separate control path. Auto (Key_Auto) is deliberately NOT wired --
-// InterfacePlough's AUTO mode is derived from GPS/hitch state, not
-// user-settable via a button, so there's no existing target for it; still
-// display + log only.
+// Soft-key handling: Wider/Narrower (2026-08-10) and Calibrate (2026-09-08)
+// are wired through ConsumeWiderPress()/ConsumeNarrowerPress()/
+// ConsumeCalibratePress() below -- main.cpp's loop() passes all three into
+// InterfacePlough::Update(), which lands each in the CheckButtons() branch
+// that mirrors the physical button meaning the same thing (Wider -> the
+// LEFT_BUTTON_2 slot, Narrower -> RIGHT_BUTTON_2, Calibrate -> the both-held
+// combo main.cpp turns into a CalibrationPlough::Calibrate() call), with the
+// physical buttons keeping priority in an arbitration. They get their own
+// branches rather than being OR'd into the physical conditions (which is how
+// Wider/Narrower were first wired) because a consume-once edge can never
+// satisfy those branches' hold-duration debounce -- see CheckButtons() for
+// the full reasoning.
+//
+// Auto (Key_Auto) is deliberately NOT wired -- InterfacePlough's AUTO mode is
+// derived from GPS/hitch state, not user-settable via a button, so there's no
+// existing target for it; still display + log only.
 class IsobusVtInterface {
 public:
     IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
@@ -137,6 +143,11 @@ public:
         pendingNarrowerPress = false;
         return v;
     }
+    inline bool ConsumeCalibratePress() {
+        bool v = pendingCalibratePress;
+        pendingCalibratePress = false;
+        return v;
+    }
 
 private:
     class Logger : public isobus::CANStackLogger {
@@ -183,8 +194,9 @@ private:
     int32_t       lastSentXte      = 0;
     int32_t       lastSentOffset   = 0;
 
-    bool pendingWiderPress    = false;
-    bool pendingNarrowerPress = false;
+    bool pendingWiderPress     = false;
+    bool pendingNarrowerPress  = false;
+    bool pendingCalibratePress = false;
 
     unsigned int  vtStatusMessageCount  = 0;
     unsigned long lastVtStatusMessageMs = 0;

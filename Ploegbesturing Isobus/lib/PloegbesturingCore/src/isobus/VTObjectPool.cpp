@@ -56,7 +56,7 @@ namespace triton
 {
 
 // ----------------------------------------------------------------
-// Pool storage -- sized to comfortably hold all 23 objects (~450 B)
+// Pool storage -- sized to comfortably hold all 25 objects (~500 B)
 // ----------------------------------------------------------------
 static uint8_t  poolBuffer[1024];
 static uint32_t poolPos = 0;
@@ -396,13 +396,22 @@ void BuildObjectPool() {
     appendObjRef(Label_Offset, LBL_X, ROW_Y[3]);
     appendObjRef(Out_Offset, VAL_X, ROW_Y[3]);
 
-    appendSoftKeyMask(Plough_SoftKeyMask, kBlack, 3);
-    pu16(Key_Wider); pu16(Key_Narrower); pu16(Key_Auto);
+    // 4 soft keys. ISO 11783-6 only guarantees a VT renders 6 per mask, so
+    // this stays inside what every terminal must support -- but a VT is free
+    // to expose fewer physical/soft key positions than a mask declares, in
+    // which case it pages them; nothing here depends on all four being
+    // visible at once.
+    appendSoftKeyMask(Plough_SoftKeyMask, kBlack, 4);
+    pu16(Key_Wider); pu16(Key_Narrower); pu16(Key_Auto); pu16(Key_Calibrate);
 
     // ---- Soft keys ----
     appendKey(Key_Wider, kBlack, KeyCode_Wider, Label_Wider);
     appendKey(Key_Narrower, kBlack, KeyCode_Narrower, Label_Narrower);
     appendKey(Key_Auto, kBlack, KeyCode_Auto, Label_Auto);
+    // Calibrate enters CalibrationPlough's blocking wizard -- see
+    // IsobusVtInterface::onVtKeyEvent() for the operational caveats that come
+    // with triggering it from the VT rather than from the cab buttons.
+    appendKey(Key_Calibrate, kBlack, KeyCode_Calibrate, Label_Calibrate);
 
     // ---- Font attributes ----
     appendFontAttributes(Font_White_Medium, kWhite, 2);  // 8x12
@@ -418,6 +427,11 @@ void BuildObjectPool() {
     appendOutputString(Label_Wider, 60, 40, Font_White_Small, 1, "BREDER");
     appendOutputString(Label_Narrower, 60, 40, Font_White_Small, 1, "SMALLER");
     appendOutputString(Label_Auto, 60, 40, Font_White_Small, 1, "AUTO");
+    // "CALIBR" not "KALIBR": LanguagePlough.hpp's own LCD wizard strings
+    // already say "Breedte calibratie"/"Rotatie calibratie", so this matches
+    // what the operator reads on the cab display. 6 chars at 8x8 = 48 px,
+    // inside the 60 px key label box.
+    appendOutputString(Label_Calibrate, 60, 40, Font_White_Small, 1, "CALIBR");
 
     // ---- NumberVariables (initial values) ----
     appendNumberVariable(Var_Position, 0);
