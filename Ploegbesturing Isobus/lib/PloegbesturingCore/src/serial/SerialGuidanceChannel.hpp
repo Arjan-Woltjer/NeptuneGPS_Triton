@@ -58,13 +58,13 @@ private:
     GpsParser* activeParse; // parser that claimed the current sentence
 
     // Low-level parsing state
-    char         term[20];
-    byte         termNumber;
-    byte         termOffset;
-    byte         parity;
-    byte         checksum;
-    unsigned int sum;
-    bool         isChecksumTerm;
+    char         term[20] = {};
+    byte         termNumber = 0;
+    byte         termOffset = 0;
+    byte         parity = 0;
+    byte         checksum = 0;
+    unsigned int sum = 0;
+    bool         isChecksumTerm = false;
 
     // Route the current term to the active parser or find a new active parser.
     // Returns true when a valid sentence was just committed.

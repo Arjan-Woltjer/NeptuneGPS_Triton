@@ -27,7 +27,8 @@ extern "C" int swprintf(wchar_t *ws, size_t n, const wchar_t *format, ...)
 {
     char narrowFormat[64];
     size_t i = 0;
-    for (; format[i] != L'\0' && i < sizeof(narrowFormat) - 1; ++i)
+    // Bound first, then subscript -- the index is checked before it is used.
+    for (; i < sizeof(narrowFormat) - 1 && format[i] != L'\0'; ++i)
     {
         narrowFormat[i] = static_cast<char>(format[i]);
     }

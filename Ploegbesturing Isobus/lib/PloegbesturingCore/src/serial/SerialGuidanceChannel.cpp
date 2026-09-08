@@ -34,14 +34,8 @@ SerialGuidanceChannel::SerialGuidanceChannel(Stream* serialDebug, HardwareSerial
     parsers[1] = &trimbleParser;
     parsers[2] = &canSerialParser;
     activeParse = nullptr;
-
-    term[0] = '\0';
-    termNumber = 0;
-    termOffset = 0;
-    parity = 0;
-    checksum = 0;
-    sum = 0;
-    isChecksumTerm = false;
+    // term/termNumber/termOffset/parity/checksum/sum/isChecksumTerm carry
+    // default member initializers in the header instead of being assigned here.
 }
 
 bool SerialGuidanceChannel::Update() {

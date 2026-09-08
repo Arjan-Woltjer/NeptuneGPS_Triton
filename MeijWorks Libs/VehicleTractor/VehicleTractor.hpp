@@ -52,7 +52,7 @@ private:
 
 public:
     // Constructor
-    VehicleTractor(Stream* serialDebug);
+    explicit VehicleTractor(Stream* serialDebug);
 
     void Update(byte mode);
 
