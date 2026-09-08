@@ -1295,8 +1295,26 @@ conclusion from the board.
 - **Next experiment, and it is now well-posed:** declare the full Level 1
   required set -- 505, 506, 507, 508, 509, 510, 511, 515 -- in a single device
   element, and see whether `no compatible implements detected` clears. That is
-  the direct test of the explanation above. It is desk work; the retest needs a
-  tractor.
+  the direct test of the explanation above.
+
+  **Built 2026-09-08 evening, structure label TC05, awaiting a rig.** DDI 505
+  now declares `0x01`, and all eight DDIs sit in the Ploughbody function
+  element. 506 and 508-511 are Settable (TC writes them to us); 507 and 515 we
+  report, statically, because the plough runs no tramline logic. What to read
+  on the tractor:
+  - `Tramline setpoint (DDI 506):` -- any value, 0 included, means the terminal
+    completed the handshake. That is the headline result.
+  - `Guidance track (DDI 508-511):` -- new line. Populated track numbering
+    means the terminal speaks this part of the protocol even if 506 stays
+    silent, which is a separate and useful answer.
+  - The Tramline screen itself: does `no compatible implements detected` clear?
+  - Watch `SetValueAndAcknowledgeCommand (0x0A)` as well as `ValueCommand
+    (0x03)` -- with TC v4+ on both ends the values move to the acknowledged
+    PGN, and counting only 0x03 would read as a false negative.
+
+  Order of rigs: John Deere first (it is the one that gave us the explicit
+  error message, so it is the only one that can clearly confirm the fix), then
+  Ag Leader and Raven.
 - Note the honesty question this raises, which is now a real decision rather
   than a probe: declaring the full Level 1 set means claiming the implement
   calculates tramline tracks. A plough does not. Whether Triton should present

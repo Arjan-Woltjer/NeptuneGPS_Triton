@@ -321,6 +321,28 @@ void IsobusDebugMenu::printFullDump() {
         } else {
             serialDebug->println("(not connected)");
         }
+        // Guidance-track DDIs 508-511. Worth reading even when 506 stays
+        // silent: a terminal that populates track numbering speaks this part
+        // of the protocol whether or not it completes the tramline handshake,
+        // which is a different and useful answer.
+        serialDebug->print("  Guidance track (DDI 508-511): ");
+        if (tcInterface->HasGuidanceTrackInfo()) {
+            serialDebug->print("abLine=");
+            serialDebug->print(tcInterface->GetAbLineId());
+            serialDebug->print(" track=");
+            serialDebug->print(tcInterface->GetActualTrackNumber());
+            serialDebug->print(" right=");
+            serialDebug->print(tcInterface->GetTrackNumberRight());
+            serialDebug->print(" left=");
+            serialDebug->print(tcInterface->GetTrackNumberLeft());
+            serialDebug->print("  (");
+            serialDebug->print(tcInterface->GetGuidanceTrackAgeMs());
+            serialDebug->println(" ms ago)");
+        } else if (tcInterface->IsConnected()) {
+            serialDebug->println("(none yet)");
+        } else {
+            serialDebug->println("(not connected)");
+        }
     }
 }
 

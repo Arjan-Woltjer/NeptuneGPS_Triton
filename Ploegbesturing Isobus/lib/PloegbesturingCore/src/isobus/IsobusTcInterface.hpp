@@ -121,6 +121,20 @@ public:
     // before treating silence as final.
     inline bool          HasTramlineSetpoint() const     { return tramlineSetpointSeen; }
     inline int           GetTramlineSetpointLevel() const { return tramlineSetpointLevel; }
+
+    // Guidance-track information the TC pushes over DDIs 508-511, latched for
+    // the debug menu. `...Seen` distinguishes "never arrived" from "arrived
+    // as 0", which is the whole point of the exercise: a terminal that
+    // populates track numbering tells us it speaks this part of the protocol
+    // even if it declines the tramline handshake itself.
+    inline bool          HasGuidanceTrackInfo() const { return guidanceTrackSeen; }
+    inline std::int32_t  GetAbLineId() const          { return abLineId; }
+    inline std::int32_t  GetActualTrackNumber() const { return actualTrackNumber; }
+    inline std::int32_t  GetTrackNumberRight() const  { return trackNumberRight; }
+    inline std::int32_t  GetTrackNumberLeft() const   { return trackNumberLeft; }
+    inline unsigned long GetGuidanceTrackAgeMs() const {
+        return guidanceTrackSeen ? (millis() - lastGuidanceTrackMs) : 0;
+    }
     inline unsigned long GetTramlineSetpointMs() const    { return lastTramlineSetpointMs; }
 
     // The bound TC partner's own address and validity -- same rationale as
@@ -204,6 +218,23 @@ private:
     // result that arrived once is the finding, even if nothing follows it.
     bool            tramlineSetpointSeen   = false;
     int             tramlineSetpointLevel  = -1;  // -1 = nothing received yet
+
+    // DDIs 508-511. Signed: track numbers either side of the reference line
+    // are negative on one side, and the spec's own "not available" encodings
+    // are large sentinels rather than zero, so zero is a real value here.
+    bool            guidanceTrackSeen  = false;
+    std::int32_t    abLineId           = 0;
+    std::int32_t    actualTrackNumber  = 0;
+    std::int32_t    trackNumberRight   = 0;
+    std::int32_t    trackNumberLeft    = 0;
+    unsigned long   lastGuidanceTrackMs = 0;
+
+    // DDIs 507 and 515, reported BY us. Static for now: the plough performs
+    // no tramline control, so it reports sequence 0 and state 0 (inactive).
+    // Named constants rather than literals at the call site so that the day
+    // something does drive them, there is one obvious place to look.
+    static constexpr std::int32_t kReportedTramlineSequence = 0;
+    static constexpr std::int32_t kReportedTramlineState    = 0;
     unsigned long   lastTramlineSetpointMs = 0;
 
     // Reconnect watchdog (GitHub issue #18). This matters more here than on

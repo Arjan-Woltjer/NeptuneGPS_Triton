@@ -46,8 +46,16 @@ constexpr std::uint16_t kObjOffsetY      = 4;
 constexpr std::uint16_t kObjFunction     = 5;
 constexpr std::uint16_t kObjDeviation    = 6;
 constexpr std::uint16_t kObjQuality      = 7;
-constexpr std::uint16_t kObjTramlineLevel         = 8;  // DDI 505, probe -- see buildDdop()
-constexpr std::uint16_t kObjTramlineSetpointLevel = 9;  // DDI 506, probe -- see buildDdop()
+// The AEF Tramline Control Level 1 required set, all eight DDIs, in one
+// device element -- see BuildDdop(). Ordered as the spec lists them.
+constexpr std::uint16_t kObjTramlineLevel         = 8;   // DDI 505
+constexpr std::uint16_t kObjTramlineSetpointLevel = 9;   // DDI 506
+constexpr std::uint16_t kObjTramlineSequence      = 10;  // DDI 507
+constexpr std::uint16_t kObjAbLineId              = 11;  // DDI 508
+constexpr std::uint16_t kObjActualTrack           = 12;  // DDI 509
+constexpr std::uint16_t kObjTrackRight            = 13;  // DDI 510
+constexpr std::uint16_t kObjTrackLeft             = 14;  // DDI 511
+constexpr std::uint16_t kObjTramlineState         = 15;  // DDI 515
 
 // DDI 505 value: bitfield of Tramline Control Levels we support.
 //   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
@@ -112,7 +120,20 @@ constexpr std::uint16_t kObjTramlineSetpointLevel = 9;  // DDI 506, probe -- see
 // itself as a tramline implement at all is a product decision that has not
 // been made -- the probes established that a terminal *would* talk to us, not
 // that we should ask it to.
-constexpr std::int32_t kTramlineControlLevelsSupported = 0;
+// Bit 0 set = "Level 1 supported". Now declared for real rather than as a
+// probe, because the full required set below backs it up.
+//
+// Be clear about what this claims. Declaring Level 1 tells a Task Controller
+// that this implement calculates tramline tracks. A plough does not, and
+// nothing behind these DDIs computes anything yet -- 507 and 515 report
+// static "inactive" values. This is deliberate and the user's call: the point
+// is to find out whether a terminal will complete the handshake at all once
+// the DDOP is well-formed, which session 8 proved it will not do with a
+// partial set. If the answer is yes on John Deere, Ag Leader or Raven, then
+// whether Triton should present itself as a tramline implement in shipped
+// firmware is a product decision to take separately -- do not let this
+// constant reach a customer build unexamined.
+constexpr std::int32_t kTramlineControlLevelsSupported = 1;
 
 // TODO: measure against the actual plough frame before trusting DDI 513 --
 // see Triton_TC_Client_Design.md sec 4.3 ("the offsets are part of the
@@ -152,7 +173,7 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC03",  // Structure label -- bumped from TC01 for the
+                      "TC05",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
@@ -163,9 +184,12 @@ void IsobusTcInterface::buildDdop() {
                                // whose DDI 505 declared Level 1, and any
                                // terminal that took part still caches it under
                                // that label. Reverting DDI 505 to 0 makes this
-                               // pool identical to TC03's again, so TC03 is the
-                               // honest label to carry; the next real tree
-                               // change goes to TC05.
+                               // pool identical to TC03's again, so TC03 was
+                               // the honest label to carry until the next real
+                               // tree change -- which is this one: TC05 adds
+                               // DDIs 507, 508, 509, 510, 511 and 515 to
+                               // complete the Level 1 required set (six new
+                               // objects), and sets DDI 505 to 0x01.
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by
@@ -236,12 +260,31 @@ void IsobusTcInterface::buildDdop() {
     // explanation for never having seen a single Value Command in the
     // project's history.
     //
-    // This declares just the handshake pair, as a probe rather than a
-    // build-out. Per sec 2.2.2/2.2.3 the implement declares 505 (supported
-    // levels; "shall not change during runtime", so a DPT not a DPD) and the
-    // TC replies with 506 naming the level to use, or 0 for "no common
-    // level". Both "shall be listed in the DDOP only once", and 506 "shall be
-    // placed in the same device element as DDI 505".
+    // Session 8 (2026-09-08, John Deere) settled that declaring the handshake
+    // pair alone is not enough: with DDI 505 = 0x01 and nothing else, the
+    // terminal still reported "no compatible implements detected". So this
+    // now declares the **complete Level 1 required set** -- 505, 506, 507,
+    // 508, 509, 510, 511, 515 -- all in one device element, which is what the
+    // spec asks for and what that message says we were missing.
+    //
+    // Per sec 2.2.2/2.2.3 the implement declares 505 (supported levels;
+    // "shall not change during runtime", so a DPT not a DPD) and the TC
+    // replies with 506 naming the level to use, or 0 for "no common level".
+    // Both "shall be listed in the DDOP only once", and 506 "shall be placed
+    // in the same device element as DDI 505".
+    //
+    // Direction matters and is not uniform across the set:
+    //   505 implement -> TC   what we support        (DPT, static)
+    //   506 TC -> implement   the level to use       (Settable)
+    //   507 implement -> TC   tramline sequence no.  (we report)
+    //   508 TC -> implement   unique A-B line ID     (Settable)
+    //   509 TC -> implement   actual track number    (Settable)
+    //   510 TC -> implement   track number right     (Settable)
+    //   511 TC -> implement   track number left      (Settable)
+    //   515 implement -> TC   tramline control state (we report)
+    // 508-511 are the guidance-track information the TC contributes; at
+    // Levels 1 and 2 the implement is what calculates, which is why only
+    // those four plus 506 are Settable.
     //
     // Placement matches the spec's own example 1b (sec 3.5.2), which groups
     // the tramline DDIs in a dedicated function element -- here alongside
@@ -254,6 +297,36 @@ void IsobusTcInterface::buildDdop() {
                                    static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTramlineSetpointLevel);
+    // Reported by us, so not Settable. Nothing computes these yet -- see
+    // kTramlineControlLevelsSupported: they answer with static "inactive"
+    // values, which is honest for a plough and still satisfies the
+    // completeness the terminal is checking for.
+    ddop->add_device_process_data("Tramline Sequence Number",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber),
+                                   NULL_OBJECT_ID,
+                                   0, kTriggers, kObjTramlineSequence);
+    ddop->add_device_process_data("Tramline Control State",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState),
+                                   NULL_OBJECT_ID,
+                                   0, kTriggers, kObjTramlineState);
+    // Guidance-track information the TC pushes to us. Latched for the debug
+    // menu; nothing steers off them.
+    ddop->add_device_process_data("Unique A-B Guidance Reference Line ID",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjAbLineId);
+    ddop->add_device_process_data("Actual Track Number",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualTrackNumber),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjActualTrack);
+    ddop->add_device_process_data("Track Number to the Right",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheRight),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjTrackRight);
+    ddop->add_device_process_data("Track Number to the Left",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheLeft),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjTrackLeft);
 
     // Same attachment requirement as the Connector's Offset X/Y above.
     auto functionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjFunction));
@@ -261,6 +334,12 @@ void IsobusTcInterface::buildDdop() {
     functionElement->add_reference_to_child_object(kObjQuality);
     functionElement->add_reference_to_child_object(kObjTramlineLevel);
     functionElement->add_reference_to_child_object(kObjTramlineSetpointLevel);
+    functionElement->add_reference_to_child_object(kObjTramlineSequence);
+    functionElement->add_reference_to_child_object(kObjTramlineState);
+    functionElement->add_reference_to_child_object(kObjAbLineId);
+    functionElement->add_reference_to_child_object(kObjActualTrack);
+    functionElement->add_reference_to_child_object(kObjTrackRight);
+    functionElement->add_reference_to_child_object(kObjTrackLeft);
 }
 
 // ------------------------------------------------------------------
@@ -417,6 +496,30 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastTramlineSetpointMs  = millis();
             break;
 
+        case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID):  // 508
+            self->abLineId            = processVariableValue;
+            self->guidanceTrackSeen   = true;
+            self->lastGuidanceTrackMs = millis();
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualTrackNumber):  // 509
+            self->actualTrackNumber   = processVariableValue;
+            self->guidanceTrackSeen   = true;
+            self->lastGuidanceTrackMs = millis();
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheRight):  // 510
+            self->trackNumberRight    = processVariableValue;
+            self->guidanceTrackSeen   = true;
+            self->lastGuidanceTrackMs = millis();
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheLeft):  // 511
+            self->trackNumberLeft     = processVariableValue;
+            self->guidanceTrackSeen   = true;
+            self->lastGuidanceTrackMs = millis();
+            break;
+
         default:
             break;
     }
@@ -427,10 +530,14 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
 }
 
 // ------------------------------------------------------------------
-// Value request callback -- the TC reads from us here. Both DDIs we
-// declare are Settable (TC -> us), so a request here is the TC re-syncing
-// its own idea of what it last commanded (e.g. after a reconnect), not us
-// reporting fresh data -- echo back the last received value.
+// Value request callback -- the TC reads from us here.
+//
+// Two kinds of DDI arrive here now. For the Settable ones (506, 508-511,
+// 513, 514) a request is the TC re-syncing its own idea of what it last
+// commanded, e.g. after a reconnect, so echo back the last received value.
+// For 507 and 515 we are the source: those are the two the Level 1 set
+// expects the *implement* to answer, and a TC may well read them to decide
+// whether we are a working tramline implement.
 // ------------------------------------------------------------------
 bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
                                        std::uint16_t DDI,
@@ -451,6 +558,38 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::GNSSQuality):
             processVariableValue = self->tcGnssQuality;
+            break;
+
+        // Reported by us. Static -- the plough runs no tramline logic; see
+        // kTramlineControlLevelsSupported in the .cpp for what that means for
+        // the Level 1 claim.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber):  // 507
+            processVariableValue = kReportedTramlineSequence;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState):  // 515
+            processVariableValue = kReportedTramlineState;
+            break;
+
+        // Echoes of what the TC last wrote to us.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel):  // 506
+            processVariableValue = self->tramlineSetpointSeen ? self->tramlineSetpointLevel : 0;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID):
+            processVariableValue = self->abLineId;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualTrackNumber):
+            processVariableValue = self->actualTrackNumber;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheRight):
+            processVariableValue = self->trackNumberRight;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheLeft):
+            processVariableValue = self->trackNumberLeft;
             break;
 
         default:
