@@ -138,7 +138,7 @@ public:
     // TechnicalDataMessageCommands::ParameterVersion), not something we
     // configure. Added 2026-08-10 to settle session 3's "does this TC
     // implement TC-GEO at all" theory directly instead of inferring it from
-    // DDI silence -- see Documentation/ISOBUS_TC_Manufacturer_Comparison.md
+    // DDI silence -- see NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md
     // (TC-GEO is a separately licensed/gated feature on most brands) and
     // Documentation/TCGEO_Field_Test_Log.md. Meaningless before IsConnected()
     // returns true; returns false (not "unknown") until then.

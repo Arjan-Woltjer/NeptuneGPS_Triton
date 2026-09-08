@@ -74,7 +74,7 @@ All three: real, wired-up code paths (traced end-to-end from `main.cpp`'s `setup
   **Next step:** a proper CAN bus sniff with a CAN logger, output in MF4 (ASAM MDF) format, while jogging side-to-side a known amount to see which PGN's payload tracks the Trimble terminal's own displayed deviation -- rather than continuing to guess PGN numbers live.
 
 **TC-GEO licensing angle (this rig is Bos):** separate research done the same
-morning (`Documentation/ISOBUS_TC_Manufacturer_Comparison.md`) into how each
+morning (`NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md`) into how each
 ISOBUS terminal brand gates TC-GEO gives the DDI 513/514 theory above a
 concrete, non-code explanation. Trimble sells the base "ISOBUS Task
 Controller" license (TC-BAS + TC-SC) as one SKU and TC-GEO as a *separate,
@@ -146,7 +146,7 @@ the sending side.
 
 **Correction, same day, later:** that byte is *not* actually opaque -- it's
 just undecoded by AgIsoStack's own sender. Reading ISO/FDIS 11783-6:2004(E)
-§C.2.5 directly (see `Documentation/EndOfObjectPool_ErrorBitmask_Research.md`
+§C.2.5 directly (see `NeptuneGPS Documentation/ISOBUS/research/EndOfObjectPool_ErrorBitmask_Research.md`
 for the full byte tables and sourcing) shows the End of Object Pool Response
 carries two separate error-code bytes: a coarse pass/fail byte, and a second
 "Object Pool Error Codes" byte with a standardized bit layout (bit 0 = method/
@@ -184,21 +184,21 @@ Y/N`. Built clean on `teensy41_isobus`/`teensy41_serial`; committed
 This settles "does the connected TC implement TC-GEO at all" directly from
 its own handshake instead of inferring it from DDI silence -- see the
 Session 3 TC-GEO subsection above and `Documentation/
-ISOBUS_TC_Manufacturer_Comparison.md` for the licensing research this was
+NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md` for the licensing research this was
 prompted by.
 
 ## Session 4 -- 2026-08-10 (afternoon, van Mastwijk) -- PLANNED, not yet run
 
 **Rig:** second visit to the same site as Session 1 (Ag Leader InCommand
 1200, CNH tractor -- Case IH/New Holland/Steyr TBC; all three share the same
-PLM/AFS backend per `ISOBUS_TC_Manufacturer_Comparison.md`, so behavior
+PLM/AFS backend per `NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md`, so behavior
 should be consistent regardless of badge).
 
 **Why this session matters:** the InCommand 1200 is the one display in the
 Ag Leader lineup that ships with UT *and* TC standard, TC-GEO included, no
 unlock purchase required (unlike the InCommand 800, which needs a paid
 unlock for both, or Compass, which never gets TC at any price) -- see
-`ISOBUS_TC_Manufacturer_Comparison.md` sec 3. This makes van Mastwijk the
+`NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md` sec 3. This makes van Mastwijk the
 contrast case to Session 3/Bos: same DDOP, same Triton firmware (`isobus-tc-
 client` at commit 086d5d6 or later), a brand where the TC-GEO commercial
 gate is largely absent by default. If DDI 513/514 delivery works anywhere,
@@ -221,7 +221,7 @@ this is the rig where it should.
       rejected it outright -- a clean accept here would support the
       "Fendt-UT-specific" theory from the reference-parser follow-up above.)
       If it's *also* rejected with the same "Faulty Object 0 ... bitmask 9",
-      per `Documentation/EndOfObjectPool_ErrorBitmask_Research.md` that's a
+      per `NeptuneGPS Documentation/ISOBUS/research/EndOfObjectPool_ErrorBitmask_Research.md` that's a
       "method/attribute not supported" complaint about the WorkingSet object
       specifically -- try `VTObjectPool.cpp`'s new `VT_WORKINGSET_BISECT_VARIANT`
       switch (0=production, 1=selectable=false, 2=no language codes,
@@ -229,7 +229,7 @@ this is the rig where it should.
       set), one variant per flash, watching `IsobusDebugMenu`'s VT state line
       to see if any variant gets past `WaitForEndOfObjectPoolResponse`. The
       AgIsoStack vendor patch documented in `Documentation/
-      AgIsoStackVendorPatches.md` (#2) will print the decoded error bit
+      NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md` (#2) will print the decoded error bit
       directly in the serial log if it still fails, instead of a raw number.
 
 **Results:** Two terminals present on-site: an Ag Leader display and CNH's own
@@ -239,7 +239,7 @@ our partner filter matches on function code alone and can't otherwise
 distinguish which VT it binds to when more than one is live). CNH's own
 stack unlocks TC-BAS+TC-SC+TC-GEO together via one dealer activation code
 (different licensing shape than Ag Leader's, see
-`ISOBUS_TC_Manufacturer_Comparison.md` sec 3) -- so this ended up testing a
+`NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md` sec 3) -- so this ended up testing a
 third distinct terminal/vendor combination rather than the originally-planned
 Ag-Leader-specific contrast case. That comparison (Ag Leader vs. Bos) is
 still open for a future session.
@@ -447,7 +447,7 @@ cause -- proposed, not yet implemented or tested. Filed as
   line's `tc=`/`drp=`/`tcq=` fields stayed flat at `tc=N drp=0mm tcq=0` for
   the entire duration of both captures (through the VT fault and for 120+s
   afterward). Notable because the InCommand 1200 is the terminal
-  `ISOBUS_TC_Manufacturer_Comparison.md` identifies as shipping with TC-GEO
+  `NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md` identifies as shipping with TC-GEO
   standard, no unlock required -- Session 4's original reason for wanting to
   test against it. Not clear yet whether this is downstream of the VT
   connection never staying up long enough, or a separate, unexamined gap in
@@ -483,7 +483,7 @@ control-function table, a known, still-open upstream bug:
 recently as 2026-07-09).
 
 Full chain, and why it explains #18 (no auto-reconnect) too, is written up
-in `Documentation/AgIsoStackVendorPatches.md` (patch #3) rather than
+in `NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md` (patch #3) rather than
 duplicated here. Short version: `IsobusVtInterface::Begin()` binds our VT
 partner via AgIsoStack's "adopt an already-active control function" path,
 because the InCommand 1200 -- the tractor's own screen -- is already on the
@@ -516,7 +516,7 @@ forever with nothing to time out or retry -- matching #19's "zero state
 change, zero capability query, for 120+ seconds" independently of whatever
 happened to the VT. The "downstream of the VT" theory #19 raised was likely
 a red herring; more probably a third, separately-evicted partner hitting
-the same bug. See `AgIsoStackVendorPatches.md` patch #3 for the full chain.
+the same bug. See `NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md` patch #3 for the full chain.
 
 **Fixed** (not yet field-verified): vendor patch propagating the missing
 liveness flag, plus bumping `IsobusVtInterface::Begin()`'s log level
@@ -693,7 +693,7 @@ bus, not because there are two of them.
 ### Phase 4 -- the fix, written and verified on the tractor
 
 With the mechanism understood, applied as **vendor patch #4** (see
-`AgIsoStackVendorPatches.md`): exempt `Partnered` control functions from the
+`NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md`): exempt `Partnered` control functions from the
 roll-call prune, alongside the `Internal` exemption already there.
 
 ```cpp
@@ -937,7 +937,7 @@ and verified.
 
 **Code changed this session:** AgIsoStack **vendor patch #4** (Partnered CFs
 exempt from the roll-call prune) -- documented in
-`AgIsoStackVendorPatches.md`, applied to the gitignored
+`NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md`, applied to the gitignored
 `.pio/libdeps/teensy41_isobus` tree per the existing convention, so it does
 not appear in the repo diff. No Triton-side source changed.
 
@@ -1162,7 +1162,7 @@ implement this?" into "our DDOP is incomplete", and it gives an iterable signal.
 
 ### Why our DDOP is rejected -- answered by our own research doc
 
-`TramlineControl_TC_Support_Research.md` sec 6 already specifies the Level 1
+`NeptuneGPS Documentation/ISOBUS/research/TramlineControl_TC_Support_Research.md` sec 6 already specifies the Level 1
 **required** set: DDI **505** (as a DPT, bit 0 set), **506 in the same device
 element**, "and the rest of the Level 1 required set: **515, 507, 508, 509,
 510, 511**".
@@ -1492,7 +1492,7 @@ raw TP.DT frame (SA `0xAA`, DA `0xAC`) -- which is why its decoder keys on
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
 on 2026-08-10 (Bos content folded into Session 3 above, van Mastwijk content
 became this Session 4 placeholder) -- that file no longer exists separately.
-`ISOBUS_TC_Manufacturer_Comparison.md` (TC-GEO-per-brand licensing research)
-and `EndOfObjectPool_ErrorBitmask_Research.md` (decodes the Session 3 VT
+`NeptuneGPS Documentation/ISOBUS/research/ISOBUS_TC_Manufacturer_Comparison.md` (TC-GEO-per-brand licensing research)
+and `NeptuneGPS Documentation/ISOBUS/research/EndOfObjectPool_ErrorBitmask_Research.md` (decodes the Session 3 VT
 rejection's "bitmask value 9" against the actual ISO 11783-6 text) remain
 separate, standalone reference docs.*

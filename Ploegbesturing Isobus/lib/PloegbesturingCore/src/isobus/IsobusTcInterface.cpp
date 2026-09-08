@@ -98,7 +98,7 @@ constexpr std::uint16_t kObjTramlineSetpointLevel = 9;  // DDI 506, probe -- see
 // after a reflash under label TC04, with it declared as 0x01. Level 1 is not
 // sufficient on its own.
 //
-// The reason is in Documentation/TramlineControl_TC_Support_Research.md sec 6:
+// The reason is in NeptuneGPS Documentation/ISOBUS/research/TramlineControl_TC_Support_Research.md sec 6:
 // Level 1's *required* DDI set is 505, 506, 507, 508, 509, 510, 511 and 515,
 // all in one device element. We declare two of those eight, so a terminal
 // declining to see a compatible implement is the correct behaviour, not a

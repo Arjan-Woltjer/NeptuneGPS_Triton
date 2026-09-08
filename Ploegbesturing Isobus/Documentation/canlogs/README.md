@@ -41,13 +41,27 @@ and #21 needed.
 
 ## Reading them
 
-`../../tools/mf4_to_pcap.py` converts to a SocketCAN pcap for Wireshark's ISO
-11783 dissectors, and `--summary` prints address claims (with decoded NAMEs),
-transport-protocol sessions and a PGN histogram:
+`mf4_to_pcap.py` -- now in the Documentation repo at
+`NeptuneGPS Documentation/ISOBUS/tools/` -- converts to a SocketCAN pcap for
+Wireshark's ISO 11783 dissectors. `--summary` prints address claims (with
+decoded NAMEs), transport-protocol sessions and a PGN histogram; `--inventory`
+prints who is on the bus, what each control function sends, and at what rate:
 
 ```
-python tools/mf4_to_pcap.py <LOG.MF4> -o out.pcap --summary
+python mf4_to_pcap.py <LOG.MF4> -o out.pcap --summary
+python mf4_to_pcap.py <LOG.MF4> --inventory            # no pcap needed
 ```
+
+To decode in Wireshark the ISOBUS dissector must be selected **explicitly** --
+there is no CAN heuristic for it on Wireshark 4.6.8, so frames stay plain
+"CAN". Note the **single** `=`:
+
+```
+tshark -r out.pcap -d can.subdissector=isobus -O isobus
+```
+
+These two captures are analysed in
+`NeptuneGPS Documentation/ISOBUS/research/john-deere-bus-inventory-2026-09-08.md`.
 
 It reads unfinalized MF4s straight off the card -- no `mdf2finalized` step.
 Needs `mdf_iter` (or `asammdf`); on this machine that is the Python 3.13 at

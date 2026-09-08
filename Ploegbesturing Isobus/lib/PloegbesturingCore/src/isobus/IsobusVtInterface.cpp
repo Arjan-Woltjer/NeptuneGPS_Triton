@@ -66,7 +66,7 @@ void IsobusVtInterface::Begin() {
     // are invisible on the serial console -- confirmed by re-reading Session
     // 5's captured logs, which contain zero [NM] lines despite a control-
     // function eviction being the leading theory for GitHub issue #17's VT
-    // Status Timeout (see Documentation/AgIsoStackVendorPatches.md patch #3
+    // Status Timeout (see NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md patch #3
     // and HardwareTestNotes.md Session 5). Info is the cheapest way to see
     // these events directly instead of inferring them.
     CANStackLogger::set_log_level(CANStackLogger::LoggingLevel::Info);
@@ -242,7 +242,7 @@ void IsobusVtInterface::updateVtVariables() {
 
 // ----------------------------------------------------------------
 // State-machine step name/index -- see the header comment and
-// Documentation/AgIsoStackVendorPatches.md. Order matches
+// NeptuneGPS Documentation/ISOBUS/research/AgIsoStackVendorPatches.md. Order matches
 // isobus::VirtualTerminalClient::StateMachineState exactly (0-based);
 // keep in sync if that enum changes.
 // ----------------------------------------------------------------
