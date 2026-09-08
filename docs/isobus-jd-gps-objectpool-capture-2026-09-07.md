@@ -139,8 +139,22 @@ Checklist for tomorrow:
       once per VT connection, at join time.
 - [ ] Pull the `.MF4` files (plain MF4; `.MFC`/`.MFE` need CSS's
       `mdf2finalized` first), run `tools/mf4_to_pcap.py --summary`, open the
-      pcap in Wireshark. If frames show as plain "CAN", enable the ISOBUS
-      heuristic under Analyze > Enabled Protocols or use Decode As.
+      pcap in Wireshark. Frames **will** show as plain "CAN" until the ISOBUS
+      dissector is selected explicitly: Wireshark 4.6.8 ships `packet-isobus.c`
+      but registers no CAN *heuristic* for it, so there is nothing to enable
+      under Analyze > Enabled Protocols. Use Decode As (CAN next-level ->
+      ISOBUS), or on the command line:
+
+      ```
+      tshark -r jd.pcap -d can.subdissector=isobus -O isobus
+      ```
+
+      Note the **single** `=` after the table name -- `==` fails with a
+      misleading "Unknown protocol" error. Verified on 2026-09-08 against the
+      session 24/25 captures; the dissector names PGNs correctly
+      ("Secondary or Front Hitch Status", "Agricultural Guidance Machine
+      Info", ...), and `tools/mf4_to_pcap.py`'s PGN table is generated from
+      exactly this output.
 - [ ] Note the JD unit's claimed address and NAME for later use in the
       firmware's own detection (Option A, step 1).
 

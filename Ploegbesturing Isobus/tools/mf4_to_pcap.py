@@ -24,10 +24,13 @@ must first be converted with CSS Electronics' free "mdf2finalized" tool.
 Dependencies: `pip install mdf_iter` (recommended) or `pip install asammdf`.
 The pcap writer itself has no dependencies.
 
-In Wireshark, if frames show up as plain "CAN" rather than "ISOBUS":
-Analyze > Enabled Protocols > make sure "ISOBUS" (heuristic "isobus_can") is
-on; or right-click a frame > Decode As... > CAN next-level > ISOBUS. Filter on
-`isobus.vt` for Virtual Terminal traffic.
+Frames show up as plain "CAN" rather than "ISOBUS" until the dissector is
+selected explicitly. Wireshark 4.6.8 ships packet-isobus.c but registers no
+CAN *heuristic* for it, so there is nothing to switch on under Analyze >
+Enabled Protocols: right-click a frame > Decode As... > CAN next-level >
+ISOBUS, or on the command line use `-d can.subdissector=isobus` -- a SINGLE
+"=" after the table name, as "==" fails with a misleading "Unknown protocol"
+error. Filter on `isobus.vt` for Virtual Terminal traffic.
 """
 
 from __future__ import annotations
@@ -333,6 +336,93 @@ class Name:
         )
 
 
+# ---------------------------------------------------------------------------
+# PGN names
+# ---------------------------------------------------------------------------
+
+# Sourced from Wireshark's own ISOBUS dissector (packet-isobus.c) by running
+# it over the card session 24 and 25 captures and collecting every name it
+# produced -- not hand-written, and not guessed. Regenerate with:
+#
+#   tshark -r LOG.pcap -d can.subdissector=isobus -O isobus #     | grep -E "^    PGN: " | sort -u
+#
+# NOTE the decode-as syntax: a SINGLE "=" after the table name. Wireshark
+# 4.6.8 ships the ISOBUS dissector but registers no CAN *heuristic* for it, so
+# frames show as plain "CAN" until it is selected explicitly. Any advice to
+# "enable the ISOBUS heuristic under Analyze > Enabled Protocols" does not
+# apply to this build -- there is no such heuristic to enable.
+#
+# Hand-guessing this table is a trap worth recording: an earlier pass inferred
+# 0xFE00-0xFE0F as "auxiliary valve N measured position" from the neighbouring
+# 0xFE10-0xFE1F block, and the dissector shows 0xFE0A is actually "Tractor
+# control command tractor response". The ranges are not symmetrical.
+
+PGN_NAMES = {
+    0x0ab00: "File Server to Client (ECU) message",
+    0x0ac00: "Agricultural Guidance Machine Info",
+    0x0b100: "Proprietarily Configurable Message #1",
+    0x0cb00: "Process Data Message",
+    0x0d000: "Background lighting level command",
+    0x0d700: "Binary Data Transfer",
+    0x0d800: "Memory Access Response",
+    0x0d900: "Memory Access Request",
+    0x0e600: "Virtual Terminal-to-Node",
+    0x0e700: "Node-to-Virtual Terminal",
+    0x0e800: "Acknowledgment Message",
+    0x0ea00: "Request",
+    0x0eb00: "Transport Protocol - Data Transfer",
+    0x0ec00: "Transport Protocol - Connection Mgmt",
+    0x0ee00: "Address Claimed",
+    0x0ef00: "Proprietary A",
+    0x0f004: "Electronic Engine Controller 1",
+    0x0f022: "Machine Selected Speed",
+    0x0fab3: "AUTOSAR Time Synchronization",
+    0x0fd02: "All implements stop operations switch state",
+    0x0fd07: "Direct Lamp Control Command 1",
+    0x0fd32: "ECU diagnostic protocol",
+    0x0fdcc: "Operators External Light Controls Message",
+    0x0fe0a: "Tractor control command tractor response",
+    0x0fe0d: "Working Set Master ",
+    0x0fe0f: "Language command",
+    0x0fe11: "Auxiliary valve 1 estimated flow",
+    0x0fe12: "Auxiliary valve 2 estimated flow",
+    0x0fe13: "Auxiliary valve 3 estimated flow",
+    0x0fe14: "Auxiliary valve 4 estimated flow",
+    0x0fe1a: "Auxiliary valve 10 estimated flow",
+    0x0fe1e: "Auxiliary valve 14 estimated flow",
+    0x0fe1f: "Auxiliary valve 15 estimated flow",
+    0x0fe41: "Lighting command",
+    0x0fe43: "Primary or Rear Power Take off Output Shaft",
+    0x0fe44: "Secondary or Front Power Take off Output Shaft",
+    0x0fe45: "Primary or Rear Hitch Status",
+    0x0fe46: "Secondary or Front Hitch Status",
+    0x0fe48: "Wheel-based Speed and Distance",
+    0x0fe49: "Ground-based Speed and Distance",
+    0x0fe56: "Aftertreatment 1 Diesel Exhaust Fluid Tank 1 Information 1",
+    0x0fe68: "Vehicle Fluids",
+    0x0feae: "Air Supply Pressure",
+    0x0feca: "Active Diagnostic Trouble Codes",
+    0x0fee5: "Engine Hours, Revolutions",
+    0x0fee6: "Time/Date",
+    0x0fee8: "Vehicle Direction/Speed",
+    0x0fee9: "Fuel Consumption (Liquid) 1",
+    0x0feee: "Engine Temperature 1",
+    0x0feef: "Engine Fluid Level/Pressure 1",
+    0x0fef2: "Fuel Economy (Liquid)",
+    0x0fef3: "Vehicle Position 1",
+    0x0fef7: "Vehicle Electrical Power 1",
+    0x0fef8: "Transmission Fluids 1",
+    0x0fefc: "Dash Display 1",
+    0x1ef00: "Proprietary A2",
+    0x1f010: "System Time",
+}
+
+
+def pgn_name(pgn: int) -> str:
+    """Return a human-readable name for a PGN, or "unknown"."""
+    return PGN_NAMES.get(pgn, "unknown")
+
+
 @dataclass
 class Session:
     protocol: str            # "TP", "TP-BAM", "ETP"
@@ -354,6 +444,7 @@ class Summary:
     last_ts: Optional[float] = None
     claims: dict = field(default_factory=dict)       # (channel, sa) -> (ts, Name)
     pgn_counts: dict = field(default_factory=dict)   # pgn -> count
+    device_pgns: dict = field(default_factory=dict)  # (channel, sa) -> {pgn: count}
     sessions: list = field(default_factory=list)
     open_sessions: dict = field(default_factory=dict)  # (channel, sa, da) -> Session
 
@@ -367,6 +458,8 @@ class Summary:
 
         _, pgn, da, sa = decode_pgn(frame.can_id)
         self.pgn_counts[pgn] = self.pgn_counts.get(pgn, 0) + 1
+        per_device = self.device_pgns.setdefault((frame.channel, sa), {})
+        per_device[pgn] = per_device.get(pgn, 0) + 1
         d = frame.data
 
         if pgn == PGN_ADDRESS_CLAIM and len(d) >= 8:
@@ -442,42 +535,84 @@ class Summary:
         for pgn, count in sorted(self.pgn_counts.items(), key=lambda kv: -kv[1])[:15]:
             print(f"  0x{pgn:05X} ({pgn:6d}): {count}", file=out)
 
+    def print_inventory(self, out=sys.stdout) -> None:
+        """Per-device message inventory: who is on the bus, and what each sends.
+
+        A different question from print(): not "what happened in this log" but
+        "what does this machine offer us". Rates are the useful part -- a 10 Hz
+        tractor-ECU broadcast is a live signal worth consuming, a 0.1 Hz one is
+        housekeeping.
+        """
+        duration = 0.0
+        if self.first_ts is not None and self.last_ts is not None:
+            duration = self.last_ts - self.first_ts
+        span = duration if duration > 0 else 1.0
+
+        print(f"\ndevice inventory  ({duration:.0f} s, {self.frames} frames)", file=out)
+        print("PGN names come from Wireshark's ISOBUS dissector -- see PGN_NAMES.", file=out)
+
+        for (channel, sa) in sorted(self.device_pgns):
+            counts = self.device_pgns[(channel, sa)]
+            claim = self.claims.get((channel, sa))
+            identity = claim[1].describe() if claim else "no address claim seen in this log"
+            print(f"\n  SA 0x{sa:02X} ({sa:3d})  ch{channel}  {sum(counts.values())} frames", file=out)
+            print(f"    {identity}", file=out)
+            for pgn, count in sorted(counts.items(), key=lambda kv: -kv[1]):
+                print(f"      0x{pgn:05X} {pgn:6d}  {count:7d}  {count / span:6.1f}/s"
+                      f"  {pgn_name(pgn)}", file=out)
+
 
 # ---------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------
 
 
-def convert(inputs: Iterable[str], output: str, backend: str, channel: Optional[int],
+def convert(inputs: Iterable[str], output: Optional[str], backend: str, channel: Optional[int],
             summary: Optional[Summary]) -> int:
-    with open(output, "wb") as handle:
-        writer = PcapWriter(handle)
+    handle = open(output, "wb") if output else None
+    try:
+        writer = PcapWriter(handle) if handle is not None else None
+        count = 0
         for path in inputs:
-            before = writer.count
+            before = count
             for frame in read_frames(path, backend):
                 if channel is not None and frame.channel != channel:
                     continue
-                writer.write(frame)
+                if writer is not None:
+                    writer.write(frame)
+                count += 1
                 if summary is not None:
                     summary.observe(frame)
-            print(f"{path}: {writer.count - before} frames", file=sys.stderr)
-    return writer.count
+            print(f"{path}: {count - before} frames", file=sys.stderr)
+    finally:
+        if handle is not None:
+            handle.close()
+    return count
 
 
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("inputs", nargs="+", metavar="LOG.MF4")
-    parser.add_argument("-o", "--output", required=True, help="pcap file to write")
+    parser.add_argument("-o", "--output", help="pcap file to write (optional when only analysing)")
     parser.add_argument("--channel", type=int, help="only this CANedge bus channel (1 = CAN1, 2 = CAN2)")
     parser.add_argument("--backend", choices=("auto", "mdf_iter", "asammdf"), default="auto")
     parser.add_argument("--summary", action="store_true", help="print an ISOBUS overview")
+    parser.add_argument("--inventory", action="store_true",
+                        help="print a per-device message inventory (who is on the bus, "
+                             "what each sends, and at what rate)")
     args = parser.parse_args(argv)
 
-    summary = Summary() if args.summary else None
+    if not args.output and not (args.summary or args.inventory):
+        parser.error("nothing to do: pass -o/--output, and/or --summary / --inventory")
+
+    summary = Summary() if (args.summary or args.inventory) else None
     total = convert(args.inputs, args.output, args.backend, args.channel, summary)
-    print(f"wrote {total} frames to {args.output}", file=sys.stderr)
-    if summary is not None:
+    if args.output:
+        print(f"wrote {total} frames to {args.output}", file=sys.stderr)
+    if args.summary:
         summary.print()
+    if args.inventory:
+        summary.print_inventory()
     return 0
 
 
