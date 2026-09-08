@@ -103,8 +103,6 @@ jobs:
             env: teensy41_isobus
           - project: 'Ploegbesturing Isobus'
             env: teensy41_serial
-          - project: 'OTA Framework'
-            env: triton_io
           - project: 'Motorcontroller'
             env: seeed_xiao
     steps:

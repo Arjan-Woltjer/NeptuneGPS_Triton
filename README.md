@@ -14,7 +14,6 @@ repository is a submodule.
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and CAN. |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
 | `Loofdoes Spuitcomputer` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `OTA Framework` | ESP32 | HTTPS firmware update manager and local upload page for the Triton IO board. |
 | `MeijWorks Libs` | — | Shared libraries (`VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
@@ -31,7 +30,6 @@ Requires [PlatformIO](https://platformio.org/) (`pip install platformio`).
 pio run -d "Loofdoes Spuitcomputer"  -e esp32dev
 pio run -d "Ploegbesturing"          -e teensy41
 pio run -d "Ploegbesturing Isobus"   -e teensy41_isobus   # or -e teensy41_serial
-pio run -d "OTA Framework"           -e triton_io
 ```
 
 `Ploegbesturing Isobus`'s `[env:teensy41]` is a template base that other
@@ -54,7 +52,7 @@ Quote the paths — every project directory name contains a space.
 On Windows without GCC on `PATH`, `test/native/run_tests_msvc.ps1` builds the same
 sources through MSVC instead.
 
-`OTA Framework` and `MeijWorks Libs` have no test environment of their own.
+`MeijWorks Libs` has no test environment of its own.
 `MeijWorks Libs`' `VehicleGps` is covered from `Ploegbesturing Isobus`, whose
 native build compiles the real parser rather than a stub.
 

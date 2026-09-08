@@ -19,8 +19,11 @@ link, say what an attacker would need access to.
 
 Highest-value areas, roughly in order:
 
-- `OTA Framework` — anything that lets unsigned or unverified firmware reach
-  flash, or that exposes the update path to the network.
+- Firmware update paths — anything that lets unsigned or unverified firmware
+  reach flash, or that exposes the update path to the network. No project here
+  ships one today; `Loofdoes Spuitcomputer` is due to gain OTA (issue #34), and
+  the reference sources it will be adapted from live at `Loofdoes Spuitcomputer/
+  Documentation/reference/ota-framework/` (not compiled).
 - `MeijWorks Libs/VehicleGps` — the NMEA/Trimble/CAN parser. Every byte it
   handles is untrusted input from a serial line.
 - The dosing and steering paths in `ImplementSprayer` and `ImplementPlough`,
