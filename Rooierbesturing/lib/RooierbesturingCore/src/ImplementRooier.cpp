@@ -186,9 +186,11 @@ void ImplementRooier::computeTargets() {
 
 int ImplementRooier::computeTarget(int actualHeight, float& integral, float& lastError) {
     float target = float(setpoint + offset);
-    float error = target - float(actualHeight);
+    // Named pidError, not error: the member `error` is the bang-bang margin
+    // (EEPROM-loaded, used by Adjust()), an unrelated quantity this would shadow.
+    float pidError = target - float(actualHeight);
 
-    integral += error;
+    integral += pidError;
     // Clamp the integral term to prevent windup, same class of guard as
     // ImplementPlanter's D-term clamp -- there's no legacy fragment to
     // match here (this whole PID loop is reconstructed), but an unclamped
@@ -200,10 +202,10 @@ int ImplementRooier::computeTarget(int actualHeight, float& integral, float& las
         integral = -1000.0f;
     }
 
-    float derivative = error - lastError;
-    lastError = error;
+    float derivative = pidError - lastError;
+    lastError = pidError;
 
-    float correction = (float(kp) / 100.0f) * error
+    float correction = (float(kp) / 100.0f) * pidError
                       + (float(ki) / 100.0f) * integral
                       + (float(kd) / 100.0f) * derivative;
 
@@ -317,7 +319,7 @@ void ImplementRooier::Stop() {
 // ----------------------------------------------
 // Method for measuring actual implement height
 // ----------------------------------------------
-int ImplementRooier::getActualHeight(byte pin, int* calibrationData) {
+int ImplementRooier::getActualHeight(byte pin, const int* calibrationData) {
     // Read analog input, averaged over 8 samples. The legacy source summed
     // an initial read plus 8 more (9 total) and divided by 8 -- a real
     // off-by-one averaging bug, fixed here to a plain 8-sample average.
@@ -330,7 +332,7 @@ int ImplementRooier::getActualHeight(byte pin, int* calibrationData) {
     int i = 0;
 
     // Loop through calibrationdata
-    while (readRaw > calibrationData[i] && i < 2) {
+    while (i < 2 && readRaw > calibrationData[i]) {
         i++;
     }
 

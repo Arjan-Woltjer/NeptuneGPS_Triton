@@ -235,7 +235,7 @@ int ImplementKipper::getActualSteer() {
     int i = 0;
 
     // Loop through calibrationdata
-    while (readRaw > steerCalibrationData[i] && i < 2) {
+    while (i < 2 && readRaw > steerCalibrationData[i]) {
         i++;
     }
 
@@ -267,7 +267,7 @@ int ImplementKipper::getActualAngle() {
     int i = 0;
 
     // Loop through calibrationdata
-    while (readRaw > angleCalibrationData[i] && i < 2) {
+    while (i < 2 && readRaw > angleCalibrationData[i]) {
         i++;
     }
 

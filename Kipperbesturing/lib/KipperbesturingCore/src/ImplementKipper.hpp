@@ -50,7 +50,7 @@ private:
     int steer;
     int lastSteer;
 
-    float speed;
+    float speed = 0.0f;
 
     // Update timer
     unsigned long updateAge;
@@ -106,7 +106,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    ImplementKipper(VehicleTractor* tractor);
+    explicit ImplementKipper(VehicleTractor* tractor);
 
     void Update(byte mode);
     void Adjust(int direction);

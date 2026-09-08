@@ -204,7 +204,7 @@ int ImplementPlanter::getActualPosition() {
     int i = 0;
 
     // Loop through calibrationdata
-    while (readRaw > positionCalibrationData[i] && i < 2) {
+    while (i < 2 && readRaw > positionCalibrationData[i]) {
         i++;
     }
 
@@ -244,7 +244,7 @@ int ImplementPlanter::getActualXte() {
     int i = 0;
 
     // Loop through calibrationdata
-    while (readRaw > xteCalibrationData[i] && i < 2) {
+    while (i < 2 && readRaw > xteCalibrationData[i]) {
         i++;
     }
 

@@ -77,17 +77,17 @@ private:
     int ccPer100m;
 
     // Flows in cc per second
-    int neededFlow;
-    int calculatedFlow;  // written by calculateAlarm() only -- see the note
+    int neededFlow = 0;
+    int calculatedFlow = 0;  // written by calculateAlarm() only -- see the note
                           // on that method below; kept for behavior parity.
-    int actualFlow;
+    int actualFlow = 0;
 
     // Pulses per second -- unused today; kept for behavior parity with the
     // legacy member layout (never assigned in the legacy source either).
-    float calculatedPps;
+    float calculatedPps = 0.0f;
 
     // Integral and differential values
-    int           delta;
+    int           delta = 0;
     int           deltaHist[10];
     long          deltaSum;
     long          deltaAvg;
@@ -95,7 +95,7 @@ private:
     byte          histCount;
     byte          histSize;
 
-    int setpointFlow;
+    int setpointFlow = 0;
 
     // Update timer
     unsigned long updateAge;
@@ -122,6 +122,8 @@ private:
     // private member functions implemented in ImplementSprayer.cpp
     //-------------------------------------------------------------
     void calculateSetpointFlow(byte mode);
+    // cppcheck-suppress unusedPrivateFunction ; deliberately uncalled -- see the
+    // note at its call site in Update(), kept for legacy behaviour parity.
     void calculateAlarm(byte mode);
     void calculateSetpointPwm();
 
@@ -138,7 +140,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    ImplementSprayer(VehicleTractor* tractor);
+    explicit ImplementSprayer(VehicleTractor* tractor);
 
     void Update(byte mode, int buttons);
     void Stop();

@@ -106,7 +106,7 @@ private:
     int errorFraction = 0;
     int allowedError = 0;
 
-    char term[10];
+    char term[10] = {};
     unsigned int termNumber = 0;
     unsigned int termOffset = 0;
     int parameter1 = 0;

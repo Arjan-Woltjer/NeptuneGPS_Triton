@@ -56,7 +56,7 @@ private:
     int xteCalibrationPoints[3];
 
     int xte;
-    int speed;
+    int speed = 0;
 
     // Update timer
     unsigned long updateAge;

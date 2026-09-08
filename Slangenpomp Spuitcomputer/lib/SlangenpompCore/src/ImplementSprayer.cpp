@@ -364,7 +364,7 @@ void ImplementSprayer::calculateSetpointPwm() {
     int setpoint = 0;
 
     // Loop through calibrationdata
-    while (readRaw > pwmCalibrationData[i] && i < 11) {
+    while (i < 11 && readRaw > pwmCalibrationData[i]) {
         i++;
     }
 

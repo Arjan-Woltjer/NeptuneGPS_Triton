@@ -66,9 +66,9 @@ private:
     byte      autoPwm;
 
     // Lat, long and height
-    float     latitude;
-    float     longitude;
-    short int height;
+    float     latitude = 0.0f;
+    float     longitude = 0.0f;
+    short int height = 0;
 
     // Reference A
     float     latRa;
@@ -86,14 +86,14 @@ private:
     // actually assigned, since a local variable of the same name shadowed
     // them in the one method that computed them, and nothing else ever read
     // the members. Not carried forward as dead state.)
-    float lAb;
+    float lAb = 0.0f;
 
     // Reference point on the line through A and B, for XTE
-    short int heightRef;
+    short int heightRef = 0;
 
     // Distance along AB from A, and shortest distance to that line
-    float dAb;
-    float xAb;
+    float dAb = 0.0f;
+    float xAb = 0.0f;
 
     // PID variables
     byte kp;
@@ -110,6 +110,8 @@ private:
     //------------------------------------------------------------
     // private member functions implemented in ImplementScraper.cpp
     //------------------------------------------------------------
+    // cppcheck-suppress unusedPrivateFunction ; false positive -- called from
+    // Update() and Adjust() (ImplementScraper.cpp:175 and :241).
     int getActualPosition();
 
     void setSetpoint();
@@ -118,7 +120,6 @@ private:
     void readOffset();
     void readRefA();
     void readRefB();
-    void readRef(float* lat, float* lon, short int* height, byte addr);
     void setRef(float* lat, float* lon, short int* height, byte addr);
 
     void calculateDistances();
@@ -138,7 +139,7 @@ public:
     // ----------------------------------------------------------
 
     // Constructor
-    ImplementScraper(VehicleGps* gps);
+    explicit ImplementScraper(VehicleGps* gps);
 
     void Update(byte mode, int buttons);
     void Stop();

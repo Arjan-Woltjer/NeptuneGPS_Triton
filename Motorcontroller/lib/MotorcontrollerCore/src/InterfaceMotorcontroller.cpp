@@ -124,11 +124,9 @@ void InterfaceMotorcontroller::ApplySettingsToActuator()
 // ----------------
 void InterfaceMotorcontroller::ParseSerial()
 {
-    char c;
-
     while (Serial.available())
     {
-        c = static_cast<char>(Serial.read());
+        const char c = static_cast<char>(Serial.read());
         if (echo)
         {
             Serial.write(c);

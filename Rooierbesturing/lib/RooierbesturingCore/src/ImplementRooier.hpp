@@ -99,7 +99,7 @@ private:
     //-------------------------------------------------------------
     // private member functions implemented in ImplementRooier.cpp
     //-------------------------------------------------------------
-    int getActualHeight(byte pin, int* calibrationData);
+    int getActualHeight(byte pin, const int* calibrationData);
 
     void computeTargets();
     int  computeTarget(int actualHeight, float& integral, float& lastError);
@@ -110,6 +110,8 @@ private:
 
     bool readCalibrationData();
     void writeCalibrationData();
+    // cppcheck-suppress unusedPrivateFunction ; unwired EEPROM factory-reset
+    // helper -- kept deliberately, nothing calls it yet.
     void wipeCalibrationData();
 
 public:

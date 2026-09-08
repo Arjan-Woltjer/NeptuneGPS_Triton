@@ -328,7 +328,7 @@ int ImplementScraper::getActualPosition() {
     int i = 0;
 
     // Loop through calibrationdata
-    while (readRaw > positionCalibrationData[i] && i < 2) {
+    while (i < 2 && readRaw > positionCalibrationData[i]) {
         i++;
     }
 
@@ -494,12 +494,6 @@ void ImplementScraper::setRef(float* lat, float* lon, short int* height, byte ad
 // ------------------------------
 // Method for reading a Reference
 // ------------------------------
-void ImplementScraper::readRef(float* lat, float* lon, short int* height, byte addr) {
-    *lat = readFloat(addr);
-    *lon = readFloat(addr + 4);
-    *height = readInt(addr + 8);
-}
-
 // ----------------------------------------------
 // Method for reading calibrationdata from EEPROM
 // ----------------------------------------------
