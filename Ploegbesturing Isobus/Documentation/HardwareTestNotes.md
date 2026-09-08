@@ -1050,8 +1050,10 @@ only these three exist.
 
 A full CAN log was recorded with the CANedge logger across this session, with
 **ground truth called out live, in this order: 71 cm, then 1 cm, then 0 cm,
-then 99 cm on the other side of the line, then back to 0 cm.** Five points, two
-zero crossings, both sides of the line represented.
+then 99 cm on the other side of the line, then back to 0 cm, then 52 cm on that
+same far side again.** Six points, three zero crossings, both sides of the line
+represented, and two distinct magnitudes (99, 52) on the far side rather than
+one.
 
 That descending sequence is the important part, and it is exactly what #20
 needs. Session 6's mistake was deriving a confident "100x scale error" from a
@@ -1065,12 +1067,20 @@ The spread is particularly useful because it spans two orders of magnitude: a
 candidate byte pair must track all four values, which kills most wrong-offset
 hypotheses outright rather than leaving them merely unlikely.
 
-**And the sequence crosses the line twice.** 71 -> 1 -> 0 approaches zero from
-one side, 99 cm is then on the other, and the return to 0 crosses back. Two
-crossings beat one: a decode can fake a single sign flip through an unrelated
-bit that happened to toggle once, but reproducing an out-and-back through zero
-on the correct field is not something a wrong hypothesis does by accident.
-That crossing is what the sign convention has
+**And the sequence crosses the line three times.** 71 -> 1 -> 0 approaches zero
+from one side, 99 cm is on the other, the return to 0 crosses back, and 52 cm
+goes out to the far side a second time. A decode can fake a single sign flip
+through an unrelated bit that happened to toggle once; reproducing three
+crossings in the right order, with two different far-side magnitudes, is not
+something a wrong hypothesis does by accident. The two far-side values also
+guard against a decode that merely saturates or latches when the sign flips --
+it has to render 99 and 52 distinctly, not just "far".
+
+The capture ends with the plough control being disconnected, which is a clean
+end marker on the bus: our control function drops off, and everything after
+that point is other traffic.
+
+The crossings are what the sign convention has
 been missing since session 6, when the operator's left/right calls were
 corrected mid-sequence and the recorded magnitudes (144, 8, 118, 14 cm) were
 left reliable but unsigned. Here the ordering itself carries the sign: whatever
@@ -1129,12 +1139,12 @@ that took part in run 2 -- the next real DDOP tree change must go to TC05.
   this is done the session's main result is provisional.
 - If it was mapped, close #21 against this terminal as "no Tramline Control
   support" and move the DDI 513/514 question to a different brand's TC.
-- **#20 now has its capture** -- the CANedge log plus five ground-truth points
-  (71 / 1 / 0 / 99-other-side / 0) with two zero crossings. Next step is
-  off-tractor: convert the MF4, find the PGN 65535 SA `0x80` frames, and derive
-  the Ag Leader layout that tracks all five values *and* the sign flip. Record
-  the MF4's location here first. On this data the sign convention should be
-  derivable too, closing session 6's "sign convention remains unverified"
+- **#20 now has its capture** -- the CANedge log plus six ground-truth points
+  (71 / 1 / 0 / 99-far-side / 0 / 52-far-side) with three zero crossings. Next
+  step is off-tractor: convert the MF4, find the PGN 65535 SA `0x80` frames, and
+  derive the Ag Leader layout that tracks all six values *and* the sign flips.
+  Record the MF4's location here first. On this data the sign convention should
+  be derivable too, closing session 6's "sign convention remains unverified"
   without another tractor session.
 - #18 auto-reconnect watchdog still unexercised -- nothing disconnected.
 
