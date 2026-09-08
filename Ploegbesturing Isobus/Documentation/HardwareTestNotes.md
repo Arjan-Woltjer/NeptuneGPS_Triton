@@ -971,6 +971,97 @@ not appear in the repo diff. No Triton-side source changed.
   roll-call produces no NACK, so NACK count is not a proxy for roll-call
   activity. Prune activity is.
 
+
+## Session 7 -- 2026-09-08 (Ag Leader InCommand 1200) -- DDI 505/506 handshake probe
+
+**Question:** does the InCommand 1200 implement AEF Tramline Control at all? If
+it does, DDI 513/514 are reachable and #21 is a DDOP build-out problem. If it
+does not, no DDOP work will ever produce them from this terminal.
+
+Run on branch `spike/21-ddi-505-506-handshake`, off `isobus-tc-client` at
+6403897. Both vendor patches #3/#4 (plus #5) confirmed present in
+`.pio/libdeps/teensy41_isobus` before flashing.
+
+### Result: no DDI 506 reply, under either declaration
+
+Two runs, differing only in the DDI 505 value and the structure label:
+
+| Run | DDI 505 declared | Structure label | Uptime observed | DDI 506 | Value cmds | Value reqs |
+|-----|------------------|-----------------|-----------------|---------|------------|------------|
+| 1   | `0` (no level)   | TC03            | 16 min 11 s     | none    | 0          | 0          |
+| 2   | `0x01` (Level 1) | TC04            | 6 min 17 s      | none    | 0          | 0          |
+
+Run 2 exists specifically to close the ambiguity the probe's own comment
+called out: a TC that short-circuits the handshake for a zero-capability
+implement produces the same silence as one with no Tramline Control at all.
+Declaring Level 1 removes that escape. The label bump to TC04 was required --
+without it the terminal serves run 1's cached pool and the re-run proves
+nothing. Both runs logged `[TC]: DDOP Activated without error`, so the pool
+including DDI 505/506 was accepted each time.
+
+Throughout both runs the TC reported `Connected: Y`, `Task active: Y`, and
+`TC-GEO (with position): Y`, with `reconnect attempts=0` on both the VT
+(`0x26`) and TC (`0xF7`) partners.
+
+**Reading:** on this evidence the InCommand 1200 very likely does not implement
+Tramline Control, and DDI 513/514 will not arrive from it regardless of how the
+DDOP is built out. That makes #21's remaining DDOP-structure theories
+(device-element shape, server-version-3 downgrade, DRP/offset declaration)
+unlikely to be the operative cause *on this terminal*.
+
+### The confound that must be closed before this is final
+
+**Zero Value *Requests*, not just zero Value Commands.** A TC with a genuinely
+active task that has our device elements mapped into it would normally at least
+*request* our declared DPD values. Seeing zero in both directions is equally
+consistent with our implement never having been added to the running task on
+the terminal's own setup screen -- in which case both runs measured nothing at
+all, and the negative above is not attributable to Tramline Control support.
+
+`Task active: Y` does not settle this: AgIsoStack's own docs warn the flag is
+unreliable per-brand (John Deere reports "always in task"), and it is advisory
+only. Before treating the Tramline conclusion as established, confirm on the
+InCommand itself that the Ploegbesturing implement appears in the implement
+list and is attached to the running task with an AB line set. This is the same
+trap as Session 5's `vtstat` counter and Session 6's single XTE reading --
+do not promote this to a settled finding on one unverified precondition.
+
+### VT soft keys -- verified on real hardware for the first time
+
+Independent of the TC work, and previously untested since being wired up
+2026-08-18: all three soft keys were pressed on the terminal and all three
+arrived. BREDER x5 (`VT: Wider pressed`), SMALLER x3 (`VT: Narrower pressed`),
+AUTO x2 (`VT: Auto pressed (not wired to control)`). AUTO's message is the
+intended behaviour, not a fault -- `InterfacePlough`'s AUTO mode is derived,
+not user-settable. Note there are no left/right soft keys in the pool at all;
+only these three exist.
+
+### Also observed
+
+- Connection stability continues to hold: run 1 ran 16+ minutes across a host
+  PC sleep/resume with zero reconnect attempts on either partner. The `[NM]`
+  offline/online churn in the logs is confined to a non-partnered CF at address
+  205, which is exactly what vendor patch #4 is supposed to permit.
+- PGN 65535 from SA `0x80` still streams (`510301FF0B0009FF` and neighbours),
+  still with `xte=0.00m` and `q=0` -- #20 unchanged, as expected, nothing was
+  done about it today.
+
+**Raw logs:** `Documentation/logs/2026-09-08_session7_*.log`.
+
+**Code state:** the Level-1 declaration in run 2 is a diagnostic claim only --
+Level 1 means "the implement calculates the tramline tracks", which a plough
+does not do. It must be reverted to `0` (or the feature built out honestly)
+before anything from this branch reaches `isobus-tc-client`.
+
+**Open after session 7:**
+- **Confirm the implement is mapped into the task on the InCommand** -- until
+  this is done the session's main result is provisional.
+- If it was mapped, close #21 against this terminal as "no Tramline Control
+  support" and move the DDI 513/514 question to a different brand's TC.
+- #20 (Ag Leader XTE payload layout) still needs the raw capture against
+  ground truth; today's session did not attempt it.
+- #18 auto-reconnect watchdog still unexercised -- nothing disconnected.
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
