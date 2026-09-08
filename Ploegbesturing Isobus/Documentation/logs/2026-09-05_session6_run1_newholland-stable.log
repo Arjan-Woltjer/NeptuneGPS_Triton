@@ -1,0 +1,68 @@
+Session 6, 2026-09-05, New Holland tractor's own built-in VT, alone on the
+bus. Firmware: isobus-tc-client @ 935de81 (AgIsoStack vendor patch #3 for
+the control-function eviction bug + VT log level Warning -> Info).
+
+FIRST CONFIRMATION THAT #17's FIX WORKS. Compare Session 5's captures, where
+vtstat froze at 4 within ~2s and Status Timeout fired every single time.
+Here the VT connects and holds for the entire capture, with vtstat climbing
+steadily at ~1 Hz -- i.e. the terminal's status broadcasts are arriving AND
+still being dispatched to our listener, which is exactly what the eviction
+bug used to break.
+
+Operator confirmed live on screen: working set rendered, plough working
+width adjustments reflected in real time. The "VT: Wider/Narrower pressed"
+lines are those adjustments -- first field verification of the soft-key
+path (990e23b) too.
+
+Timestamps are seconds since the logging script attached to COM4. The board
+was already booted when the script attached, so t=0 is not board reset.
+
+Trimmed to the interesting parts: connect, a stretch of steady-state, the
+operator's soft-key presses, and the tail before the InCommand 1200 was
+powered on (see run 3 for what happened then).
+
+[   2.107] I] [NM]: A partner with name 000000000000000lx has claimed address 2684361992 on channel 197275905.
+   ^^ Note: [NM] argument values print as garbage on this toolchain (a
+      format-string/vsnprintf mismatch inside AgIsoStack's own logging, not
+      introduced by our patch). Useful as event markers, not for values.
+[   3.110] [ISOBUS] addr=0x81 claimed=Y load=7.8% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=9426 vtgAge=9426 xteAge=9426 vt=N(1/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[   3.111] I] [VT]: VT Server has a matching label for MW03   . It will be loaded and upload will be skipped.
+[   3.111] I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+[   4.110] [ISOBUS] addr=0x81 claimed=Y load=12.9% msgs=6 aiso=1(10426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=10426 vtgAge=10426 xteAge=10426 vt=Y(21/22) vtstat=1/935ms tc=N drp=0mm tcq=0
+[   5.124] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=7 aiso=2(11426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=11426 vtgAge=11426 xteAge=11426 vt=Y(21/22) vtstat=2/935ms tc=N drp=0mm tcq=0
+[   6.138] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=9 aiso=4(13426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=13426 vtgAge=13426 xteAge=13426 vt=Y(21/22) vtstat=4/934ms tc=N drp=0mm tcq=0
+[   7.149] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=10 aiso=5(14426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=14426 vtgAge=14426 xteAge=14426 vt=Y(21/22) vtstat=5/934ms tc=N drp=0mm tcq=0
+   ^^ Session 5 died right about here, at vtstat=4. This one keeps going.
+[   8.164] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=11 aiso=6(15426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=15426 vtgAge=15426 xteAge=15426 vt=Y(21/22) vtstat=6/934ms tc=N drp=0mm tcq=0
+[   9.166] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=12 aiso=7(16426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=16426 vtgAge=16426 xteAge=16426 vt=Y(21/22) vtstat=7/933ms tc=N drp=0mm tcq=0
+[  10.179] [ISOBUS] addr=0x81 claimed=Y load=12.0% msgs=17 aiso=8(17426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=17426 vtgAge=17426 xteAge=17426 vt=Y(21/22) vtstat=9/533ms tc=N drp=0mm tcq=0
+[  20.213] [ISOBUS] addr=0x81 claimed=Y load=11.9% msgs=31 aiso=18(27426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=27426 vtgAge=27426 xteAge=27426 vt=Y(21/22) vtstat=19/529ms tc=N drp=0mm tcq=0
+[  30.288] [ISOBUS] addr=0x81 claimed=Y load=11.9% msgs=45 aiso=28(37426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=37426 vtgAge=37426 xteAge=37426 vt=Y(21/22) vtstat=29/526ms tc=N drp=0mm tcq=0
+
+--- operator adjusting plough working width from the VT's soft keys ---
+[  32.317] VT: Wider pressed
+[  34.332] VT: Narrower pressed
+[  35.336] VT: Narrower pressed
+[  36.351] VT: Narrower pressed
+[  37.351] VT: Wider pressed
+[  42.399] VT: Narrower pressed
+[  43.412] VT: Narrower pressed
+[  44.425] VT: Narrower pressed
+[  45.436] VT: Auto pressed (not wired to control)
+[  46.451] VT: Auto pressed (not wired to control)
+[  47.453] [ISOBUS] addr=0x81 claimed=Y load=11.7% msgs=66 aiso=45(54426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=54426 vtgAge=54426 xteAge=54426 vt=Y(21/22) vtstat=46/520ms tc=N drp=0mm tcq=0
+
+--- steady state continues, trimmed; vtstat keeps incrementing ~1/s ---
+[  60.570] [ISOBUS] addr=0x81 claimed=Y load=11.9% msgs=87 aiso=58(67426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=67426 vtgAge=67426 xteAge=67426 vt=Y(21/22) vtstat=59/515ms tc=N drp=0mm tcq=0
+[  90.807] [ISOBUS] addr=0x81 claimed=Y load=12.0% msgs=129 aiso=88(97428ms) xte=0.00m spd=0.00m/s q=0 ggaAge=97428 vtgAge=97428 xteAge=97428 vt=Y(21/22) vtstat=89/508ms tc=N drp=0mm tcq=0
+[ 120.994] [ISOBUS] addr=0x81 claimed=Y load=11.9% msgs=171 aiso=118(127428ms) xte=0.00m spd=0.00m/s q=0 ggaAge=127428 vtgAge=127428 xteAge=127428 vt=Y(21/22) vtstat=119/497ms tc=N drp=0mm tcq=0
+[ 150.227] [ISOBUS] addr=0x81 claimed=Y load=11.9% msgs=213 aiso=148(157428ms) xte=0.00m spd=0.00m/s q=0 ggaAge=157428 vtgAge=157428 xteAge=157428 vt=Y(21/22) vtstat=149/486ms tc=N drp=0mm tcq=0
+[ 163.319] [ISOBUS] addr=0x81 claimed=Y load=11.5% msgs=230 aiso=161(170428ms) xte=0.00m spd=0.00m/s q=0 ggaAge=170428 vtgAge=170428 xteAge=170428 vt=Y(21/22) vtstat=162/481ms tc=N drp=0mm tcq=0
+
+   ^^ 160 seconds connected, vtstat 1 -> 162, zero drops. Fix confirmed.
+      The InCommand 1200 was powered on immediately after this line --
+      see 2026-09-05_session6_run3_dual-vt-churn.log for what followed.
+
+Note tc=N throughout: New Holland's own terminal has no Task Controller at
+all (operator-confirmed), so this is expected here, not a TC failure. See
+run 2 for the TC result against the InCommand 1200.

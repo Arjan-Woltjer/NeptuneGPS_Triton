@@ -29,8 +29,8 @@
 #include <Arduino.h>
 #include <AgIsoStack.hpp>
 
-#include "ImplementPlough.hpp"
-#include "GuidanceSource.hpp"
+#include "../implement/ImplementPlough.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
 namespace triton
 {
@@ -40,15 +40,16 @@ namespace triton
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes.
 //
-// Soft-key handling (Wider/Narrower/Auto) is currently display + event
-// logging only, NOT wired to drive ImplementPlough. main.cpp's loop()
-// already calls InterfacePlough::Update(), which unconditionally calls
-// ImplementPlough::Adjust() every tick based on the physical-button/GPS
-// mode ladder; having VT soft keys *also* call Wider()/Narrower()/Adjust()
-// independently would race that same-tick call and is a real machine-
-// safety-behavior decision (how VT input should arbitrate with the
-// physical button ladder), not something to invent silently here. Flagged
-// for a deliberate follow-up decision.
+// Soft-key handling: Wider/Narrower are wired to ImplementPlough via
+// ConsumeWiderPress()/ConsumeNarrowerPress() below (2026-08-10) -- main.cpp's
+// loop() passes these into InterfacePlough::Update(), which OR's them into
+// the same LEFT_BUTTON_2/RIGHT_BUTTON_2 conditions CheckButtons() already
+// uses for the physical buttons (and, disabled today, the joystick), so a
+// VT press goes through identical debounce/arbitration logic rather than a
+// separate control path. Auto (Key_Auto) is deliberately NOT wired --
+// InterfacePlough's AUTO mode is derived from GPS/hitch state, not
+// user-settable via a button, so there's no existing target for it; still
+// display + log only.
 class IsobusVtInterface {
 public:
     IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
@@ -60,27 +61,155 @@ public:
     // Call every loop() iteration.
     void Update();
 
+    // Diagnostics for IsobusDebugMenu.
+    inline bool IsConnected() const { return vtClient && vtClient->get_is_connected(); }
+
+    // Coarse progress through the ~23-step connect/upload/activate handshake
+    // (isobus::VirtualTerminalClient::StateMachineState) -- NOT byte-accurate
+    // upload progress (that would need the transport-protocol session's own
+    // percentage, which AgIsoStack doesn't expose a public path to reach).
+    // Backed by a locally-patched get_state() on VirtualTerminalClient --
+    // see Documentation/AgIsoStackVendorPatches.md.
+    int         GetStateStep() const;
+    int         GetStateTotalSteps() const;
+    const char* GetStateName() const;
+
+    // Which VT version we actually negotiated (public, unpatched --
+    // isobus::VirtualTerminalClient::get_connected_vt_version() already
+    // existed). Only meaningful once past WaitForPartnerVTStatusMessage --
+    // added 2026-08-10 to check a live suspicion: our hand-rolled VT3 object
+    // pool's WorkingSet object includes a language-code list, and it's worth
+    // confirming what VT version is on the other end when the VT rejects the
+    // pool (see VTObjectPool.cpp).
+    const char* GetVtVersionName() const;
+
+    // Raw count/age of VT Status Messages (PGN 0xE600/VirtualTerminalToECU,
+    // function 0xFE) actually seen on the bus, independent of AgIsoStack's
+    // own internal state machine -- added 2026-09-05 to tell apart "the VT
+    // isn't sending its mandatory status broadcast" from "it's sending it,
+    // we're just not acting on it in time" after a reproducible
+    // Status Timeout ~3s post-Connect on an Ag Leader InCommand 1200 (see
+    // HardwareTestNotes.md). AgIsoStack's own VirtualTerminalClient tracks
+    // this internally (lastVTStatusTimestamp_ms) but doesn't expose it, so
+    // this is a second, independent global PGN listener alongside the
+    // client's own -- CANNetworkManager supports multiple listeners per PGN,
+    // this doesn't steal or alter the message the client itself reacts to.
+    unsigned int  GetVtStatusMessageCount() const { return vtStatusMessageCount; }
+    unsigned long GetVtStatusMessageAgeMs() const {
+        return vtStatusMessageCount == 0 ? 0 : millis() - lastVtStatusMessageMs;
+    }
+
+    // The bound VT partner's own address and validity. Added 2026-09-05: the
+    // whole of GitHub issue #17 turned on partnerControlFunction->
+    // get_address_valid() silently going false (the partner evicted from
+    // AgIsoStack's control-function table), and neither of those was visible
+    // anywhere -- the diagnosis needed source-diving instead of reading a
+    // debug line. Surface both so the next occurrence is legible.
+    bool         IsPartnerAddressValid() const { return partner && partner->get_address_valid(); }
+    std::uint8_t GetPartnerAddress() const { return partner ? partner->get_address() : 0xFE; }
+
+    // The VT's partnered control function itself. IsobusTcInterface passes
+    // this to TaskControllerClient as its `primaryVT`, which is what the TC
+    // client uses to source ISO 11783-7 language/unit data when the connected
+    // TC server is older than version 4 -- see IsobusTcInterface::Begin().
+    // Null until Begin() has run.
+    std::shared_ptr<isobus::PartneredControlFunction> GetPartner() const { return partner; }
+
+    // Reconnect watchdog counters (GitHub issue #18) -- see the private
+    // reconnect fields for why this exists.
+    unsigned int  GetReconnectAttemptCount() const { return reconnectAttempts; }
+
+    // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
+    // release, cleared by the call itself (edge-triggered, matching a
+    // discrete VT tap rather than a held physical button). Direction mapping
+    // confirmed against ImplementPlough::Adjust(): direction=-1
+    // (LEFT_BUTTON_2's slot) -> Wider(), direction=+1 (RIGHT_BUTTON_2's
+    // slot) -> Narrower() -- so Key_Wider must feed the LEFT slot and
+    // Key_Narrower the RIGHT slot for both input paths to mean the same
+    // thing. See InterfacePlough::CheckButtons() for where these land.
+    inline bool ConsumeWiderPress() {
+        bool v = pendingWiderPress;
+        pendingWiderPress = false;
+        return v;
+    }
+    inline bool ConsumeNarrowerPress() {
+        bool v = pendingNarrowerPress;
+        pendingNarrowerPress = false;
+        return v;
+    }
+
 private:
     class Logger : public isobus::CANStackLogger {
     public:
         void sink_CAN_stack_log(isobus::CANStackLogger::LoggingLevel level, const std::string& text) override;
     };
 
-    Stream*                serialDebug;
-    ImplementPlough*       implement;
+    Stream*          serialDebug;
+    ImplementPlough* implement;
     GuidanceSource*  guidance;
 
-    std::shared_ptr<isobus::InternalControlFunction>  controlFunction;
-    std::shared_ptr<isobus::DiagnosticProtocol>        diagnostics;
-    std::shared_ptr<isobus::VirtualTerminalClient>     vtClient;
+    std::shared_ptr<isobus::InternalControlFunction>    controlFunction;
+    std::shared_ptr<isobus::PartneredControlFunction>   partner;
+    std::shared_ptr<isobus::DiagnosticProtocol>         diagnostics;
+    std::shared_ptr<isobus::VirtualTerminalClient>      vtClient;
     isobus::EventCallbackHandle                         softKeyListener;
     isobus::EventCallbackHandle                         buttonListener;
     Logger                                              logger;
 
     unsigned long lastVtUpdate = 0;
 
+    // On-change gating for updateVtVariables() -- added 2026-08-10 (van
+    // Mastwijk) after Session 4 found intermittent post-Connect drops
+    // ("[VT]: Status Timeout", AgIsoStack's own 3 s VT_STATUS_TIMEOUT_MS)
+    // that did NOT reproduce while a swapped-in AgIsoStack reference pool
+    // was loaded. That reference pool's own example only calls
+    // send_change_numeric_value() on a button press; this class used to call
+    // it unconditionally 4x every 100 ms (40 msg/s) regardless of whether
+    // anything changed, for as long as the VT stayed connected -- real,
+    // bound OutputNumber widgets in OUR pool means the VT does real redraw
+    // work each time, unlike the reference pool's IDs (which likely don't
+    // resolve to a NumberVariable at all, so get cheaply rejected). Leading
+    // hypothesis, not yet re-verified against hardware: sustained redraw
+    // load intermittently starves the VT's own periodic status broadcast
+    // past our 3 s window. Fix sends only on real value change, plus a 1 s
+    // heartbeat resend (so a dropped CAN frame can't leave the VT stale
+    // forever) -- cuts steady-state traffic roughly 10x for slow-changing
+    // plough telemetry with no functional loss (a human reading a numeric
+    // field can't perceive 10 Hz vs. on-change+1 Hz).
+    bool          sentInitialVtVariables = false;
+    unsigned long lastVtVariableHeartbeat = 0;
+    int32_t       lastSentPosition = 0;
+    int32_t       lastSentSetpoint = 0;
+    int32_t       lastSentXte      = 0;
+    int32_t       lastSentOffset   = 0;
+
+    bool pendingWiderPress    = false;
+    bool pendingNarrowerPress = false;
+
+    unsigned int  vtStatusMessageCount  = 0;
+    unsigned long lastVtStatusMessageMs = 0;
+
+    // Reconnect watchdog (GitHub issue #18). AgIsoStack's own state machine
+    // already retries from Disconnected as soon as the partner's address is
+    // valid again, so this exists for the cases where that never happens: the
+    // client wedged in an intermediate state, or a partner that came back but
+    // did not re-trigger the retry. Only armed after a first successful
+    // connection, so it can never interfere with the initial handshake.
+    //
+    // Note the obvious implementation does NOT work: VirtualTerminalClient::
+    // initialize() is guarded by `if (!initialized)`, so calling it again on
+    // a live client is a no-op. A real re-attempt needs terminate() first,
+    // which drops the PGN callbacks and resets the state machine so
+    // initialize() will actually rebuild them.
+    bool          hasEverConnected     = false;
+    unsigned long disconnectedSinceMs  = 0;
+    unsigned long lastReconnectTryMs   = 0;
+    unsigned int  reconnectAttempts    = 0;
+
     void updateVtVariables();
+    void updateReconnectWatchdog();
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
+    static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);
 };
 
 }  // namespace triton

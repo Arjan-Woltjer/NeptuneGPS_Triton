@@ -30,21 +30,28 @@
 #include <AgIsoStack.hpp>
 
 #include "IsobusGuidanceChannel.hpp"
-#include "GuidanceSource.hpp"
+#include "IsobusTcInterface.hpp"
+#include "IsobusVtInterface.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
 namespace triton
 {
 
 // Read-only serial menu: address-claim state, estimated bus load, per-PGN
 // message counters (IsobusGuidanceChannel::MessageCounters -- AgIsoStack
-// itself exposes no such counters), and the guidance telemetry those
-// messages feed into GuidanceSource (XTE, speed, fix ages, quality). Unlike
-// Loofdoes' CalibrationSprayer, this never writes calibration data and every
-// menu choice is a fixed single keypress, so input dispatches immediately --
-// no line buffer/Enter needed.
+// itself exposes no such counters), the guidance telemetry those messages
+// feed into GuidanceSource (XTE, speed, fix ages, quality), and the Task
+// Controller client's connection/DDI 513-514 state. Unlike Loofdoes'
+// CalibrationSprayer, this never writes calibration data and every menu
+// choice is a fixed single keypress, so input dispatches immediately -- no
+// line buffer/Enter needed.
 class IsobusDebugMenu {
 public:
-    IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance);
+    // tcInterface/vtInterface may be nullptr (e.g. during incremental
+    // bring-up before they're wired in main.cpp) -- the corresponding
+    // section is skipped in that case.
+    IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
+                    IsobusTcInterface* tcInterface = nullptr, IsobusVtInterface* vtInterface = nullptr);
 
     // Prints a one-line hint that the menu exists. Call once from setup().
     void Begin();
@@ -58,6 +65,8 @@ private:
     Stream*                serialDebug;
     IsobusGuidanceChannel* guidanceChannel;
     GuidanceSource*        guidance;
+    IsobusTcInterface*     tcInterface;
+    IsobusVtInterface*     vtInterface;
 
     State         state = State::IDLE;
     bool          periodicEnabled = false;

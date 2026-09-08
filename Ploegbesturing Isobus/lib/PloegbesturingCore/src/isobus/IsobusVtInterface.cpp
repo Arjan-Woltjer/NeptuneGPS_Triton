@@ -61,7 +61,15 @@ void IsobusVtInterface::Begin() {
     BuildObjectPool();
 
     CANStackLogger::set_can_stack_logger_sink(&logger);
-    CANStackLogger::set_log_level(CANStackLogger::LoggingLevel::Warning);
+    // Bumped Warning -> Info 2026-09-05: at Warning, AgIsoStack's own [NM]
+    // control-function lifecycle lines (address claims, "is now offline")
+    // are invisible on the serial console -- confirmed by re-reading Session
+    // 5's captured logs, which contain zero [NM] lines despite a control-
+    // function eviction being the leading theory for GitHub issue #17's VT
+    // Status Timeout (see Documentation/AgIsoStackVendorPatches.md patch #3
+    // and HardwareTestNotes.md Session 5). Info is the cheapest way to see
+    // these events directly instead of inferring them.
+    CANStackLogger::set_log_level(CANStackLogger::LoggingLevel::Info);
 
     diagnostics = std::make_shared<DiagnosticProtocol>(controlFunction);
     diagnostics->initialize();
@@ -72,15 +80,45 @@ void IsobusVtInterface::Begin() {
 
     const NAMEFilter vtFilter(NAME::NAMEParameters::FunctionCode, static_cast<uint8_t>(NAME::Function::VirtualTerminal));
     const std::vector<NAMEFilter> vtNameFilters = { vtFilter };
-    auto partnerVT = std::make_shared<PartneredControlFunction>(0, vtNameFilters);
+    // Must go through the factory method, not a direct std::make_shared
+    // construction -- same class of bug as IsobusGuidanceChannel::Begin()'s
+    // create_internal_control_function() comment. Only
+    // create_partnered_control_function() registers the object into
+    // CANNetworkManager's partneredControlFunctions list, and only members
+    // of that list are ever checked against an incoming Address Claim frame
+    // (can_network_manager.cpp's update_control_functions()) -- so a directly
+    // constructed partner can NEVER become address-valid, no matter how long
+    // a real VT sits on the bus. Confirmed on hardware 2026-08-10: VT stuck
+    // at state 0/22 "Disconnected" indefinitely against a live Fendt
+    // Universal Terminal. AgIsoStack's own header (can_control_function.hpp)
+    // and its VirtualTerminal.ino example both use the factory form.
+    // Kept as a member (not a local) so IsPartnerAddressValid()/
+    // GetPartnerAddress() can surface it -- see their comment in the header.
+    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, vtNameFilters);
 
-    vtClient = std::make_shared<VirtualTerminalClient>(partnerVT, controlFunction);
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW01");
+    vtClient = std::make_shared<VirtualTerminalClient>(partner, controlFunction);
+    // Bumped MW01 -> MW02, 2026-08-10 (van Mastwijk): the pool's structure
+    // genuinely changed (WorkingSet gained a real child object, see
+    // VTObjectPool.cpp's appendWorkingSet() comment for the confirmed bug
+    // this fixes) -- same discipline as the TC DDOP's TC01->TC02 bump in
+    // Session 3, so no terminal that cached a pool under "MW01" confuses it
+    // with this one.
+    // Bumped MW02 -> MW03, 2026-08-10 (desktop, same day): WorkingSet's
+    // child changed from a placeholder OutputString to a real PictureGraphic
+    // icon (Icon_Plough) -- see VTObjectPool.cpp's appendPictureGraphic()
+    // call site and GitHub issue #14.
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW03");
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     vtClient->initialize(false);
+
+    // See the header's GetVtStatusMessageCount()/GetVtStatusMessageAgeMs()
+    // comment -- independent raw counter for the VT's own periodic status
+    // broadcast, alongside (not replacing) vtClient's internal tracking.
+    CANNetworkManager::CANNetwork.add_global_parameter_group_number_callback(
+        static_cast<std::uint32_t>(CANLibParameterGroupNumber::VirtualTerminalToECU), OnVtToEcuMessage, this);
 }
 
 // ----------------------------------------------------------------
@@ -94,6 +132,61 @@ void IsobusVtInterface::Update() {
 
     diagnostics->update();
     vtClient->update();
+    updateReconnectWatchdog();
+}
+
+// ----------------------------------------------------------------
+// Reconnect watchdog -- see the header's reconnect fields for the rationale
+// and for why initialize() alone is not enough. GitHub issue #18.
+// ----------------------------------------------------------------
+void IsobusVtInterface::updateReconnectWatchdog() {
+    // How long a post-connection outage is tolerated before forcing a clean
+    // re-attempt. Comfortably longer than AgIsoStack's own 3 s
+    // VT_STATUS_TIMEOUT_MS plus a normal automatic re-handshake, so a
+    // connection that is recovering on its own is never interrupted.
+    constexpr unsigned long kReconnectAfterMs = 10000UL;
+    // Minimum spacing between attempts, so a partner that is genuinely gone
+    // produces one line every 10 s rather than a churning callback list.
+    constexpr unsigned long kReconnectRetryIntervalMs = 10000UL;
+
+    const unsigned long now = millis();
+
+    if (IsConnected()) {
+        hasEverConnected    = true;
+        disconnectedSinceMs = 0;
+        return;
+    }
+
+    // Never armed before the first successful connection: the initial
+    // handshake has its own timing, and a watchdog firing during it would
+    // interrupt a connection that was progressing normally.
+    if (!hasEverConnected) return;
+
+    if (disconnectedSinceMs == 0) {
+        disconnectedSinceMs = now;
+        return;
+    }
+    if (now - disconnectedSinceMs < kReconnectAfterMs) return;
+    if (reconnectAttempts != 0 && (now - lastReconnectTryMs) < kReconnectRetryIntervalMs) return;
+
+    lastReconnectTryMs = now;
+    reconnectAttempts++;
+
+    serialDebug->print("VT: disconnected ");
+    serialDebug->print((now - disconnectedSinceMs) / 1000);
+    serialDebug->print("s after having been connected -- forcing reconnect attempt ");
+    serialDebug->print(reconnectAttempts);
+    serialDebug->print(" (partner addr=0x");
+    serialDebug->print(GetPartnerAddress(), HEX);
+    serialDebug->print(" valid=");
+    serialDebug->print(IsPartnerAddressValid() ? "Y" : "N");
+    serialDebug->println(")");
+
+    // terminate() then initialize(): see the header. terminate()'s
+    // delete-object-pool branch only runs when Connected, which we are not,
+    // so this is just a callback teardown and a state-machine reset.
+    vtClient->terminate();
+    vtClient->initialize(false);
 }
 
 // ----------------------------------------------------------------
@@ -102,22 +195,136 @@ void IsobusVtInterface::Update() {
 void IsobusVtInterface::updateVtVariables() {
     if (!vtClient->get_is_connected()) return;
 
-    vtClient->send_change_numeric_value(Var_Position, static_cast<uint32_t>(implement->GetPosition()));
-    vtClient->send_change_numeric_value(Var_Setpoint, static_cast<uint32_t>(implement->GetSetpoint()));
-    // XTE is signed (cm); bias by +1000 so the uint32 variable stays non-negative
-    vtClient->send_change_numeric_value(Var_XTE, static_cast<uint32_t>(guidance->GetXte() + 1000));
-    vtClient->send_change_numeric_value(Var_Offset, static_cast<uint32_t>(implement->GetOffset()));
+    const int32_t position = static_cast<int32_t>(implement->GetPosition());
+    const int32_t setpoint = static_cast<int32_t>(implement->GetSetpoint());
+    // XTE is signed (cm); bias by +1000 so the uint32 variable stays
+    // non-negative. That bias silently assumes +/-10 m, so enforce it rather
+    // than implying it: an out-of-range value used to wrap through the
+    // uint32_t cast below and render as a plausible-looking huge number.
+    // Session 6 (2026-09-05) saw exactly that -- the VT displayed
+    // 42949532.47, which decodes as (uint32)(-14049), i.e. a GetXte() of
+    // -15049 from the then-broken Ag Leader decode (GitHub issue #20).
+    // Clamping makes a bad reading peg visibly at the limit instead.
+    constexpr int32_t kXteBias      = 1000;   // cm, = 10 m
+    constexpr int32_t kXteBiasedMin = 0;      // -10 m or worse
+    constexpr int32_t kXteBiasedMax = 2000;   // +10 m or worse
+    int32_t xteBiased = static_cast<int32_t>(guidance->GetXte()) + kXteBias;
+    if (xteBiased < kXteBiasedMin) xteBiased = kXteBiasedMin;
+    if (xteBiased > kXteBiasedMax) xteBiased = kXteBiasedMax;
+    const int32_t xte = xteBiased;
+    const int32_t offset   = static_cast<int32_t>(implement->GetOffset());
+
+    // See the header's comment on these fields for why this is on-change +
+    // heartbeat rather than unconditional every-100ms.
+    const bool heartbeatDue = (millis() - lastVtVariableHeartbeat >= 1000);
+    const bool forceSend = !sentInitialVtVariables || heartbeatDue;
+
+    if (forceSend || position != lastSentPosition) {
+        vtClient->send_change_numeric_value(Var_Position, static_cast<uint32_t>(position));
+        lastSentPosition = position;
+    }
+    if (forceSend || setpoint != lastSentSetpoint) {
+        vtClient->send_change_numeric_value(Var_Setpoint, static_cast<uint32_t>(setpoint));
+        lastSentSetpoint = setpoint;
+    }
+    if (forceSend || xte != lastSentXte) {
+        vtClient->send_change_numeric_value(Var_XTE, static_cast<uint32_t>(xte));
+        lastSentXte = xte;
+    }
+    if (forceSend || offset != lastSentOffset) {
+        vtClient->send_change_numeric_value(Var_Offset, static_cast<uint32_t>(offset));
+        lastSentOffset = offset;
+    }
+
+    sentInitialVtVariables = true;
+    if (heartbeatDue) lastVtVariableHeartbeat = millis();
+}
+
+// ----------------------------------------------------------------
+// State-machine step name/index -- see the header comment and
+// Documentation/AgIsoStackVendorPatches.md. Order matches
+// isobus::VirtualTerminalClient::StateMachineState exactly (0-based);
+// keep in sync if that enum changes.
+// ----------------------------------------------------------------
+namespace {
+constexpr const char* kVtStateNames[] = {
+    "Disconnected",
+    "WaitForPartnerVTStatusMessage",
+    "SendWorkingSetMasterMessage",
+    "ReadyForObjectPool",
+    "SendGetMemory",
+    "WaitForGetMemoryResponse",
+    "SendGetNumberSoftkeys",
+    "WaitForGetNumberSoftKeysResponse",
+    "SendGetTextFontData",
+    "WaitForGetTextFontDataResponse",
+    "SendGetHardware",
+    "WaitForGetHardwareResponse",
+    "SendGetVersions",
+    "WaitForGetVersionsResponse",
+    "SendStoreVersion",
+    "WaitForStoreVersionResponse",
+    "SendLoadVersion",
+    "WaitForLoadVersionResponse",
+    "UploadObjectPool",
+    "SendEndOfObjectPool",
+    "WaitForEndOfObjectPoolResponse",
+    "Connected",
+    "Failed",
+};
+constexpr int kVtStateCount = sizeof(kVtStateNames) / sizeof(kVtStateNames[0]);
+}  // namespace
+
+int IsobusVtInterface::GetStateStep() const {
+    if (!vtClient) return 0;
+    return static_cast<int>(vtClient->get_state());
+}
+
+int IsobusVtInterface::GetStateTotalSteps() const {
+    return kVtStateCount - 1;  // Failed isn't a forward step, exclude it from "of N"
+}
+
+const char* IsobusVtInterface::GetStateName() const {
+    if (!vtClient) return "(no client)";
+    int index = static_cast<int>(vtClient->get_state());
+    if (index < 0 || index >= kVtStateCount) return "(unknown)";
+    return kVtStateNames[index];
+}
+
+const char* IsobusVtInterface::GetVtVersionName() const {
+    if (!vtClient) return "(no client)";
+    switch (vtClient->get_connected_vt_version()) {
+        case VirtualTerminalClient::VTVersion::Version2OrOlder:   return "<=2";
+        case VirtualTerminalClient::VTVersion::Version3:          return "3";
+        case VirtualTerminalClient::VTVersion::Version4:          return "4";
+        case VirtualTerminalClient::VTVersion::Version5:          return "5";
+        case VirtualTerminalClient::VTVersion::Version6:          return "6";
+        default:                                                  return "(unknown)";
+    }
+}
+
+void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parentPointer) {
+    if (parentPointer == nullptr || message.get_data_length() < 1) return;
+    if (message.get_uint8_at(0) != static_cast<std::uint8_t>(VirtualTerminalClient::Function::VTStatusMessage)) return;
+
+    IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
+    self->vtStatusMessageCount++;
+    self->lastVtStatusMessageMs = millis();
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
     if (event.keyEvent != VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased) return;
 
-    // Display/telemetry only for now -- see the class comment in
-    // IsobusVtInterface.hpp for why these don't drive ImplementPlough yet.
+    // Wider/Narrower set a consume-once pending flag, picked up by main.cpp's
+    // loop() and OR'd into InterfacePlough::CheckButtons() -- see this
+    // class's own header comment and ConsumeWiderPress()/
+    // ConsumeNarrowerPress() for the full rationale. Auto has no existing
+    // target (InterfacePlough's AUTO mode is derived, not user-settable) so
+    // stays log-only.
     switch (event.objectID) {
-        case Key_Wider:    serialDebug->println("VT: Wider pressed (not wired to control)");    break;
-        case Key_Narrower: serialDebug->println("VT: Narrower pressed (not wired to control)"); break;
-        case Key_Auto:     serialDebug->println("VT: Auto pressed (not wired to control)");     break;
+        case Key_Wider:    pendingWiderPress = true;    serialDebug->println("VT: Wider pressed");    break;
+        case Key_Narrower: pendingNarrowerPress = true; serialDebug->println("VT: Narrower pressed"); break;
+        case Key_Auto:     serialDebug->println("VT: Auto pressed (not wired to control)");           break;
         default: break;
     }
 }

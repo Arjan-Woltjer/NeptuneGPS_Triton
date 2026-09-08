@@ -23,37 +23,46 @@
 namespace triton
 {
 
-bool NmeaParser::claimsSentenceType(const char* h) {
-    if (strcmp(h, "GPGGA") == 0) { type = GGA; }
-    else if (strcmp(h, "GPVTG") == 0) { type = VTG; }
-    else if (strcmp(h, "GPXTE") == 0) { type = XTE; }
+bool NmeaParser::claimsSentenceType(const char* header) {
+    if      (strcmp(header, "GPGGA") == 0) { type = GGA; }
+    else if (strcmp(header, "GNGGA") == 0) { type = GGA; }
+    else if (strcmp(header, "GPVTG") == 0) { type = VTG; }
+    else if (strcmp(header, "GNVTG") == 0) { type = VTG; }
+    else if (strcmp(header, "GPXTE") == 0) { type = XTE; }
+    else if (strcmp(header, "GNXTE") == 0) { type = XTE; }
     else { return false; }
 
     // Reset temporaries at sentence start
-    newTime = newLat = newLon = newAlt = newSpeed = newCourse = 0;
-    newXte = 0; newQuality = 0;
+    newTime = 0;
+    newLat = 0;
+    newLon = 0;
+    newAlt = 0;
+    newSpeed = 0;
+    newCourse = 0;
+    newXte = 0;
+    newQuality = 0;
     return true;
 }
 
-void NmeaParser::parseTerm(byte n, const char* t) {
+void NmeaParser::parseTerm(byte termNumber, const char* term) {
     switch (type) {
         case GGA:
-            switch (n) {
-                case 1: newTime = atof(t); break;
-                case 2: { float f = atof(t); int d = int(f) / 100; newLat = d + (f - d * 100) / 60.0f; } break;
-                case 3: if (t[0] == 'S') newLat = -newLat; break;
-                case 4: { float f = atof(t); int d = int(f) / 100; newLon = d + (f - d * 100) / 60.0f; } break;
-                case 5: if (t[0] == 'W') newLon = -newLon; break;
-                case 6: newQuality = atoi(t); break;
-                case 9: newAlt = atof(t); break;
+            switch (termNumber) {
+                case 1: newTime = atof(term); break;
+                case 2: { float f = atof(term); int d = int(f) / 100; newLat = d + (f - d * 100) / 60.0f; } break;
+                case 3: if (term[0] == 'S') newLat = -newLat; break;
+                case 4: { float f = atof(term); int d = int(f) / 100; newLon = d + (f - d * 100) / 60.0f; } break;
+                case 5: if (term[0] == 'W') newLon = -newLon; break;
+                case 6: newQuality = atoi(term); break;
+                case 9: newAlt = atof(term); break;
             }
             break;
         case VTG:
-            if (n == 1) newCourse = atof(t);
-            if (n == 5) newSpeed = atof(t);
+            if (termNumber == 1) newCourse = atof(term);
+            if (termNumber == 5) newSpeed = atof(term);
             break;
         case XTE:
-            if (n == 3) newXte = (int)(atof(t) * 100);
+            if (termNumber == 3) newXte = (int)(atof(term) * 100);
             break;
         case NONE: break;
     }

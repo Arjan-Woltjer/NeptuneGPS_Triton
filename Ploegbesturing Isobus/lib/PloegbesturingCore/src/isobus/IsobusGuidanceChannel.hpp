@@ -31,8 +31,8 @@
 #include <Arduino.h>
 #include <AgIsoStack.hpp>
 
-#include "ImplementPlough.hpp"
-#include "GuidanceSource.hpp"
+#include "../implement/ImplementPlough.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
 namespace triton
 {
@@ -74,6 +74,30 @@ public:
         uint32_t xteJohnDeereLegacy = 0, xteTrimbleLegacy = 0;
         uint32_t allImplementStop = 0;
         unsigned long lastAllImplementStopMs = 0;
+        // Last decoded 2-bit state (0=Stop, 1=Permit, 2=Error, 3=Not available),
+        // updated on every AISO frame regardless of state -- lastAllImplementStopMs
+        // only advances on an actual Stop. 0xFF = no AISO frame seen yet.
+        uint8_t lastAllImplementStopState = 0xFF;
+
+        // Bus-diagnostic snapshot, updated unconditionally on receipt (ahead
+        // of any source-address filter or sentinel check) -- lets
+        // IsobusDebugMenu show what's actually arriving on the wire even
+        // when a handler's own filtering drops the message before it
+        // reaches GuidanceSource. 0xFF = no message with a resolvable
+        // source control function seen yet.
+        uint8_t  lastSpeedLegacySourceAddress          = 0xFF;
+        uint16_t lastSpeedLegacyRaw                    = 0;
+        uint8_t  lastXteJohnDeereLegacySourceAddress   = 0xFF;
+        uint16_t lastXteJohnDeereLegacyRawWord         = 0;  // d[4]<<8|d[3], before the -32000/>>1 decode
+        uint8_t  lastXteJohnDeereLegacyRawByte1         = 0;  // d[1], expected 0x15 for quality=4
+        // All 8 payload bytes of the last accepted PGN 65535 message. The
+        // word/byte1 fields above cover only 3 of them, which is not enough
+        // to derive Ag Leader's layout on this overloaded PGN (GitHub issue
+        // #20) -- that needs every byte, logged over time against
+        // ground-truth XTE read off the terminal.
+        uint8_t  lastXteJohnDeereLegacyPayload[8]      = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        uint32_t lastXteJohnDeereLegacyPayloadMs       = 0;
+        uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
 
         inline uint32_t Total() const {
             return positionNmea2000 + speedNmea2000 + xteNmea2000 + positionLegacy
@@ -95,6 +119,14 @@ private:
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;
 
     MessageCounters counters;
+
+    // Position/speed/XTE PGN requests are retried every kPgnRetryIntervalMs
+    // (see Update()) until each family has produced at least one message --
+    // a one-shot request at address-claim time can race a legacy GPS unit's
+    // own power-on bring-up, or simply get lost.
+    static constexpr unsigned long kPgnRetryIntervalMs = 10000UL;
+    unsigned long lastPgnRetryMs = 0;
+    void RequestGuidancePgns();
 
     // Static PGN callbacks -- void* context is always `this`.
     static void OnPositionNmea2000(const isobus::CANMessage& msg, void* context);

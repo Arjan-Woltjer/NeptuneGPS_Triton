@@ -20,7 +20,7 @@
 
 #include <Arduino.h>
 
-#include "GuidanceSource.hpp"
+#include "../guidance/GuidanceSource.hpp"
 
 namespace triton
 {

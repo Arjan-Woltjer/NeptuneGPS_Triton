@@ -163,13 +163,13 @@ void ImplementPlough::Update(byte mode, short int buttons) {
     }
 
     // Update XTE every XTE fix
-    if (guidance->GetXteFixAge() - lastXteFix > 0) {
+    if (guidance->GetXteTimestamp() - lastXteFix > 0) {
         // Update xte, rotation and setpoint
         xte = guidance->GetXte();
 
         setSetpoint();
 
-        lastXteFix = guidance->GetXteFixAge();
+        lastXteFix = guidance->GetXteTimestamp();
     }
 
     // Update analog inputs

@@ -35,11 +35,26 @@ static constexpr std::uint8_t kCanChannel = 0;
 
 static constexpr unsigned long kPeriodicIntervalMs = 1000UL;
 
+// Print an 8-byte CAN payload as 16 zero-padded hex characters, no
+// separators. Arduino's print(x, HEX) drops leading zeros, which would make
+// the field variable-width and ruin offline column alignment when deriving a
+// payload layout from a capture (GitHub issue #20) -- 0x03 must read as "03",
+// not "3", or byte boundaries shift.
+static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
+    static const char kHexDigits[] = "0123456789ABCDEF";
+    for (uint8_t i = 0; i < 8; i++) {
+        out->print(kHexDigits[(payload[i] >> 4) & 0x0F]);
+        out->print(kHexDigits[payload[i] & 0x0F]);
+    }
+}
+
 // ------------------------------------------------------------------
 // Constructor / Begin
 // ------------------------------------------------------------------
-IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance)
-    : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance) {
+IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
+                                  IsobusTcInterface* tcInterface, IsobusVtInterface* vtInterface)
+    : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance),
+      tcInterface(tcInterface), vtInterface(vtInterface) {
 }
 
 void IsobusDebugMenu::Begin() {
@@ -121,7 +136,7 @@ void IsobusDebugMenu::printFullDump() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
-    float busload = CANNetworkManager::CANNetwork().get_estimated_busload(kCanChannel);
+    float busload = CANNetworkManager::CANNetwork.get_estimated_busload(kCanChannel);
 
     serialDebug->println("=== ISOBUS STATUS ===");
 
@@ -144,11 +159,34 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print("  PGN 65267  Position legacy:   ");
     serialDebug->println(counters.positionLegacy);
     serialDebug->print("  PGN 65256  Speed legacy:      ");
-    serialDebug->println(counters.speedLegacy);
+    serialDebug->print(counters.speedLegacy);
+    serialDebug->print("   last SA=0x");
+    serialDebug->print(counters.lastSpeedLegacySourceAddress, HEX);
+    serialDebug->print(" raw=0x");
+    serialDebug->println(counters.lastSpeedLegacyRaw, HEX);
     serialDebug->print("  PGN 65535  XTE JD legacy:     ");
-    serialDebug->println(counters.xteJohnDeereLegacy);
+    serialDebug->print(counters.xteJohnDeereLegacy);
+    serialDebug->print("   last SA=0x");
+    serialDebug->print(counters.lastXteJohnDeereLegacySourceAddress, HEX);
+    serialDebug->print(" word=0x");
+    serialDebug->print(counters.lastXteJohnDeereLegacyRawWord, HEX);
+    serialDebug->print(" byte1=0x");
+    serialDebug->println(counters.lastXteJohnDeereLegacyRawByte1, HEX);
+    // All 8 bytes -- the word/byte1 fields above are the John Deere layout's
+    // fields specifically, which is exactly the assumption GitHub issue #20
+    // is trying to replace for Ag Leader. Deriving that layout needs the
+    // whole payload, so print it whole.
+    serialDebug->print("             full payload:     ");
+    GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
+    serialDebug->print("  (");
+    serialDebug->print(counters.xteJohnDeereLegacy > 0
+                           ? (millis() - counters.lastXteJohnDeereLegacyPayloadMs)
+                           : 0);
+    serialDebug->println(" ms ago)");
     serialDebug->print("  PGN 60160  XTE Trimble legacy:");
-    serialDebug->println(counters.xteTrimbleLegacy);
+    serialDebug->print(counters.xteTrimbleLegacy);
+    serialDebug->print("   last SA=0x");
+    serialDebug->println(counters.lastXteTrimbleLegacySourceAddress, HEX);
     serialDebug->print("  PGN 64770  AISO stop:         ");
     serialDebug->print(counters.allImplementStop);
     serialDebug->print("   last ");
@@ -179,7 +217,7 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(millis() - guidance->GetVtgFixAge());
     serialDebug->println(" ms");
     serialDebug->print("  XTE fix age:  ");
-    serialDebug->print(millis() - guidance->GetXteFixAge());
+    serialDebug->print(millis() - guidance->GetXteTimestamp());
     serialDebug->println(" ms");
     serialDebug->print("  Lat/Lon/Alt/Course: ");
     serialDebug->print(guidance->GetLatitude(), 6);
@@ -190,6 +228,100 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(" m / ");
     serialDebug->print(guidance->GetCourse(), 1);
     serialDebug->println(" deg");
+
+    serialDebug->println("--- Virtual Terminal ---");
+    if (vtInterface == nullptr) {
+        serialDebug->println("  (not configured)");
+    } else {
+        serialDebug->print("  Connected:    ");
+        serialDebug->println(vtInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("  State:        ");
+        serialDebug->print(vtInterface->GetStateStep());
+        serialDebug->print("/");
+        serialDebug->print(vtInterface->GetStateTotalSteps());
+        serialDebug->print("  ");
+        serialDebug->println(vtInterface->GetStateName());
+        serialDebug->print("  VT version:  ");
+        serialDebug->println(vtInterface->GetVtVersionName());
+        serialDebug->print("  VT status msgs: ");
+        serialDebug->print(vtInterface->GetVtStatusMessageCount());
+        serialDebug->print("   last ");
+        serialDebug->print(vtInterface->GetVtStatusMessageAgeMs());
+        serialDebug->println(" ms ago");
+        // Partner address/validity: the thing that silently went false in
+        // #17 and was readable nowhere at the time. If this reads valid=N
+        // while the terminal is plainly alive on screen, that is the
+        // control-function eviction, not the terminal.
+        serialDebug->print("  Partner: addr=0x");
+        serialDebug->print(vtInterface->GetPartnerAddress(), HEX);
+        serialDebug->print(" valid=");
+        serialDebug->print(vtInterface->IsPartnerAddressValid() ? "Y" : "N");
+        serialDebug->print("  reconnect attempts=");
+        serialDebug->println(vtInterface->GetReconnectAttemptCount());
+    }
+
+    serialDebug->println("--- Task Controller ---");
+    if (tcInterface == nullptr) {
+        serialDebug->println("  (not configured)");
+    } else {
+        serialDebug->print("  Connected:    ");
+        serialDebug->println(tcInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("  TC-GEO (with/without pos): ");
+        if (tcInterface->IsConnected()) {
+            serialDebug->print(tcInterface->SupportsTcGeoWithPosition() ? "Y" : "N");
+            serialDebug->print("/");
+            serialDebug->println(tcInterface->SupportsTcGeoWithoutPosition() ? "Y" : "N");
+        } else {
+            serialDebug->println("(not connected)");
+        }
+        serialDebug->print("  Task active:  ");
+        // Advisory only -- see IsobusTcInterface::IsTaskActive()'s comment.
+        serialDebug->println(tcInterface->IsTaskActive() ? "Y" : "N");
+        serialDebug->print("  DRP deviation (DDI 513): ");
+        serialDebug->print(tcInterface->GetDrpDeviationMm());
+        serialDebug->print(" mm, last ");
+        serialDebug->print(millis() - tcInterface->GetDrpTimestamp());
+        serialDebug->println(" ms ago");
+        serialDebug->print("  GNSS quality (DDI 514):  ");
+        serialDebug->print(tcInterface->GetTcGnssQuality());
+        serialDebug->print(", last ");
+        serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
+        serialDebug->println(" ms ago");
+        serialDebug->print("  Value commands (any DDI): ");
+        serialDebug->print(tcInterface->GetValueCommandCount());
+        serialDebug->print("  last DDI=");
+        if (tcInterface->GetValueCommandCount() > 0) {
+            serialDebug->print(tcInterface->GetLastValueCommandDdi());
+            serialDebug->print(" (");
+            serialDebug->print(millis() - tcInterface->GetLastValueCommandMs());
+            serialDebug->println(" ms ago)");
+        } else {
+            serialDebug->println("(none)");
+        }
+        serialDebug->print("  Value requests (any DDI): ");
+        serialDebug->println(tcInterface->GetValueRequestCount());
+        // Partner address/validity: the thing that silently went false in
+        // both #17 and #19 and was readable nowhere at the time.
+        serialDebug->print("  Partner: addr=0x");
+        serialDebug->print(tcInterface->GetPartnerAddress(), HEX);
+        serialDebug->print(" valid=");
+        serialDebug->print(tcInterface->IsPartnerAddressValid() ? "Y" : "N");
+        serialDebug->print("  reconnect attempts=");
+        serialDebug->println(tcInterface->GetReconnectAttemptCount());
+        // Tramline Control probe (GitHub issue #21) -- the arrival is the
+        // result, not the value; see IsobusTcInterface::HasTramlineSetpoint().
+        serialDebug->print("  Tramline setpoint (DDI 506): ");
+        if (tcInterface->HasTramlineSetpoint()) {
+            serialDebug->print(tcInterface->GetTramlineSetpointLevel());
+            serialDebug->print("  -> terminal DOES implement Tramline Control (");
+            serialDebug->print(millis() - tcInterface->GetTramlineSetpointMs());
+            serialDebug->println(" ms ago)");
+        } else if (tcInterface->IsConnected()) {
+            serialDebug->println("(none yet -- no Tramline Control seen on this terminal)");
+        } else {
+            serialDebug->println("(not connected)");
+        }
+    }
 }
 
 // ------------------------------------------------------------------
@@ -199,7 +331,7 @@ void IsobusDebugMenu::printPeriodicLine() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
-    float busload = CANNetworkManager::CANNetwork().get_estimated_busload(kCanChannel);
+    float busload = CANNetworkManager::CANNetwork.get_estimated_busload(kCanChannel);
     unsigned long now = millis();
 
     serialDebug->print("[ISOBUS] addr=0x");
@@ -225,7 +357,46 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->print(" vtgAge=");
     serialDebug->print(now - guidance->GetVtgFixAge());
     serialDebug->print(" xteAge=");
-    serialDebug->println(now - guidance->GetXteFixAge());
+    serialDebug->print(now - guidance->GetXteTimestamp());
+
+    // Raw PGN 65535 payload, on the periodic line specifically so a serial
+    // capture is time-correlated: deriving Ag Leader's layout (GitHub issue
+    // #20) means matching these bytes against XTE values an operator reads
+    // aloud off the terminal, which only works if each sample carries the
+    // same timestamp as everything else on the line. Sampled at the periodic
+    // rate rather than per message -- the underlying PGN arrives ~10 Hz, but
+    // real XTE moves on the scale of seconds, so 1 Hz is ample and keeps the
+    // log readable. Source address is included because the whole point is
+    // that this PGN is shared between vendors with different layouts.
+    if (counters.xteJohnDeereLegacy > 0) {
+        serialDebug->print(" xteraw=");
+        serialDebug->print(counters.lastXteJohnDeereLegacySourceAddress, HEX);
+        serialDebug->print(":");
+        GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
+    }
+
+    if (vtInterface != nullptr) {
+        serialDebug->print(" vt=");
+        serialDebug->print(vtInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print("(");
+        serialDebug->print(vtInterface->GetStateStep());
+        serialDebug->print("/");
+        serialDebug->print(vtInterface->GetStateTotalSteps());
+        serialDebug->print(") vtstat=");
+        serialDebug->print(vtInterface->GetVtStatusMessageCount());
+        serialDebug->print("/");
+        serialDebug->print(vtInterface->GetVtStatusMessageAgeMs());
+        serialDebug->print("ms");
+    }
+    if (tcInterface != nullptr) {
+        serialDebug->print(" tc=");
+        serialDebug->print(tcInterface->IsConnected() ? "Y" : "N");
+        serialDebug->print(" drp=");
+        serialDebug->print(tcInterface->GetDrpDeviationMm());
+        serialDebug->print("mm tcq=");
+        serialDebug->print(tcInterface->GetTcGnssQuality());
+    }
+    serialDebug->println();
 }
 
 }  // namespace triton

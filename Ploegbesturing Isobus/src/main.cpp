@@ -19,20 +19,21 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#include "CalibrationPlough.hpp"
-#include "GuidanceSource.hpp"
-#include "ImplementPlough.hpp"
+#include "calibration/CalibrationPlough.hpp"
+#include "guidance/GuidanceSource.hpp"
+#include "implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
-#include "LanguagePlough.hpp"
+#include "config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 
 #ifdef ISOBUS
-#include "IsobusDebugMenu.hpp"
-#include "IsobusGuidanceChannel.hpp"
-#include "IsobusVtInterface.hpp"
+#include "isobus/IsobusDebugMenu.hpp"
+#include "isobus/IsobusGuidanceChannel.hpp"
+#include "isobus/IsobusVtInterface.hpp"
+#include "isobus/IsobusTcInterface.hpp"
 #else
-#include "SerialGuidanceChannel.hpp"
+#include "serial/SerialGuidanceChannel.hpp"
 #endif
 
 // Serial ports
@@ -50,14 +51,15 @@ TwoWire* gLcdWire = &Wire;
 // Global objects
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
+triton::GuidanceSource*    gGuidance;
 triton::VehicleTractor*    gTractor;
 triton::ImplementPlough*   gImplement;
 triton::InterfacePlough*   gInterface;
 triton::CalibrationPlough* gCalibration;
-triton::GuidanceSource*    gGuidance;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusVtInterface*     gVtInterface;
+triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
@@ -94,12 +96,24 @@ void setup() {
 
     gLcd->WriteScreen(-1);
 
-    // gGuidance and gImplement have no CAN/AgIsoStack dependency, so they're
+    // gGuidance, gTractor and gImplement have no CAN/AgIsoStack dependency, so they're
     // constructed first -- gGuidanceChannel needs both already built (the
     // ISOBUS one feeds gGuidance from its PGN callbacks and calls
     // gImplement->Stop() on AISO).
     gGuidance = new triton::GuidanceSource(gSerialDebug);
+    gTractor = new triton::VehicleTractor(gSerialDebug);
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
+
+    gGuidance->PrintCalibrationData();
+    gTractor->PrintCalibrationData();
+    gImplement->PrintCalibrationData();
+    
+    // Initialise interfaces
+    gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
+    gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
+
+    gGuidance->PrintCalibrationData();
+    gImplement->PrintCalibrationData();
 
 #ifdef ISOBUS
     // Board-specific CAN wiring: besturing 0.1's CAN transceiver is bodge-wired
@@ -117,7 +131,14 @@ void setup() {
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
 
-    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance);
+    // Constructed after gVtInterface->Begin() so the VT's partner exists --
+    // the TC client uses it for language/unit data on TC servers older than
+    // version 4. See IsobusTcInterface's constructor comment.
+    gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction(),
+                                                  gVtInterface->GetPartner());
+    gTcInterface->Begin();
+
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface);
     gDebugMenu->Begin();
 #else
     // 4800 baud is the common NMEA default. No baudrate calibration/UI
@@ -128,15 +149,6 @@ void setup() {
     gSerialGps->begin(4800);
     gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
 #endif
-
-    // Initialise objects and interfaces
-    gTractor = new triton::VehicleTractor(gSerialDebug);
-    gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
-    gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
-
-    gTractor->PrintCalibrationData();
-    gGuidance->PrintCalibrationData();
-    gImplement->PrintCalibrationData();
 
     // Delay for splashscreen
     delay(2000);
@@ -154,11 +166,17 @@ void loop() {
     gGuidanceChannel->Update();
 #ifdef ISOBUS
     gVtInterface->Update();
+    gTcInterface->Update();
     gDebugMenu->Update();
-#endif
 
+    // Update interface -- VT Wider/Narrower soft-key presses OR straight
+    // into InterfacePlough's existing button arbitration, see
+    // IsobusVtInterface.hpp/InterfacePlough.cpp for the full rationale.
+    gInterface->Update(gVtInterface->ConsumeWiderPress(), gVtInterface->ConsumeNarrowerPress());
+#else
     // Update interface
     gInterface->Update();
+#endif
 
     // Both buttons held -> enter the calibration wizard (blocking until it
     // finishes/is cancelled). See CalibrationPlough.hpp for why this trigger

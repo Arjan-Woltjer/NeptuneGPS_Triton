@@ -18,9 +18,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "CanSerialParser.hpp"
-#include "NmeaParser.hpp"
-#include "TrimbleParser.hpp"
+#include "serial/CanSerialParser.hpp"
+#include "serial/NmeaParser.hpp"
+#include "serial/TrimbleParser.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -37,7 +37,7 @@ static bool near(float a, float b, float eps = 1e-4f) {
 
 // $GPGGA,151503.00,5326.480207,N,00645.193203,E,2,09,1.0,44.05,M,0.00,M,,*67
 test(NmeaParser, gga_lat_lon_quality_alt) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     NmeaParser p;
     assertTrue(p.claimsSentenceType("GPGGA"));
     p.parseTerm(1, "151503.00");
@@ -56,7 +56,7 @@ test(NmeaParser, gga_lat_lon_quality_alt) {
 
 // $GPVTG,213.4,T,,M,002.91,N,005.39,K*61
 test(NmeaParser, vtg_course_speed) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     NmeaParser p;
     assertTrue(p.claimsSentenceType("GPVTG"));
     p.parseTerm(1, "213.4");
@@ -68,7 +68,7 @@ test(NmeaParser, vtg_course_speed) {
 
 // $GPXTE,A,A,0.159523,L,N*67
 test(NmeaParser, xte) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     NmeaParser p;
     assertTrue(p.claimsSentenceType("GPXTE"));
     p.parseTerm(3, "0.159523");
@@ -102,7 +102,7 @@ test(TrimbleParser, claims_only_roxte) {
 
 // ROXTE,0.050 -- xte = 5 cm
 test(TrimbleParser, xte_positive) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     TrimbleParser p;
     p.claimsSentenceType("ROXTE");
     p.parseTerm(1, "0.050");
@@ -112,7 +112,7 @@ test(TrimbleParser, xte_positive) {
 
 // ROXTE,-0.120 -- xte = -12 cm
 test(TrimbleParser, xte_negative) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     TrimbleParser p;
     p.claimsSentenceType("ROXTE");
     p.parseTerm(1, "-0.120");
@@ -122,7 +122,7 @@ test(TrimbleParser, xte_negative) {
 
 // ROXTE,0.000 -- xte = 0 cm
 test(TrimbleParser, xte_zero) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     TrimbleParser p;
     p.claimsSentenceType("ROXTE");
     p.parseTerm(1, "0.000");
@@ -136,7 +136,7 @@ test(TrimbleParser, xte_zero) {
 
 // $0CFEF31C,00072A9C80652680*52  lat=52.0degN  lon=5.0degE
 test(CanSerialParser, pos_lat_lon) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     CanSerialParser p;
     assertTrue(p.claimsSentenceType("0CFEF31C"));
     p.parseTerm(1, "00072A9C80652680");
@@ -147,7 +147,7 @@ test(CanSerialParser, pos_lat_lon) {
 
 // $0CFEE81C,002D00020000804F*5D  course=90.0  speed=2.0 kt  alt=44.0 m
 test(CanSerialParser, spd_course_speed_alt) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     CanSerialParser p;
     assertTrue(p.claimsSentenceType("0CFEE81C"));
     p.parseTerm(1, "002D00020000804F");
@@ -159,7 +159,7 @@ test(CanSerialParser, spd_course_speed_alt) {
 
 // $0CFFFF2A,001000007D000000*5E  xte=0  quality=4
 test(CanSerialParser, xte_and_quality) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     CanSerialParser p;
     assertTrue(p.claimsSentenceType("0CFFFF2A"));
     p.parseTerm(1, "001000007D000000");
@@ -177,7 +177,7 @@ test(CanSerialParser, rejects_unknown_header) {
 
 // Also accepts alternate CAN IDs for the same message type
 test(CanSerialParser, pos_alternate_id) {
-    GuidanceSource state;
+    GuidanceSource state(nullptr);
     CanSerialParser p;
     assertTrue(p.claimsSentenceType("18FEF31C"));  // CAN_POS_ID2
     p.parseTerm(1, "00072A9C80652680");

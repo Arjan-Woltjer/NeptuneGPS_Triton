@@ -1,0 +1,70 @@
+Session 6, 2026-09-05, Ag Leader InCommand 1200 ALONE on the bus (New
+Holland's own VT powered down). Firmware: isobus-tc-client @ 935de81.
+
+THE CLEANEST RESULT OF THE PROJECT SO FAR:
+  - VT connects and holds (the #17 fix, confirmed against the very terminal
+    that surfaced the bug in Session 5).
+  - **The Task Controller connects for the first time ever** -- "DDOP
+    Activated without error", tc=Y. Sessions 3, 4 and 5 never got past tc=N.
+    This settles #19: it was the same control-function eviction bug, exactly
+    as the off-tractor analysis in commit 935de81 predicted, not a TC-GEO
+    licensing gate and not a gap in IsobusTcInterface's discovery.
+  - Operator confirmed the InCommand 1200 mirrored Ploegbesturing's own
+    screen content -- the real working set, not just the app-switcher icon.
+
+Preceded by ~70s of a completely silent bus (busload 0.0%, msgs=0,
+vt=N(0/22) with no handshake progress at all) while no terminal was powered
+-- a useful negative control: with no VT on the bus, the client sits in
+Disconnected and does nothing, exactly as it should.
+
+Timestamps are seconds since the logging script attached to COM4; the board
+was rebooted at ~t=543 (banner below), so board-relative time is roughly
+t - 547.
+
+[ 543.696] --- connected ---
+[ 547.019] --------------------------------
+[ 547.019] -----------MeijWorks------------
+[ 547.019] --------------------------------
+[ 547.019] Ploughcontrol ISOBUS version 0.1
+[ 547.019] (c) 2011 - 2026 by J.A. Woltjer
+[ 547.019] --------------------------------
+[ 548.665] IsobusGuidanceChannel: claiming address address claimed: 0x81
+[ 549.674] IsobusDebugMenu: send any character to open the status menu.
+
+--- negative control: no terminal powered, bus silent, nothing happens ---
+[ 551.806] [ISOBUS] addr=0x81 claimed=Y load=0.2% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=7426 vtgAge=7426 xteAge=7426 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[ 580.029] [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=36426 vtgAge=36426 xteAge=36426 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[ 610.297] [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=66426 vtgAge=66426 xteAge=66426 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[ 620.394] [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=76426 vtgAge=76426 xteAge=76426 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+
+--- InCommand 1200 powered on ---
+[ 621.814] I] [NM]: Partnered control function with name 000000000000000lx has claimed address 203452081 on channel 2684387840.
+[ 621.814] I] [NM]: Partnered control function with name 000000000000000lx has claimed address 203452081 on channel 2147491072.
+[ 622.814] [ISOBUS] addr=0x81 claimed=Y load=5.1% msgs=29 aiso=0(0ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=75 vtgAge=74 xteAge=74 vt=N(1/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[ 622.814] I] [VT]: VT Server has a matching label for MW03   . It will be loaded and upload will be skipped.
+[ 622.814] I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+[ 622.850] [ISOBUS] addr=0x81 claimed=Y load=13.2% msgs=62 aiso=1(79426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=74 vtgAge=74 xteAge=73 vt=Y(21/22) vtstat=2/773ms tc=N drp=0mm tcq=0
+   ^^ VT connected ~1s after the terminal appeared.
+
+--- Task Controller comes up: FIRST TIME IN THE PROJECT'S HISTORY ---
+[ 623.813] W] [TC]: The TC is < version 4 but no VT was provided. Language data will be requested globally, which might not be ideal.
+[ 623.813] I] [TC]: DDOP will be generated using the server's version instead of the specified version. New version: 3
+[ 623.813] I] [TC]: DDOP Activated without error.
+[ 624.819] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=93 aiso=2(80426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=74 vtgAge=74 xteAge=73 vt=Y(21/22) vtstat=3/964ms tc=Y drp=0mm tcq=0
+[ 625.819] [ISOBUS] addr=0x81 claimed=Y load=14.0% msgs=155 aiso=4(82426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=75 vtgAge=74 xteAge=74 vt=Y(21/22) vtstat=5/973ms tc=Y drp=0mm tcq=0
+[ 627.825] [ISOBUS] addr=0x81 claimed=Y load=14.0% msgs=217 aiso=6(84426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=74 vtgAge=74 xteAge=73 vt=Y(21/22) vtstat=7/975ms tc=Y drp=0mm tcq=0
+[ 630.845] [ISOBUS] addr=0x81 claimed=Y load=16.3% msgs=310 aiso=9(87426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=74 vtgAge=74 xteAge=73 vt=Y(21/22) vtstat=10/975ms tc=Y drp=0mm tcq=0
+[ 633.870] [ISOBUS] addr=0x81 claimed=Y load=19.8% msgs=403 aiso=12(90426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=66 vtgAge=65 xteAge=65 vt=Y(21/22) vtstat=13/975ms tc=Y drp=0mm tcq=0
+[ 636.902] [ISOBUS] addr=0x81 claimed=Y load=20.8% msgs=496 aiso=15(93426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=75 vtgAge=75 xteAge=74 vt=Y(21/22) vtstat=16/973ms tc=Y drp=0mm tcq=0
+[ 639.937] [ISOBUS] addr=0x81 claimed=Y load=20.4% msgs=589 aiso=18(96426ms) xte=-139.53m spd=0.00m/s q=0 ggaAge=74 vtgAge=73 xteAge=73 vt=Y(21/22) vtstat=19/975ms tc=Y drp=0mm tcq=0
+
+   ^^ vt=Y AND tc=Y held together, vtstat climbing steadily, until New
+      Holland's VT was powered back on at ~t=640 -- which broke both
+      within seconds. See 2026-09-05_session6_run3_dual-vt-churn.log.
+
+STILL OPEN: drp=0mm / tcq=0 the whole time. The TC connects and activates
+its DDOP, but DDI 513/514 never arrive, so actual TC-GEO data exchange
+remains unproven -- Session 3's original question is untouched by this
+result. Also note the "TC is < version 4 but no VT was provided" warning:
+worth checking whether IsobusTcInterface should be handed the VT client
+instance.

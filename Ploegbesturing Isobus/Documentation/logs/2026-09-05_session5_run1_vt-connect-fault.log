@@ -1,0 +1,78 @@
+Session 5, 2026-09-05, Ag Leader InCommand 1200 (New Holland tractor).
+Run 1 -- first confirmed correlation between a live power-cycle and the VT
+fault. Predates the vtstat= counter (added after this run, see run 2/run 3).
+Two boot sequences visible: an early one is leftover serial-menu state from
+before the actual power cycle; the real boot starts at t=14.598 after the
+port drops and reconnects (~t=3.7 to ~t=11.3).
+
+Timestamps are seconds since the logging script attached to COM4, not since
+board reset.
+
+[   0.000] --- connected ---
+[   0.305] W] [PR]: NACK-ing PGN request for PGN 60928 because no callback could handle it.
+[   0.305] Invalid choice.
+[   0.305] === ISOBUS DEBUG MENU ===
+[   0.305] 1. Full status dump
+[   0.305] 2. Periodic summary line (ON - press to toggle)
+[   0.305] 3. Reset message counters
+[   0.305] q. Exit
+[   1.310] Periodic summary line: OFF
+[   1.310] === ISOBUS DEBUG MENU ===
+[   1.310] 1. Full status dump
+[   1.310] 2. Periodic summary line (OFF - press to toggle)
+[   1.310] 3. Reset message counters
+[   1.310] q. Exit
+[   1.310] Exiting.
+[   2.324] W] [PR]: NACK-ing PGN request for PGN 60928 because no callback could handle it.
+[   3.748] --- disconnected (ClearCommError failed (PermissionError(13, 'Het apparaat herkent de opdracht niet.', None, 22))) ---
+[   4.264] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   4.765] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   5.265] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   5.766] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   6.267] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   6.768] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   7.268] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   7.769] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   8.269] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   8.770] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   9.270] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[   9.771] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[  10.272] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[  10.773] --- disconnected (could not open port 'COM4': FileNotFoundError(2, 'Het systeem kan het opgegeven bestand niet vinden.', None, 2)) ---
+[  11.274] --- connected ---
+[  14.598] --------------------------------
+[  14.598] -----------MeijWorks------------
+[  14.598] --------------------------------
+[  14.598] Ploughcontrol ISOBUS version 0.1
+[  14.598] (c) 2011 - 2026 by J.A. Woltjer
+[  14.598] --------------------------------
+[  15.958] IsobusGuidanceChannel: claiming address address claimed: 0x81
+[  16.963] IsobusDebugMenu: send any character to open the status menu.
+[  18.103] === ISOBUS DEBUG MENU ===
+[  18.103] 1. Full status dump
+[  18.103] 2. Periodic summary line (OFF - press to toggle)
+[  18.103] 3. Reset message counters
+[  18.103] q. Exit
+[  18.103] Periodic summary line: ON
+[  18.103] === ISOBUS DEBUG MENU ===
+[  18.103] 1. Full status dump
+[  19.103] 2. Periodic summary line (ON - press to toggle)
+[  19.103] 3. Reset message counters
+[  19.103] q. Exit
+[  19.103] Exiting.
+[  19.103] [ISOBUS] addr=0x81 claimed=Y load=12.3% msgs=1 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=0 vtgAge=7426 xteAge=7426 vt=N(1/22) tc=N drp=0mm tcq=0
+[  20.103] [ISOBUS] addr=0x81 claimed=Y load=18.6% msgs=38 aiso=1(8426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46 vtgAge=46 xteAge=8426 vt=Y(21/22) tc=N drp=0mm tcq=0
+[  21.102] [ISOBUS] addr=0x81 claimed=Y load=17.8% msgs=69 aiso=2(9426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46 vtgAge=46 xteAge=9426 vt=Y(21/22) tc=N drp=0mm tcq=0
+[  21.102] W] [PR]: NACK-ing PGN request for PGN 64965 because no callback could handle it.
+[  22.104] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=100 aiso=3(10426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46 vtgAge=46 xteAge=10426 vt=Y(21/22) tc=N drp=0mm tcq=0
+[  22.104] W] [PR]: NACK-ing PGN request for PGN 64965 because no callback could handle it.
+[  22.104] W] [PR]: NACK-ing PGN request for PGN 60928 because no callback could handle it.
+[  23.105] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=131 aiso=4(11426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46 vtgAge=46 xteAge=11426 vt=Y(21/22) tc=N drp=0mm tcq=0
+[  23.105] W] [PR]: NACK-ing PGN request for PGN 64965 because no callback could handle it.
+[  23.105] E] [VT]: Status Timeout
+[  23.165] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=162 aiso=5(12426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=47 vtgAge=46 xteAge=12426 vt=N(0/22) tc=N drp=0mm tcq=0
+[  23.165] W] [PR]: NACK-ing PGN request for PGN 60928 because no callback could handle it.
+[  24.175] W] [PR]: NACK-ing PGN request for PGN 64965 because no callback could handle it.
+[  24.175] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=193 aiso=6(13426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46 vtgAge=46 xteAge=13426 vt=N(0/22) tc=N drp=0mm tcq=0
+[  24.175] W] [PR]: NACK-ing PGN request for PGN 64965 because no callback could handle it.
+[  25.161] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=224 aiso=7(14426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46 vtgAge=46 xteAge=14426 vt=N(0/22) tc=N drp=0mm tcq=0

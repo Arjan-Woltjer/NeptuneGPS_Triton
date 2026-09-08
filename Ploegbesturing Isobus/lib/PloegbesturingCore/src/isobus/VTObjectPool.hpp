@@ -61,6 +61,14 @@ enum PloughVtObjectId : uint16_t {
     Var_Setpoint = 20,
     Var_XTE      = 21,  // stored as (xte_cm + 1000); OutputNumber subtracts 1000 and scales to m
     Var_Offset   = 22,
+
+    // App-switcher icon -- see VTObjectPool.cpp's appendPictureGraphic() call
+    // site. Declared as the WorkingSet's sole child object reference, the
+    // same pattern AgIsoStack's own reference pool uses for its "avatar"
+    // icon (confirmed by decoding that pool's WorkingSet bytes by hand,
+    // 2026-08-10) -- this is what a VT's implement/app-switcher list reads
+    // to show something other than a blank/generic entry for Triton.
+    Icon_Plough = 23,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.

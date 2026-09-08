@@ -1,0 +1,52 @@
+Session 5, 2026-09-05, Ag Leader InCommand 1200 (New Holland tractor).
+Run 3 -- isolation test. IsobusVtInterface::Update()'s call to
+updateVtVariables() was fully disabled (#if 0'd around it, reverted
+immediately after this run -- see git history/HardwareTestNotes.md, not
+left in the shipped code) to test whether our own post-connect
+send_change_numeric_value() burst is what makes the VT stop sending its
+status broadcast. Result: identical failure signature to run 2 -- exactly 4
+status messages, then silence, then Status Timeout at almost exactly the
+same elapsed time. This rules out our own outbound VT traffic as the cause.
+
+Timestamps are seconds since the logging script attached to COM4; the
+firmware flash that produced this run reset the board, so t=0 is close to
+actual board reset this time.
+
+[   0.000] --- connected ---
+[   1.808] IsobusGuidanceChannel: claiming address address claimed: 0x81
+[   2.815] IsobusDebugMenu: send any character to open the status menu.
+[   3.949] === ISOBUS DEBUG MENU ===
+[   3.949] 1. Full status dump
+[   3.949] 2. Periodic summary line (OFF - press to toggle)
+[   3.949] 3. Reset message counters
+[   3.949] q. Exit
+[   3.949] Periodic summary line: ON
+[   3.949] === ISOBUS DEBUG MENU ===
+[   3.949] 1. Full status dump
+[   4.947] 2. Periodic summary line (ON - press to toggle)
+[   4.947] 3. Reset message counters
+[   4.947] q. Exit
+[   4.947] Exiting.
+[   4.947] [ISOBUS] addr=0x81 claimed=Y load=13.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=9426 vtgAge=9426 xteAge=9426 vt=N(1/22) vtstat=0/0ms tc=N drp=0mm tcq=0
+[   5.947] [ISOBUS] addr=0x81 claimed=Y load=18.2% msgs=36 aiso=1(10426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=10426 vt=Y(21/22) vtstat=2/342ms tc=N drp=0mm tcq=0
+[   6.952] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=67 aiso=2(11426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=62 xteAge=11426 vt=Y(21/22) vtstat=4/342ms tc=N drp=0mm tcq=0
+[   6.954] W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+[   7.694] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=98 aiso=3(12426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=63 vtgAge=61 xteAge=12426 vt=Y(21/22) vtstat=4/1342ms tc=N drp=0mm tcq=0
+[   7.694] W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+[   8.611] W] [PR]: NACK-ing PGN request for PGN 60928 because no callback could handle it.
+[   8.611] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=129 aiso=4(13426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=62 vtgAge=61 xteAge=13426 vt=Y(21/22) vtstat=4/2342ms tc=N drp=0mm tcq=0
+[   8.946] E] [VT]: Status Timeout
+[   8.946] W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+[   9.946] [ISOBUS] addr=0x81 claimed=Y load=16.8% msgs=160 aiso=5(14426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=14426 vt=N(0/22) vtstat=4/3342ms tc=N drp=0mm tcq=0
+[  10.947] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=191 aiso=6(15426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=62 vtgAge=60 xteAge=15426 vt=N(0/22) vtstat=4/4342ms tc=N drp=0mm tcq=0
+[  11.952] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=222 aiso=7(16426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=62 xteAge=16426 vt=N(0/22) vtstat=4/5342ms tc=N drp=0mm tcq=0
+[  12.953] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=253 aiso=8(17426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=17426 vt=N(0/22) vtstat=4/6342ms tc=N drp=0mm tcq=0
+[  13.950] [ISOBUS] addr=0x81 claimed=Y load=16.9% msgs=284 aiso=9(18426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=18426 vt=N(0/22) vtstat=4/7342ms tc=N drp=0mm tcq=0
+[  14.958] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=315 aiso=10(19426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=63 vtgAge=61 xteAge=19426 vt=N(0/22) vtstat=4/8342ms tc=N drp=0mm tcq=0
+[  15.971] [ISOBUS] addr=0x81 claimed=Y load=17.4% msgs=377 aiso=12(21426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=21426 vt=N(0/22) vtstat=4/10342ms tc=N drp=0mm tcq=0
+[  17.975] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=439 aiso=14(23426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=63 xteAge=23426 vt=N(0/22) vtstat=4/12342ms tc=N drp=0mm tcq=0
+[  19.987] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=501 aiso=16(25426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=63 xteAge=25426 vt=N(0/22) vtstat=4/14342ms tc=N drp=0mm tcq=0
+[  22.020] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=563 aiso=18(27426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=27426 vt=N(0/22) vtstat=4/16342ms tc=N drp=0mm tcq=0
+[  24.029] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=625 aiso=20(29426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=63 xteAge=29426 vt=N(0/22) vtstat=4/18342ms tc=N drp=0mm tcq=0
+[  26.032] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=687 aiso=22(31426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=63 vtgAge=61 xteAge=31426 vt=N(0/22) vtstat=4/20342ms tc=N drp=0mm tcq=0
+[  28.053] [ISOBUS] addr=0x81 claimed=Y load=17.3% msgs=749 aiso=24(33426ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64 vtgAge=61 xteAge=33426 vt=N(0/22) vtstat=4/22342ms tc=N drp=0mm tcq=0
