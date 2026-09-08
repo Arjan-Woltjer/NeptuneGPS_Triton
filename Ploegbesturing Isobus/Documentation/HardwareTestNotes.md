@@ -971,6 +971,183 @@ not appear in the repo diff. No Triton-side source changed.
   roll-call produces no NACK, so NACK count is not a proxy for roll-call
   activity. Prune activity is.
 
+
+## Session 7 -- 2026-09-08 (Ag Leader InCommand 1200) -- DDI 505/506 handshake probe
+
+**Question:** does the InCommand 1200 implement AEF Tramline Control at all? If
+it does, DDI 513/514 are reachable and #21 is a DDOP build-out problem. If it
+does not, no DDOP work will ever produce them from this terminal.
+
+Run on branch `spike/21-ddi-505-506-handshake`, off `isobus-tc-client` at
+6403897. Both vendor patches #3/#4 (plus #5) confirmed present in
+`.pio/libdeps/teensy41_isobus` before flashing.
+
+### Result: no DDI 506 reply, under either declaration
+
+Two runs, differing only in the DDI 505 value and the structure label:
+
+| Run | DDI 505 declared | Structure label | Uptime observed | DDI 506 | Value cmds | Value reqs |
+|-----|------------------|-----------------|-----------------|---------|------------|------------|
+| 1   | `0` (no level)   | TC03            | 16 min 11 s     | none    | 0          | 0          |
+| 2   | `0x01` (Level 1) | TC04            | 6 min 17 s      | none    | 0          | 0          |
+
+Run 2 exists specifically to close the ambiguity the probe's own comment
+called out: a TC that short-circuits the handshake for a zero-capability
+implement produces the same silence as one with no Tramline Control at all.
+Declaring Level 1 removes that escape. The label bump to TC04 was required --
+without it the terminal serves run 1's cached pool and the re-run proves
+nothing. Both runs logged `[TC]: DDOP Activated without error`, so the pool
+including DDI 505/506 was accepted each time.
+
+Throughout both runs the TC reported `Connected: Y`, `Task active: Y`, and
+`TC-GEO (with position): Y`, with `reconnect attempts=0` on both the VT
+(`0x26`) and TC (`0xF7`) partners.
+
+**Reading:** on this evidence the InCommand 1200 very likely does not implement
+Tramline Control, and DDI 513/514 will not arrive from it regardless of how the
+DDOP is built out. That makes #21's remaining DDOP-structure theories
+(device-element shape, server-version-3 downgrade, DRP/offset declaration)
+unlikely to be the operative cause *on this terminal*.
+
+### The confound that must be closed before this is final
+
+**Zero Value *Requests*, not just zero Value Commands.** A TC with a genuinely
+active task that has our device elements mapped into it would normally at least
+*request* our declared DPD values. Seeing zero in both directions is equally
+consistent with our implement never having been added to the running task on
+the terminal's own setup screen -- in which case both runs measured nothing at
+all, and the negative above is not attributable to Tramline Control support.
+
+`Task active: Y` does not settle this: AgIsoStack's own docs warn the flag is
+unreliable per-brand (John Deere reports "always in task"), and it is advisory
+only. Before treating the Tramline conclusion as established, confirm on the
+InCommand itself that the Ploegbesturing implement appears in the implement
+list and is attached to the running task with an AB line set. This is the same
+trap as Session 5's `vtstat` counter and Session 6's single XTE reading --
+do not promote this to a settled finding on one unverified precondition.
+
+### VT soft keys -- verified on real hardware for the first time
+
+Independent of the TC work, and previously untested since being wired up
+2026-08-18: all three soft keys were pressed on the terminal and all three
+arrived. BREDER x5 (`VT: Wider pressed`), SMALLER x3 (`VT: Narrower pressed`),
+AUTO x2 (`VT: Auto pressed (not wired to control)`). AUTO's message is the
+intended behaviour, not a fault -- `InterfacePlough`'s AUTO mode is derived,
+not user-settable. Note there are no left/right soft keys in the pool at all;
+only these three exist.
+
+### Also observed
+
+- Connection stability continues to hold: run 1 ran 16+ minutes across a host
+  PC sleep/resume with zero reconnect attempts on either partner. The `[NM]`
+  offline/online churn in the logs is confined to a non-partnered CF at address
+  205, which is exactly what vendor patch #4 is supposed to permit.
+- PGN 65535 from SA `0x80` still streams (`510301FF0B0009FF` and neighbours),
+  still with `xte=0.00m` and `q=0` -- #20 unchanged, as expected, nothing was
+  done about it today.
+
+### CANedge full-bus capture -- the raw data #20 has been waiting for
+
+A full CAN log was recorded with the CANedge logger across this session, with
+**ground truth called out live, in this order: 71 cm, then 1 cm, then 0 cm,
+then 99 cm on the other side of the line, then back to 0 cm, then 52 cm on that
+same far side again.** Six points, three zero crossings, both sides of the line
+represented, and two distinct magnitudes (99, 52) on the far side rather than
+one.
+
+That descending sequence is the important part, and it is exactly what #20
+needs. Session 6's mistake was deriving a confident "100x scale error" from a
+single static reading that matched to within 0.5% -- three further readings
+then showed the field was frozen and the match was coincidence. A capture
+containing *changes* of known size and direction cannot be satisfied by a
+frozen field, so it can distinguish a scale error, a byte-offset error and a
+dead decode from one another, which no single static point can.
+
+The spread is particularly useful because it spans two orders of magnitude: a
+candidate byte pair must track all four values, which kills most wrong-offset
+hypotheses outright rather than leaving them merely unlikely.
+
+**And the sequence crosses the line three times.** 71 -> 1 -> 0 approaches zero
+from one side, 99 cm is on the other, the return to 0 crosses back, and 52 cm
+goes out to the far side a second time. A decode can fake a single sign flip
+through an unrelated bit that happened to toggle once; reproducing three
+crossings in the right order, with two different far-side magnitudes, is not
+something a wrong hypothesis does by accident. The two far-side values also
+guard against a decode that merely saturates or latches when the sign flips --
+it has to render 99 and 52 distinctly, not just "far".
+
+The capture ends with the plough control being disconnected, which is a clean
+end marker on the bus: our control function drops off, and everything after
+that point is other traffic.
+
+The crossings are what the sign convention has
+been missing since session 6, when the operator's left/right calls were
+corrected mid-sequence and the recorded magnitudes (144, 8, 118, 14 cm) were
+left reliable but unsigned. Here the ordering itself carries the sign: whatever
+field encodes XTE must be large, shrink through 1 to 0, then grow again to
+roughly 99 with the opposite sign (or with a separate side/direction flag
+flipping). A decode that reproduces the magnitudes but not that flip is wrong,
+and one that reproduces both is almost certainly right. Session 6's open
+"sign convention remains unverified" item should be closeable from this log
+alone.
+
+Pair this against PGN 65535 frames from SA `0x80`. The payloads logged on the
+serial side during session 7 sat around `510301FF0B0009FF` / `510302FF10000DFF`
+while our decode reported `xte=0.00m` and `q=0` throughout, so whatever carries
+71 cm is in bytes we are currently misreading.
+
+Note the two clocks are independent: the CANedge log and the serial logs above
+have no shared timebase, so the called-out markers have to be located within
+the CANedge capture on its own terms rather than by correlating timestamps.
+
+**Better still, the sign convention is probably distillable from the log
+itself.** The 71 / 1 / 0 figures are what the terminal displayed, which means
+the terminal was transmitting that quantity on the bus the whole time -- so the
+capture should contain a *continuous* ground-truth series, not just three
+hand-called points. Two things follow. First, find the frames whose decoded
+value passes through 71, 1 and 0 in that order: those three points are enough to
+identify the carrier, and once identified it supplies ground truth at full rate
+for the entire session. Second, that series almost certainly crosses zero and
+goes negative somewhere in a full working log, and a zero crossing is exactly
+what the sign convention needs -- which would settle an item open since session
+6 without another trip to a tractor. Worth checking before planning any
+sign-establishing test drive.
+
+To do: convert the MF4 with the CANedge-to-SocketCAN-pcap converter that landed
+on `claude/triton-isobus-gps-objectpool-fsrrdf` (2026-09-07), then derive the Ag
+Leader byte layout against the 71 cm / 0 pair. **File location not yet recorded
+here -- add it before this note ages.**
+
+The same capture is also the independent check on session 7's own confound: if
+the TC never addressed us at all, that is visible on the bus directly, without
+relying on our own counters. This is the lesson from session 5's `vtstat` --
+a second measurement that shares the dispatch path of the thing it corroborates
+is not independent. A separate logger genuinely is.
+
+**Raw logs:** `Documentation/logs/2026-09-08_session7_*.log`.
+
+**Code state:** the Level-1 declaration in run 2 was a diagnostic claim only --
+Level 1 means "the implement calculates the tramline tracks", which a plough
+does not do. It has been **reverted to `0`**, and the structure label with it
+(TC04 -> TC03, which the reverted pool matches byte for byte again). Only the
+findings, the logs and the updated commentary merge; the firmware behaviour is
+unchanged from where session 7 started. Note TC04 is now burned on any terminal
+that took part in run 2 -- the next real DDOP tree change must go to TC05.
+
+**Open after session 7:**
+- **Confirm the implement is mapped into the task on the InCommand** -- until
+  this is done the session's main result is provisional.
+- If it was mapped, close #21 against this terminal as "no Tramline Control
+  support" and move the DDI 513/514 question to a different brand's TC.
+- **#20 now has its capture** -- the CANedge log plus six ground-truth points
+  (71 / 1 / 0 / 99-far-side / 0 / 52-far-side) with three zero crossings. Next
+  step is off-tractor: convert the MF4, find the PGN 65535 SA `0x80` frames, and
+  derive the Ag Leader layout that tracks all six values *and* the sign flips.
+  Record the MF4's location here first. On this data the sign convention should
+  be derivable too, closing session 6's "sign convention remains unverified"
+  without another tractor session.
+- #18 auto-reconnect watchdog still unexercised -- nothing disconnected.
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`

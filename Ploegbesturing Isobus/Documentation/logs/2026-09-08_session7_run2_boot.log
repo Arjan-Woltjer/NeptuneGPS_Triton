@@ -1,0 +1,104 @@
+--------------------------------
+-----------MeijWorks------------
+--------------------------------
+Ploughcontrol ISOBUS version 0.1
+(c) 2011 - 2026 by J.A. Woltjer 
+--------------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+-------------------------------
+Tractor using following data:
+-------------------------------
+Speed calibration
+250
+-------------------------------
+Simspeed
+1.00
+-------------------------------
+Sim time
+2
+-------------------------------
+Sim mode
+1
+-------------------------------
+Invert hitch signal
+0
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+IsobusGuidanceChannel: claiming address address claimed: 0x81
+IsobusDebugMenu: send any character to open the status menu.
+I] [NM]: A partner with name 000000000000000lx has claimed address 2684361992 on channel 197275905.
+I] [NM]: A partner with name 000000000000000lx has claimed address 2684387840 on channel 203452081.
+I] [VT]: VT Server has a matching label for MW03   . It will be loaded and upload will be skipped.
+I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+I] [NM]: Control function with address 43 and NAME 000000000000000lx is now offline on channel 203452081.
+I] [NM]: Control function with address 128 and NAME 000000000000000lx is now offline on channel 203452081.
+I] [NM]: Control function with address 233 and NAME 000000000000000lx is now offline on channel 203452081.
+I] [NM]: Control function with address 240 and NAME 000000000000000lx is now offline on channel 197783967.
+I] [NM]: Control function with address 245 and NAME 000000000000000lx is now offline on channel 203452081.
+W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+W] [PR]: NACK-ing PGN request for PGN 64653 because no callback could handle it.
+I] [TC]: DDOP will be generated using the server's version instead of the specified version. New version: 3
+I] [TC]: DDOP Activated without error.
+VT: Narrower pressed
+VT: Narrower pressed
+VT: Narrower pressed
+VT: Narrower pressed
+I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+I] [NM]: External control function with name 000000000000000lx has claimed address 198344577 on channel 2684363008.
