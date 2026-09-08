@@ -3,6 +3,10 @@
 Serial captures from real-bus test sessions, referenced by
 [`../HardwareTestNotes.md`](../HardwareTestNotes.md). Two tiers:
 
+> Whole-bus **CAN** captures (CANedge MF4) live separately, in
+> [`../canlogs/`](../canlogs/) -- these are our own board's serial
+> output only.
+
 **Annotated excerpts** (`*_runN_*.log`) -- trimmed to the moments that
 matter, with inline commentary explaining what each block shows and why it
 was significant. Start here; they are meant to be readable on their own.

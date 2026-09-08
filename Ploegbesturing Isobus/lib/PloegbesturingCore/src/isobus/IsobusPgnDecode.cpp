@@ -218,6 +218,24 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
         return result;
     }
 
+    // ...and only the cross-track error *message*. data[0] is a message
+    // selector, not payload: John Deere's guidance source interleaves 0x77
+    // (XTE, ~5 Hz) with 0x92 (~1 Hz) on this same PGN and source address.
+    // Without this check the 0x92 payload `92 FF 80 3E FC FF FF FF` runs
+    // through the math below as val = 0xFC3E = 64574 -> +16287 hundredths and
+    // is committed to GuidanceSource as a +162.87 m cross-track error roughly
+    // once a second, refreshing lastXteFix so the staleness guard beside it
+    // never fires either. Quality lands at 0 on that frame, which also drags
+    // IsRtkQuality() false and trips InterfacePlough's Hold branch at 1 Hz.
+    // Confirmed on four separate CANedge captures -- see GitHub issue #30 and
+    // HardwareTestNotes.md's 2026-09-08 follow-up section.
+    //
+    // Deliberately placed *after* the raw-diagnostics capture above: the
+    // selector gates what we believe, not what we can see on the bus.
+    if (data[0] != kMessageSelectorXte) {
+        return result;
+    }
+
     result.valid = true;
     result.hasQuality = true;
     result.xteHundredthsMeter = int(val - 32000) >> 1;

@@ -208,12 +208,23 @@ test(IsobusPgnDecode, legacySpeed_wrongLength_lengthNotOk) {
 // vendors share the payload layout; Session 6 (2026-09-05) disproved that
 // against live ground truth.
 
-// Bytes match known-good CanSerialParser fixture "0CFFFF2A,001000007D000000"
+// Bytes follow known-good CanSerialParser fixture "0CFFFF2A,001000007D000000"
 // (known_good_sentences.txt) -- CAN ID 0x0CFFFF2A encodes source address
 // 0x2A directly, so this doubles as cross-validation against already-tested
 // CanSerialParser math for the same legacy protocol.
+//
+// One byte deviates from that fixture, deliberately: data[0] is 0x77 here,
+// not 0x00. That fixture is a *synthetic minimal* frame -- every byte the
+// decoder does not read was zeroed when it was written (data[0], data[2] and
+// data[5..7] are all 0x00, and data[1] is 0x10 where the bus sends 0x15,
+// keeping only the quality nibble). Real John Deere frames carry the message
+// selector in data[0], which this decoder now checks (issue #30), so the
+// selector has to be restored for a fixture that asserts a successful decode.
+// CanSerialParser's own tests keep the original string untouched: that path
+// runs behind a CAN-to-serial bridge whose treatment of data[0] we have no
+// capture of, so it is deliberately not gated -- see issue #30's follow-up.
 test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_acceptedZeroXte) {
-    uint8_t d[8] = { 0x00, 0x10, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
+    uint8_t d[8] = { 0x77, 0x10, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
     assertTrue(r.hasQuality);
@@ -260,7 +271,7 @@ test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_capturesNoPayload) {
 
 test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_sameBytesStillDecoded) {
     // val = (d[4]<<8)|d[3] = 0x7D40 = 32064 -> xte = (32064-32000)>>1 = 32.
-    uint8_t d[8] = { 0x00, 0x10, 0x00, 0x40, 0x7D, 0x00, 0x00, 0x00 };
+    uint8_t d[8] = { 0x77, 0x10, 0x00, 0x40, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
     assertEqual(r.xteHundredthsMeter, 32);
@@ -282,14 +293,14 @@ test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_rejected) {
 test(IsobusPgnDecode, legacyXteJohnDeere_qualityNibbleRange_notExactByte) {
     // byte1 = 0x1F (high nibble 0x1, not the old exact-match 0x15) must still
     // report quality 4 -- the check is a nibble range, not one specific byte.
-    uint8_t d[8] = { 0x00, 0x1F, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
+    uint8_t d[8] = { 0x77, 0x1F, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
     assertEqual((int)r.quality, 4);
 }
 
 test(IsobusPgnDecode, legacyXteJohnDeere_qualityNibbleMismatch_zero) {
-    uint8_t d[8] = { 0x00, 0x20, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
+    uint8_t d[8] = { 0x77, 0x20, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
     assertEqual((int)r.quality, 0);
@@ -299,6 +310,69 @@ test(IsobusPgnDecode, legacyXteJohnDeere_wrongLength_invalid) {
     uint8_t d[7] = { 0 };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 7);
     assertFalse(r.lengthOk);
+    assertFalse(r.valid);
+}
+
+// --- The message selector (data[0]) -- GitHub issue #30 --------------------
+// PGN 65535 does not carry one message. data[0] selects which, and John
+// Deere's guidance source sends at least two on it. Decoding both with the
+// XTE layout turns a non-XTE message into a confident, wrong cross-track
+// error. Payloads below are real, straight off the CANedge captures in
+// Documentation/canlogs/ (2026-09-08, John Deere rig).
+
+// The exact frame that motivated the issue. Sent ~1 Hz alongside the XTE
+// message's ~5 Hz, with a constant payload across card sessions 7, 8, 9 and
+// 25. Without the selector check this decodes to +16287 hundredths --
+// +162.87 m -- and is written into GuidanceSource once a second.
+test(IsobusPgnDecode, legacyXteJohnDeere_nonXteMessageSelector_notDecoded) {
+    uint8_t d[8] = { 0x92, 0xFF, 0x80, 0x3E, 0xFC, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
+    assertFalse(r.valid);
+    assertFalse(r.hasQuality);
+    assertEqual(r.xteHundredthsMeter, 0);
+}
+
+// ...but the raw diagnostics still populate: the selector gates the decode
+// and the SetXte call, not the bus-visibility readout. Deriving what the
+// other messages on this PGN mean needs exactly these bytes.
+test(IsobusPgnDecode, legacyXteJohnDeere_nonXteMessageSelector_stillCapturesDiagnostics) {
+    uint8_t d[8] = { 0x92, 0xFF, 0x80, 0x3E, 0xFC, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
+    assertTrue(r.lengthOk);
+    assertEqual((int)r.rawWord, 0xFC3E);
+    assertEqual((int)r.rawByte1, 0xFF);
+    for (int i = 0; i < 8; i++) {
+        assertEqual((int)r.rawPayload[i], (int)d[i]);
+    }
+}
+
+// Ground truth from card session 25: the rig sat still, then was nudged once
+// at t=88 s. The operator called "a steady 21 cm" and then "11 cm, other
+// side"; the receiver's own position (PGN 65267) stepped 0.38 m at the same
+// instant. Both payloads must decode to those numbers, with the sign flip.
+test(IsobusPgnDecode, legacyXteJohnDeere_realBusPayload_matchesGroundTruthNegative) {
+    uint8_t d[8] = { 0x77, 0x15, 0x10, 0xD6, 0x7C, 0x59, 0x89, 0xFF };
+    auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, -21);
+    assertEqual((int)r.quality, 4);
+}
+
+test(IsobusPgnDecode, legacyXteJohnDeere_realBusPayload_matchesGroundTruthPositive) {
+    uint8_t d[8] = { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF };
+    auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 11);
+    assertEqual((int)r.quality, 4);
+}
+
+// Ag Leader/Raven's message on this PGN is selector 0x51, not 0x77 (issue
+// #20's closing analysis: it is the same message *definition*, and 0x51 is
+// a DOP-like triple, not cross-track error at all). It must fail on both
+// counts -- source address and selector.
+test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
+    uint8_t d[8] = { 0x51, 0x03, 0x02, 0xFF, 0x00, 0x63, 0x00, 0xFF };
+    auto r = DecodeLegacyXteJohnDeere(0x80, d, 8);
     assertFalse(r.valid);
 }
 
