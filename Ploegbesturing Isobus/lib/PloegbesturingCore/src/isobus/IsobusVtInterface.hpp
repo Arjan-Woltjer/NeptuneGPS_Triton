@@ -163,8 +163,11 @@ private:
     std::shared_ptr<isobus::PartneredControlFunction>   partner;
     std::shared_ptr<isobus::DiagnosticProtocol>         diagnostics;
     std::shared_ptr<isobus::VirtualTerminalClient>      vtClient;
-    isobus::EventCallbackHandle                         softKeyListener;
-    isobus::EventCallbackHandle                         buttonListener;
+    // Zero-initialised: EventCallbackHandle is a plain std::size_t, so without
+    // this both hold garbage between construction and Begin() (found by cppcheck
+    // once check_src_filters finally brought this library into scope).
+    isobus::EventCallbackHandle                         softKeyListener = 0;
+    isobus::EventCallbackHandle                         buttonListener = 0;
     Logger                                              logger;
 
     unsigned long lastVtUpdate = 0;
