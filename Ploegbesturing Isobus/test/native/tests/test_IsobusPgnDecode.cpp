@@ -478,6 +478,91 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
     assertFalse(r.valid);
 }
 
+// --- DecodeGnssPositionData (PGN 129029) and DecodePositionDeltaNmea2000 ---
+// Added so a Raven rig is covered -- it publishes this set per a setting on
+// its own VT screen. **Neither PGN has ever been seen on a real bus here**, so
+// unlike the rest of this file these fixtures are constructed from the NMEA
+// 2000 v1.301 Appendix B field list rather than captured. Treat a green test
+// here as "matches the spec as we read it", not as "verified against
+// hardware".
+//
+// 129029 matters more than its position fields suggest: field 8, "Method,
+// GNSS", is the only GNSS quality indicator on any bus captured so far.
+
+// A full frame at the Groningen test site, RTK fixed.
+test(IsobusPgnDecode, gnssPositionData_rtkFixed_decodesPositionAltitudeAndQuality) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertTrue(r.lengthOk);
+    assertTrue(r.hasCoordinates);
+    assertTrue(near(r.latitude, 53.426036f, 1e-4f));
+    assertTrue(near(r.longitude, 6.7205691f, 1e-4f));
+    assertTrue(r.hasAltitude);
+    assertTrue(near(r.altitudeMeters, 4.25f, 0.01f));
+    assertTrue(r.hasQuality);
+    assertEqual((int)r.method, 4);          // RTK fixed -- what IsRtkQuality() wants
+    assertEqual((int)r.numberOfSvs, 18);
+    assertTrue(r.hasHdop);
+    assertTrue(near(r.hdop, 0.85f, 0.01f));
+}
+
+// Losing the fix must reach GuidanceSource, not be swallowed as "unknown".
+// Method 0 is a statement, and it is exactly the case the RTK interlock exists
+// for -- treating it as no-information would leave a stale quality of 4 in
+// place while the receiver says it has nothing.
+test(IsobusPgnDecode, gnssPositionData_noFix_stillReportsQuality) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertTrue(r.hasQuality);
+    assertEqual((int)r.method, 0);
+}
+
+// 0x0F is the not-available code for a 4-bit field, and is the one value that
+// genuinely carries no information.
+test(IsobusPgnDecode, gnssPositionData_methodNotAvailable_noQuality) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertFalse(r.hasQuality);
+}
+
+// Fast packet reassembly can hand us a short buffer if a sequence is
+// incomplete. Reading a quality out of that would be worse than reading none.
+test(IsobusPgnDecode, gnssPositionData_shortFrame_rejected) {
+    uint8_t d[42] = { 0 };
+    auto r = DecodeGnssPositionData(d, 42);
+    assertFalse(r.lengthOk);
+    assertFalse(r.hasQuality);
+    assertFalse(r.hasCoordinates);
+}
+
+// The 1e-16 deg scaling is the trap: 53 degrees is ~5.3e17, far past a float's
+// mantissa, so scaling straight to float loses the value. This pins that the
+// reduction happens in integer arithmetic first.
+test(IsobusPgnDecode, gnssPositionData_latitudePrecision_survivesScaling) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertTrue(r.latitude > 53.42f);
+    assertTrue(r.latitude < 53.43f);
+}
+
+// 129027: signed 24-bit deltas, which must sign-extend. A southward/westward
+// delta read as unsigned would come out as a ~46 degree jump.
+test(IsobusPgnDecode, positionDelta_negativeDeltas_signExtend) {
+    // -1000 in both fields = 0xFFFC18 little-endian.
+    uint8_t d[8] = { 0x05, 0x02, 0x18, 0xFC, 0xFF, 0x18, 0xFC, 0xFF };
+    auto r = DecodePositionDeltaNmea2000(d, 8);
+    assertTrue(r.lengthOk);
+    assertEqual((int)r.sid, 5);
+    assertTrue(near(r.timeDeltaSeconds, 0.01f, 0.001f));
+    assertTrue(r.latitudeDeltaDeg < 0.0f);
+    assertTrue(r.longitudeDeltaDeg < 0.0f);
+}
+
+test(IsobusPgnDecode, positionDelta_shortFrame_rejected) {
+    uint8_t d[7] = { 0 };
+    assertFalse(DecodePositionDeltaNmea2000(d, 7).lengthOk);
+}
+
 // --- DecodeGuidanceMachineInfo (PGN 44032) --------------------------------
 // The standard ISO 11783-7 guidance channel. Layout verified against the CSS
 // Electronics ISOBUS DBC v2.4, not inferred. Payloads below are real frames

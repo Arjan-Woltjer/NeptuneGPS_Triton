@@ -239,6 +239,35 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(guidance->GetQuality());
     serialDebug->print("   RTK quality=");
     serialDebug->print(guidance->GetRtkQuality());
+    // PGN 129029 -- the only message on any bus captured so far that carries a
+    // GNSS quality indicator. On a rig without a John Deere (0x2A) or Trimble
+    // (0xAA) legacy XTE sender, this is the sole route to a non-zero quality,
+    // and therefore the sole route to IsRtkQuality() ever being true.
+    {
+        static const char* kMethod[6] = { "0 no GNSS", "1 GNSS", "2 DGNSS",
+                                          "3 precise", "4 RTK FIXED", "5 RTK float" };
+        const auto& c = counters;
+        serialDebug->print("  PGN 129029 GNSS position: ");
+        if (c.gnssPositionData == 0) {
+            serialDebug->println("(none received)");
+        } else {
+            serialDebug->print(c.gnssPositionData);
+            serialDebug->print(" msgs, method=");
+            if (c.lastGnssMethod < 6) serialDebug->print(kMethod[c.lastGnssMethod]);
+            else                      serialDebug->print(c.lastGnssMethod);
+            serialDebug->print("  SVs=");
+            serialDebug->print(c.lastGnssSvCount);
+            if (c.lastGnssHasHdop) {
+                serialDebug->print("  HDOP=");
+                serialDebug->print(c.lastGnssHdop, 2);
+            }
+            serialDebug->print("  last ");
+            serialDebug->print(millis() - c.lastGnssPositionMs);
+            serialDebug->println(" ms ago");
+        }
+        serialDebug->print("  PGN 129027 position deltas: ");
+        serialDebug->println(c.positionDeltaNmea2000);
+    }
     // PGN 44032 -- the standard ISO 11783-7 guidance channel. Diagnostics
     // only: it carries curvature, not cross-track error. Its worth is the
     // status fields, which say why guidance is or is not happening. Session

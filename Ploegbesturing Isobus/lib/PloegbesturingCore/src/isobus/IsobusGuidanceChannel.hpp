@@ -130,11 +130,22 @@ public:
         uint32_t lastGuidanceMachineInfoMs     = 0;
 
         uint32_t guidanceMachineInfo = 0;
+        uint32_t positionDeltaNmea2000 = 0;
+        uint32_t gnssPositionData = 0;
+
+        // PGN 129029 is the only message on any bus captured so far that
+        // carries a GNSS quality indicator, so these are worth showing even
+        // when nothing else about the fix is interesting.
+        uint8_t  lastGnssMethod      = 0xFF;   // field 8; 4 = RTK fixed
+        uint8_t  lastGnssSvCount     = 0xFF;
+        float    lastGnssHdop        = 0.0f;
+        bool     lastGnssHasHdop     = false;
+        uint32_t lastGnssPositionMs  = 0;
 
         inline uint32_t Total() const {
             return positionNmea2000 + speedNmea2000 + xteNmea2000 + positionLegacy
                  + speedLegacy + xteJohnDeereLegacy + xteTrimbleLegacy + allImplementStop
-                 + guidanceMachineInfo;
+                 + guidanceMachineInfo + positionDeltaNmea2000 + gnssPositionData;
         }
     };
 
@@ -179,6 +190,8 @@ private:
     static void OnLegacyXteTrimble(const isobus::CANMessage& msg, void* context);
     static void OnAllImplementStop(const isobus::CANMessage& msg, void* context);
     static void OnGuidanceMachineInfo(const isobus::CANMessage& msg, void* context);
+    static void OnPositionDeltaNmea2000(const isobus::CANMessage& msg, void* context);
+    static void OnGnssPositionData(const isobus::CANMessage& msg, void* context);
 };
 
 }  // namespace triton
