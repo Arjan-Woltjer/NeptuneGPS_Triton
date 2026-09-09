@@ -1724,6 +1724,37 @@ before trusting any per-terminal VT observation here.
   Zero requests, zero measurement commands, zero set-values in 842 s. The John
   Deere engages; the Ag Leader does not. Any theory about the missing DDI 506
   has to account for both behaviours, and they are not the same behaviour.
+- **PGN 44032 is now read, and it answered a question the rest of the bus did
+  not.** The standard ISO 11783-7 guidance channel is broadcast at 10 Hz by the
+  tractor ECU on both rigs, with no Task Controller session, no DDOP and no
+  handshake -- and we were reading none of it. Decoding it gives:
+
+  | | John Deere (s26) | Ag Leader / CNH (s28) |
+  |---|---|---|
+  | Mechanical system lockout | not locked out | **LOCKED OUT**, all 8420 frames |
+  | Steering readiness | not ready (4215) / **READY** (218) | not available |
+  | Limit status | 1 | 7 |
+
+  **The CNH tractor's steering system was mechanically locked out for the whole
+  session.** That is why nothing guidance-related could happen on that rig, and
+  nothing else on the bus said so. It also means the Ag Leader session cannot
+  be read as evidence about the terminal's willingness to do anything --
+  the tractor underneath it was not going to steer regardless.
+
+  Read strictly as diagnostics: the message carries *curvature*, not
+  cross-track error, so nothing from it reaches the control path. Layout from
+  the CSS Electronics ISOBUS DBC v2.4 rather than inferred; six tests pin it
+  against real frames from both rigs.
+
+- **Our ISOBUS identity, now explicit and tracked in #45.** Read off the wire:
+  manufacturer **1407 = Open-Agriculture** (AgIsoStack's own non-commercial
+  code; no MeijWorks entry exists in the AEF registry), and identity number
+  **1** on every unit ever built, so two Ploegbesturing units on one bus would
+  present byte-identical NAMEs and fight over one terminal-side pool cache
+  entry. Neither is changed yet, deliberately -- the NAME feeds that caching,
+  and altering it mid-#21 would invalidate every terminal's stored pool and add
+  a variable, which is the confound the stale MW03 label already produced once.
+
 - **Wider/Narrower**: the presses arrive (9 logged this session) and are
   consumed through `ConsumeWiderPress()` into `InterfacePlough::Update()`, so
   the wiring is intact, but no effect was visible on the Ag Leader.
