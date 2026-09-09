@@ -239,6 +239,37 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(guidance->GetQuality());
     serialDebug->print("   RTK quality=");
     serialDebug->print(guidance->GetRtkQuality());
+    // PGN 44032 -- the standard ISO 11783-7 guidance channel. Diagnostics
+    // only: it carries curvature, not cross-track error. Its worth is the
+    // status fields, which say why guidance is or is not happening. Session
+    // 9's CNH tractor reported LOCKED OUT for all 8420 frames and no other
+    // message on that bus said so.
+    {
+        static const char* kState[4] = { "no/not-ready", "YES/READY", "error", "n/a" };
+        const auto& c = counters;
+        serialDebug->print("  Guidance machine info (PGN 44032): ");
+        if (c.guidanceMachineInfo == 0) {
+            serialDebug->println("(none received)");
+        } else {
+            serialDebug->print(c.guidanceMachineInfo);
+            serialDebug->print(" msgs, last ");
+            serialDebug->print(millis() - c.lastGuidanceMachineInfoMs);
+            serialDebug->println(" ms ago");
+            serialDebug->print("    lockout=");
+            serialDebug->print(kState[c.lastGuidanceMechanicalLockout & 0x03]);
+            serialDebug->print("  steeringReady=");
+            serialDebug->print(kState[c.lastGuidanceSteeringReadiness & 0x03]);
+            serialDebug->print("  remoteEngage=");
+            serialDebug->print(kState[c.lastGuidanceRemoteEngage & 0x03]);
+            serialDebug->print("  curvature=");
+            if (c.lastGuidanceHasCurvature) {
+                serialDebug->print(c.lastGuidanceCurvaturePerKm, 2);
+                serialDebug->println(" 1/km");
+            } else {
+                serialDebug->println("n/a");
+            }
+        }
+    }
     serialDebug->print("  IsRtkQuality=");
     serialDebug->println(guidance->IsRtkQuality() ? "Y" : "N");
     serialDebug->print("  GGA fix age:  ");

@@ -169,6 +169,26 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
 // Legacy proprietary decode, ported verbatim from VehicleGps.cpp's
 // Update(long id, const uint8_t* data, byte len).
 // ------------------------------------------------------------------
+GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const std::uint8_t* data, std::uint8_t length) {
+    GuidanceMachineInfoResult result;
+    if (length < 8) return result;
+    result.lengthOk = true;
+
+    const std::uint16_t raw = static_cast<std::uint16_t>(data[0] | (data[1] << 8));
+    result.rawCurvature = raw;
+    if (raw != 0xFFFF) {
+        result.hasCurvature = true;
+        result.curvaturePerKm = (raw * 0.25f) - 8032.0f;
+    }
+
+    result.mechanicalLockout     = static_cast<std::uint8_t>((data[2] >> 0) & 0x03);
+    result.steeringReadiness     = static_cast<std::uint8_t>((data[2] >> 2) & 0x03);
+    result.steeringInputPosition = static_cast<std::uint8_t>((data[2] >> 4) & 0x03);
+    result.limitStatus           = static_cast<std::uint8_t>((data[3] >> 5) & 0x07);
+    result.remoteEngageSwitch    = static_cast<std::uint8_t>((data[4] >> 6) & 0x03);
+    return result;
+}
+
 ProcessDataKind ClassifyProcessDataCommand(std::uint8_t byte0) {
     switch (byte0 & 0x0F) {
         case 0:  return ProcessDataKind::TechnicalCapabilities;

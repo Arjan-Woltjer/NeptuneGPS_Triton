@@ -93,6 +93,19 @@ static constexpr std::uint8_t  kSourceAddressTrimble = 0xAA;
 // 0x0CFD02FE: PF=0xFD (253, PDU2) -> PGN=(0xFD<<8)|0x02=0xFD02=64770.
 static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 
+// PGN 44032 (0xAC00, PDU1) -- Agricultural Guidance Machine Info, the standard
+// ISO 11783-7 guidance channel. Broadcast at 10 Hz by the tractor ECU on every
+// rig captured so far, John Deere and CNH alike, with no Task Controller
+// session, no DDOP and no handshake needed.
+//
+// **This is not cross-track error and must never be treated as one.** It
+// carries estimated *curvature* -- the reciprocal of the turning radius -- plus
+// the steering system's own status. Committing it to GuidanceSource::xte would
+// be the same category error the design doc warns about for DDI 513, so
+// nothing here reaches the control path; it is read for diagnostics and for
+// the interlock states, which say *why* guidance is or is not happening.
+static constexpr std::uint32_t kPgnGuidanceMachineInfo = 0xAC00;  // 44032, PDU1
+
 // ------------------------------------------------------------------
 // Decode results. Each carries a `valid` flag: whether IsobusGuidanceChannel
 // should commit the decoded value to GuidanceSource/ImplementPlough. Fields
@@ -168,6 +181,33 @@ struct SpeedResult {
     bool     hasAltitude = false;// true => SetAltitude(altitudeMeters) should be called
     float    altitudeMeters = 0.0f; // meaningful only when hasAltitude
 };
+
+// Field layout verified against the CSS Electronics ISOBUS DBC v2.4
+// (NeptuneGPS Documentation/ISOBUS/CSS-Electronics-ISOBUS-2022-08_v2.4.dbc,
+// message GMS / 2360147710) rather than inferred:
+//   bits  0-15  EstimatedCurvature      0.25 km^-1 per bit, offset -8032
+//   bits 16-17  MechanicalSystemLockout
+//   bits 18-19  GuidanceSteeringSystemReadiness
+//   bits 20-21  SteeringInputPositionStatus
+//   bits 29-31  GuidanceLimitStatus
+//   bits 38-39  GuidanceSystemRemoteEngageSwitchStatus
+// The two-bit states share one encoding: 0 = no/not ready, 1 = yes/ready,
+// 2 = error, 3 = not available.
+struct GuidanceMachineInfoResult {
+    bool  lengthOk = false;
+    bool  hasCurvature = false;      // false when the field reads its 0xFFFF sentinel
+    float curvaturePerKm = 0.0f;     // km^-1, signed; meaningful only when hasCurvature
+    std::uint16_t rawCurvature = 0;  // diagnostic, pre-scale
+    // Default to 3 = "not available", so an undersized or absent frame reads as
+    // unknown rather than as a confident "not locked out / not ready".
+    std::uint8_t mechanicalLockout     = 3;
+    std::uint8_t steeringReadiness     = 3;
+    std::uint8_t steeringInputPosition = 3;
+    std::uint8_t limitStatus           = 7;
+    std::uint8_t remoteEngageSwitch    = 3;
+};
+
+GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const std::uint8_t* data, std::uint8_t length);
 
 struct XteResult {
     bool     lengthOk = false;   // true once the length guard passed

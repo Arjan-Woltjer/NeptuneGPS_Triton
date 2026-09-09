@@ -68,9 +68,28 @@ void IsobusGuidanceChannel::Begin() {
     CANHardwareInterface::update();
 
     // ISOBUS NAME
-    // TODO: request an official manufacturer code from the ISOBUS foundation
-    // for MeijWorks; placeholder values below carried forward from the prior
-    // Ploeg ISOBUS prototype, which never resolved them either.
+    // ---- Our ISOBUS identity ----------------------------------------
+    //
+    // Confirmed on the bus 2026-09-09: every terminal we join sees us as
+    // manufacturer 1407 = **Open-Agriculture** (Gescher, Germany), which is
+    // AgIsoStack's own code, permitted for non-commercial use and used by
+    // their reference examples. There is **no MeijWorks entry** in the AEF
+    // manufacturer registry -- checked against
+    // NeptuneGPS Documentation/ISOBUS/reference/parameters-csv/Manufacturer IDs.csv,
+    // database version 2026090801.
+    //
+    // Keeping 1407 is a deliberate holding position, not an oversight: it is a
+    // real, allocated code rather than the 64 this used to claim, which belongs
+    // to a different manufacturer. Shipping commercially needs a MeijWorks code
+    // from the AEF. Tracked as an issue rather than fixed here, because
+    // changing the NAME changes how every terminal caches our pools.
+    //
+    // The identity number is the part that is actually wrong -- see below.
+    // Named so the two values that define who we are on the bus are visible
+    // in one place rather than buried as literals in a setter chain.
+    constexpr std::uint16_t kIsobusManufacturerCode = 1407;  // Open-Agriculture
+    constexpr std::uint32_t kIsobusIdentityNumber   = 1;     // see the note below
+
     NAME deviceName(0);
     deviceName.set_arbitrary_address_capable(true);
     deviceName.set_industry_group(2);   // Agriculture and Forestry
@@ -84,8 +103,21 @@ void IsobusGuidanceChannel::Begin() {
     // rejection that's persisted across every pool-CONTENT variant tried
     // against both Fendt and CNH -- a real, unfixed identity-level bug is a
     // more promising remaining variable than more pool-byte bisection.
-    deviceName.set_manufacturer_code(1407);
-    deviceName.set_identity_number(1);
+    deviceName.set_manufacturer_code(kIsobusManufacturerCode);
+    // **Every Triton claims identity 1.** The identity number is the serial
+    // number field of the NAME, and NAME is what makes a control function
+    // unique on the bus: two Ploegbesturing units on one ISOBUS would present
+    // byte-identical NAMEs. We do set arbitrary-address-capable, so they would
+    // not deadlock over an address, but terminals key their cached VT object
+    // pools and DDOPs on NAME, so two units would fight over one cache entry.
+    //
+    // Deliberately NOT changed here. The NAME is an input to that caching, and
+    // altering it mid-investigation would invalidate every terminal's stored
+    // pool and add a variable to the #21 hunt -- the same class of confound
+    // that the stale MW03 label produced in session 9. Derive it from the
+    // Teensy's OCOTP serial in its own change, with a rig session to confirm
+    // the re-upload behaves.
+    deviceName.set_identity_number(kIsobusIdentityNumber);
     deviceName.set_ecu_instance(0);
     deviceName.set_function_instance(0);
     deviceName.set_device_class_instance(0);
@@ -123,6 +155,7 @@ void IsobusGuidanceChannel::Begin() {
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteJohnDeereLegacy, OnLegacyXteJohnDeere, this);
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteTrimbleLegacy,   OnLegacyXteTrimble,   this);
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnAllImplementStop,   OnAllImplementStop,   this);
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnGuidanceMachineInfo, OnGuidanceMachineInfo, this);
 
     // Trigger an immediate first transmission from whatever's on the bus;
     // the reference Fendt 6240 then continues broadcasting on its own
@@ -301,6 +334,34 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
 
     if (!result.valid) return;
     self->guidance->SetXte(result.xteHundredthsMeter, result.quality);
+}
+
+// The standard ISO 11783-7 guidance channel, broadcast at 10 Hz by the tractor
+// ECU on every rig captured so far without any Task Controller session.
+//
+// Read for diagnostics only. It carries estimated *curvature*, not cross-track
+// error, and committing it to GuidanceSource would be the same category error
+// the design doc warns about for DDI 513 -- a plough nulling a quantity
+// measured somewhere else, with nothing to show that anything changed.
+//
+// Its value today is the status fields. Session 9's CNH tractor reported
+// MechanicalSystemLockout = "locked out" for all 8420 frames, which explains
+// why nothing guidance-related could happen on that rig and which no other
+// message on that bus stated.
+void IsobusGuidanceChannel::OnGuidanceMachineInfo(const CANMessage& msg, void* context) {
+    auto* self = static_cast<IsobusGuidanceChannel*>(context);
+    self->counters.guidanceMachineInfo++;
+
+    const auto& d = msg.get_data();
+    auto result = DecodeGuidanceMachineInfo(d.data(), static_cast<std::uint8_t>(msg.get_data_length()));
+    if (!result.lengthOk) return;
+
+    self->counters.lastGuidanceMechanicalLockout = result.mechanicalLockout;
+    self->counters.lastGuidanceSteeringReadiness = result.steeringReadiness;
+    self->counters.lastGuidanceRemoteEngage      = result.remoteEngageSwitch;
+    self->counters.lastGuidanceHasCurvature      = result.hasCurvature;
+    self->counters.lastGuidanceCurvaturePerKm    = result.curvaturePerKm;
+    self->counters.lastGuidanceMachineInfoMs     = millis();
 }
 
 void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* context) {

@@ -116,9 +116,25 @@ public:
         uint32_t lastXteJohnDeereLegacyPayloadMs       = 0;
         uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
 
+        // PGN 44032, the standard ISO 11783-7 guidance channel. Diagnostics
+        // only and deliberately so: it carries curvature, not cross-track
+        // error, so nothing here reaches the control path. What it does give
+        // is the steering system's own account of why guidance is or is not
+        // happening -- session 9's CNH tractor reported MECHANICALLY LOCKED
+        // OUT for all 8420 frames, which no other message on that bus said.
+        uint8_t  lastGuidanceMechanicalLockout = 3;   // 3 = not available
+        uint8_t  lastGuidanceSteeringReadiness = 3;
+        uint8_t  lastGuidanceRemoteEngage      = 3;
+        bool     lastGuidanceHasCurvature      = false;
+        float    lastGuidanceCurvaturePerKm    = 0.0f;
+        uint32_t lastGuidanceMachineInfoMs     = 0;
+
+        uint32_t guidanceMachineInfo = 0;
+
         inline uint32_t Total() const {
             return positionNmea2000 + speedNmea2000 + xteNmea2000 + positionLegacy
-                 + speedLegacy + xteJohnDeereLegacy + xteTrimbleLegacy + allImplementStop;
+                 + speedLegacy + xteJohnDeereLegacy + xteTrimbleLegacy + allImplementStop
+                 + guidanceMachineInfo;
         }
     };
 
@@ -162,6 +178,7 @@ private:
     static void OnLegacyXteJohnDeere(const isobus::CANMessage& msg, void* context);
     static void OnLegacyXteTrimble(const isobus::CANMessage& msg, void* context);
     static void OnAllImplementStop(const isobus::CANMessage& msg, void* context);
+    static void OnGuidanceMachineInfo(const isobus::CANMessage& msg, void* context);
 };
 
 }  // namespace triton

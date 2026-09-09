@@ -478,6 +478,74 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
     assertFalse(r.valid);
 }
 
+// --- DecodeGuidanceMachineInfo (PGN 44032) --------------------------------
+// The standard ISO 11783-7 guidance channel. Layout verified against the CSS
+// Electronics ISOBUS DBC v2.4, not inferred. Payloads below are real frames
+// from the 2026-09-09 captures.
+
+// John Deere, card session 26: steering free but not ready, which is the state
+// it sat in for 4215 of 4433 frames.
+test(IsobusPgnDecode, guidanceMachineInfo_johnDeere_notLockedOutNotReady) {
+    uint8_t d[8] = { 0xA5, 0x7D, 0x10, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertTrue(r.lengthOk);
+    assertTrue(r.hasCurvature);
+    assertTrue(near(r.curvaturePerKm, 9.25f, 0.01f));
+    assertEqual((int)r.mechanicalLockout, 0);   // not locked out
+    assertEqual((int)r.steeringReadiness, 0);   // not ready
+}
+
+// The same tractor with readiness set -- 218 frames of the same session. Only
+// two bits differ from the case above, which is exactly the kind of change a
+// hand-rolled bit layout gets wrong.
+test(IsobusPgnDecode, guidanceMachineInfo_johnDeere_steeringReady) {
+    uint8_t d[8] = { 0xA5, 0x7D, 0x14, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertEqual((int)r.mechanicalLockout, 0);
+    assertEqual((int)r.steeringReadiness, 1);   // ready
+}
+
+// The CNH tractor under the Ag Leader kit, card session 28: mechanically
+// locked out for all 8420 frames. This is the message that explains why
+// nothing guidance-related could happen on that rig, and no other message on
+// that bus said it.
+test(IsobusPgnDecode, guidanceMachineInfo_cnh_reportsMechanicalLockout) {
+    uint8_t d[8] = { 0x00, 0x7D, 0x3D, 0xE0, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertEqual((int)r.mechanicalLockout, 1);   // LOCKED OUT
+    assertEqual((int)r.steeringReadiness, 3);   // not available
+    assertEqual((int)r.limitStatus, 7);
+}
+
+test(IsobusPgnDecode, guidanceMachineInfo_curvatureSentinel_noCurvature) {
+    uint8_t d[8] = { 0xFF, 0xFF, 0x10, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.hasCurvature);
+    // The status bits must still decode -- an unavailable curvature says
+    // nothing about whether the steering system is locked out.
+    assertEqual((int)r.mechanicalLockout, 0);
+}
+
+// Straight-ahead is raw 32128, not raw 0: the field is offset by -8032 km^-1.
+test(IsobusPgnDecode, guidanceMachineInfo_zeroCurvature_isOffsetNotZeroRaw) {
+    uint8_t d[8] = { 0x80, 0x7D, 0x10, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertTrue(near(r.curvaturePerKm, 0.0f, 0.01f));
+}
+
+// A short frame must read as "not available" everywhere rather than as a
+// confident "not locked out, ready", which is what zero-initialising would
+// have given.
+test(IsobusPgnDecode, guidanceMachineInfo_shortFrame_readsAsNotAvailable) {
+    uint8_t d[7] = { 0 };
+    auto r = DecodeGuidanceMachineInfo(d, 7);
+    assertFalse(r.lengthOk);
+    assertEqual((int)r.mechanicalLockout, 3);
+    assertEqual((int)r.steeringReadiness, 3);
+    assertEqual((int)r.remoteEngageSwitch, 3);
+}
+
 // --- ClassifyProcessDataCommand -- GitHub issue #21 ------------------------
 // These exist because session 9's TC counters answered "did the Task
 // Controller ask us anything?" wrongly in both directions at once, from inside
