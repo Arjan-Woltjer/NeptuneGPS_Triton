@@ -1558,11 +1558,32 @@ commands** -- the first evidence in this whole effort that a Task Controller has
 actively configured reporting on our DPDs, rather than merely accepting the
 pool.
 
-**This is an inference, not a confirmation.** It rests on AgIsoStack's source
-plus our own counter, both downstream of the same stack -- the exact shape of
-session 5's `vtstat` mistake. The CANedge log taken during this session is the
-independent check: look for Process Data (PGN `0xCB00`) from the TC (`0xF7` or
-`0xFB`) to `0x81` with command type 4-7 in the low nibble of byte 0.
+**CONFIRMED from the CANedge log (session 26), 2026-09-09 evening.** The
+inference was correct, and the capture is sharper than it: it names the DDI.
+Decoding PGN `0xCB00` by command, element and DDI gives, once each:
+
+```
+0xF7 -> 0x81   element 2   DDI 515   MeasurementChangeThreshold
+0xF7 -> 0x81   element 2   DDI 515   RequestValue
+0x81 -> 0xF7   element 2   DDI 515   Value            <- we answered
+```
+
+So the John Deere Task Controller set a change-threshold measurement command on
+**DDI 515 (Track Control State)**, asked for its value, and got one. That is
+the first genuine Process Data exchange with a Task Controller in the project's
+history, and it is independent of AgIsoStack's counters entirely -- it is on
+the wire.
+
+Two things follow. **The DDOP is being read, not merely accepted**: a TC does
+not configure reporting on a DPD it ignored. And **DDI 515 is the one it
+picked**, which is exactly the DDI whose direction was corrected from
+implement-reported to `Settable` on 2026-09-08 after reading the AEF guideline
+(sec 2.2.1 defines it against DDI 160, whose entry requires the "setable"
+property and the on-change trigger). Had it shipped as first written, the TC
+could not have written it and this exchange could not have happened.
+
+Still absent: any DDI 506, and any of 507-511. The terminal engages with the
+pool but does not complete the tramline handshake.
 
 ### Both TC diagnostics are misleading, in opposite directions
 
@@ -1643,8 +1664,8 @@ before trusting any per-terminal VT observation here.
 
 ### Open after session 9
 
-- **Confirm the measurement-command inference from the CANedge log** before
-  treating "the JD TC engages with our DDOP" as established.
+- ~~Confirm the measurement-command inference from the CANedge log~~ --
+  **done 2026-09-09**, confirmed on DDI 515; see above.
 - **Fix both TC counters**: count value commands and measurement commands
   separately, and count real bus requests separately from AgIsoStack's internal
   polling.
@@ -1657,8 +1678,36 @@ before trusting any per-terminal VT observation here.
   session, so the actuator path itself is alive.
 - #21 still has no DDI 506 and no track numbers on either brand, even with the
   full Level 1 set declared and the TC demonstrably talking to us.
-- #42: derive the Ag Leader XTE carrier from this session's capture and the
-  three ground-truth points above.
+- **#42: answered, negatively.** The session 28 capture rules out every
+  candidate -- PGN 65535 from `0x80` carries only selector `0x51` across all
+  7962 frames; PGN 129283 appears as **4 zero-length frames** (`DLC=0` verified
+  in the raw MF4, so not a decode artifact); PGNs 65512/65513 are static
+  constants; 44032 carries curvature, not cross-track. Cross-track error is not
+  broadcast on that bus at all, while the display shows it throughout. Full
+  write-up in
+  `NeptuneGPS Documentation/ISOBUS/research/agleader-cnh-bus-inventory-2026-09-09.md`.
+
+  **One lead left before calling it final, and it is the operator's own:**
+  PGN 45056 `0xAD00` (Agricultural Guidance System Command) has **zero frames
+  on either rig**, so autosteer was engaged in neither session, and nobody
+  requested 129283 either -- those four empty frames are unsolicited. That fits
+  an ECU announcing a PGN it currently has nothing to put in. **Engage autosteer
+  and re-capture.** If 129283 gains a payload the fix is free, because
+  `DecodeXteNmea2000()` already handles it with no source-address filter.
+
+- **The "Ag Leader rig" is two vendors.** Manufacturer 94 = CNH Industrial (the
+  tractor: `0x26`, `0xAC`, `0xCD`, `0xF0`), 97 = Ag Leader (the kit: `0x2B`,
+  `0x80`, `0xE9`, `0xF5`, `0xF7`). That is the source of the two VTs and of the
+  partner switching between dumps -- one VT per vendor.
+
+- **We announce ourselves as manufacturer 1407, Open-Agriculture** -- AgIsoStack's
+  own code, not a MeijWorks one. Every terminal we join sees that. Needs a
+  decision: register a code with the AEF, or keep 1407 knowingly.
+
+- **The John Deere bus is unchanged between sessions 24/25 and 26.** Every
+  device reappears and the only control function new today is `0x81`, us. The
+  10 Hz tractor-ECU set is identical, so that inventory is a property of the
+  machine rather than of one afternoon.
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`

@@ -18,6 +18,9 @@ recoverable from the file.
 |---|---|---|---|---|---|---|
 | `2026-09-08_session8_jd-vanos_log24_gps-connect-no-reception.MF4` | `AD4F266A` / 24 | 2026-09-08 | John Deere | van Os | 678 s | 232 578 |
 | `2026-09-08_session8_jd-vanos_log25_xte-outside.MF4` | `AD4F266A` / 25 | 2026-09-08 | John Deere | van Os | 115 s | 45 419 |
+| `2026-09-09_session9_jd-vanos_log26_full-ddi-set.MF4` | `AD4F266A` / 26 | 2026-09-09 | John Deere | van Os | 454 s | 192 034 |
+| `2026-09-09_session9_agleader-vanmastwijk_log27_faulty-short.MF4` | `AD4F266A` / 27 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 22 s | 1 246 |
+| `2026-09-09_session9_agleader-vanmastwijk_log28_main.MF4` | `AD4F266A` / 28 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 842 s | 230 490 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -32,9 +35,32 @@ trusting a capture off this card.
   operator called out the terminal's own cross-track error. This is the log
   that carries a **real XTE**.
 
-Triton itself is **not** on the bus in either file: the plough control had
-already been disconnected from the ISOBUS by this point in the session (see
-Session 8's `#18` notes). No control function claims with our manufacturer
+### Session 9, 2026-09-09
+
+**Triton is on the bus in all three**, at SA `0x81` -- the first captures that
+contain our own control function, thanks to a test connector that lets the
+plough control and the logger share the segment.
+
+- **log 26** -- John Deere, van Os. First rig run of the full Tramline Control
+  Level 1 DDI set (firmware `feat/21-full-tramline-ddop`, structure label
+  TC05). Contains the **first Process Data exchange a Task Controller has ever
+  had with us**: `0xF7` sends a MeasurementChangeThreshold and a RequestValue
+  on **DDI 515**, and `0x81` answers with a Value.
+- **log 27** -- Ag Leader/CNH, van Mastwijk. **Faulty and short**: the tractor
+  had to be restarted. Kept only so the session numbering is complete; nothing
+  to read here.
+- **log 28** -- Ag Leader/CNH, van Mastwijk. The real one. Also records the
+  MW04 VT object pool upload in full, which is useful independently of
+  guidance work.
+
+Note log 28's rig is **two vendors**: a CNH tractor (manufacturer 94) carrying
+an Ag Leader kit (97), with a Virtual Terminal from each. Calling it "the Ag
+Leader rig" hides that. Analysed in
+`NeptuneGPS Documentation/ISOBUS/research/agleader-cnh-bus-inventory-2026-09-09.md`.
+
+Triton is **not** on the bus in the two session-8 files: the plough control had
+already been disconnected from the ISOBUS by that point in the session (see
+Session 8's `#18` notes). It **is** present in all three session-9 files. No control function claims with our manufacturer
 code 1407, and neither log can be paired against a Triton serial reading. What
 they do carry is the vendors' own guidance traffic, which is what issues #20
 and #21 needed.
