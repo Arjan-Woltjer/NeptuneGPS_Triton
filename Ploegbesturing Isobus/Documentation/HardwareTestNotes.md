@@ -1671,11 +1671,24 @@ before trusting any per-terminal VT observation here.
   polling.
 - **Wider/Narrower**: the presses arrive (9 logged this session) and are
   consumed through `ConsumeWiderPress()` into `InterfacePlough::Update()`, so
-  the wiring is intact, but no effect was visible on the Ag Leader -- where
-  there is no valid guidance at all (quality 0, `IsRtkQuality=N`), which
-  plausibly holds the control path. Untested on the John Deere, where guidance
-  *was* valid. Check there first next time. Hitch movement was seen late in the
-  session, so the actuator path itself is alive.
+  the wiring is intact, but no effect was visible on the Ag Leader.
+
+  **The capture explains that completely, and with two causes rather than one.**
+  Guidance was invalid (quality 0, `IsRtkQuality=N`) *and* the machine never
+  reached the speed threshold: peak ground speed for the whole session was
+  **0.38 m/s** against `MINSPEED` of **0.5 m/s**, so `MinSpeed()` was false
+  throughout. Both interlocks held the control path independently, so the
+  observation says nothing about the actuator either way. To test it properly,
+  drive above **1.8 km/h** with an RTK fix -- on the John Deere guidance was
+  already valid, so speed is the only missing piece there.
+
+  **The hitch cycle is in the capture and it is a clean one**: rear hitch
+  (PGN 65093) held at 99.6% for 594 s, then a smooth descent to **1.2%** at
+  t = 611.8 s, **9.6 s on the ground**, and back to 100% by t ~ 650 s. 179
+  distinct positions at 10 Hz. Front hitch never moved. The four short movement
+  runs in the log all fall outside that window, which matches the operator's own
+  account. That is the first hard confirmation that 65093 is the honest
+  "implement out of work" signal the John Deere inventory argued it would be.
 - #21 still has no DDI 506 and no track numbers on either brand, even with the
   full Level 1 set declared and the TC demonstrably talking to us.
 - **#42: answered, negatively.** The session 28 capture rules out every
