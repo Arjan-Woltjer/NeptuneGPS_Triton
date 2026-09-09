@@ -53,3 +53,75 @@ the CAN stack while it runs.
 Pulled **off-bus**: the board had claimed address `0x81` but no terminal was
 connected, so this is the pool as *built*, not as any terminal accepted it. It
 is the input to the session-9 test, not evidence about its outcome.
+
+
+---
+
+# `from-bus/` -- the same pools recovered from the CANedge capture
+
+Reconstructed from `../../canlogs/2026-09-09_session9_agleader-vanmastwijk_log28_main.MF4`
+by reassembling the ISO 11783 Transport Protocol sessions sent by `0x81`. This
+was a test of whether a pool can be recovered from a passive bus capture at
+all -- the answer is yes, and it now has a ground truth to prove it, because
+the board's own dumps of the same pools sit beside it.
+
+## The VT object pool: byte-for-byte identical
+
+`VTPOOL_from_bus.iop` -- 538 bytes, md5 `cdf7555b56b010a6aa4118edfd5cf710`,
+**identical to `../VTPOOL.iop`**.
+
+Recovered from the ECU-to-VT transfer at t = 352.7 s, `0x81 -> 0x26`, PGN
+`0xE700`, first byte `0x11` (Object Pool Transfer). Note the destination: this
+is the **MW04 upload landing on the CNH terminal**, the reflash that fixed the
+stale-label problem described in HardwareTestNotes session 9. The VT that
+received our pool that time was CNH's `0x26`, not Ag Leader's `0x80`.
+
+## The DDOP: identical apart from one byte, and the byte is explained
+
+`DDOP_from_bus.iop` -- **540** bytes, against 541 in `../DDOP.iop`. Sent three
+times (t = 161.4, 359.2, 561.0 s) to the Task Controller at `0xF7`, all three
+transfers byte-identical, on PGN `0xCB00` behind a leading `0x61` Process Data
+command byte which is stripped here.
+
+The difference is a single `0x00` at offset 62 of the board's dump, immediately
+after the 7-byte localization label, with everything downstream shifted by one.
+That byte is the **extended structure label length**, which ISO 11783-10 defines
+as **version 4 and later only**. Removing it from the board's dump reproduces
+the on-wire bytes exactly:
+
+```
+dump[:62] + dump[63:] == wire     ->  True
+```
+
+And the reason is in the session's own serial log:
+
+```
+I] [TC]: DDOP will be generated using the server's version instead of the
+         specified version. New version: 3
+```
+
+The Ag Leader Task Controller is **version 3**, so AgIsoStack regenerated the
+DDOP at version 3 before uploading and dropped the version-4-only field.
+
+## The caveat this exposes, which matters more than the reconstruction
+
+**The `Dump DDOP` debug command shows the pool as authored, not necessarily the
+pool that goes on the wire.** When a Task Controller negotiates a lower version,
+AgIsoStack rebuilds the DDOP to match it, and the uploaded bytes differ from
+what the dump gives you.
+
+So inspecting a dump in AgIsoDDOPGenerator before a rig session is still worth
+doing -- it catches malformed pools cheaply -- but it validates the *authored*
+pool. If a terminal rejects a pool that looked fine in the generator, the
+version-downgraded form is the thing to reconstruct from a capture and check,
+and this directory is the worked example of how.
+
+## How to redo it
+
+`tools/` in the Documentation repo has the converter; the reassembly is a short
+script over `read_frames()` + `decode_pgn()`: watch PGN `0xEC00` for an RTS
+(byte 0 = 16) from the source of interest, collect PGN `0xEB00` data frames by
+their sequence byte, concatenate payload bytes 1-7 in sequence order and
+truncate to the RTS size. An ECU-to-VT object pool is the transfer whose
+enclosed PGN is `0xE700` and whose first payload byte is `0x11`; the DDOP is
+the one on `0xCB00`.
