@@ -1585,6 +1585,40 @@ could not have written it and this exchange could not have happened.
 Still absent: any DDI 506, and any of 507-511. The terminal engages with the
 pool but does not complete the tramline handshake.
 
+### The pool is accepted and activated -- confirmed on the bus, both brands
+
+Worth establishing separately, because it removes a whole class of explanation
+for the missing 506. The full ISO 11783-10 device-descriptor handshake is in
+both captures, and **every response carries error code 0x00**:
+
+```
+0x81 -> 0xF7   sub=0  Request structure label
+0xF7 -> 0x81   sub=1  Structure label
+0x81 -> 0xF7   sub=4  Request object pool transfer
+0xF7 -> 0x81   sub=5  ...RESPONSE                errorCode=0x00
+               sub=6  [the pool transfer itself]
+0xF7 -> 0x81   sub=7  Transfer RESPONSE          errorCode=0x00, size=540
+0x81 -> 0xF7   sub=8  Object pool activate
+0xF7 -> 0x81   sub=9  Activate RESPONSE          errorCode=0x00, faultyObject=65535 (none)
+```
+
+John Deere at t = 78.3 s (session 26), Ag Leader at t = 161.4 s and again after
+each reflash at 359.2 s and 561.0 s (session 28).
+
+So the pool is **not** being rejected on either brand. It transfers, is accepted
+and is activated without error, and the DDI 515 measurement command shows it is
+being read rather than merely stored. Whatever stops DDI 506 arriving, it is not
+a malformed or refused DDOP.
+
+Note the transfer response reports **size = 540**, not the 541 the board's own
+dump contains -- the TC's own accounting independently confirming the
+version-3 regeneration described in `pools/2026-09-09/README.md`.
+
+**Decoding note:** in Device Descriptor messages (command 1) the high nibble of
+byte 0 is the **sub-command**, not element-number bits. A generic Process Data
+decode that treats it as an element will report nonsense element numbers like
+4080 or 452 for these frames.
+
 ### Both TC diagnostics are misleading, in opposite directions
 
 - **`Value commands: 0`** reads zero even while the TC is commanding us,
