@@ -107,7 +107,20 @@ void IsobusVtInterface::Begin() {
     // child changed from a placeholder OutputString to a real PictureGraphic
     // icon (Icon_Plough) -- see VTObjectPool.cpp's appendPictureGraphic()
     // call site and GitHub issue #14.
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW03");
+    // Bumped MW03 -> MW04, 2026-09-09 (session 9, Ag Leader): the pool had
+    // changed twice under the MW03 label without a bump -- 1bb3295 added the
+    // Calibrate soft key and 359f618 changed the pool again -- so terminals
+    // holding an MW03 copy from before those commits kept serving it. Caught
+    // on the rig: the Ag Leader was displaying a pool with no Calibrate
+    // button while the firmware had had one for weeks.
+    //
+    // The label is the *only* thing a terminal compares. It caches by label
+    // and skips the upload on a match ("VT Server has a matching label ...
+    // upload will be skipped"), so an unbumped label after a pool change is
+    // silent -- nothing errors, the terminal just shows an old screen. Bump
+    // this on every change to VT3PoolData, exactly as the DDOP's TC0x label
+    // is bumped on every DDOP change.
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW04");
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(

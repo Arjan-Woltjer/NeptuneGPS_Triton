@@ -62,6 +62,14 @@ public:
 private:
     enum class State { IDLE, MENU };
 
+    // Emits a byte blob as one contiguous hex string between BEGIN/END
+    // markers, wrapped for readability, with the byte count and the one-liner
+    // that turns the capture back into a binary file. Shared by the DDOP and
+    // VT object pool dumps -- the formatting has to match exactly, because
+    // the whole point is that a script can lift it straight out of a serial
+    // log.
+    void printHexBlob(const char* label, const uint8_t* data, uint32_t length);
+
     Stream*                serialDebug;
     IsobusGuidanceChannel* guidanceChannel;
     GuidanceSource*        guidance;

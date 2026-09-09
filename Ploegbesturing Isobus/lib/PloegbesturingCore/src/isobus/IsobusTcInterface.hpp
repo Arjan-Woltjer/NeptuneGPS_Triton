@@ -121,6 +121,34 @@ public:
     // before treating silence as final.
     inline bool          HasTramlineSetpoint() const     { return tramlineSetpointSeen; }
     inline int           GetTramlineSetpointLevel() const { return tramlineSetpointLevel; }
+
+    // Guidance-track information the TC pushes over DDIs 508-511, latched for
+    // the debug menu. `...Seen` distinguishes "never arrived" from "arrived
+    // as 0", which is the whole point of the exercise: a terminal that
+    // populates track numbering tells us it speaks this part of the protocol
+    // even if it declines the tramline handshake itself.
+    // Serialises the DDOP exactly as it would be uploaded, so the pool the
+    // firmware really builds can be inspected offline -- e.g. opened in
+    // AgIsoDDOPGenerator -- rather than trusted because it compiled. Returns
+    // false if the DDOP has not been built yet or AgIsoStack rejects it,
+    // which is itself the answer worth having: a pool that will not
+    // serialise is a pool a terminal would refuse.
+    //
+    // Allocates, and is deliberately debug-only and operator-triggered: the
+    // control path never does this.
+    bool GenerateDdopBinary(std::vector<std::uint8_t>& out);
+
+    inline bool          HasGuidanceTrackInfo() const { return guidanceTrackSeen; }
+    inline std::int32_t  GetTramlineSequenceNumber() const { return tramlineSequenceNumber; }
+    inline bool          HasTrackControlState() const      { return trackControlStateSeen; }
+    inline std::int32_t  GetCommandedTrackControlState() const { return commandedTrackControlState; }
+    inline std::int32_t  GetAbLineId() const          { return abLineId; }
+    inline std::int32_t  GetActualTrackNumber() const { return actualTrackNumber; }
+    inline std::int32_t  GetTrackNumberRight() const  { return trackNumberRight; }
+    inline std::int32_t  GetTrackNumberLeft() const   { return trackNumberLeft; }
+    inline unsigned long GetGuidanceTrackAgeMs() const {
+        return guidanceTrackSeen ? (millis() - lastGuidanceTrackMs) : 0;
+    }
     inline unsigned long GetTramlineSetpointMs() const    { return lastTramlineSetpointMs; }
 
     // The bound TC partner's own address and validity -- same rationale as
@@ -204,6 +232,32 @@ private:
     // result that arrived once is the finding, even if nothing follows it.
     bool            tramlineSetpointSeen   = false;
     int             tramlineSetpointLevel  = -1;  // -1 = nothing received yet
+
+    // DDIs 508-511. Signed: track numbers either side of the reference line
+    // are negative on one side, and the spec's own "not available" encodings
+    // are large sentinels rather than zero, so zero is a real value here.
+    bool            guidanceTrackSeen  = false;
+    std::int32_t    abLineId           = 0;
+    std::int32_t    actualTrackNumber  = 0;
+    std::int32_t    trackNumberRight   = 0;
+    std::int32_t    trackNumberLeft    = 0;
+    unsigned long   lastGuidanceTrackMs = 0;
+
+    // DDI 507, written to us by the TC. Starts at 1 and increments per
+    // sequence, so 0 remains a usable "never seen" marker.
+    std::int32_t    tramlineSequenceNumber = 0;
+
+    // DDI 515. Two different things, deliberately kept apart: what the TC
+    // asked us to be, and what we actually are. 515 shares DDI 160's
+    // definition, where the TC sets the state and the client replies with its
+    // own -- so a read must answer with ours.
+    bool            trackControlStateSeen      = false;
+    std::int32_t    commandedTrackControlState = 0;
+
+    // 0 = manual/off. Stays there until something really performs track
+    // control; see kTramlineControlLevelsSupported in the .cpp. A named
+    // constant so there is one obvious place to look the day that changes.
+    static constexpr std::int32_t kReportedTrackControlState = 0;
     unsigned long   lastTramlineSetpointMs = 0;
 
     // Reconnect watchdog (GitHub issue #18). This matters more here than on
