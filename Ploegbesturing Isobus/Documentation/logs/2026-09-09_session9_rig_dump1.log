@@ -1,0 +1,61 @@
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 21.9 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   1506
+  PGN 65256  Speed legacy:      1506   last SA=0x1C raw=0x1
+  PGN 65535  XTE JD legacy:     32266   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (12 ms ago)
+  PGN 60160  XTE Trimble legacy:623   last SA=0x1C
+  PGN 64770  AISO stop:         302   last 330452 ms ago
+  TOTAL:                        36203
+--- Guidance telemetry ---
+  XTE:          0.34 m
+  Speed:        0.00 m/s (0.00 kn)
+  Quality:      4   RTK quality=4  IsRtkQuality=Y
+  GGA fix age:  139 ms
+  VTG fix age:  137 ms
+  XTE fix age:  126 ms
+  Lat/Lon/Alt/Course: 53.425621 / 6.720758 / 4.1 m / 27.1 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 305   last 261 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 330452 ms ago
+  GNSS quality (DDI 514):  0, last 330452 ms ago
+  Value commands (any DDI): 0  last DDI=(none)
+  Value requests (any DDI): 6750986
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+  Guidance track (DDI 507-511): (none yet)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring

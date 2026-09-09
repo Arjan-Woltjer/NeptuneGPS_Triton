@@ -1,0 +1,114 @@
+--------------------------------
+-----------MeijWorks------------
+--------------------------------
+Ploughcontrol ISOBUS version 0.1
+(c) 2011 - 2026 by J.A. Woltjer 
+--------------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+-------------------------------
+Tractor using following data:
+-------------------------------
+Speed calibration
+250
+-------------------------------
+Simspeed
+1.00
+-------------------------------
+Sim time
+2
+-------------------------------
+Sim mode
+1
+-------------------------------
+Invert hitch signal
+0
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+IsobusGuidanceChannel: claiming address address claimed: 0x81
+IsobusDebugMenu: send any character to open the status menu.
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring

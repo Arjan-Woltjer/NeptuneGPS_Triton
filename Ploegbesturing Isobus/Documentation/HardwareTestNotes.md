@@ -1505,6 +1505,160 @@ Worth recording that the legacy Trimble CAN ID `0x1CEBACAA` was therefore a
 raw TP.DT frame (SA `0xAA`, DA `0xAC`) -- which is why its decoder keys on
 `data[0] == 2 && data[5] == 7`: byte 0 is a TP sequence number.
 
+
+## Session 9 -- 2026-09-09 (John Deere, then Ag Leader InCommand 1200) -- the full DDI set on two brands
+
+First rig test of the full Tramline Control Level 1 DDI set (#21). Firmware:
+`feat/21-full-tramline-ddop`, structure label **TC05**, all eight DDIs (505,
+506, 507, 508, 509, 510, 511, 515) in the Ploughbody function element. Both
+AgIsoStack vendor patches verified present before the build; 104/104 native
+tests pass. The pool as built is snapshotted in
+[`pools/2026-09-09/`](pools/2026-09-09/).
+
+### Caught on the bench, before the rig: an over-long designator
+
+The DDI 508 designator was `Unique A-B Guidance Reference Line ID` -- 37
+characters against a 32-character limit -- and AgIsoStack warned about it on
+every boot. Shortened to `Unique A-B Guidance Ref Line ID` (31) before leaving.
+
+Worth doing first rather than noting afterwards: an over-long designator is a
+pool a terminal may legitimately reject, and a rejected pool looks exactly like
+the tramline handshake failing. Left in place it would have made a negative
+result uninterpretable, which is the failure mode session 7 already spent two
+runs on.
+
+### John Deere: the TC engages with the DDOP for the first time
+
+The pool was accepted, and the terminal's Tramline screen no longer reported
+the session-8 error (operator report; the wording was ambiguous over the radio,
+so the CANedge log is the record).
+
+`DDI 506` never arrived and `Guidance track (DDI 507-511)` stayed empty. But the
+status dump showed something new and initially alarming:
+
+```
+Value commands (any DDI): 0
+Value requests (any DDI): 6750986        <- ~20 000/s
+```
+
+20 000/s is impossible on a 250 kbit bus, so the number is not bus traffic. It
+is not garbage either. AgIsoStack invokes the request-value callback from five
+places in `isobus_task_controller_client.cpp`: once for a genuine bus request in
+`process_queued_commands()`, and four times for its *own* re-polling of
+measurement commands -- time interval, maximum threshold, minimum threshold and
+on-change threshold -- which it evaluates on every `update()`.
+
+The important part is where those measurement lists come from. They are
+populated **only** inside the received-message handler, under
+`ProcessDataCommands::MeasurementTimeInterval` /
+`MeasurementMaximumWithinThreshold` / `MeasurementMinimumWithinThreshold` /
+`MeasurementChangeThreshold` (lines 1611-1734). They cannot fill on their own.
+So a non-zero poll rate means **the John Deere TC sent us measurement
+commands** -- the first evidence in this whole effort that a Task Controller has
+actively configured reporting on our DPDs, rather than merely accepting the
+pool.
+
+**This is an inference, not a confirmation.** It rests on AgIsoStack's source
+plus our own counter, both downstream of the same stack -- the exact shape of
+session 5's `vtstat` mistake. The CANedge log taken during this session is the
+independent check: look for Process Data (PGN `0xCB00`) from the TC (`0xF7` or
+`0xFB`) to `0x81` with command type 4-7 in the low nibble of byte 0.
+
+### Both TC diagnostics are misleading, in opposite directions
+
+- **`Value commands: 0`** reads zero even while the TC is commanding us,
+  because measurement commands never reach `add_value_command_callback`.
+- **`Value requests: 6750986`** counts AgIsoStack's internal polling, so it
+  cannot answer "did the TC ask us anything?" -- the question it was added for.
+
+Together they made a genuine first contact look like another null result. Both
+want fixing before the next session, or the next reading will mislead again.
+
+### Also confirmed on John Deere
+
+- **#30's selector fix works on live hardware.** XTE read correctly throughout
+  (`0.34 m`, quality 4, `IsRtkQuality=Y`) with no sign of the `+162.87 m`
+  spikes the unguarded decoder produced roughly once a second.
+- **#37's course and altitude decode works**: `4.1 m` altitude, `27.1 deg`
+  course, alongside a real position.
+- The `[TP] ... global destination, ignoring` warnings appeared again. Still not
+  ours, as established in session 8.
+
+### The VT object pool label was stale -- found and fixed on the rig
+
+The operator noticed the Ag Leader was showing a screen **with no Calibrate
+button**, while the firmware has had one since `1bb3295`.
+
+Cause: `set_object_pool(..., "MW03")` was last bumped on 2026-08-10, and the
+pool changed twice afterwards (`1bb3295` adding the Calibrate soft key, and
+`359f618`) without a bump. A terminal compares only the label; on a match it
+skips the upload entirely (`VT Server has a matching label ... upload will be
+skipped`). So the change was **silent** -- nothing errored, the terminal simply
+kept serving a weeks-old screen. Every terminal that had ever cached MW03 was
+affected, John Deere included.
+
+Bumped to **MW04** and reflashed on the spot. Confirmed working:
+
+```
+I] [VT]: VT Server has a label for MW03   . This version will be deleted.
+I] [VT]: No version label from the VT matched. Client will upload the pool and store it instead.
+I] [VT]: Delete Version Response OK!
+I] [VT]: Stored object pool with no error.
+```
+
+The lesson matches the DDOP's TC0x discipline exactly, and is now written
+beside the label: **bump MW0x on every change to `VT3PoolData`.** This also
+retro-qualifies earlier sessions -- any VT behaviour observed between
+2026-08-10 and today was observed against whatever pool that terminal had
+cached, not necessarily the one in the source.
+
+### Issue #31 confirmed on hardware, and it recovers
+
+The Calibrate soft key was pressed. It works -- the wizard starts -- and, as #31
+predicts, **the ISOBUS stack stops being fed while it runs**. First hardware
+confirmation of that issue, which until now had been reasoned from the source
+only. The stack came back on its own once the wizard was left, so the stall is
+bounded by the wizard's lifetime rather than being a permanent wedge.
+
+### Ag Leader: no XTE on PGN 65535, and two VTs on the bus
+
+`XTE fix age` sat at 107-146 s (i.e. never) while PGN 65535 from `0x80` streamed
+steadily -- payloads `510302FF10060DFF`, `510301FF0B0009FF` and neighbours, all
+with `data[0] = 0x51`, which #30's selector check correctly refuses. Position,
+speed, course and altitude all decode fine (`53.442055 / 6.755811`, `4.5 m`,
+`56.8 deg`); only cross-track is missing. That is **issue #42** exactly: on this
+brand the XTE is somewhere else, and this session narrows it by confirming the
+`0x51` frames are not it.
+
+Operator ground truth called out for that hunt, unpaired on our side because we
+never decode a value: **26 cm, then 5 cm on the other side, then 53-54 cm.** The
+sign change is the useful part. All of it is inside this session's CANedge
+capture, which also recorded **the MW04 object pool upload itself** -- a
+complete VT pool transfer on the bus, useful independently of #42.
+
+Note the VT partner **changed between dumps**: `0x80` at VT version 3 before the
+reflash, `0x26` at VT version 4 after. There are two VTs on this bus (as in
+session 5), and which one we partner with is not fixed. Worth pinning down
+before trusting any per-terminal VT observation here.
+
+### Open after session 9
+
+- **Confirm the measurement-command inference from the CANedge log** before
+  treating "the JD TC engages with our DDOP" as established.
+- **Fix both TC counters**: count value commands and measurement commands
+  separately, and count real bus requests separately from AgIsoStack's internal
+  polling.
+- **Wider/Narrower**: the presses arrive (9 logged this session) and are
+  consumed through `ConsumeWiderPress()` into `InterfacePlough::Update()`, so
+  the wiring is intact, but no effect was visible on the Ag Leader -- where
+  there is no valid guidance at all (quality 0, `IsRtkQuality=N`), which
+  plausibly holds the control path. Untested on the John Deere, where guidance
+  *was* valid. Check there first next time. Hitch movement was seen late in the
+  session, so the actuator path itself is alive.
+- #21 still has no DDI 506 and no track numbers on either brand, even with the
+  full Level 1 set declared and the TC demonstrably talking to us.
+- #42: derive the Ag Leader XTE carrier from this session's capture and the
+  three ground-truth points above.
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
