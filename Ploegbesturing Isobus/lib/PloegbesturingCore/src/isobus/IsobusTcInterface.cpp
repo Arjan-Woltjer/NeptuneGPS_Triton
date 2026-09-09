@@ -18,6 +18,8 @@
 */
 #include "IsobusTcInterface.hpp"
 
+#include "IsobusPgnDecode.hpp"
+
 // The header is itself empty unless ISOBUS is defined (see its own comment) --
 // guard the body too, so this compiles to an empty translation unit instead
 // of failing on undeclared isobus:: symbols when PlatformIO's LDF pulls this
@@ -425,6 +427,14 @@ void IsobusTcInterface::Begin() {
     tcClient->add_value_command_callback(OnValueCommand, this);
     tcClient->add_request_value_callback(OnValueRequest, this);
 
+    // Watch PGN 0xCB00 directly as well. Session 9 established that neither
+    // callback above can answer "did the TC ask us anything?" -- see the
+    // wire-level accessors in the header. Registered on the network manager
+    // rather than the TC client on purpose: the whole value of this counter is
+    // that it does not pass through the code whose behaviour it is measuring.
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(
+        static_cast<std::uint32_t>(CANLibParameterGroupNumber::ProcessData), OnProcessDataFrame, this);
+
     // false = do NOT spawn a thread. This build uses
     // can_hardware_interface_single_thread; Update() pumps the client, same
     // as IsobusVtInterface's vtClient.
@@ -493,6 +503,66 @@ void IsobusTcInterface::updateReconnectWatchdog() {
 // Value command callback -- the TC writes to us here. This is where
 // 513/514 arrive.
 // ------------------------------------------------------------------
+// ------------------------------------------------------------------
+// Raw Process Data observer -- PGN 0xCB00, counted off the wire.
+//
+// Only messages addressed specifically to us are counted. The TC's own status
+// broadcast goes to the global address at ~1 Hz and would swamp everything
+// else while telling us nothing about whether we were addressed.
+//
+// Command is the low nibble of byte 0. For the process-data commands below the
+// high nibble plus byte 1 form the element number and bytes 2-3 the DDI --
+// but note that does NOT hold for the Device Descriptor command (1), where the
+// high nibble is a sub-command instead. Only the commands handled here are
+// decoded that way.
+// ------------------------------------------------------------------
+void IsobusTcInterface::OnProcessDataFrame(const CANMessage& message, void* parentPointer) {
+    auto* self = static_cast<IsobusTcInterface*>(parentPointer);
+    if (self == nullptr) {
+        return;
+    }
+
+    if (self->controlFunction == nullptr) {
+        return;
+    }
+    if (message.get_identifier().get_destination_address() != self->controlFunction->get_address()) {
+        return;  // not addressed to us -- TC status broadcasts land here
+    }
+
+    const auto& d = message.get_data();
+    if (message.get_data_length() < 8) {
+        return;
+    }
+
+    switch (ClassifyProcessDataCommand(d[0])) {
+        case ProcessDataKind::RequestValue:
+            self->busRequestValueCount++;
+            break;
+
+        // Set value, and set-value-and-acknowledge. The latter needs version 4
+        // on both ends, so it is not expected against the version-3 TCs seen
+        // so far -- counted rather than silently dropped, so that if one ever
+        // does use it the number moves instead of staying at zero.
+        case ProcessDataKind::SetValue:
+            self->busSetValueCount++;
+            break;
+
+        // The ones session 9 proved were arriving while nothing in the
+        // firmware could see them: the John Deere TC set a change threshold on
+        // DDI 515, and this is where that now shows up.
+        case ProcessDataKind::Measurement:
+            self->busMeasurementCount++;
+            self->lastBusMeasurementDdi  = ProcessDataDdi(d.data());
+            self->lastBusMeasurementType = d[0] & 0x0F;
+            self->lastBusMeasurementMs   = millis();
+            break;
+
+        default:
+            self->busOtherProcessDataCount++;
+            break;
+    }
+}
+
 bool IsobusTcInterface::GenerateDdopBinary(std::vector<std::uint8_t>& out) {
     out.clear();
     if (ddop == nullptr) {

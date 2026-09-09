@@ -478,6 +478,74 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
     assertFalse(r.valid);
 }
 
+// --- ClassifyProcessDataCommand -- GitHub issue #21 ------------------------
+// These exist because session 9's TC counters answered "did the Task
+// Controller ask us anything?" wrongly in both directions at once, from inside
+// a CAN callback where no test could reach them. The classification is pure
+// now, so it can be pinned.
+
+// The exact frame the John Deere TC sent us on 2026-09-09, from card session
+// 26: a change threshold on DDI 515. Nothing in the firmware could see this at
+// the time -- AgIsoStack consumes measurement commands internally and never
+// routes them to the value-command callback, so the counter read 0 while this
+// was on the wire.
+test(IsobusPgnDecode, processData_realMeasurementCommand_classifiedAsMeasurement) {
+    uint8_t d[8] = { 0x28, 0x00, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00 };
+    assertTrue(ClassifyProcessDataCommand(d[0]) == ProcessDataKind::Measurement);
+    assertEqual((int)ProcessDataDdi(d), 515);
+}
+
+// All five measurement commands must land in the same bucket -- gating on only
+// the change threshold would reproduce the original blind spot for the other
+// four.
+test(IsobusPgnDecode, processData_allMeasurementCommands_classifiedAsMeasurement) {
+    for (uint8_t cmd = 4; cmd <= 8; cmd++) {
+        assertTrue(ClassifyProcessDataCommand(cmd) == ProcessDataKind::Measurement);
+    }
+}
+
+test(IsobusPgnDecode, processData_requestAndSetValue_areDistinct) {
+    assertTrue(ClassifyProcessDataCommand(0x02) == ProcessDataKind::RequestValue);
+    assertTrue(ClassifyProcessDataCommand(0x03) == ProcessDataKind::SetValue);
+    // Set value and acknowledge. Needs version 4 on both ends, so it is not
+    // expected against the version-3 TCs seen so far, but it must count as a
+    // set rather than falling into Other and reading as silence.
+    assertTrue(ClassifyProcessDataCommand(0x0A) == ProcessDataKind::SetValue);
+}
+
+// The high nibble is an element number for these commands, and must not change
+// the classification. Real frames carry it non-zero.
+test(IsobusPgnDecode, processData_elementBitsInHighNibble_ignored) {
+    assertTrue(ClassifyProcessDataCommand(0x28) == ProcessDataKind::Measurement);
+    assertTrue(ClassifyProcessDataCommand(0xF2) == ProcessDataKind::RequestValue);
+    assertTrue(ClassifyProcessDataCommand(0x73) == ProcessDataKind::SetValue);
+}
+
+// Device Descriptor is the trap: there the high nibble is a SUB-command, not
+// element bits, so bytes 2-3 are not a DDI. It gets its own kind so a caller
+// knows not to read one out. 0x61 is the real object-pool transfer frame from
+// session 28; 0x71 and 0x91 are the transfer and activate responses.
+test(IsobusPgnDecode, processData_deviceDescriptorSubcommands_allClassifiedAsDeviceDescriptor) {
+    for (uint8_t sub = 0; sub <= 13; sub++) {
+        uint8_t byte0 = static_cast<uint8_t>((sub << 4) | 1);
+        assertTrue(ClassifyProcessDataCommand(byte0) == ProcessDataKind::DeviceDescriptor);
+    }
+}
+
+// The TC status broadcast goes to the global address at ~1 Hz. It is by far
+// the most common frame on this PGN and must not be mistaken for the TC
+// addressing us.
+test(IsobusPgnDecode, processData_statusAndWorkingSet_notMistakenForTraffic) {
+    assertTrue(ClassifyProcessDataCommand(0xFE) == ProcessDataKind::TaskControllerStatus);
+    assertTrue(ClassifyProcessDataCommand(0xFF) == ProcessDataKind::WorkingSetTask);
+    assertTrue(ClassifyProcessDataCommand(0x00) == ProcessDataKind::TechnicalCapabilities);
+}
+
+test(IsobusPgnDecode, processData_ddiIsLittleEndian) {
+    uint8_t d[8] = { 0x02, 0x00, 0x02, 0x02, 0, 0, 0, 0 };
+    assertEqual((int)ProcessDataDdi(d), 514);
+}
+
 // --- DecodeLegacyXteTrimble ------------------------------------------------------
 
 test(IsobusPgnDecode, legacyXteTrimble_validFrame_decodesFloatXte) {

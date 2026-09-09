@@ -1700,9 +1700,30 @@ before trusting any per-terminal VT observation here.
 
 - ~~Confirm the measurement-command inference from the CANedge log~~ --
   **done 2026-09-09**, confirmed on DDI 515; see above.
-- **Fix both TC counters**: count value commands and measurement commands
-  separately, and count real bus requests separately from AgIsoStack's internal
-  polling.
+- ~~Fix both TC counters~~ -- **done 2026-09-09 evening.** The fix counts PGN
+  0xCB00 messages *addressed to us* straight off the wire, through a raw
+  network-manager callback registered alongside the TC client rather than
+  through it. That independence is the point: the old numbers were computed
+  downstream of the very code whose behaviour they were meant to report, which
+  is the same shape as session 5's `vtstat` mistake. The classification itself
+  is now a pure function in `IsobusPgnDecode` so it can be tested; 7 tests pin
+  it, including the real DDI 515 frame.
+
+  Replayed over the two captures, the new readout would have shown at a glance
+  what took an evening of log analysis to establish:
+
+  | | John Deere (s26) | Ag Leader (s28) |
+  |---|---|---|
+  | Requests for our values | **1** | 0 |
+  | Measurement commands | **1** -- DDI 515, type 8 | **0** |
+  | Set-value commands | 0 | 0 |
+  | Other, addressed to us | 5 (the DDOP handshake) | 18 (handshake x3) |
+
+  **And it exposes a brand difference that was previously invisible: the Ag
+  Leader TC accepts and activates our pool, then never addresses us again.**
+  Zero requests, zero measurement commands, zero set-values in 842 s. The John
+  Deere engages; the Ag Leader does not. Any theory about the missing DDI 506
+  has to account for both behaviours, and they are not the same behaviour.
 - **Wider/Narrower**: the presses arrive (9 logged this session) and are
   consumed through `ConsumeWiderPress()` into `InterfacePlough::Update()`, so
   the wiring is intact, but no effect was visible on the Ag Leader.

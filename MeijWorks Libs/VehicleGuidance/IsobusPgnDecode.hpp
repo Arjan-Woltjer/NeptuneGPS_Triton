@@ -126,6 +126,38 @@ struct PositionResult {
 // existing lengthOk/valid convention rather than a parallel result type
 // (GitHub issue #37). A decoder leaves a field's flag false when its sender
 // does not carry it -- 129026 has no altitude, for instance.
+// ------------------------------------------------------------------
+// Process Data (PGN 0xCB00) command classification -- GitHub issue #21.
+//
+// Pure so it can be tested: the counters that misled session 9 lived inside a
+// CAN callback where nothing could reach them. The command is the low nibble
+// of byte 0.
+//
+// Note the trap this deliberately does NOT fall into: for the Device
+// Descriptor command (1) the *high* nibble of byte 0 is a sub-command, not
+// element-number bits, so a caller must not read an element or DDI out of
+// those frames. Classify() reports them as DeviceDescriptor precisely so the
+// caller knows not to.
+// ------------------------------------------------------------------
+enum class ProcessDataKind : std::uint8_t {
+    TechnicalCapabilities,  // 0
+    DeviceDescriptor,       // 1  -- high nibble is a sub-command, not an element
+    RequestValue,           // 2  -- the TC asking us for a value
+    SetValue,               // 3 and 10 -- the TC writing a value to us
+    Measurement,            // 4-8 -- the TC configuring reporting on one of our DPDs
+    TaskControllerStatus,   // 14
+    WorkingSetTask,         // 15
+    Other,
+};
+
+ProcessDataKind ClassifyProcessDataCommand(std::uint8_t byte0);
+
+// DDI carried in bytes 2-3, little-endian. Only meaningful for the kinds where
+// bytes 2-3 really are a DDI -- RequestValue, SetValue and Measurement.
+inline std::uint16_t ProcessDataDdi(const std::uint8_t* data) {
+    return static_cast<std::uint16_t>(data[2] | (data[3] << 8));
+}
+
 struct SpeedResult {
     bool     lengthOk = false;   // true once the length guard passed (rawValue meaningful)
     bool     valid = false;      // true => SetSpeedKnots(speedKnots) should be called

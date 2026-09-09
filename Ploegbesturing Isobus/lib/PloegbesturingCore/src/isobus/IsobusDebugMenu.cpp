@@ -318,7 +318,11 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print(", last ");
         serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
         serialDebug->println(" ms ago");
-        serialDebug->print("  Value commands (any DDI): ");
+        // --- What reached our handlers, via AgIsoStack -------------------
+        // Labelled as such deliberately. Session 9 read "Value commands: 0"
+        // as "the TC never commanded us" when the TC was commanding us at
+        // that moment; the number was not wrong, the label was.
+        serialDebug->print("  [via stack] Value cmds to handler: ");
         serialDebug->print(tcInterface->GetValueCommandCount());
         serialDebug->print("  last DDI=");
         if (tcInterface->GetValueCommandCount() > 0) {
@@ -329,8 +333,30 @@ void IsobusDebugMenu::printFullDump() {
         } else {
             serialDebug->println("(none)");
         }
-        serialDebug->print("  Value requests (any DDI): ");
-        serialDebug->println(tcInterface->GetValueRequestCount());
+        serialDebug->print("  [via stack] Value req callbacks:  ");
+        serialDebug->print(tcInterface->GetValueRequestCount());
+        serialDebug->println("   (mostly AgIsoStack's own re-polling -- NOT bus traffic)");
+
+        // --- What is actually on the wire, addressed to us ----------------
+        serialDebug->print("  [on bus] Requests for our values: ");
+        serialDebug->println(tcInterface->GetBusRequestValueCount());
+        serialDebug->print("  [on bus] Set-value commands:      ");
+        serialDebug->println(tcInterface->GetBusSetValueCount());
+        serialDebug->print("  [on bus] Measurement commands:    ");
+        serialDebug->print(tcInterface->GetBusMeasurementCount());
+        if (tcInterface->GetBusMeasurementCount() > 0) {
+            serialDebug->print("  last DDI=");
+            serialDebug->print(tcInterface->GetLastBusMeasurementDdi());
+            serialDebug->print(" type=");
+            serialDebug->print(tcInterface->GetLastBusMeasurementType());
+            serialDebug->print(" (");
+            serialDebug->print(millis() - tcInterface->GetLastBusMeasurementMs());
+            serialDebug->println(" ms ago)");
+        } else {
+            serialDebug->println("  (none)");
+        }
+        serialDebug->print("  [on bus] Other, addressed to us:  ");
+        serialDebug->println(tcInterface->GetBusOtherProcessDataCount());
         // Partner address/validity: the thing that silently went false in
         // both #17 and #19 and was readable nowhere at the time.
         serialDebug->print("  Partner: addr=0x");
