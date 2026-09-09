@@ -329,7 +329,13 @@ void IsobusTcInterface::buildDdop() {
                                    kSettable, kTriggers, kObjTramlineState);
     // Guidance-track information the TC pushes to us. Latched for the debug
     // menu; nothing steers off them.
-    ddop->add_device_process_data("Unique A-B Guidance Reference Line ID",
+    // Designator abbreviated from "Unique A-B Guidance Reference Line ID" (37
+    // chars): AgIsoStack warns at DDOP build time that designators over 32
+    // characters are only acceptable if they are 32 or fewer UTF-8 *characters*,
+    // and this one is 37 either way. Left long it is a pool a terminal may
+    // legitimately reject, which would be indistinguishable from the tramline
+    // handshake failing -- the exact question this DDOP exists to answer.
+    ddop->add_device_process_data("Unique A-B Guidance Ref Line ID",
                                    static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjAbLineId);
