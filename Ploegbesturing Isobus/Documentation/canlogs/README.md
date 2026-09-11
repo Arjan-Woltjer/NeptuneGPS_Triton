@@ -196,7 +196,13 @@ without saying so: 1 638 objects, no Working Set. Filed and fixed upstream:
 [AgIsoTerminalDesigner#35](https://github.com/Open-Agriculture/AgIsoTerminalDesigner/issues/35)
 / [PR #36](https://github.com/Open-Agriculture/AgIsoTerminalDesigner/pull/36).
 With both, the StarFire pool loads completely in the Designer. Until they
-land, the Designer cannot open these files usefully.
+land, the Designer cannot open these files usefully -- so a **patched build**
+is kept on the analysis machine, outside the repos:
+`C:\Users\arjan\OneDrive\MeijWorks Projects\Tools\AgIsoTerminalDesigner-patched\`
+(README alongside it). Verified 2026-09-11: File > Import IOP on the StarFire
+pool renders the receiver's main screen ("StarFire 7000 - Hoofd", position
+mode, heading/altitude/speed fields, roll/pitch) with `256: Working Set` at
+the top of the object tree.
 
 Getting that complete walk needed exactly **two** fixes to our object table,
 both VT-version-4 additions that our own pool never exercised because it uses
