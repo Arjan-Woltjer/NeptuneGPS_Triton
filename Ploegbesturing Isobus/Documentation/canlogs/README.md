@@ -134,10 +134,12 @@ object**. They do. It is **last**, not first.
    reassemblies are **byte-identical** (`cmp`).
 3. The VT answered every `End of Object Pool` with **error bitmask 0x00** --
    no error bits, so the terminal was satisfied with what it received.
-4. `tools/validate_iop.py` walks two of the three pools object by object and
-   lands **exactly** on the final byte (1 260 B / 105 objects, 21 643 B /
-   47 objects). A pool stream has no delimiters, so a single missing or
-   duplicated byte desynchronises the walk within a couple of objects.
+4. `tools/validate_iop.py` walks **all three** pools object by object and
+   lands **exactly** on the final byte -- including the StarFire's
+   **9 619 objects across all 327 501 bytes**. A pool stream has no
+   delimiters, so a single missing or duplicated byte desynchronises the walk
+   within a couple of objects; 9 619 consecutive objects landing on the last
+   byte is not something corrupt data does.
 
 **Where the Working Set is:**
 
@@ -151,9 +153,22 @@ The StarFire's is unmistakable: id 256, 9 children, and a table of **39
 language codes** (`en fr de nl es da it ar bg cs el ...`). Exactly one, as
 ISO 11783-6 requires.
 
-**This is not obfuscation.** The objects are ordinary ISO 11783-6 -- picture
-graphics with sane geometry and RLE flags matching their compressed sizes,
-string variables, macros, alarm masks. ISO 11783-6 4.6.5 requires "one, and
+**This is not obfuscation**, and the complete walk settles it: all **9 619**
+objects are standard ISO 11783-6 types, and **not one** is a
+ManufacturerDefined type (240-254) or anything outside the standard's range.
+What the StarFire ships is an ordinary, if large, terminal UI:
+
+| | | | |
+|---|---|---|---|
+| OutputLine 2 639 | OutputString 1 946 | StringVariable 1 444 | NumberVariable 787 |
+| Container 677 | OutputNumber 572 | Button 345 | OutputLinearBarGraph 293 |
+| OutputRectangle 183 | PictureGraphic 108 | ObjectPointer 102 | AlarmMask 99 |
+| Macro 82 | DataMask 56 | OutputEllipse 56 | FontAttributes 45 |
+| InputBoolean 38 | InputList 30 | FillAttributes 27 | LineAttributes 25 |
+| InputString 23 | InputNumber 20 | Key 11 | InputAttributes 4 |
+| OutputArchedBarGraph 3 | SoftKeyMask 2 | OutputPolygon 1 | **WorkingSet 1** |
+
+ISO 11783-6 4.6.5 requires "one, and
 only one, working set object" and says **nothing about where in the stream it
 goes**; every ordering rule in the standard is about child-reference order
 *within* a parent, for rendering. It cannot require definition-before-use
@@ -166,12 +181,22 @@ Working Set, or that gives up parsing partway, will report there is none.**
 `validate_iop.py --find-workingset` finds it by signature instead of by
 walking, which is what to use on these.
 
-Known gap: the walk does **not** yet complete the StarFire pool -- it stops at
-176 295 of 327 501 bytes on an object type it has no length rule for. That is
-a limitation of our object table (one such bug is already fixed: `InputList`
-needs the 13-byte fixed header with the VT-version-4 Options byte, not 12),
-not evidence about the data. The tool says so rather than reporting a partial
-inventory as fact.
+Getting that complete walk needed exactly **two** fixes to our object table,
+both VT-version-4 additions that our own pool never exercised because it uses
+neither object type:
+
+- **`InputList` is 13 bytes fixed, not 12** -- an `Options` byte sits
+  *between* the list-item count and the macro count, so the counts are at
+  +10 and +12, not +10 and +11.
+- **`InputNumber` is 38 bytes fixed, not 37** -- a second `Options` byte.
+
+Both were confirmed the same way, and it is the method worth reusing: when
+the walk stops, try small length deltas on the *preceding* object and accept
+the one where the **next object's child references resolve to object IDs the
+walk has already seen**. A legal type byte alone proves nothing (1 byte in 5
+is a valid type); references resolving to real, already-parsed objects is
+near-impossible by chance. Fitting deltas on "type byte looks legal" alone
+overfits and oscillates -- it was tried and does not converge.
 
 ## Reading them
 
