@@ -176,10 +176,27 @@ either, since masks reference children defined later -- the VT resolves the
 whole pool only after `End of Object Pool`. So "Working Set first" is a
 convention our own encoder follows and John Deere does not.
 
-The practical consequence: **a tool that assumes the first object is the
-Working Set, or that gives up parsing partway, will report there is none.**
+The practical consequence: **any tool that gives up parsing partway will
+report there is none**, because it never reaches the last object.
 `validate_iop.py --find-workingset` finds it by signature instead of by
 walking, which is what to use on these.
+
+**Why AgIsoTerminalDesigner shows no Working Set** (investigated 2026-09-11
+by running its actual parser, AgIsoStack-rs, over the pool): not the
+ordering, and not the object-structure gaps our own walker had. Its reader
+rejects any object whose Line Attributes, Font Attributes or Input Boolean
+Foreground Colour reference is NULL (`0xFFFF`) -- which ISO 11783-6 allows,
+AgIsoStack++ accepts, and John Deere uses freely (213 shapes with NULL line
+attributes, all 38 Input Booleans with NULL foreground colour). It stops at
+the first one, object 1 640 of 9 619, and `from_iop` keeps what it had
+without saying so: 1 638 objects, no Working Set. Filed and fixed upstream:
+[AgIsoStack-rs#47](https://github.com/Open-Agriculture/AgIsoStack-rs/issues/47)
+/ [PR #48](https://github.com/Open-Agriculture/AgIsoStack-rs/pull/48)
+(reader accepts NULL; adds a strict `try_from_iop`), with the companion
+[AgIsoTerminalDesigner#35](https://github.com/Open-Agriculture/AgIsoTerminalDesigner/issues/35)
+/ [PR #36](https://github.com/Open-Agriculture/AgIsoTerminalDesigner/pull/36).
+With both, the StarFire pool loads completely in the Designer. Until they
+land, the Designer cannot open these files usefully.
 
 Getting that complete walk needed exactly **two** fixes to our object table,
 both VT-version-4 additions that our own pool never exercised because it uses
