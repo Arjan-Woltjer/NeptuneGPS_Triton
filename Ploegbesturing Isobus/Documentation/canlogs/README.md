@@ -119,6 +119,60 @@ this.
   broadcast, regardless of autosteer state. `0xAC00` (guidance/curvature, from
   `0xF0`) is present throughout at 9.9 Hz as before.
 
+#### Are the harvested pools correct, and where is the Working Set?
+
+Opening the `.iop` files in a pool editor suggests they have **no Working Set
+object**. They do. It is **last**, not first.
+
+**The bytes are correct**, established four independent ways:
+
+1. `Get Memory` (VT function 0xC0) is the ECU telling the VT how many bytes
+   the pool is. The StarFire asked for **327 501** and we reassembled
+   **327 501**; the tractor ECU's second pool asked for **1 260** and we
+   reassembled **1 260**. Exact, on both.
+2. The StarFire uploaded the same pool **twice** and the two independent
+   reassemblies are **byte-identical** (`cmp`).
+3. The VT answered every `End of Object Pool` with **error bitmask 0x00** --
+   no error bits, so the terminal was satisfied with what it received.
+4. `tools/validate_iop.py` walks two of the three pools object by object and
+   lands **exactly** on the final byte (1 260 B / 105 objects, 21 643 B /
+   47 objects). A pool stream has no delimiters, so a single missing or
+   duplicated byte desynchronises the walk within a couple of objects.
+
+**Where the Working Set is:**
+
+| Pool | WorkingSet at | of | position |
+|---|---|---|---|
+| Tractor ECU, 21 643 B | 0x5418 (21 528) | 21 643 B | **99.5% through** |
+| StarFire, 327 501 B | 0x4FA5A (326 234) | 327 501 B | **99.6% through** |
+| ours (MW03), 538 B | 0x0 | 538 B | first object |
+
+The StarFire's is unmistakable: id 256, 9 children, and a table of **39
+language codes** (`en fr de nl es da it ar bg cs el ...`). Exactly one, as
+ISO 11783-6 requires.
+
+**This is not obfuscation.** The objects are ordinary ISO 11783-6 -- picture
+graphics with sane geometry and RLE flags matching their compressed sizes,
+string variables, macros, alarm masks. ISO 11783-6 4.6.5 requires "one, and
+only one, working set object" and says **nothing about where in the stream it
+goes**; every ordering rule in the standard is about child-reference order
+*within* a parent, for rendering. It cannot require definition-before-use
+either, since masks reference children defined later -- the VT resolves the
+whole pool only after `End of Object Pool`. So "Working Set first" is a
+convention our own encoder follows and John Deere does not.
+
+The practical consequence: **a tool that assumes the first object is the
+Working Set, or that gives up parsing partway, will report there is none.**
+`validate_iop.py --find-workingset` finds it by signature instead of by
+walking, which is what to use on these.
+
+Known gap: the walk does **not** yet complete the StarFire pool -- it stops at
+176 295 of 327 501 bytes on an object type it has no length rule for. That is
+a limitation of our object table (one such bug is already fixed: `InputList`
+needs the 13-byte fixed header with the VT-version-4 Options byte, not 12),
+not evidence about the data. The tool says so rather than reporting a partial
+inventory as fact.
+
 ## Reading them
 
 `mf4_to_pcap.py` -- now in the Documentation repo at
