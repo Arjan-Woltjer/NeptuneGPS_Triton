@@ -21,6 +21,7 @@ recoverable from the file.
 | `2026-09-09_session9_jd-vanos_log26_full-ddi-set.MF4` | `AD4F266A` / 26 | 2026-09-09 | John Deere | van Os | 454 s | 192 034 |
 | `2026-09-09_session9_agleader-vanmastwijk_log27_faulty-short.MF4` | `AD4F266A` / 27 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 22 s | 1 246 |
 | `2026-09-09_session9_agleader-vanmastwijk_log28_main.MF4` | `AD4F266A` / 28 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 842 s | 230 490 |
+| `2026-09-11_session10_jd-vanos_log29_iop-harvest.MF4` | `AD4F266A` / 29 | 2026-09-11 | John Deere | van Os | 529 s | 268 123 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -64,6 +65,42 @@ Session 8's `#18` notes). It **is** present in all three session-9 files. No con
 code 1407, and neither log can be paired against a Triton serial reading. What
 they do carry is the vendors' own guidance traffic, which is what issues #20
 and #21 needed.
+
+### Session 10, 2026-09-11
+
+**Triton is NOT on the bus** -- the plough control's latest branch was not
+flashed for this outing, this was purely a JD-only capture. John Deere, van
+Os, same rig as sessions 8/9. Startup (address claims + both VT object pool
+uploads) followed by driving a line, 15 m forward/15 m back, **autosteer
+engaged**.
+
+- **log 29** -- 529 s, 268 123 frames. Full startup captured: both John Deere
+  control functions that own a screen push their VT object pool to the
+  terminal (`0x26`) and the terminal accepts both (`End of Object Pool
+  Response` error code `0x00`).
+  - `0xF0` (**Tractor ECU**, fn=134) pushes **two** pools back to back,
+    21 643 B then 1 260 B.
+  - `0x1C` (**GPS receiver / StarFire**, fn=23, "Vehicle Navigation") pushes
+    a **327 501 B** pool, then uploads the **exact same pool a second time**
+    (byte-identical, confirmed with `cmp`) about 17 s later.
+
+  All four uploads reassembled and reconciled byte-for-byte against the RTS
+  session sizes with `tools/extract_iop.py` (new, in the Documentation repo);
+  the duplicate StarFire pool was kept only once. Harvested `.iop` files:
+  [`2026-09-11_session10_jd-vanos_log29_iops/`](2026-09-11_session10_jd-vanos_log29_iops/).
+  This is the actual capture the 2026-09-07 research note
+  (`isobus-jd-gps-objectpool-capture-2026-09-07.md`) planned for -- open the
+  `.iop` files in
+  [AgIsoTerminalDesigner](https://open-agriculture.github.io/AgIsoTerminalDesigner/)
+  to inspect the StarFire and tractor screens directly.
+
+  As predicted going in, no tramline/XTE traffic (Triton was not on the bus
+  to request it). PGN `0xAD00` (Guidance System Command) is still absent
+  despite autosteer being engaged this run -- refines the
+  john-deere-bus-inventory note's earlier "absent, consistent with autosteer
+  disengaged" reading: on this rig 0xAD00 appears to simply never be
+  broadcast, regardless of autosteer state. `0xAC00` (guidance/curvature, from
+  `0xF0`) is present throughout at 9.9 Hz as before.
 
 ## Reading them
 
