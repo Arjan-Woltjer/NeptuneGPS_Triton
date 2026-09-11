@@ -71,8 +71,25 @@ and #21 needed.
 **Triton is NOT on the bus** -- the plough control's latest branch was not
 flashed for this outing, this was purely a JD-only capture. John Deere, van
 Os, same rig as sessions 8/9. Startup (address claims + both VT object pool
-uploads) followed by driving a line, 15 m forward/15 m back, **autosteer
-engaged**.
+uploads) followed by driving a line out and back, **autosteer engaged**.
+
+**The driven segment, measured from the log** (log time 298-441 s): one pass
+of **37.4 m**, a turnaround, then **34.1 m** back, plus a final 14.5 m
+forward. Total path 143 m, net displacement 0.7 m -- it ended where it
+started. Sustained **~1.15 m/s (4.1 km/h)**. Called at the rig as "15 m
+forward, 15 m back", which was an eyeball estimate; the GPS distance is
+confirmed against the tractor's own wheel-based speed (PGN 65096), which
+integrates to ~40 m and ~36 m over the same two windows -- independent of the
+GPS, so the ~35 m figure is real.
+
+It **turned around, it did not reverse**: course (PGN 65256) holds 171 deg
+outbound and 351 deg inbound, exactly 180 deg apart, sweeping through
+intermediate values in between.
+
+Worth noting for #21: at ~1.15 m/s this is the **first capture that clears the
+plough's 0.5 m/s MINSPEED interlock** -- session 9 peaked at 0.38 m/s, so
+speed can no longer be the thing holding the plough in HOLD on a run like
+this.
 
 - **log 29** -- 529 s, 268 123 frames. Full startup captured: both John Deere
   control functions that own a screen push their VT object pool to the
