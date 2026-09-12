@@ -18,6 +18,9 @@ public:
     // GGA fix quality as the real class reports it. 1 (plain GPS) by default so
     // the tests that predate the minimum-quality rule keep dosing.
     uint8_t quality = 1;
+    float latitude  = 0.0f;
+    float longitude = 0.0f;
+    unsigned long ggaFix = 0;
 
     VehicleGps() {}
 
@@ -32,4 +35,12 @@ public:
     unsigned long GetVtgFixAge() { return vtgFix; }
 
     uint8_t GetQuality() { return quality; }
+
+    // Position side, same absolute-timestamp convention as vtgFix.
+    void SetPosition() { ggaFix = millis(); }
+    void GetPosition(float* lat, float* lon) {
+        if (lat) *lat = latitude;
+        if (lon) *lon = longitude;
+    }
+    unsigned long GetGgaFixAge() { return ggaFix; }
 };

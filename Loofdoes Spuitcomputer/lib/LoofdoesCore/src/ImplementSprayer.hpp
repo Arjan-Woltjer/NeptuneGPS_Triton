@@ -62,10 +62,17 @@ struct DoseCalibrationPoint {
     int analogValue; // raw ADC value 0-4095
 };
 
-class CalibrationSprayer;  // forward declaration for friend access
+// Who is driving the outputs directly instead of the button logic: the
+// serial wizard (CalibrationSprayer) or the companion app (RemoteSprayer).
+// Only one at a time; the other gets refused until it is given back.
+enum class CalibrationOwner : uint8_t { None = 0, Serial = 1, Remote = 2 };
+
+class CalibrationSprayer;  // forward declarations for friend access
+class RemoteSprayer;
 
 class ImplementSprayer {
     friend class CalibrationSprayer;
+    friend class RemoteSprayer;
 
 private:
     Stream*           serialDebug;
@@ -99,6 +106,15 @@ private:
     // speed and width, so a clamped duty can be expressed in the operator's
     // own unit.
     float flowToLHA(float flowMlMin) const;
+
+    CalibrationOwner calibrationOwner = CalibrationOwner::None;
+    int              calibrationDuty  = 0;   // last duty applied through SetCalibrationPWM(2, ...)
+
+    // Timed pump run, ended by this class, never by whoever started it.
+    bool          runActive     = false;
+    unsigned long runStartedAt  = 0;
+    unsigned long runDurationMs = 0;
+    void serviceCalibrationRun();
 
     // Deviation flag with a hold in both directions; drives OUT4.
     bool          deviationPending   = false;
@@ -161,6 +177,25 @@ public:
     void LoadCalibration();
     void SaveCalibration();
     void SetCalibrationPWM(byte outputIndex, int pwmValue);
+    int  GetCalibrationDuty() const { return calibrationDuty; }
+
+    // Calibration ownership. Acquire succeeds when free or already held by
+    // the same owner; Release is a no-op for anyone else. Releasing also
+    // ends a pump run and lets the button logic take the outputs back on
+    // the next Update() -- that is the whole "disconnect" behaviour.
+    bool             AcquireCalibration(CalibrationOwner who);
+    void             ReleaseCalibration(CalibrationOwner who);
+    CalibrationOwner GetCalibrationOwner() const { return calibrationOwner; }
+
+    // Firmware-timed pump run for the PWM calibration: the pump goes to
+    // `duty` now and back to 0 after `durationMs`, capped at
+    // kCalibrationRunMaxMs, whatever the caller does in the meantime.
+    // Refused unless calibration is held.
+    static constexpr unsigned long kCalibrationRunMaxMs = 60000;
+    bool          StartCalibrationRun(int duty, unsigned long durationMs);
+    void          StopCalibrationRun();
+    bool          CalibrationRunActive() const { return runActive; }
+    unsigned long CalibrationRunRemainingMs() const;
 
     inline OutputState* GetOutputs() { return outputs; }
 };

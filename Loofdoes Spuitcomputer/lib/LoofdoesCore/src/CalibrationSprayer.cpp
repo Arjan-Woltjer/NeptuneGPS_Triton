@@ -21,7 +21,6 @@
 #include "CalibrationSprayer.hpp"
 #include <stdlib.h>
 
-#define RUN_DURATION_MS 60000UL
 #define PWM_ARM_THRESHOLD 50  // analog reading below this counts as "knob at minimum"
 #define PERIODIC_PRINT_INTERVAL_MS 500UL
 
@@ -31,7 +30,7 @@ namespace triton
 CalibrationSprayer::CalibrationSprayer(Stream* serial, ImplementSprayer* impl)
     : serial(serial), impl(impl), state(State::IDLE),
       analogPointIdx(0), currentPWM(0), pwmStepIdx(0),
-      runStartTime(0), lastCountdown(0),
+      lastCountdown(0),
       doseOutputEnabled(false), pumpOutputEnabled(false), gpsOutputEnabled(false),
       lastPeriodicPrintTime(0), bufLen(0) {
     buf[0] = 0;
@@ -51,11 +50,11 @@ void CalibrationSprayer::Process() {
         }
     }
 
-    // Non-blocking 60-second timed run with per-second countdown.
+    // Non-blocking 60-second timed run with per-second countdown. The run
+    // itself is timed and ended by ImplementSprayer (shared with the
+    // companion app, see RemoteSprayer); this only reports it.
     if (state == State::PWM_TIMED_RUN) {
-        unsigned long elapsed = millis() - runStartTime;
-        if (elapsed >= RUN_DURATION_MS) {
-            impl->SetCalibrationPWM(2, 0);
+        if (!impl->CalibrationRunActive()) {
             bufLen = 0;
             buf[0] = 0;
             serial->println();
@@ -63,7 +62,7 @@ void CalibrationSprayer::Process() {
             lastCountdown = 0;
             state = State::PWM_MEASURE;
         } else {
-            unsigned long remaining = (RUN_DURATION_MS - elapsed + 999UL) / 1000UL;
+            unsigned long remaining = (impl->CalibrationRunRemainingMs() + 999UL) / 1000UL;
             if (remaining != lastCountdown) {
                 lastCountdown = remaining;
                 serial->print("\r");
@@ -187,7 +186,11 @@ void CalibrationSprayer::handleMenu() {
 
     switch (buf[0]) {
         case '1':
-            impl->calibrationMode = true;
+            if (!impl->AcquireCalibration(CalibrationOwner::Serial)) {
+                serial->println("\nBusy: the app holds calibration.");
+                printMenu();
+                break;
+            }
             analogPointIdx = 0;
             startAnalogPoint();
             break;
@@ -195,7 +198,11 @@ void CalibrationSprayer::handleMenu() {
             serial->println();
             serial->println("=== PWM OUTPUT CALIBRATION ===");
             serial->println("Turn the analog knob fully to MINIMUM, then press ENTER to arm.");
-            impl->calibrationMode = true;
+            if (!impl->AcquireCalibration(CalibrationOwner::Serial)) {
+                serial->println("Busy: the app holds calibration.");
+                printMenu();
+                break;
+            }
             currentPWM = 0;
             impl->SetCalibrationPWM(2, 0);
             state = State::PWM_ARM;
@@ -315,7 +322,7 @@ void CalibrationSprayer::finishAnalogCal() {
 
     impl->SaveCalibration();
     serial->println("Analog calibration saved.");
-    impl->calibrationMode = false;
+    impl->ReleaseCalibration(CalibrationOwner::Serial);
     printMenu();
     state = State::MENU;
 }
@@ -373,9 +380,8 @@ void CalibrationSprayer::handlePwmStep() {
     // The countdown itself (including the first tick) is printed by the
     // \r-based updater in Process(), so every line on this row shares the
     // same format/length and none leave stale trailing characters behind.
-    impl->SetCalibrationPWM(2, pwmSteps[pwmStepIdx]);
+    impl->StartCalibrationRun(pwmSteps[pwmStepIdx], ImplementSprayer::kCalibrationRunMaxMs);
     serial->println("Running...");
-    runStartTime  = millis();
     lastCountdown = 0;
     state = State::PWM_TIMED_RUN;
 }
@@ -408,8 +414,7 @@ void CalibrationSprayer::handlePwmMeasure() {
 }
 
 void CalibrationSprayer::finishPwmCal() {
-    impl->calibrationMode = false;
-    impl->SetCalibrationPWM(2, 0);
+    impl->ReleaseCalibration(CalibrationOwner::Serial);
 
     for (int i = 0; i < NUM_PWM_STEPS; ++i) {
         impl->pwmCalibrationPoints[i] = newPwmPoints[i];

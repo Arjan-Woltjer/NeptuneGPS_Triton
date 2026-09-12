@@ -57,7 +57,6 @@ private:
     int                 pwmSteps[NUM_PWM_STEPS] = {};
     int                 pwmStepIdx;
     PwmCalibrationPoint newPwmPoints[NUM_PWM_STEPS] = {};
-    unsigned long       runStartTime;
     unsigned long       lastCountdown;
 
     bool          doseOutputEnabled;
