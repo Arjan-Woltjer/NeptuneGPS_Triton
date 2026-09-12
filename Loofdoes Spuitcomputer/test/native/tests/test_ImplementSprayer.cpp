@@ -68,6 +68,41 @@ static void resetAll() {
     impl.pwmCalibrationPoints[2] = { 4000, 4095 };
     impl.numPwmCalibrationPoints = 3;
     iface.analogInputs[0].value = 0;
+    impl.actualLHA     = ImplementSprayer::kActualDoseUndefined;
+    impl.doseDeviation = false;
+}
+
+static unsigned long kHoldMinus1() { return ImplementSprayer::kDeviationHoldMs - 1; }
+
+// Advance time in `stepMs` slices up to `untilMs`, feeding a fresh speed
+// message every slice like a real receiver would, so the guidance-staleness
+// check never trips by accident inside a long scenario.
+static void runUntil(unsigned long untilMs, float speedMs, unsigned long stepMs = 100) {
+    while (millis() < untilMs) {
+        unsigned long next = millis() + stepMs;
+        if (next > untilMs) next = untilMs;
+        millisValue(next);
+        mockGps.SetSpeed(speedMs);
+        impl.Update();
+    }
+}
+
+// Bring mixer, vernevelaar and pump up in the interlocked order so the pump
+// output is on at t = 2000 ms, moving at `speedMs` with `analog` on the knob.
+static void startSpraying(float speedMs, int analog) {
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = analog;
+    iface.buttons[0].state = true;
+    mockGps.SetSpeed(speedMs);
+    impl.Update();                          // t=0:    mixer on
+    runUntil(1000, speedMs);
+    iface.buttons[1].state = true;
+    mockGps.SetSpeed(speedMs);
+    impl.Update();                          // t=1000: vernevelaar on
+    runUntil(2000, speedMs);
+    iface.buttons[2].state = true;
+    mockGps.SetSpeed(speedMs);
+    impl.Update();                          // t=2000: pump on
 }
 
 // ---------------------------------------------------------------------------
@@ -474,4 +509,176 @@ test(ImplementSprayer, tooFewPwmCalibrationPoints_stopsPump) {
     impl.numPwmCalibrationPoints = 1;
     impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)0);
+}
+
+// ---------------------------------------------------------------------------
+// Actual dose -- what the pump can really deliver after clamping, in l/ha
+// (NeptuneGPS_Triton#50). Requested l/ha is the knob; the duty follows speed
+// so the l/ha stays constant, and "actual" says whether a duty exists for it.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, actual_insideCurve_equalsRequested) {
+    // analog=2048 -> 100 l/ha, 1.0 m/s -> 1800 ml/min, inside {0..4000}
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    runUntil(1000, 1.0f);
+    assertNear(impl.doseLHA,   100.0f, 0.01f);
+    assertNear(impl.actualLHA, 100.0f, 0.01f);
+}
+
+test(ImplementSprayer, actual_belowLowestFlow_isZero) {
+    // Lowest calibrated flow 500 ml/min; 50 l/ha at 0.5 m/s asks for
+    // 50*0.5*300*60/1e6 = 0.45 l/min = 450 ml/min -> pump is cut, actual 0.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    impl.pwmCalibrationPoints[0] = { 500, 1000 };
+    iface.analogInputs[0].value = 0;
+    runUntil(1000, 0.5f);
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+    assertNear(impl.actualLHA, 0.0f, 0.001f);
+}
+
+test(ImplementSprayer, actual_aboveTopPoint_reportsSaturatedFlow) {
+    // 200 l/ha at 2.0 m/s asks for 7200 ml/min; the curve tops out at 4000
+    // ml/min at full duty, which at this speed and width is
+    // 4000*1000/(2.0*300*60) = 111.1 l/ha.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 4095;
+    runUntil(1000, 2.0f);
+    assertEqual(impl.outputs[2].value, (unsigned int)PWM_MAX_DUTY);
+    assertNear(impl.doseLHA,   200.0f, 0.01f);
+    assertNear(impl.actualLHA, 111.11f, 0.05f);
+}
+
+test(ImplementSprayer, actual_staleGuidance_isUndefined) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    runUntil(1000, 1.0f);
+    assertNear(impl.actualLHA, 100.0f, 0.01f);
+
+    millisValue(1000 + 2001);   // no message since t=1000
+    impl.Update();
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
+}
+
+test(ImplementSprayer, actual_standingStill_isUndefined) {
+    // A fresh fix with zero speed: nothing to dose, so nothing to compare.
+    // Must be the sentinel, not 0 -- 0 would read as "pump cut" on the app.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    runUntil(1000, 0.0f);
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
+}
+
+test(ImplementSprayer, actual_tooFewPwmPoints_isUndefined) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    impl.numPwmCalibrationPoints = 1;
+    iface.analogInputs[0].value = 2048;
+    runUntil(1000, 1.0f);
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
+}
+
+// ---------------------------------------------------------------------------
+// Deviation flag and OUT4 buzzer: outside 5 % of requested, only while the
+// pump output is on, held for kDeviationHoldMs before setting and clearing.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, deviation_setsAfterHold_whileSpraying) {
+    resetAll();
+    startSpraying(2.0f, 4095);              // saturated: 111 vs 200 l/ha, pump on at t=2000
+    assertTrue(impl.outputs[2].state);
+    assertFalse(impl.doseDeviation);        // condition true, hold not elapsed
+
+    runUntil(2000 + kHoldMinus1(), 2.0f);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+
+    runUntil(2000 + ImplementSprayer::kDeviationHoldMs, 2.0f);
+    assertTrue(impl.doseDeviation);
+    assertTrue(impl.outputs[3].state);      // board buzzer follows the flag
+}
+
+test(ImplementSprayer, deviation_lowFlowCutoff_setsWhileSpraying) {
+    resetAll();
+    impl.pwmCalibrationPoints[0] = { 500, 1000 };
+    startSpraying(0.5f, 0);                 // 450 ml/min asked, 500 minimum -> cut
+    runUntil(2000 + ImplementSprayer::kDeviationHoldMs, 0.5f);
+    assertNear(impl.actualLHA, 0.0f, 0.001f);
+    assertTrue(impl.doseDeviation);
+    assertTrue(impl.outputs[3].state);
+}
+
+test(ImplementSprayer, deviation_notSet_whenPumpOff) {
+    // Same saturated demand, but nobody is spraying: no alarm on the way to
+    // the field or on the headland.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 4095;
+    runUntil(5000, 2.0f);
+    assertNear(impl.actualLHA, 111.11f, 0.05f);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+}
+
+test(ImplementSprayer, deviation_insideCurve_staysClear) {
+    resetAll();
+    startSpraying(1.0f, 2048);
+    runUntil(6000, 1.0f);
+    assertTrue(impl.outputs[2].state);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+}
+
+test(ImplementSprayer, deviation_clearsAfterHold) {
+    resetAll();
+    startSpraying(2.0f, 4095);
+    runUntil(3000, 2.0f);
+    assertTrue(impl.doseDeviation);
+
+    // Slow down to 1.0 m/s: 200 l/ha now needs 3600 ml/min, inside the curve.
+    // The rolling speed average needs SPEED_AVG_SAMPLES updates to settle, so
+    // give it a moment before starting the clock on the hold.
+    runUntil(3000 + SPEED_AVG_SAMPLES * 100, 1.0f);
+    assertNear(impl.actualLHA, 200.0f, 0.01f);
+    unsigned long inRangeSince = millis();
+    assertTrue(impl.doseDeviation);          // still held
+
+    runUntil(inRangeSince + kHoldMinus1(), 1.0f);
+    assertTrue(impl.doseDeviation);
+    runUntil(inRangeSince + ImplementSprayer::kDeviationHoldMs, 1.0f);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+}
+
+test(ImplementSprayer, deviation_fivePercentBoundary) {
+    // Saturated at 4000 ml/min with 200 l/ha requested. actual =
+    // 4000*1000/(v*300*60): 4 % under at v=1.157 m/s, 6 % under at v=1.182.
+    resetAll();
+    startSpraying(1.157f, 4095);
+    runUntil(6000, 1.157f);
+    assertTrue(impl.outputs[2].state);
+    assertFalse(impl.doseDeviation);
+
+    resetAll();
+    startSpraying(1.182f, 4095);
+    runUntil(6000, 1.182f);
+    assertTrue(impl.doseDeviation);
+}
+
+test(ImplementSprayer, deviation_clearedInCalibrationMode) {
+    resetAll();
+    startSpraying(2.0f, 4095);
+    runUntil(3000, 2.0f);
+    assertTrue(impl.doseDeviation);
+
+    impl.calibrationMode = true;             // wizard owns the outputs now
+    runUntil(3000 + ImplementSprayer::kDeviationHoldMs, 2.0f);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+    impl.calibrationMode = false;
 }

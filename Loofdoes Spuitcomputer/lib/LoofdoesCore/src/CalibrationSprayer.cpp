@@ -166,7 +166,7 @@ void CalibrationSprayer::printMenu() {
     serial->println("2. PWM output      (ml/min)");
     serial->println("3. Show current calibration");
     serial->println("4. Edit PWM point");
-    serial->print("5. Analog output   (raw/dose/speed/flow) (");
+    serial->print("5. Analog output   (raw/dose/speed/flow/actual/dev) (");
     serial->print(doseOutputEnabled ? "ON" : "OFF");
     serial->println(" - press to toggle)");
     serial->print("6. Pump output     (calMode/pumpBtn/pumpOn/pumpVal) (");
@@ -469,7 +469,14 @@ void CalibrationSprayer::printDoseData() {
     serial->print(",speed:");
     serial->print(impl->gps->GetSpeedMs(), 2);
     serial->print(",flow:");
-    serial->println(impl->doseLM * 1000.0f, 1);
+    serial->print(impl->doseLM * 1000.0f, 1);
+    // Actual dose after clamping and the held 5 % deviation flag (see
+    // ImplementSprayer::updateDeviation). -1 means undefined: stale guidance,
+    // standing still or no usable pump curve.
+    serial->print(",actual:");
+    serial->print(impl->actualLHA, 1);
+    serial->print(",dev:");
+    serial->println(impl->doseDeviation ? 1 : 0);
 }
 
 void CalibrationSprayer::printPumpData() {
