@@ -22,6 +22,7 @@
 #include <EEPROM.h>
 
 #include "CalibrationSprayer.hpp"
+#include "ConfigSprayer.hpp"
 #include "ImplementSprayer.hpp"
 #include "InterfaceGps.hpp"
 #include "InterfaceI2CLCD.hpp"
@@ -50,6 +51,7 @@ triton::InterfaceI2CLCD*   lcd;
 triton::InterfaceSprayer*  interface;
 triton::ImplementSprayer*  implement;
 triton::CalibrationSprayer* calibration;
+triton::ConfigSprayer*     config;
 triton::VehicleGps*        gps;
 //triton::InterfaceGps*      interfaceGps;
 
@@ -60,7 +62,13 @@ void setup() {
 
   // put your setup code here, to run once:
   Serial.begin(115200);
-  gpsSerial.begin(115200, SERIAL_8N1, 21, 22);
+
+  // Settings first: the GPS port rate is one of them, and the stored
+  // baudrate in VehicleGps' EEPROM bytes was never applied before this.
+  config = new triton::ConfigSprayer();
+  config->Load();
+  gpsSerial.begin(triton::ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex),
+                  SERIAL_8N1, 21, 22);
 
     // Initialise objects and interfaces
   lcd = new triton::InterfaceI2CLCD(lcdWire, 0x27, 20, 4, 13, 14);
@@ -71,7 +79,7 @@ void setup() {
 
   gps          = new triton::VehicleGps(serialDebug, serialGps);
   interface    = new triton::InterfaceSprayer(serialDebug);
-  implement    = new triton::ImplementSprayer(serialDebug, gps, interface);
+  implement    = new triton::ImplementSprayer(serialDebug, gps, interface, config);
   calibration  = new triton::CalibrationSprayer(serialDebug, implement);
 
   implement->LoadCalibration();
@@ -88,7 +96,12 @@ void setup() {
   Serial.println(EEPROM.read(0));
   Serial.println("-------------------------------");
 
-  gps->PrintCalibrationData();
+  Serial.println("Settings:");
+  Serial.print("  width          "); Serial.print(config->Get().widthCm);           Serial.println(" cm");
+  Serial.print("  guidance limit "); Serial.print(config->Get().guidanceTimeoutMs); Serial.println(" ms");
+  Serial.print("  gps baudrate   "); Serial.println(triton::ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
+  Serial.print("  gps min fix    "); Serial.println(config->Get().gpsMinQuality);
+  Serial.println("-------------------------------");
 
 
   // Write message to screen

@@ -18,6 +18,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
+#include "ConfigSprayer.hpp"
 #include "ImplementSprayer.hpp"
 
 using namespace aunit;
@@ -35,12 +36,15 @@ using namespace triton;
 // ---------------------------------------------------------------------------
 static InterfaceSprayer iface;
 static VehicleGps       mockGps;
-static ImplementSprayer impl(nullptr, &mockGps, &iface);
+static ConfigSprayer    cfg;
+static ImplementSprayer impl(nullptr, &mockGps, &iface, &cfg);
 
 static void resetAll() {
     millisValue(0);
-    mockGps.speed  = 0.0f;
-    mockGps.vtgFix = 0;
+    mockGps.speed   = 0.0f;
+    mockGps.vtgFix  = 0;
+    mockGps.quality = 1;
+    cfg = ConfigSprayer();   // back to the defaults every test assumes
 
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
         iface.buttons[i].state = false;
@@ -681,4 +685,68 @@ test(ImplementSprayer, deviation_clearedInCalibrationMode) {
     assertFalse(impl.doseDeviation);
     assertFalse(impl.outputs[3].state);
     impl.calibrationMode = false;
+}
+
+// ---------------------------------------------------------------------------
+// Settings from ConfigSprayer (NeptuneGPS_Triton#49): width, guidance timeout
+// and the minimum fix quality all used to be compile-time constants.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, width_fromSettings_scalesDoseLM) {
+    // 100 l/ha at 1.0 m/s: 1.8 l/min at 300 cm, 3.6 l/min at 600 cm.
+    resetAll();
+    cfg.SetWidthCm(600);
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertNear(impl.doseLM, 3.6f, 0.01f);
+}
+
+test(ImplementSprayer, guidanceTimeout_fromSettings) {
+    // 500 ms instead of the old fixed 2000: still dosing at +500, stopped at +501.
+    resetAll();
+    cfg.SetGuidanceTimeoutMs(500);
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+
+    millisValue(1500);
+    impl.Update();
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+
+    millisValue(1501);
+    impl.Update();
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+}
+
+test(ImplementSprayer, minQualityRtk_plainGpsFix_stopsPump) {
+    resetAll();
+    cfg.SetGpsMinQuality(4);
+    mockGps.quality = 1;
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+
+    // Fix improves to RTK fixed: dosing resumes on the same speed.
+    mockGps.quality = 4;
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+}
+
+test(ImplementSprayer, minQualityAny_default_dosesWithoutFixQuality) {
+    // Default 0 keeps today's behaviour: a speed is a speed, whatever the fix says.
+    resetAll();
+    mockGps.quality = 0;
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    millisValue(1000);
+    mockGps.SetSpeed(1.0f);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    assertMore(impl.outputs[2].value, (unsigned int)0);
 }

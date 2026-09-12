@@ -58,7 +58,7 @@ Write-Host "=== Building LoofdoesNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\LoofdoesNativeTests.exe`" && `"$out\LoofdoesNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" `"$lib\ConfigSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\LoofdoesNativeTests.exe`" && `"$out\LoofdoesNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

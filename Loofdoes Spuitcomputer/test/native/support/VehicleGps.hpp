@@ -15,6 +15,9 @@ public:
     // real receiver cannot produce, and one the staleness check would treat as
     // stale.
     unsigned long vtgFix = 0;
+    // GGA fix quality as the real class reports it. 1 (plain GPS) by default so
+    // the tests that predate the minimum-quality rule keep dosing.
+    uint8_t quality = 1;
 
     VehicleGps() {}
 
@@ -27,4 +30,6 @@ public:
 
     // Named "age" but returns an absolute timestamp, matching the real getter.
     unsigned long GetVtgFixAge() { return vtgFix; }
+
+    uint8_t GetQuality() { return quality; }
 };

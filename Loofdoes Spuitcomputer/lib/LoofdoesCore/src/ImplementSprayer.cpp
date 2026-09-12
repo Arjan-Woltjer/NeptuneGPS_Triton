@@ -39,9 +39,9 @@ inline bool GIsFinite(float v) {
 
 
 ImplementSprayer::ImplementSprayer(Stream* serialDebug, VehicleGps* gps,
-                                   InterfaceSprayer* interface)
-    : serialDebug(serialDebug), gps(gps), interface(interface),
-      speed(0), width(WIDTH), doseLHA(0.0f), doseLM(0.0f) {
+                                   InterfaceSprayer* interface, ConfigSprayer* config)
+    : serialDebug(serialDebug), gps(gps), interface(interface), config(config),
+      speed(0), width((float)config->Get().widthCm), doseLHA(0.0f), doseLM(0.0f) {
 #ifdef DEBUG
     serialDebug->println(S_DIVIDE);
     serialDebug->println("Initialising sprayer implement");
@@ -81,6 +81,10 @@ ImplementSprayer::ImplementSprayer(Stream* serialDebug, VehicleGps* gps,
 }
 
 void ImplementSprayer::Update() {
+    // Settings can change at runtime (serial CLI, companion app), so the
+    // geometry is re-read every cycle rather than captured once.
+    width = (float)config->Get().widthCm;
+
     updateInputs();
     updateSpeed();
 
@@ -114,12 +118,19 @@ void ImplementSprayer::updateInputs() {
 // Note the getter returns an absolute timestamp, not an age, despite the name.
 // It also starts at 0, so "no message since boot" has to be distinguished from
 // a genuine fix rather than read as a very recent one.
+//
+// The fix-quality floor lives here too: a fix the operator has said not to
+// trust is treated exactly like no fix, so every fail-closed path that
+// already handles stale guidance covers it without a second set of checks.
 bool ImplementSprayer::guidanceStale() const {
     const unsigned long lastFix = gps->GetVtgFixAge();
     if (lastFix == 0) {
         return true;
     }
-    return (millis() - lastFix) > kGuidanceTimeoutMs;
+    if ((millis() - lastFix) > config->Get().guidanceTimeoutMs) {
+        return true;
+    }
+    return !config->GuidanceQualityOk(gps->GetQuality());
 }
 
 void ImplementSprayer::updateSpeed() {
