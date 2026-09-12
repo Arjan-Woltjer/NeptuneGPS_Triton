@@ -39,9 +39,15 @@ cd "Loofdoes Spuitcomputer/android"
 3. The connection bar turns green. Speed, requested and actual l/ha follow
    the board at 5 Hz; **Actual** turns red and the alarm sounds while the
    board flags a deviation.
-4. **Calibrate > Advanced** shows the knob and pump tables and the board
-   settings, and has a console for raw protocol lines (`PING`, `CAL GET`,
-   `CFG GET`, `TELEM S 0`, ...) with the last lines in both directions.
+4. **Calibrate** opens the menu: **Wizard** (the serial menu's procedure,
+   knob positions then the pump curve with five board-timed one-minute
+   runs), **Potmeter calibration** (the knob positions alone, or one of
+   them), **Sprayer** (width, guidance timeout), **GPS config** (minimum fix
+   to dose, receiver baudrate, with a live readout) and **Advanced** (the
+   tables, the board settings, a pump-point correction and a console for
+   raw protocol lines with the last lines in both directions).
+   Calibration edits are staged on the board and only applied by the final
+   save; cancelling, or losing the link, keeps the old values.
 5. The gear icon holds the alarm sound, volume, vibration and screen options.
 
 The board is fully standalone: without the app it doses and sounds its own

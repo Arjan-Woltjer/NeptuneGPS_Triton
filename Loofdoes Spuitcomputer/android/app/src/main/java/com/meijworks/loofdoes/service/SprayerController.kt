@@ -29,4 +29,23 @@ object SprayerController {
 
     fun previewSound(sound: AlarmSound) = service?.previewSound(sound)
     fun stopAlarm() = service?.stopAlarm()
+
+    // Board settings (ConfigSprayer): validated on the board, re-read after.
+    fun setConfig(key: String, value: Long) = service?.setConfig(key, value)
+
+    // Pump curve point edit (serial menu option 4).
+    fun editPwmPointFlow(index: Int, flowMlMin: Int) = service?.editPwmPointFlow(index, flowMlMin)
+
+    // Calibration wizard, driven by the screens, executed in the service.
+    fun startWizard(mode: WizardMode, singleIndex: Int = 0) = service?.wizard?.start(mode, singleIndex)
+    fun wizardCaptureDose(rawNow: Int?) = service?.wizard?.captureDose(rawNow)
+    fun wizardEnterDose(doseLha: Int) = service?.wizard?.enterDose(doseLha)
+    fun wizardSetFindDuty(duty: Int) = service?.wizard?.setFindDuty(duty)
+    fun wizardCaptureStart() = service?.wizard?.captureStart()
+    fun wizardStartRun() = service?.wizard?.startRun()
+    fun wizardStopRun() = service?.wizard?.stopRun()
+    fun wizardEnterVolume(ml: Int) = service?.wizard?.enterVolume(ml)
+    fun cancelWizard() = service?.wizard?.cancel()
+    /** After DONE or FAILED: drop the wizard state without touching the board again. */
+    fun clearWizard() = service?.clearWizard()
 }

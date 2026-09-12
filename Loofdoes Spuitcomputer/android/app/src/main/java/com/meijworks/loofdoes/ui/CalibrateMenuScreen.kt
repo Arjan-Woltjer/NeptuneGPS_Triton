@@ -24,14 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meijworks.loofdoes.SprayerState
 
-/**
- * The Calibrate menu (NeptuneGPS_Triton#46). The four calibration entries
- * arrive with #52; until then they say so. Advanced is live: the tables and
- * settings read from the board, plus a bench console.
- */
+/** The Calibrate menu (NeptuneGPS_Triton#46): the five agreed entries. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CalibrateMenuScreen(sprayer: SprayerState, onBack: () -> Unit, onAdvanced: () -> Unit) {
+fun CalibrateMenuScreen(
+    sprayer: SprayerState,
+    onBack: () -> Unit,
+    onWizard: () -> Unit,
+    onPotmeter: () -> Unit,
+    onSprayer: () -> Unit,
+    onGps: () -> Unit,
+    onAdvanced: () -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,13 +54,13 @@ fun CalibrateMenuScreen(sprayer: SprayerState, onBack: () -> Unit, onAdvanced: (
         ) {
             Card(Modifier.fillMaxWidth()) {
                 Column {
-                    MenuEntry("Wizard", "Full calibration: knob positions, then the pump curve", enabled = false)
+                    MenuEntry("Wizard", "Full calibration: knob positions, then the pump curve", enabled = sprayer.connected, onClick = onWizard)
                     HorizontalDivider()
-                    MenuEntry("Potmeter calibration", "The three knob positions only", enabled = false)
+                    MenuEntry("Potmeter calibration", "The three knob positions only", enabled = sprayer.connected, onClick = onPotmeter)
                     HorizontalDivider()
-                    MenuEntry("Sprayer", "Width and guidance timeout", enabled = false)
+                    MenuEntry("Sprayer", "Width and guidance timeout", enabled = sprayer.connected, onClick = onSprayer)
                     HorizontalDivider()
-                    MenuEntry("GPS config", "Baudrate and minimum fix quality", enabled = false)
+                    MenuEntry("GPS config", "Baudrate and minimum fix quality", enabled = sprayer.connected, onClick = onGps)
                     HorizontalDivider()
                     MenuEntry(
                         "Advanced",
@@ -67,8 +71,8 @@ fun CalibrateMenuScreen(sprayer: SprayerState, onBack: () -> Unit, onAdvanced: (
                 }
             }
             Text(
-                "Wizard, potmeter, sprayer and GPS settings arrive in the next version. " +
-                    "Until then the serial menu on the board does those.",
+                if (sprayer.connected) "The wizard follows the same steps as the serial menu on the board."
+                else "Connect to the sprayer first.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

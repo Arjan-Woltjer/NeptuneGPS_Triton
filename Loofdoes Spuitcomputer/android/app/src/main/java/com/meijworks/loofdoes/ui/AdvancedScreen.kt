@@ -22,6 +22,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.meijworks.loofdoes.SprayerState
 import com.meijworks.loofdoes.protocol.GpsSample
@@ -43,9 +45,9 @@ import com.meijworks.loofdoes.protocol.SprayerProtocol
 import com.meijworks.loofdoes.service.SprayerController
 
 /**
- * Read-only view of what the board holds, plus a console that sends raw
- * protocol lines and shows the last lines in both directions. Editing comes
- * with #52.
+ * What the board holds, plus a console that sends raw protocol lines and
+ * shows the last lines in both directions. A pump point's flow can be
+ * corrected here (serial menu option 4).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -104,6 +106,7 @@ private fun TablesCard(sprayer: SprayerState) {
                 sprayer.pwmPoints.forEach { p ->
                     TableRow("${p.index + 1}", "${p.pwm}", "${p.flowMlMin}")
                 }
+                PwmPointEditor(sprayer)
             }
         }
     }
@@ -184,6 +187,38 @@ private fun ConsoleCard(sprayer: SprayerState) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun PwmPointEditor(sprayer: SprayerState) {
+    var pointText by rememberSaveable { mutableStateOf("") }
+    var flowText by rememberSaveable { mutableStateOf("") }
+    val point = pointText.toIntOrNull()?.let { n -> sprayer.pwmPoints.firstOrNull { it.index == n - 1 } }
+    val flow = flowText.toIntOrNull()
+    Spacer(Modifier.height(4.dp))
+    Text("Correct a point's flow", style = MaterialTheme.typography.labelLarge)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = pointText,
+            onValueChange = { pointText = it.filter { c -> c.isDigit() } },
+            label = { Text("#") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(0.6f),
+        )
+        OutlinedTextField(
+            value = flowText,
+            onValueChange = { flowText = it.filter { c -> c.isDigit() } },
+            label = { Text("ml/min") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+        )
+        OutlinedButton(
+            onClick = { if (point != null && flow != null) SprayerController.editPwmPointFlow(point.index, flow) },
+            enabled = sprayer.connected && point != null && flow != null && flow in 1..4000,
+        ) { Text("Save") }
     }
 }
 

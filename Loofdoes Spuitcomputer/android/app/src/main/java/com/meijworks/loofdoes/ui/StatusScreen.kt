@@ -49,7 +49,7 @@ import com.meijworks.loofdoes.protocol.CalibrationOwner
 import com.meijworks.loofdoes.protocol.StatusSample
 import kotlinx.coroutines.delay
 
-enum class Screen { STATUS, CALIBRATE, ADVANCED, SETTINGS }
+enum class Screen { STATUS, CALIBRATE, WIZARD, POTMETER, SPRAYER, GPS, ADVANCED, SETTINGS }
 
 /**
  * Home: speed, requested l/ha and actual l/ha large, the rest below, one
