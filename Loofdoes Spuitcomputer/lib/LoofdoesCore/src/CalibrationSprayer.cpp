@@ -453,6 +453,18 @@ void CalibrationSprayer::printCurrentCalibration() {
         serial->print(impl->pwmCalibrationPoints[i].flowMlMin);
         serial->println(" ml/min");
     }
+    // Operator settings (ConfigSprayer, NVS "sprayer_cfg"). Read-only here;
+    // editing is the companion app's job (NeptuneGPS_Triton#46).
+    const SprayerSettings& cfg = impl->config->Get();
+    serial->println("Settings:");
+    serial->print("  width=");
+    serial->print(cfg.widthCm);
+    serial->print(" cm  guidance=");
+    serial->print(cfg.guidanceTimeoutMs);
+    serial->print(" ms  gpsBaud=");
+    serial->print(ConfigSprayer::BaudFromIndex(cfg.gpsBaudIndex));
+    serial->print("  gpsMinQuality=");
+    serial->println(cfg.gpsMinQuality);
 }
 
 void CalibrationSprayer::printDoseData() {

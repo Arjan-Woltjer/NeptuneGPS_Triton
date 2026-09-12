@@ -20,6 +20,7 @@
 
 #include <Arduino.h>
 
+#include "ConfigSprayer.hpp"
 #include "InterfaceSprayer.hpp"
 #include "VehicleGps.hpp"
 
@@ -27,8 +28,6 @@ namespace triton
 {
 
 #define SPRAYER_VERSION 0.2
-
-#define WIDTH 300
 
 #define NUM_OUTPUTS 4
 
@@ -72,6 +71,7 @@ private:
     Stream*           serialDebug;
     VehicleGps*       gps;
     InterfaceSprayer* interface;
+    ConfigSprayer*    config;
 
     DigitalInputState* buttons[NUM_DIGITAL_IN];
     AnalogInputState*  inputAnalog[NUM_ANALOG_IN];
@@ -82,12 +82,10 @@ private:
     int   speedBufIdx;
     float width;
 
-    // Guidance older than this counts as no guidance at all. Same threshold
-    // InterfacePlough already applies on the plough side.
-    static constexpr unsigned long kGuidanceTimeoutMs = 2000;
-
     void updateInputs();
     void updateSpeed();
+    // Stale (older than the configured timeout, or never received) or of
+    // a lower fix quality than the operator allows; either way, no dosing.
     bool guidanceStale() const;
 
     void calculateDoseLHA();
@@ -156,7 +154,8 @@ public:
         { OUT4, 3, false, false, 0, 0 },
     };
 
-    ImplementSprayer(Stream* serialDebug, VehicleGps* gps, InterfaceSprayer* interface);
+    ImplementSprayer(Stream* serialDebug, VehicleGps* gps, InterfaceSprayer* interface,
+                     ConfigSprayer* config);
 
     void Update();
     void LoadCalibration();
