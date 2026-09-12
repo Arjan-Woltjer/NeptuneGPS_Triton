@@ -1,5 +1,5 @@
 
-`native/` holds the AUnit tests for InterfaceSprayer/ImplementSprayer/ConfigSprayer
+`native/` holds the AUnit tests for InterfaceSprayer/ImplementSprayer/ConfigSprayer/RemoteSprayer
 (../lib/LoofdoesCore/src/), run natively (no ESP32 attached):
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test.

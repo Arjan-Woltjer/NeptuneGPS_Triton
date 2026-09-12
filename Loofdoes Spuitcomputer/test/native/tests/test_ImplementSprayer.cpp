@@ -750,3 +750,74 @@ test(ImplementSprayer, minQualityAny_default_dosesWithoutFixQuality) {
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertMore(impl.outputs[2].value, (unsigned int)0);
 }
+
+// ---------------------------------------------------------------------------
+// Calibration ownership and the firmware-timed pump run (NeptuneGPS_Triton#47):
+// shared by the serial wizard and the companion app, ended here regardless of
+// what the starter does next.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, calibration_singleOwner) {
+    resetAll();
+    assertTrue(impl.AcquireCalibration(CalibrationOwner::Serial));
+    assertTrue(impl.calibrationMode);
+    assertTrue(impl.AcquireCalibration(CalibrationOwner::Serial));    // idempotent
+    assertFalse(impl.AcquireCalibration(CalibrationOwner::Remote));   // held
+    impl.ReleaseCalibration(CalibrationOwner::Remote);                // not yours: no-op
+    assertTrue(impl.GetCalibrationOwner() == CalibrationOwner::Serial);
+    impl.ReleaseCalibration(CalibrationOwner::Serial);
+    assertTrue(impl.GetCalibrationOwner() == CalibrationOwner::None);
+    assertFalse(impl.calibrationMode);
+    assertTrue(impl.AcquireCalibration(CalibrationOwner::Remote));
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(ImplementSprayer, calibrationRun_requiresOwnerAndValidArgs) {
+    resetAll();
+    assertFalse(impl.StartCalibrationRun(2000, 5000));    // nobody holds calibration
+    assertTrue(impl.AcquireCalibration(CalibrationOwner::Remote));
+    assertFalse(impl.StartCalibrationRun(-1, 5000));
+    assertFalse(impl.StartCalibrationRun(4096, 5000));
+    assertFalse(impl.StartCalibrationRun(2000, 0));
+    assertFalse(impl.CalibrationRunActive());
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(ImplementSprayer, calibrationRun_endsItselfAtDuration) {
+    resetAll();
+    impl.AcquireCalibration(CalibrationOwner::Remote);
+    millisValue(1000);
+    assertTrue(impl.StartCalibrationRun(2000, 3000));
+    assertTrue(impl.CalibrationRunActive());
+    assertEqual(impl.GetCalibrationDuty(), 2000);
+    assertEqual(impl.CalibrationRunRemainingMs(), (unsigned long)3000);
+
+    millisValue(3999);
+    impl.Update();
+    assertTrue(impl.CalibrationRunActive());
+    assertEqual(impl.CalibrationRunRemainingMs(), (unsigned long)1);
+
+    millisValue(4000);
+    impl.Update();
+    assertFalse(impl.CalibrationRunActive());
+    assertEqual(impl.GetCalibrationDuty(), 0);
+    assertEqual(impl.CalibrationRunRemainingMs(), (unsigned long)0);
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(ImplementSprayer, calibrationRun_cappedAtMax) {
+    resetAll();
+    impl.AcquireCalibration(CalibrationOwner::Remote);
+    assertTrue(impl.StartCalibrationRun(2000, 90000));
+    assertEqual(impl.CalibrationRunRemainingMs(), ImplementSprayer::kCalibrationRunMaxMs);
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(ImplementSprayer, releaseCalibration_endsRunAndDuty) {
+    resetAll();
+    impl.AcquireCalibration(CalibrationOwner::Serial);
+    impl.StartCalibrationRun(2000, 30000);
+    impl.ReleaseCalibration(CalibrationOwner::Serial);
+    assertFalse(impl.CalibrationRunActive());
+    assertEqual(impl.GetCalibrationDuty(), 0);
+}

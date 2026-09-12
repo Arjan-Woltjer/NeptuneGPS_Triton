@@ -85,6 +85,7 @@ void ImplementSprayer::Update() {
     // geometry is re-read every cycle rather than captured once.
     width = (float)config->Get().widthCm;
 
+    serviceCalibrationRun();
     updateInputs();
     updateSpeed();
 
@@ -434,7 +435,63 @@ void ImplementSprayer::setOutputDuty(const OutputState& out, uint32_t duty) {
 #endif
 }
 
+// ---------------------------------------------------------------------------
+// Calibration ownership and the timed pump run. Both the serial wizard and
+// the companion app go through these, so there is exactly one place that
+// decides who may drive the outputs and exactly one timer that ends a run.
+// ---------------------------------------------------------------------------
+
+bool ImplementSprayer::AcquireCalibration(CalibrationOwner who) {
+    if (who == CalibrationOwner::None) return false;
+    if (calibrationOwner != CalibrationOwner::None && calibrationOwner != who) return false;
+    calibrationOwner = who;
+    calibrationMode  = true;
+    return true;
+}
+
+// Giving calibration back is the whole "wizard is gone" path, whether the
+// serial menu finished or the app dropped off the air: the run ends, the
+// pump duty is cleared, and updateOutputs() is back in charge on the next
+// cycle. Nothing else changes -- the board never depended on the app.
+void ImplementSprayer::ReleaseCalibration(CalibrationOwner who) {
+    if (who == CalibrationOwner::None || calibrationOwner != who) return;
+    StopCalibrationRun();
+    SetCalibrationPWM(2, 0);
+    calibrationOwner = CalibrationOwner::None;
+    calibrationMode  = false;
+}
+
+bool ImplementSprayer::StartCalibrationRun(int duty, unsigned long durationMs) {
+    if (calibrationOwner == CalibrationOwner::None) return false;
+    if (duty < 0 || duty > PWM_MAX_DUTY || durationMs == 0) return false;
+    if (durationMs > kCalibrationRunMaxMs) durationMs = kCalibrationRunMaxMs;
+    runActive     = true;
+    runStartedAt  = millis();
+    runDurationMs = durationMs;
+    SetCalibrationPWM(2, duty);
+    return true;
+}
+
+void ImplementSprayer::StopCalibrationRun() {
+    if (!runActive) return;
+    runActive = false;
+    SetCalibrationPWM(2, 0);
+}
+
+unsigned long ImplementSprayer::CalibrationRunRemainingMs() const {
+    if (!runActive) return 0;
+    const unsigned long elapsed = millis() - runStartedAt;
+    return (elapsed >= runDurationMs) ? 0 : (runDurationMs - elapsed);
+}
+
+void ImplementSprayer::serviceCalibrationRun() {
+    if (runActive && (millis() - runStartedAt) >= runDurationMs) {
+        StopCalibrationRun();
+    }
+}
+
 void ImplementSprayer::SetCalibrationPWM(byte outputIndex, int pwmValue) {
+    if (outputIndex == 2) calibrationDuty = pwmValue;
     // Invert for active-low: stored value 0 = off, PWM_MAX_DUTY = full on
     setOutputDuty(outputs[outputIndex], PWM_MAX_DUTY - (uint32_t)pwmValue);
 }
