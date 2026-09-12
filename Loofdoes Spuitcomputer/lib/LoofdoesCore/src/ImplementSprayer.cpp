@@ -89,6 +89,7 @@ void ImplementSprayer::Update() {
     calculatePWMValues(2);  // pump output
 
     updateOutputs();
+    updateDeviation();
 }
 
 void ImplementSprayer::updateInputs() {
@@ -198,7 +199,19 @@ void ImplementSprayer::calculateDoseLM() {
     doseLM = (doseLHA * speed * width * 60) / (100 * 10000); // Convert from l/ha to l/min based on speed (m/s) and width (cm)
 }
 
+float ImplementSprayer::flowToLHA(float flowMlMin) const {
+    // doseLM [l/min] = doseLHA * speed * width * 60 / 1e6, and flow is doseLM
+    // in ml. Callers guarantee speed > 0; width is a fixed positive geometry.
+    const float perLHA = speed * width * 60.0f / 1000.0f;  // ml/min per l/ha
+    if (perLHA <= 0.0f) return kActualDoseUndefined;
+    return flowMlMin / perLHA;
+}
+
 void ImplementSprayer::calculatePWMValues(byte outputIndex) {
+    // Recomputed from scratch every cycle; every early return below is a
+    // case where the pump is not dosing, so there is no actual dose either.
+    actualLHA = kActualDoseUndefined;
+
     if (!outputs[outputIndex].pwm) return;
 
     // Fewer than two points means no usable curve. Returning here left the pump
@@ -222,17 +235,25 @@ void ImplementSprayer::calculatePWMValues(byte outputIndex) {
         return;
     }
 
-    // Requested dose is below the pump's lowest calibrated flow point — stop it
-    // rather than extrapolating below the calibrated range (which could produce
-    // a bogus, even negative, PWM value). Sound the buzzer on OUT4 to tell the
-    // driver to speed up, but only while still moving; give no warning once
-    // fully stopped, since stopping the pump there is expected.
-    if (doseMlMin < (float)pwmCalibrationPoints[0].flowMlMin) {
+    // Standing still: no demand, so the pump is off and there is no dose to
+    // compare against. Left undefined rather than 0 on purpose -- 0 is what
+    // the app shows for "pump cut while moving", which needs the driver to
+    // react, and this does not.
+    if (speed <= 0.0f) {
         outputs[outputIndex].value = 0;
-        setOutputDuty(outputs[3], (speed > 0.0f) ? 0 : PWM_MAX_DUTY);
         return;
     }
-    setOutputDuty(outputs[3], PWM_MAX_DUTY);  // clear the warning buzzer
+
+    // Requested dose is below the pump's lowest calibrated flow point -- stop it
+    // rather than extrapolating below the calibrated range (which could produce
+    // a bogus, even negative, PWM value). The actual dose is then 0; the
+    // deviation flag (updateDeviation) turns that into the OUT4 warning while
+    // spraying, so the driver knows to speed up.
+    if (doseMlMin < (float)pwmCalibrationPoints[0].flowMlMin) {
+        outputs[outputIndex].value = 0;
+        actualLHA = 0.0f;
+        return;
+    }
 
     // Find the right interpolation segment (points assumed ascending by flowMlMin)
     uint8_t i = 1;
@@ -254,14 +275,27 @@ void ImplementSprayer::calculatePWMValues(byte outputIndex) {
         // isfinite() first: NaN passes both clamps untouched, and the resulting
         // (unsigned int)NaN is undefined behaviour that reaches ledc_set_duty()
         // through the unsigned subtraction in updateOutputs().
-        if (!GIsFinite(computed))            computed = 0.0f;
-        if (computed > (float)PWM_MAX_DUTY) computed = (float)PWM_MAX_DUTY;
-        else if (computed < 0.0f)           computed = 0.0f;
+        if (!GIsFinite(computed)) {
+            computed  = 0.0f;
+            actualLHA = 0.0f;
+        } else if (computed > (float)PWM_MAX_DUTY) {
+            // Saturated: the pump runs flat out and delivers the top
+            // calibrated flow, not what was asked. Report that as the
+            // actual dose so the shortfall is visible in l/ha.
+            computed  = (float)PWM_MAX_DUTY;
+            actualLHA = flowToLHA((float)pwmCalibrationPoints[numPwmCalibrationPoints - 1].flowMlMin);
+        } else if (computed < 0.0f) {
+            computed  = 0.0f;
+            actualLHA = 0.0f;
+        } else {
+            actualLHA = doseLHA;
+        }
         outputs[outputIndex].value = (unsigned int)computed;
     } else {
         // Duplicate calibration points. Previously fell through leaving the
         // previous duty in place.
         outputs[outputIndex].value = 0;
+        actualLHA = 0.0f;
     }
 
 #ifdef DEBUG
@@ -284,7 +318,7 @@ void ImplementSprayer::updateOutputs() {
     // - Output 0 (mixer) turns on immediately when button 0 is held, off when released
     // - Output 1 (vernevelaar) turns on when button 1 is held and output 0 has been on for at least 1000 ms, off when released
     // - Output 2 (pump) turns on when button 2 is held and output 1 has been on for at least 1000 ms, off when released
-    // - Output 3 is not button-driven; it's the low-flow warning buzzer, driven directly by calculatePWMValues()
+    // - Output 3 is not button-driven; it's the dose-deviation buzzer, driven by updateDeviation()
     // ------------------------------------------------------------------------------------------------------------------------
 
     // Mixer control
@@ -341,6 +375,42 @@ void ImplementSprayer::updateOutputs() {
     } else {
         setOutputDuty(outputs[2], PWM_MAX_DUTY);
     }
+}
+
+// Outside kDoseTolerance of the requested dose, only while the pump output is
+// actually on (mixer, vernevelaar and pump engaged -- no alarm on the headland
+// or on the way to the field), and only after the condition has held for
+// kDeviationHoldMs: speed is a moving average, so the boundary flickers during
+// accelerations and a bare comparison would chatter the buzzer. The same hold
+// applies to clearing. OUT4 follows the flag; the companion app reads the
+// same flag from the status line so board and phone never disagree.
+void ImplementSprayer::updateDeviation() {
+    bool outside = false;
+    if (outputs[2].state && !calibrationMode
+            && doseLHA > 0.0f && actualLHA != kActualDoseUndefined) {
+        float diff = actualLHA - doseLHA;
+        if (diff < 0.0f) diff = -diff;
+        outside = diff > kDoseTolerance * doseLHA;
+    }
+
+    const unsigned long now = millis();
+    if (outside != deviationPending) {
+        deviationPending   = outside;
+        deviationChangedAt = now;
+    }
+    if (outside != doseDeviation && now - deviationChangedAt >= kDeviationHoldMs) {
+        doseDeviation = outside;
+    }
+    if (calibrationMode) {
+        // The wizard owns the outputs; never sound over a calibration run,
+        // and start the hold afresh once it hands the outputs back.
+        doseDeviation      = false;
+        deviationPending   = false;
+        deviationChangedAt = now;
+    }
+
+    outputs[3].state = doseDeviation;
+    setOutputDuty(outputs[3], doseDeviation ? 0 : PWM_MAX_DUTY);  // active-low
 }
 
 void ImplementSprayer::setOutputDuty(const OutputState& out, uint32_t duty) {

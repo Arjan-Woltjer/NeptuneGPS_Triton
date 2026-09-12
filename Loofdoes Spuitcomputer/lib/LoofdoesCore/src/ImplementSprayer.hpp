@@ -81,7 +81,6 @@ private:
     float speedSum;
     int   speedBufIdx;
     float width;
-    bool  calibrationMode = false;
 
     // Guidance older than this counts as no guidance at all. Same threshold
     // InterfacePlough already applies on the plough side.
@@ -98,10 +97,40 @@ private:
     void updateOutputs();
     void setOutputDuty(const OutputState& out, uint32_t duty);
 
+    // Inverse of calculateDoseLM(): a pump flow back to l/ha at the current
+    // speed and width, so a clamped duty can be expressed in the operator's
+    // own unit.
+    float flowToLHA(float flowMlMin) const;
+
+    // Deviation flag with a hold in both directions; drives OUT4.
+    bool          deviationPending   = false;
+    unsigned long deviationChangedAt = 0;
+    void updateDeviation();
+
 public:
     // Exposed for testing; use GetOutputs() in production code
     float       doseLHA = 0.0f;
     float       doseLM  = 0.0f;
+
+    // The dose the pump can actually deliver, in l/ha, derived from the duty
+    // that really reaches it: equal to doseLHA inside the calibrated curve,
+    // 0 when the demand is below the lowest calibrated flow and the pump is
+    // cut, lower than doseLHA when the duty saturates at PWM_MAX_DUTY.
+    // kActualDoseUndefined when there is nothing to compare against: stale
+    // guidance, standing still, or an unusable calibration table.
+    static constexpr float kActualDoseUndefined = -1.0f;
+    float actualLHA = kActualDoseUndefined;
+
+    // True once actualLHA has been outside kDoseTolerance of doseLHA for
+    // kDeviationHoldMs while the pump output is on; drives the OUT4 buzzer
+    // and is reported to the companion app so both agree.
+    static constexpr float         kDoseTolerance   = 0.05f;
+    static constexpr unsigned long kDeviationHoldMs = 1000;
+    bool doseDeviation = false;
+
+    // Set while the serial wizard (CalibrationSprayer, a friend) drives the
+    // outputs directly; also exposed so tests can cover that hand-over.
+    bool calibrationMode = false;
 
     // Also exposed for testing. CalibrationSprayer is already a friend and
     // writes these directly, so this widens who can reach them rather than
