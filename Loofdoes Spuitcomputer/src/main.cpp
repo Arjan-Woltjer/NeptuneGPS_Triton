@@ -21,6 +21,7 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
+#include "BleSprayer.hpp"
 #include "CalibrationSprayer.hpp"
 #include "ConfigSprayer.hpp"
 #include "ImplementSprayer.hpp"
@@ -52,6 +53,7 @@ triton::InterfaceSprayer*  interface;
 triton::ImplementSprayer*  implement;
 triton::CalibrationSprayer* calibration;
 triton::ConfigSprayer*     config;
+triton::BleSprayer*        ble;
 triton::VehicleGps*        gps;
 //triton::InterfaceGps*      interfaceGps;
 
@@ -81,6 +83,7 @@ void setup() {
   interface    = new triton::InterfaceSprayer(serialDebug);
   implement    = new triton::ImplementSprayer(serialDebug, gps, interface, config);
   calibration  = new triton::CalibrationSprayer(serialDebug, implement);
+  ble          = new triton::BleSprayer(serialDebug, implement, config);
 
   implement->LoadCalibration();
   
@@ -112,6 +115,9 @@ void setup() {
 
   lcd->WriteScreen(0xFF);
 
+  // Companion-app link last: everything it can reach exists by now.
+  ble->Begin();
+
   Serial.println("Started esp32 module");
 }
 
@@ -120,4 +126,5 @@ void loop() {
   interface->Update();
   implement->Update();
   calibration->Process();
+  ble->Update();
 }
