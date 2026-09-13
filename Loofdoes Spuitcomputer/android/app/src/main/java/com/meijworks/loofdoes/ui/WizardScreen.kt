@@ -188,7 +188,7 @@ private fun PumpFind(w: WizardState, sprayer: SprayerState) {
         )
         Button(
             onClick = { SprayerController.wizardCaptureStart() },
-            enabled = !w.busy,
+            enabled = !w.busy && w.findDuty >= WizardMath.MIN_START_DUTY,
             modifier = Modifier.fillMaxWidth(),
         ) { Text("Pump is flowing: capture") }
     }

@@ -156,6 +156,13 @@ class CalibrationWizard(
         val s = state ?: return
         if (s.step != WizardStep.PUMP_FIND || s.busy) return
         val start = s.findDuty
+        // Bench 2026-09-13: a start point of 0 was captured, so the first of
+        // the five runs happened at duty 0 and the pump did nothing. The pump
+        // cannot be "just flowing" at zero duty.
+        if (start < WizardMath.MIN_START_DUTY) {
+            set { it.copy(message = "Slide up until the pump actually starts flowing before capturing") }
+            return
+        }
         perform {
             command(SprayerProtocol.cmdPwmSet(0))   // off until a run is started
             set {
