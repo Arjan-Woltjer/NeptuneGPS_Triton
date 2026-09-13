@@ -38,6 +38,7 @@ constexpr const char* kKeyWidth = "width_cm";
 constexpr const char* kKeyGuid  = "guid_ms";
 constexpr const char* kKeyBaud  = "gps_baud";
 constexpr const char* kKeyMinQ  = "gps_minq";
+constexpr const char* kKeyBuzzer = "buzzer";
 
 // Fixed-size scratch for one reply line. Long enough for the widest line
 // (the status line at full-scale values) with room to spare.
@@ -315,7 +316,8 @@ void RemoteSprayer::handleCfg(int argc, const char* const argv[]) {
         if (argc < 3) { err("args"); return; }
         const char* key = argv[2];
         const bool known = strcmp(key, kKeyWidth) == 0 || strcmp(key, kKeyGuid) == 0
-                        || strcmp(key, kKeyBaud)  == 0 || strcmp(key, kKeyMinQ) == 0;
+                        || strcmp(key, kKeyBaud)  == 0 || strcmp(key, kKeyMinQ) == 0
+                        || strcmp(key, kKeyBuzzer) == 0;
         if (!known) { err("key"); return; }
 
         long value;
@@ -326,6 +328,7 @@ void RemoteSprayer::handleCfg(int argc, const char* const argv[]) {
         else if (strcmp(key, kKeyGuid)  == 0) applied = value >= 0 && config->SetGuidanceTimeoutMs((unsigned long)value);
         else if (strcmp(key, kKeyBaud)  == 0) applied = value >= 0 && value <= 255 && config->SetGpsBaudIndex((uint8_t)value);
         else if (strcmp(key, kKeyMinQ)  == 0) applied = value >= 0 && value <= 255 && config->SetGpsMinQuality((uint8_t)value);
+        else if (strcmp(key, kKeyBuzzer) == 0) { applied = (value == 0 || value == 1); if (applied) config->SetBuzzerEnabled(value == 1); }
 
         if (!applied) { err("range"); return; }
         config->Save();
@@ -400,6 +403,7 @@ void RemoteSprayer::sendConfig() {
     snprintf(line, sizeof(line), "K:%s,%lu", kKeyGuid,  s.guidanceTimeoutMs);          reply(line);
     snprintf(line, sizeof(line), "K:%s,%u",  kKeyBaud,  (unsigned)s.gpsBaudIndex);     reply(line);
     snprintf(line, sizeof(line), "K:%s,%u",  kKeyMinQ,  (unsigned)s.gpsMinQuality);    reply(line);
+    snprintf(line, sizeof(line), "K:%s,%d",  kKeyBuzzer, s.buzzerEnabled ? 1 : 0);     reply(line);
 }
 
 // S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>,<in1..4>,<out1..4>

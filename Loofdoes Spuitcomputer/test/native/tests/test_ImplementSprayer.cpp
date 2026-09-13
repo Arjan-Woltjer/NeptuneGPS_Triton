@@ -612,6 +612,21 @@ test(ImplementSprayer, deviation_setsAfterHold_whileSpraying) {
     assertTrue(impl.outputs[3].state);      // board buzzer follows the flag
 }
 
+test(ImplementSprayer, deviation_buzzerOff_flagSetsButOut4StaysQuiet) {
+    // NeptuneGPS_Triton#72: the operator switched the board buzzer off. The
+    // deviation is still detected (app alarm, status line), OUT4 stays off.
+    resetAll();
+    cfg.SetBuzzerEnabled(false);
+    startSpraying(2.0f, 4095);
+    runUntil(2000 + ImplementSprayer::kDeviationHoldMs, 2.0f);
+    assertTrue(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+
+    cfg.SetBuzzerEnabled(true);             // switched back on: sounds at once
+    runUntil(3200, 2.0f);
+    assertTrue(impl.outputs[3].state);
+}
+
 test(ImplementSprayer, deviation_lowFlowCutoff_setsWhileSpraying) {
     resetAll();
     impl.pwmCalibrationPoints[0] = { 500, 1000 };

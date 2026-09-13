@@ -90,6 +90,7 @@ object SprayerProtocol {
     const val KEY_GUIDANCE_MS = "guid_ms"
     const val KEY_GPS_BAUD = "gps_baud"
     const val KEY_GPS_MIN_QUALITY = "gps_minq"
+    const val KEY_BUZZER = "buzzer"
 
     /** The 4800 x n table ConfigSprayer uses for `gps_baud`. */
     val BAUD_RATES: List<Long> = listOf(1, 2, 3, 4, 6, 8, 12, 24).map { it * 4800L }

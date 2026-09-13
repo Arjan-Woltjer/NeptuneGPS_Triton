@@ -49,7 +49,7 @@ public:
 //   PWM SET <duty>                      OK | ERR:...       (pump duty while calibrating)
 //   PWM RUN <duty> [seconds]            OK then R:<s>...R:0 (firmware-timed, 60 s max)
 //   PWM STOP                            OK
-//   CFG GET                             K:<key>,<value> x4  OK
+//   CFG GET                             K:<key>,<value> x5  OK
 //   CFG SET <key> <value>               OK | ERR:...       (persisted at once)
 //   TELEM S 1|0 / TELEM G 1|0 / TELEM N 1|0   OK
 //

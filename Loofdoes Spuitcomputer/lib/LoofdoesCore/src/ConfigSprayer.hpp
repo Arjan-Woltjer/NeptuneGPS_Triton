@@ -37,6 +37,7 @@ struct SprayerSettings {
     unsigned long guidanceTimeoutMs = 2000;
     uint8_t       gpsBaudIndex      = 7;   // into the 4800 x n table below; 7 = 115200
     uint8_t       gpsMinQuality     = 0;   // GGA quality: 0 any, 1 GPS, 2 DGPS, 4 RTK fixed
+    bool          buzzerEnabled     = true; // OUT4 deviation buzzer (NeptuneGPS_Triton#72)
 };
 
 class ConfigSprayer {
@@ -61,6 +62,7 @@ public:
     bool SetGuidanceTimeoutMs(unsigned long ms);
     bool SetGpsBaudIndex(uint8_t index);
     bool SetGpsMinQuality(uint8_t quality);
+    void SetBuzzerEnabled(bool enabled);
 
     // The same 4800 x {1,2,3,4,6,8,12,24} table VehicleGps prints; index 7
     // is the 115200 the port has always been opened at.

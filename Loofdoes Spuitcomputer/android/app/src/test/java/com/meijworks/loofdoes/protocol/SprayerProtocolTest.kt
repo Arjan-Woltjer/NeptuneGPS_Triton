@@ -123,6 +123,8 @@ class SprayerProtocolTest {
         assertEquals("TELEM G 0", SprayerProtocol.cmdTelemetryGps(false))
         assertEquals("CAL MODE 1", SprayerProtocol.cmdCalMode(true))
         assertEquals("CFG SET width_cm 450", SprayerProtocol.cmdCfgSet("width_cm", 450))
+        assertEquals("CFG SET buzzer 0", SprayerProtocol.cmdCfgSet(SprayerProtocol.KEY_BUZZER, 0))
+        assertEquals(BoardMessage.ConfigValue("buzzer", 1), SprayerProtocol.parse("K:buzzer,1"))
         assertEquals("PWM RUN 2000 60", SprayerProtocol.cmdPwmRun(2000, 60))
         assertEquals(115200L, SprayerProtocol.BAUD_RATES[7])
     }
