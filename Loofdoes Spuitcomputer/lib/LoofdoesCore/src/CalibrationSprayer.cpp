@@ -196,8 +196,7 @@ void CalibrationSprayer::handleMenu() {
             break;
         case '2':
             if (!impl->AcquireCalibration(CalibrationOwner::Serial)) {
-                serial->println("
-Busy: the app holds calibration.");
+                serial->println("\nBusy: the app holds calibration.");
                 printMenu();
                 break;
             }
