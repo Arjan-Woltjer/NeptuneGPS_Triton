@@ -195,14 +195,15 @@ void CalibrationSprayer::handleMenu() {
             startAnalogPoint();
             break;
         case '2':
-            serial->println();
-            serial->println("=== PWM OUTPUT CALIBRATION ===");
-            serial->println("Turn the analog knob fully to MINIMUM, then press ENTER to arm.");
             if (!impl->AcquireCalibration(CalibrationOwner::Serial)) {
-                serial->println("Busy: the app holds calibration.");
+                serial->println("
+Busy: the app holds calibration.");
                 printMenu();
                 break;
             }
+            serial->println();
+            serial->println("=== PWM OUTPUT CALIBRATION ===");
+            serial->println("Turn the analog knob fully to MINIMUM, then press ENTER to arm.");
             currentPWM = 0;
             impl->SetCalibrationPWM(2, 0);
             state = State::PWM_ARM;
