@@ -91,7 +91,7 @@ fun WizardScreen(sprayer: SprayerState, title: String, onClose: () -> Unit) {
                     WizardStep.FAILED -> Failed(w, onClose)
                 }
                 if (sprayer.pairing) {
-                    Text("Pairing with the sprayer: enter the code shown on its display.", color = MaterialTheme.colorScheme.primary,
+                    Text("Pairing with the sprayer: open the Bluetooth notification and enter the code shown on its display.", color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                 }
                 w.message?.let {

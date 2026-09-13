@@ -276,7 +276,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
 
     override fun onPairing(active: Boolean) {
         SprayerController.publish {
-            it.copy(pairing = active, lastMessage = if (active) "Enter the code shown on the sprayer's display" else it.lastMessage)
+            it.copy(pairing = active, lastMessage = if (active) "Open the Bluetooth pairing notification and enter the code shown on the sprayer's display" else it.lastMessage)
         }
     }
 

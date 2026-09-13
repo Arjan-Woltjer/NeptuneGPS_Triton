@@ -94,10 +94,12 @@ class SprayerBleClient(private val context: Context, private val listener: Liste
                 if (!pairing) return@post
                 when (state) {
                     BluetoothDevice.BOND_BONDED -> {
-                        Log.i(TAG, "bonded, resending")
+                        Log.i(TAG, "bonded")
                         pairing = false
                         listener.onPairing(false)
-                        drainTx()
+                        // The stack resends the pending write itself; if its
+                        // callback never comes, the timeout resends ours.
+                        if (txInFlight) main.postDelayed(txTimeout, TX_TIMEOUT_MS * 5) else drainTx()
                     }
                     BluetoothDevice.BOND_NONE -> {
                         Log.w(TAG, "pairing cancelled or failed")
@@ -157,15 +159,32 @@ class SprayerBleClient(private val context: Context, private val listener: Liste
         val next = inFlight ?: txQueue.poll() ?: return
         inFlight = next
         val c = (if (next.secure) secureChar else controlChar) ?: run { inFlight = null; txQueue.clear(); return }
+        // First protected command to a board this phone is not bonded with:
+        // the write request goes out, the board answers "insufficient
+        // authentication", and Android's stack starts LE pairing on its own,
+        // posting a pairing notification and resending the write once the
+        // bond exists. createBond() is deliberately not used: on the bench it
+        // chose classic Bluetooth PIN pairing, which the board cannot do.
+        if (next.secure && g.device.bondState != BluetoothDevice.BOND_BONDED && !pairing) {
+            pairing = true
+            listener.onPairing(true)
+            Log.i(TAG, "protected write to an unbonded board: expecting the pairing prompt")
+        }
         val bytes = next.bytes
+        // Protected commands must be write *requests*: a write without response
+        // to an encrypted characteristic is silently discarded by the peripheral,
+        // so Android never gets the "insufficient authentication" error that
+        // makes it pair. The open channel keeps the cheaper no-response write.
+        val type = if (next.secure) BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT
+                   else BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         val ok = try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                g.writeCharacteristic(c, bytes, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE) ==
+                g.writeCharacteristic(c, bytes, type) ==
                     BluetoothGatt.GATT_SUCCESS
             } else {
                 @Suppress("DEPRECATION")
                 run {
-                    c.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
+                    c.writeType = type
                     c.value = bytes
                     g.writeCharacteristic(c)
                 }
@@ -176,6 +195,9 @@ class SprayerBleClient(private val context: Context, private val listener: Liste
         }
         if (ok) {
             txInFlight = true
+            // A protected write can sit in the stack for as long as the
+            // operator takes to enter the code; the timeout is checked for
+            // that in txTimeout.
             main.postDelayed(txTimeout, TX_TIMEOUT_MS)
         } else {
             listener.onError("Write failed")

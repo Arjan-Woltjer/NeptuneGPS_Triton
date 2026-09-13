@@ -103,7 +103,10 @@ void BleSprayer::Begin() {
     // phone is asked exactly once per board.
     NimBLEDevice::setSecurityAuth(true, true, true);
     NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY);
-    NimBLEDevice::setSecurityPasskey(config->Get().passkey);
+    // The code comes from onPassKeyDisplay(), not from setSecurityPasskey():
+    // NimBLE only consults the callback while its static key is still the
+    // default, and the callback is also what puts the code on the LCD.
+    // Bench: with the static key set, pairing worked but nothing was shown.
 
     server = NimBLEDevice::createServer();
     server->setCallbacks(new ServerCallbacks(this));
@@ -120,9 +123,12 @@ void BleSprayer::Begin() {
     controlChar = service->createCharacteristic(kControlUuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
     controlChar->setCallbacks(new ControlCallbacks(this));
 
+    // Write requests only, no write-without-response: an unencrypted write
+    // command would be dropped without a word, and it is the error reply to
+    // a request that makes the phone pair.
     secureChar = service->createCharacteristic(
         kSecureUuid,
-        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR | NIMBLE_PROPERTY::WRITE_ENC | NIMBLE_PROPERTY::WRITE_AUTHEN);
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_ENC | NIMBLE_PROPERTY::WRITE_AUTHEN);
     secureChar->setCallbacks(new SecureCallbacks(this));
 
     service->start();

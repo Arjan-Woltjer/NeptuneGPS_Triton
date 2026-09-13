@@ -61,6 +61,10 @@ Commands that move an output or change a setting go over a bonded,
 authenticated characteristic: the first time, Android asks for a six-digit
 code that the sprayer shows on its display (and on serial). After that the
 phone stays paired; serial menu option 9 on the board forgets paired phones.
+Forget the pairing on the tablet as well (Bluetooth settings, Loofdoes,
+Forget) whenever the board has forgotten it, otherwise the tablet keeps a
+key the board no longer has and the next protected command fails until it
+does.
 
 The board is fully standalone: without the app it doses and sounds its own
 buzzer exactly the same. Losing the link only takes the phone's alarm and
