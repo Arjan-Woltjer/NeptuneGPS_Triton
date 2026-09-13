@@ -56,6 +56,7 @@ public:
     explicit EventCallbacks(BleSprayer* owner) : owner(owner) {}
     void onSubscribe(NimBLECharacteristic*, NimBLEConnInfo&, uint16_t subValue) override {
         owner->subscribed = (subValue != 0);
+        if (subValue != 0) ++owner->subscribeEvents;
     }
 private:
     BleSprayer* owner;
@@ -68,7 +69,8 @@ BleSprayer::BleSprayer(Stream* serialDebug, ImplementSprayer* impl, ConfigSpraye
       server(nullptr), eventChar(nullptr), controlChar(nullptr),
       mux(portMUX_INITIALIZER_UNLOCKED),
       connected(false), subscribed(false), mtu(23),
-      connectEvents(0), disconnectEvents(0), connectsSeen(0), disconnectsSeen(0) {}
+      connectEvents(0), disconnectEvents(0), subscribeEvents(0),
+      connectsSeen(0), disconnectsSeen(0), subscribesSeen(0), notifyRetries(0) {}
 
 void BleSprayer::Begin() {
     NimBLEDevice::init(kDeviceName);
@@ -112,6 +114,13 @@ void BleSprayer::Update() {
         ++connectsSeen;
         connected = true;
         if (serialDebug) serialDebug->println("BLE: app connected");
+    }
+    // The version line is the answer to "notifications on", not to the
+    // connection: at the connection edge the app has not subscribed yet and
+    // anything sent then is simply dropped.
+    while (subscribesSeen != subscribeEvents) {
+        ++subscribesSeen;
+        if (serialDebug) serialDebug->println("BLE: app subscribed");
         remote.OnConnect();
     }
     while (disconnectsSeen != disconnectEvents) {
@@ -155,11 +164,24 @@ void BleSprayer::WriteLine(const char* line) {
     buf[n] = '\n';
     const size_t total = n + 1;
 
+    // A reply such as CAL GET is seven lines in the same millisecond, which
+    // is more than the host's outgoing buffers hold: notify() then fails and
+    // the line is silently lost (seen on the bench: one knob point of three
+    // arrived). Wait for the stack to drain and try again, a few ms at most.
     const size_t chunk = (mtu > 3) ? (size_t)(mtu - 3) : 20;
     for (size_t off = 0; off < total; off += chunk) {
         const size_t len = (total - off < chunk) ? (total - off) : chunk;
-        eventChar->setValue(reinterpret_cast<const uint8_t*>(buf + off), len);
-        eventChar->notify();
+        const uint8_t* piece = reinterpret_cast<const uint8_t*>(buf + off);
+        int attempt = 0;
+        while (!eventChar->notify(piece, len) && attempt < kNotifyRetries) {
+            ++attempt;
+            ++notifyRetries;
+            delay(kNotifyRetryDelayMs);
+            if (!connected) return;
+        }
+        if (attempt >= kNotifyRetries && serialDebug) {
+            serialDebug->println("BLE: notify dropped a line");
+        }
     }
 }
 
@@ -175,6 +197,10 @@ void BleSprayer::onWriteFromStack(const uint8_t* data, size_t len) {
 
 void BleSprayer::onConnectFromStack() {
     ++connectEvents;
+}
+
+uint32_t BleSprayer::NotifyRetries() const {
+    return notifyRetries;
 }
 
 void BleSprayer::onDisconnectFromStack() {

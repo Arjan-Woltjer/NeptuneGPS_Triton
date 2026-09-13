@@ -52,6 +52,8 @@ public:
     static constexpr const char* kControlUuid = "7c1a0002-4b6e-4c0f-9c3a-2f1d5e8a0001";
     static constexpr const char* kEventUuid   = "7c1a0003-4b6e-4c0f-9c3a-2f1d5e8a0001";
     static constexpr uint16_t    kPreferredMtu = 247;
+    static constexpr int         kNotifyRetries      = 40;   // x kNotifyRetryDelayMs = 200 ms worst case per piece
+    static constexpr unsigned    kNotifyRetryDelayMs = 5;
 
     BleSprayer(Stream* serialDebug, ImplementSprayer* impl, ConfigSprayer* config);
 
@@ -62,6 +64,9 @@ public:
     void Update();
 
     bool Connected() const { return connected; }
+
+    // How often a notification had to wait for the stack; a bench figure.
+    uint32_t NotifyRetries() const;
 
     // RemoteSink: one reply or telemetry line, notified to the app.
     void WriteLine(const char* line) override;
@@ -90,9 +95,12 @@ private:
     volatile uint16_t     mtu;
     volatile uint32_t     connectEvents;      // counts so a connect+disconnect between
     volatile uint32_t     disconnectEvents;   // two Update() calls is not lost
+    volatile uint32_t     subscribeEvents;
 
     uint32_t connectsSeen;
     uint32_t disconnectsSeen;
+    uint32_t subscribesSeen;
+    uint32_t notifyRetries;
 
     void onWriteFromStack(const uint8_t* data, size_t len);
     void onConnectFromStack();
