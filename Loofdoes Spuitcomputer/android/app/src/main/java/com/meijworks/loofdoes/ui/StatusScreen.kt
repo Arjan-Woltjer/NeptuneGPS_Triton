@@ -11,7 +11,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -245,16 +247,7 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
             DetailRow("Flow", s?.let { "%.0f ml/min".format(it.flowMlMin) } ?: "–")
             DetailRow("Knob", s?.let { "${it.raw} / 4095" } ?: "–")
             DetailRow("Pump PWM", s?.let { "${it.pumpPwm} / 4095" } ?: "–")
-            DetailRow(
-                "Outputs",
-                s?.let {
-                    listOfNotNull(
-                        "mixer".takeIf { _ -> it.mixer },
-                        "vernevelaar".takeIf { _ -> it.vernevelaar },
-                        "pump".takeIf { _ -> it.pump },
-                    ).ifEmpty { listOf("all off") }.joinToString(", ")
-                } ?: "–",
-            )
+            IoMatrix(s)
             if (s != null && s.calibrationOwner != CalibrationOwner.NONE) {
                 DetailRow(
                     "Calibration",
@@ -278,6 +271,59 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
                     sprayer.lastMessage,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Switches (inputs) and outputs side by side, one column per channel, a
+ * green dot for on and a red one for off, straight from the board's status
+ * line. A protocol 1 board sends no bits; the outputs then fall back to the
+ * three states the old line carries and the inputs show as unknown.
+ */
+@Composable
+private fun IoMatrix(s: StatusSample?) {
+    val labels = listOf("Mixer", "Vernevelaar", "Pomp", "Aux")
+    val inputs = s?.inputs?.takeIf { it.size == 4 }
+    val outputs = s?.outputs?.takeIf { it.size == 4 }
+        ?: s?.let { listOf(it.mixer, it.vernevelaar, it.pump, it.deviation) }
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth()) {
+            Spacer(Modifier.weight(1f))
+            labels.forEach { l ->
+                Text(
+                    l,
+                    Modifier.weight(1f),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+        IoRow("Inputs", inputs)
+        IoRow("Outputs", outputs)
+    }
+}
+
+@Composable
+private fun IoRow(label: String, states: List<Boolean>?) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        for (i in 0 until 4) {
+            val on = states?.getOrNull(i)
+            val colour = when (on) {
+                true -> Color(0xFF16A34A)
+                false -> Color(0xFFDC2626)
+                null -> MaterialTheme.colorScheme.outlineVariant
+            }
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) {
+                Spacer(
+                    Modifier
+                        .size(18.dp)
+                        .clip(CircleShape)
+                        .background(colour),
                 )
             }
         }

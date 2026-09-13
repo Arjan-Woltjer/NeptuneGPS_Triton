@@ -7,7 +7,9 @@ package com.meijworks.loofdoes.protocol
  *
  * Board -> app lines:
  *   V:<fw>,<proto>
- *   S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>
+ *   S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>,<in1..4>,<out1..4>
+ *     (the last two fields came with protocol 2; a protocol 1 board omits them)
+ *   N:<sentence>            a GPS sentence as received, while TELEM N is on
  *   G:<quality>,<lat>,<lon>,<fixAgeMs>
  *   C:D,<i>,<analog>,<dose>   C:P,<i>,<pwm>,<flow>
  *   K:<key>,<value>
@@ -22,6 +24,7 @@ sealed class BoardMessage {
     data class PwmCalPoint(val point: PwmPoint) : BoardMessage()
     data class ConfigValue(val key: String, val value: Long) : BoardMessage()
     data class RunCountdown(val secondsRemaining: Int) : BoardMessage()
+    data class Nmea(val sentence: String) : BoardMessage()
     object Ok : BoardMessage()
     object Busy : BoardMessage()
     data class Error(val reason: String) : BoardMessage()
@@ -41,6 +44,8 @@ data class StatusSample(
     val pumpPwm: Int,
     val deviation: Boolean,
     val calibrationOwner: CalibrationOwner,
+    val inputs: List<Boolean> = emptyList(),    // IN1..IN4, empty from a protocol 1 board
+    val outputs: List<Boolean> = emptyList(),   // OUT1..OUT4
 ) {
     val speedKmh: Float get() = speedMs * 3.6f
 }
@@ -75,7 +80,7 @@ data class DosePoint(val index: Int, val analog: Int, val doseLha: Int)
 data class PwmPoint(val index: Int, val pwm: Int, val flowMlMin: Int)
 
 object SprayerProtocol {
-    const val PROTOCOL_VERSION = 1
+    const val PROTOCOL_VERSION = 2
 
     // Settings keys, as the board names them (ConfigSprayer).
     const val KEY_WIDTH_CM = "width_cm"
@@ -111,6 +116,7 @@ object SprayerProtocol {
                 }
                 'K' -> if (f.size >= 2) BoardMessage.ConfigValue(f[0], f[1].toLong()) else BoardMessage.Unknown(line)
                 'R' -> BoardMessage.RunCountdown(f[0].toInt())
+                'N' -> BoardMessage.Nmea(body)
                 else -> BoardMessage.Unknown(line)
             }
         } catch (e: NumberFormatException) {
@@ -134,9 +140,14 @@ object SprayerProtocol {
                 pumpPwm = f[8].toInt(),
                 deviation = f[9] == "1",
                 calibrationOwner = CalibrationOwner.fromCode(f[10].toInt()),
+                inputs = if (f.size >= 13) bits(f[11]) else emptyList(),
+                outputs = if (f.size >= 13) bits(f[12]) else emptyList(),
             )
         )
     }
+
+    /** "1001" -> [true, false, false, true]; anything but 0/1 is unknown, hence false. */
+    private fun bits(field: String): List<Boolean> = field.trim().map { it == '1' }
 
     // Commands (app -> board). Each is one line; the client appends the newline.
     const val CMD_PING = "PING"
@@ -145,6 +156,7 @@ object SprayerProtocol {
     const val CMD_CFG_GET = "CFG GET"
     fun cmdTelemetryStatus(on: Boolean) = "TELEM S ${if (on) 1 else 0}"
     fun cmdTelemetryGps(on: Boolean) = "TELEM G ${if (on) 1 else 0}"
+    fun cmdTelemetryNmea(on: Boolean) = "TELEM N ${if (on) 1 else 0}"
     fun cmdCalMode(on: Boolean) = "CAL MODE ${if (on) 1 else 0}"
     fun cmdCalDose(index: Int, analog: Int, doseLha: Int) = "CAL DOSE $index $analog $doseLha"
     fun cmdCalPwm(index: Int, pwm: Int, flowMlMin: Int) = "CAL PWM $index $pwm $flowMlMin"
