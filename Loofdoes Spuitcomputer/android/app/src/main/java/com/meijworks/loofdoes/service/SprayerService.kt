@@ -30,8 +30,11 @@ import com.meijworks.loofdoes.protocol.BoardMessage
 import com.meijworks.loofdoes.protocol.DosePoint
 import com.meijworks.loofdoes.protocol.PwmPoint
 import com.meijworks.loofdoes.protocol.SprayerProtocol
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import java.util.ArrayDeque
 
 /**
  * Foreground service that owns the BLE link and the alarm. With a partial
@@ -55,12 +58,27 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     private val pendingDose = mutableListOf<DosePoint>()
     private val pendingPwm = mutableListOf<PwmPoint>()
 
+    // Every command line gets exactly one OK / BUSY / ERR from the board, in
+    // order, since RemoteSprayer answers a line completely before reading the
+    // next. So a FIFO of deferreds is all the request/reply matching needs.
+    // Everything here runs on the main thread: BLE callbacks are posted to it
+    // and lifecycleScope is Main.
+    private val pendingReplies = ArrayDeque<CompletableDeferred<Reply>>()
+
+    lateinit var wizard: CalibrationWizard
+        private set
+
     override fun onCreate() {
         super.onCreate()
         Settings.init(this)
         player = AlarmPlayer(this)
         ble = SprayerBleClient(this, this)
         SprayerController.service = this
+        wizard = CalibrationWizard(
+            scope = lifecycleScope,
+            command = { line -> command(line) },
+            publish = { w -> SprayerController.publish { it.copy(wizard = w) } },
+        )
 
         lifecycleScope.launch {
             Settings.state.collect { s ->
@@ -114,6 +132,47 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
 
     fun sendRaw(line: String) = send(line.trim())
 
+    fun setConfig(key: String, value: Long) {
+        lifecycleScope.launch {
+            val r = command(SprayerProtocol.cmdCfgSet(key, value))
+            if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = "Saved") }
+            command(SprayerProtocol.CMD_CFG_GET)
+        }
+    }
+
+    /** Serial menu option 4: change one pump point's measured flow. */
+    fun editPwmPointFlow(index: Int, flowMlMin: Int) {
+        val point = SprayerController.state.value.pwmPoints.firstOrNull { it.index == index } ?: return
+        lifecycleScope.launch {
+            var r = command(SprayerProtocol.cmdCalMode(true))
+            if (r == Reply.Ok) r = command(SprayerProtocol.cmdCalPwm(index, point.pwm, flowMlMin))
+            if (r == Reply.Ok) r = command(SprayerProtocol.CMD_CAL_SAVE)
+            command(SprayerProtocol.cmdCalMode(false))
+            if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = "Saved") }
+            command(SprayerProtocol.CMD_CAL_GET)
+        }
+    }
+
+    fun clearWizard() {
+        SprayerController.publish { it.copy(wizard = null) }
+        wizard.cancelQuietly()
+    }
+
+    /** Send one line and wait for the board's reply, or a timeout. */
+    suspend fun command(line: String): Reply {
+        if (!ble.isConnected) return Reply.Error("disconnected")
+        val deferred = CompletableDeferred<Reply>()
+        pendingReplies.add(deferred)
+        if (!ble.sendCommand(line)) {
+            pendingReplies.remove(deferred)
+            return Reply.Error("not sent")
+        }
+        log("> $line")
+        val r = withTimeoutOrNull(COMMAND_TIMEOUT_MS) { deferred.await() }
+        if (r == null) pendingReplies.remove(deferred)
+        return r ?: Reply.Error("timeout")
+    }
+
     fun previewSound(sound: AlarmSound) {
         alarmLooping = false
         player.play(sound, loop = false)
@@ -127,7 +186,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
 
     private fun send(line: String) {
         if (line.isEmpty()) return
-        if (ble.sendCommand(line)) log("> $line")
+        lifecycleScope.launch { command(line) }
     }
 
     // ------------------------------------------------------------ BLE events
@@ -154,15 +213,21 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
             refresh()
             send(SprayerProtocol.cmdTelemetryStatus(true))
             send(SprayerProtocol.cmdTelemetryGps(true))
-        } else if (alarmLooping) {
+        } else {
             // The board keeps its own buzzer going; the phone has nothing to
-            // base an alarm on without the link.
-            stopAlarm()
+            // base an alarm on without the link. Every command still waiting
+            // for a reply fails now, and the wizard learns the board has taken
+            // calibration back.
+            if (alarmLooping) stopAlarm()
+            while (pendingReplies.isNotEmpty()) pendingReplies.poll()?.complete(Reply.Error("disconnected"))
+            wizard.onDisconnected()
         }
     }
 
     override fun onLine(line: String) {
-        log("< $line")
+        // The 5 Hz status and 1 Hz GPS lines are on the Status screen; in the
+        // console they would push every reply out of view within seconds.
+        if (!line.startsWith("S:") && !line.startsWith("G:")) log("< $line")
         when (val m = SprayerProtocol.parse(line)) {
             is BoardMessage.Version -> SprayerController.publish {
                 it.copy(firmwareVersion = m.firmware, protocolVersion = m.protocol)
@@ -174,17 +239,25 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
             is BoardMessage.ConfigValue -> SprayerController.publish {
                 it.copy(config = it.config + (m.key to m.value))
             }
-            is BoardMessage.RunCountdown -> SprayerController.publish {
-                it.copy(runSecondsRemaining = if (m.secondsRemaining > 0) m.secondsRemaining else null)
+            is BoardMessage.RunCountdown -> {
+                SprayerController.publish {
+                    it.copy(runSecondsRemaining = if (m.secondsRemaining > 0) m.secondsRemaining else null)
+                }
+                wizard.onCountdown(m.secondsRemaining)
             }
-            BoardMessage.Ok -> commitPendingTables()
+            BoardMessage.Ok -> {
+                commitPendingTables()
+                pendingReplies.poll()?.complete(Reply.Ok)
+            }
             BoardMessage.Busy -> {
                 pendingDose.clear(); pendingPwm.clear()
                 SprayerController.publish { it.copy(lastMessage = "Board is busy: the serial wizard holds calibration") }
+                pendingReplies.poll()?.complete(Reply.Busy)
             }
             is BoardMessage.Error -> {
                 pendingDose.clear(); pendingPwm.clear()
                 SprayerController.publish { it.copy(lastMessage = "Board refused: ${m.reason}") }
+                pendingReplies.poll()?.complete(Reply.Error(m.reason))
             }
             is BoardMessage.Unknown -> Log.w(TAG, "unknown line: $line")
         }
@@ -335,6 +408,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         const val ACTION_START = "com.meijworks.loofdoes.START"
         const val ACTION_STOP = "com.meijworks.loofdoes.STOP"
         private const val VIBRATE_MS = 300L
+        private const val COMMAND_TIMEOUT_MS = 4_000L
 
         fun start(context: Context) {
             val intent = Intent(context, SprayerService::class.java).setAction(ACTION_START)

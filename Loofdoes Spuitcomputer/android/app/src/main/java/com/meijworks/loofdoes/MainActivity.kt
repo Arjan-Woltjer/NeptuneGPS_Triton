@@ -29,9 +29,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.meijworks.loofdoes.ble.SprayerBleClient
 import com.meijworks.loofdoes.service.SprayerController
+import com.meijworks.loofdoes.service.WizardMode
 import com.meijworks.loofdoes.service.SprayerService
 import com.meijworks.loofdoes.ui.AdvancedScreen
 import com.meijworks.loofdoes.ui.CalibrateMenuScreen
+import com.meijworks.loofdoes.ui.GpsConfigScreen
+import com.meijworks.loofdoes.ui.PotmeterScreen
+import com.meijworks.loofdoes.ui.SprayerConfigScreen
+import com.meijworks.loofdoes.ui.WizardScreen
 import com.meijworks.loofdoes.ui.Screen
 import com.meijworks.loofdoes.ui.SettingsScreen
 import com.meijworks.loofdoes.ui.StatusScreen
@@ -72,8 +77,14 @@ class MainActivity : ComponentActivity() {
                 var screen by rememberSaveable { mutableStateOf(Screen.STATUS) }
                 val serviceRunning = SprayerController.isRunning || sprayer.connection != ConnectionState.OFF
 
+                // Where Back goes; the wizard needs its explicit cancel so the board
+                // gets calibration back, so Back inside it cancels too.
                 BackHandler(enabled = screen != Screen.STATUS) {
-                    screen = if (screen == Screen.ADVANCED) Screen.CALIBRATE else Screen.STATUS
+                    screen = when (screen) {
+                        Screen.WIZARD -> { SprayerController.cancelWizard(); Screen.CALIBRATE }
+                        Screen.POTMETER, Screen.SPRAYER, Screen.GPS, Screen.ADVANCED -> Screen.CALIBRATE
+                        else -> Screen.STATUS
+                    }
                 }
 
                 when (screen) {
@@ -88,8 +99,28 @@ class MainActivity : ComponentActivity() {
                     Screen.CALIBRATE -> CalibrateMenuScreen(
                         sprayer = sprayer,
                         onBack = { screen = Screen.STATUS },
+                        onWizard = { SprayerController.startWizard(WizardMode.FULL); screen = Screen.WIZARD },
+                        onPotmeter = { screen = Screen.POTMETER },
+                        onSprayer = { screen = Screen.SPRAYER },
+                        onGps = { screen = Screen.GPS },
                         onAdvanced = { screen = Screen.ADVANCED },
                     )
+                    Screen.WIZARD -> WizardScreen(
+                        sprayer = sprayer,
+                        title = when (sprayer.wizard?.mode) {
+                            WizardMode.DOSE_ONLY, WizardMode.DOSE_SINGLE -> "Potmeter calibration"
+                            WizardMode.PUMP_ONLY -> "Pump calibration"
+                            else -> "Calibration wizard"
+                        },
+                        onClose = { screen = Screen.CALIBRATE },
+                    )
+                    Screen.POTMETER -> PotmeterScreen(
+                        sprayer = sprayer,
+                        onBack = { screen = Screen.CALIBRATE },
+                        onStartWizard = { screen = Screen.WIZARD },
+                    )
+                    Screen.SPRAYER -> SprayerConfigScreen(sprayer = sprayer, onBack = { screen = Screen.CALIBRATE })
+                    Screen.GPS -> GpsConfigScreen(sprayer = sprayer, onBack = { screen = Screen.CALIBRATE })
                     Screen.ADVANCED -> AdvancedScreen(
                         sprayer = sprayer,
                         onBack = { screen = Screen.CALIBRATE },

@@ -4,6 +4,7 @@ import com.meijworks.loofdoes.protocol.DosePoint
 import com.meijworks.loofdoes.protocol.GpsSample
 import com.meijworks.loofdoes.protocol.PwmPoint
 import com.meijworks.loofdoes.protocol.StatusSample
+import com.meijworks.loofdoes.service.WizardState
 
 enum class ConnectionState { OFF, SCANNING, CONNECTING, CONNECTED }
 
@@ -23,6 +24,7 @@ data class SprayerState(
     val pwmPoints: List<PwmPoint> = emptyList(),
     val config: Map<String, Long> = emptyMap(),
     val runSecondsRemaining: Int? = null,       // set while a PWM RUN is counting down
+    val wizard: WizardState? = null,            // the calibration in progress, if any
     val alarmActive: Boolean = false,
     val lastMessage: String = "",
     val log: List<String> = emptyList(),        // last lines in both directions, for the bench
