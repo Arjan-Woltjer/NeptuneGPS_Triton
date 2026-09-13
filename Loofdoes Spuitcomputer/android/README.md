@@ -1,0 +1,57 @@
+# Loofdoes companion app
+
+Android app for the Loofdoes sprayer computer (the firmware in the parent
+directory). Connects over Bluetooth Low Energy, shows speed, requested and
+actual dose, sounds an alarm when the board reports the dose outside 5 % of
+requested, and (from #52 on) drives the calibration.
+
+Derived from the [Buzzer-game](https://github.com/Arjan-Woltjer/Buzzer-game)
+app: same Kotlin + Jetpack Compose skeleton, same BLE client and foreground
+service pattern. Part of [NeptuneGPS_Triton#46](https://github.com/Arjan-Woltjer/NeptuneGPS_Triton/issues/46).
+
+```
+app/src/main/java/com/meijworks/loofdoes/
+  ble/SprayerBleClient.kt     scan, connect, MTU, notifications -> lines, command queue
+  protocol/SprayerProtocol.kt the line protocol (RemoteSprayer.hpp on the board), unit-tested
+  service/SprayerService.kt   foreground service: owns the link and the alarm
+  service/SprayerController.kt bridge between service and UI
+  ui/                         Status, Calibrate menu, Advanced, Settings
+  audio/                      synthesised alarm sounds, unchanged from Buzzer-game
+```
+
+## Building
+
+CI builds the debug APK on every push that touches this directory
+(`.github/workflows/loofdoes-android.yml` at the repository root) and runs the
+protocol unit tests. Download `loofdoes-debug-apk` from the workflow run's
+Artifacts and sideload it. Locally:
+
+```sh
+cd "Loofdoes Spuitcomputer/android"
+./gradlew assembleDebug testDebugUnitTest
+```
+
+## Using it
+
+1. Flash a Loofdoes firmware that advertises as `Loofdoes` (NeptuneGPS_Triton#48 or later).
+2. Open the app, tap **Connect**, grant the Bluetooth (and on Android 13+ the
+   notification) permission.
+3. The connection bar turns green. Speed, requested and actual l/ha follow
+   the board at 5 Hz; **Actual** turns red and the alarm sounds while the
+   board flags a deviation.
+4. **Calibrate > Advanced** shows the knob and pump tables and the board
+   settings, and has a console for raw protocol lines (`PING`, `CAL GET`,
+   `CFG GET`, `TELEM S 0`, ...) with the last lines in both directions.
+5. The gear icon holds the alarm sound, volume, vibration and screen options.
+
+The board is fully standalone: without the app it doses and sounds its own
+buzzer exactly the same. Losing the link only takes the phone's alarm and
+the calibration screens away.
+
+## Protocol
+
+Documented at the top of `lib/LoofdoesCore/src/RemoteSprayer.hpp` in the
+firmware. Service `7c1a0001-4b6e-4c0f-9c3a-2f1d5e8a0001`, control
+characteristic `...0002` (write), event characteristic `...0003` (notify).
+Lines are newline-terminated ASCII both ways; long lines may span several
+notifications.
