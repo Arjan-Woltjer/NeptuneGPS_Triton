@@ -26,6 +26,7 @@ data class SprayerState(
     val runSecondsRemaining: Int? = null,       // set while a PWM RUN is counting down
     val wizard: WizardState? = null,            // the calibration in progress, if any
     val alarmActive: Boolean = false,
+    val pairing: Boolean = false,               // Android is asking for the board's code
     val lastMessage: String = "",
     val log: List<String> = emptyList(),        // last lines in both directions, for the bench
 ) {

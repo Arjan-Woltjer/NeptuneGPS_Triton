@@ -177,6 +177,7 @@ void CalibrationSprayer::printMenu() {
     serial->print("8. GPS raw passthrough (");
     serial->print(impl->gps->GetRawEcho() ? "ON" : "OFF");
     serial->println(" - press to toggle)");
+    if (forgetPhones) serial->println("9. Forget paired phones (Bluetooth)");
     serial->println("q. Exit");
     serial->print("Choose: ");
 }
@@ -243,6 +244,15 @@ void CalibrationSprayer::handleMenu() {
             impl->gps->SetRawEcho(!impl->gps->GetRawEcho());
             serial->print("\nGPS raw passthrough ");
             serial->println(impl->gps->GetRawEcho() ? "enabled." : "disabled.");
+            printMenu();
+            break;
+        case '9':
+            if (forgetPhones) {
+                forgetPhones();
+                serial->println("\nPaired phones forgotten; the app will ask for the code again.");
+            } else {
+                serial->println("Invalid choice.");
+            }
             printMenu();
             break;
         case 'q':

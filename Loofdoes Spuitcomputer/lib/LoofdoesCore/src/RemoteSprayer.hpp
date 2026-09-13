@@ -61,7 +61,13 @@ public:
 //   N:<sentence>            each GPS sentence as received, while TELEM N is on
 //
 // Every command answers OK, BUSY or ERR:<reason>; reason is one word:
-// args, range, mode, key, running, unknown.
+// args, range, mode, key, running, auth, unknown.
+//
+// Two channels (NeptuneGPS_Triton#53): the open one may carry the read-only
+// commands (PING, INFO, CAL GET, CFG GET, TELEM); everything that moves an
+// output or persists (CAL MODE/DOSE/PWM/PWMN/SAVE, PWM SET/RUN/STOP, CFG SET)
+// must arrive on the bonded, authenticated channel and is answered ERR:auth
+// otherwise. The link decides which channel a line came from.
 //
 // The board stays fully standalone: OnDisconnect() only gives calibration
 // back (which ends any pump run, because normal output logic resumes) and
@@ -78,7 +84,11 @@ public:
     RemoteSprayer(ImplementSprayer* impl, ConfigSprayer* config, RemoteSink* sink);
 
     // One command without its line terminator. Safe to call with anything.
-    void HandleLine(const char* line);
+    // `trusted` says the line arrived on the authenticated channel.
+    void HandleLine(const char* line, bool trusted = true);
+
+    // Whether a command line needs the authenticated channel.
+    static bool IsProtected(const char* line);
 
     // Call every loop iteration after ImplementSprayer::Update().
     void Update();

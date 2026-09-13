@@ -170,4 +170,19 @@ object SprayerProtocol {
     fun cmdCfgSet(key: String, value: Long) = "CFG SET $key $value"
     fun cmdPwmRun(duty: Int, seconds: Int) = "PWM RUN $duty $seconds"
     const val CMD_PWM_STOP = "PWM STOP"
+
+    /**
+     * Commands that move an output or persist go to the board's secure
+     * characteristic (bonded, authenticated); the rest to the open one.
+     * Mirrors RemoteSprayer::IsProtected() on the board.
+     */
+    fun isProtected(line: String): Boolean {
+        val t = line.trim().split(Regex("\\s+"))
+        return when (t.getOrNull(0)) {
+            "PWM" -> true
+            "CAL" -> t.getOrNull(1) != "GET"
+            "CFG" -> t.getOrNull(1) == "SET"
+            else -> false
+        }
+    }
 }

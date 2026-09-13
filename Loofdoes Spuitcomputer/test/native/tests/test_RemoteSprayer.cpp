@@ -129,6 +129,50 @@ test(RemoteSprayer, onConnect_sendsVersion) {
 // Calibration tables
 // ---------------------------------------------------------------------------
 
+test(RemoteSprayer, untrustedChannel_readOnlyCommandsPass) {
+    rReset();
+    remote.HandleLine("PING", false);
+    assertEqual(sink.last().c_str(), "OK");
+    remote.HandleLine("CAL GET", false);
+    assertEqual(sink.last().c_str(), "OK");
+    remote.HandleLine("CFG GET", false);
+    assertEqual(sink.last().c_str(), "OK");
+    remote.HandleLine("TELEM S 1", false);
+    assertEqual(sink.last().c_str(), "OK");
+    remote.HandleLine("INFO", false);
+    assertEqual(sink.last().c_str(), "OK");
+}
+
+test(RemoteSprayer, untrustedChannel_protectedCommandsRefused) {
+    // Nothing that moves an output or persists may come in unauthenticated
+    // (NeptuneGPS_Triton#53), and nothing changes when it is tried.
+    rReset();
+    const char* protectedLines[] = {
+        "CAL MODE 1", "CAL DOSE 0 100 50", "CAL PWM 0 100 50", "CAL PWMN 3", "CAL SAVE",
+        "PWM SET 100", "PWM RUN 100 5", "PWM STOP", "CFG SET width_cm 400",
+    };
+    for (const char* l : protectedLines) {
+        remote.HandleLine(l, false);
+        assertEqual(sink.last().c_str(), "ERR:auth");
+    }
+    assertTrue(rImpl.GetCalibrationOwner() == CalibrationOwner::None);
+    assertEqual(rCfg.Get().widthCm, 300);
+    assertFalse(rImpl.CalibrationRunActive());
+}
+
+test(RemoteSprayer, isProtected_classification) {
+    assertFalse(RemoteSprayer::IsProtected("PING"));
+    assertFalse(RemoteSprayer::IsProtected("CAL GET"));
+    assertFalse(RemoteSprayer::IsProtected("CFG GET"));
+    assertFalse(RemoteSprayer::IsProtected("TELEM N 1"));
+    assertTrue(RemoteSprayer::IsProtected("CAL MODE 1"));
+    assertTrue(RemoteSprayer::IsProtected("CAL SAVE"));
+    assertTrue(RemoteSprayer::IsProtected("PWM RUN 1000 60"));
+    assertTrue(RemoteSprayer::IsProtected("CFG SET buzzer 0"));
+    assertFalse(RemoteSprayer::IsProtected("CALX"));      // not the CAL command
+    assertFalse(RemoteSprayer::IsProtected(nullptr));
+}
+
 test(RemoteSprayer, calGet_listsBothTablesThenOk) {
     rReset();
     remote.HandleLine("CAL GET");
