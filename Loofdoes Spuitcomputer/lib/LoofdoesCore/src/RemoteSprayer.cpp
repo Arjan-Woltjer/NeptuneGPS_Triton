@@ -57,8 +57,26 @@ RemoteSprayer::RemoteSprayer(ImplementSprayer* impl, ConfigSprayer* config, Remo
 // Entry points
 // ---------------------------------------------------------------------------
 
-void RemoteSprayer::HandleLine(const char* line) {
+bool RemoteSprayer::IsProtected(const char* line) {
+    if (line == nullptr) return false;
+    while (*line == ' ') ++line;
+    if (strncmp(line, "PWM", 3) == 0 && (line[3] == 0 || line[3] == ' ')) return true;
+    if (strncmp(line, "CAL", 3) == 0 && (line[3] == 0 || line[3] == ' ')) {
+        const char* sub = line + 3;
+        while (*sub == ' ') ++sub;
+        return strncmp(sub, "GET", 3) != 0;
+    }
+    if (strncmp(line, "CFG", 3) == 0 && (line[3] == 0 || line[3] == ' ')) {
+        const char* sub = line + 3;
+        while (*sub == ' ') ++sub;
+        return strncmp(sub, "SET", 3) == 0;
+    }
+    return false;
+}
+
+void RemoteSprayer::HandleLine(const char* line, bool trusted) {
     if (line == nullptr) { err("unknown"); return; }
+    if (!trusted && IsProtected(line)) { err("auth"); return; }
 
     // Tokenise a private copy; the caller's buffer is left alone.
     char  buf[kMaxLineLength];

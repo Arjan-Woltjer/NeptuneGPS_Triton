@@ -165,12 +165,13 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         if (!ble.isConnected) return Reply.Error("disconnected")
         val deferred = CompletableDeferred<Reply>()
         pendingReplies.add(deferred)
-        if (!ble.sendCommand(line)) {
+        if (!ble.sendCommand(line, SprayerProtocol.isProtected(line))) {
             pendingReplies.remove(deferred)
             return Reply.Error("not sent")
         }
         log("> $line")
-        val r = withTimeoutOrNull(COMMAND_TIMEOUT_MS) { deferred.await() }
+        // Pairing can take as long as the operator needs to type the code.
+        val r = withTimeoutOrNull(if (SprayerProtocol.isProtected(line)) PAIRING_TIMEOUT_MS else COMMAND_TIMEOUT_MS) { deferred.await() }
         if (r == null) pendingReplies.remove(deferred)
         return r ?: Reply.Error("timeout")
     }
@@ -271,6 +272,12 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
 
     override fun onError(message: String) {
         SprayerController.publish { it.copy(lastMessage = message) }
+    }
+
+    override fun onPairing(active: Boolean) {
+        SprayerController.publish {
+            it.copy(pairing = active, lastMessage = if (active) "Open the Bluetooth pairing notification and enter the code shown on the sprayer's display" else it.lastMessage)
+        }
     }
 
     private fun onStatus(m: BoardMessage.Status) {
@@ -415,6 +422,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         const val ACTION_STOP = "com.meijworks.loofdoes.STOP"
         private const val VIBRATE_MS = 300L
         private const val COMMAND_TIMEOUT_MS = 4_000L
+        private const val PAIRING_TIMEOUT_MS = 90_000L
 
         fun start(context: Context) {
             val intent = Intent(context, SprayerService::class.java).setAction(ACTION_START)

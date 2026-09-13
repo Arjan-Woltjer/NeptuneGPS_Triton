@@ -149,7 +149,7 @@ private fun ConnectionCard(
                 fontWeight = FontWeight.Bold,
                 color = fg,
             )
-            val sub = buildString {
+            val sub = if (sprayer.pairing) "Pairing: open the Bluetooth notification and enter the code from the sprayer's display" else buildString {
                 sprayer.deviceName?.let { append(it) }
                 sprayer.firmwareVersion?.let { if (isNotEmpty()) append(" · "); append("firmware $it") }
                 if (isEmpty()) append(sprayer.lastMessage.ifEmpty { "Tap Connect to find the sprayer" })

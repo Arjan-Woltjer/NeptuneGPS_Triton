@@ -113,6 +113,16 @@ class SprayerProtocolTest {
     }
 
     @Test
+    fun isProtected_mirrorsTheBoard() {
+        listOf("PING", "INFO", "CAL GET", "CFG GET", "TELEM S 1", "TELEM N 0").forEach {
+            assertFalse(it, SprayerProtocol.isProtected(it))
+        }
+        listOf("CAL MODE 1", "CAL DOSE 0 1 2", "CAL SAVE", "PWM SET 1", "PWM RUN 1 5", "PWM STOP", "CFG SET buzzer 0").forEach {
+            assertTrue(it, SprayerProtocol.isProtected(it))
+        }
+    }
+
+    @Test
     fun trailingCr_isTolerated() {
         assertEquals(BoardMessage.Ok, SprayerProtocol.parse("OK\r"))
     }

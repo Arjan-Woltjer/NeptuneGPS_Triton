@@ -20,6 +20,7 @@
 
 #ifdef ARDUINO
 #include <Preferences.h>
+#include <esp_system.h>
 #endif
 
 namespace triton
@@ -38,6 +39,7 @@ constexpr const char* kKeyGuid    = "guid_ms";
 constexpr const char* kKeyBaud    = "gps_baud";
 constexpr const char* kKeyMinQ    = "gps_minq";
 constexpr const char* kKeyBuzzer  = "buzzer";
+constexpr const char* kKeyPasskey = "passkey";
 }  // namespace
 
 bool ConfigSprayer::SetWidthCm(int cm) {
@@ -100,7 +102,18 @@ bool ConfigSprayer::Load() {
         SetGpsMinQuality(prefs.getUChar(kKeyMinQ, settings.gpsMinQuality));
         SetBuzzerEnabled(prefs.getBool(kKeyBuzzer, settings.buzzerEnabled));
     }
+    const bool havePasskey = prefs.isKey(kKeyPasskey);
+    if (havePasskey) settings.passkey = prefs.getUInt(kKeyPasskey, settings.passkey);
     prefs.end();
+    if (!havePasskey) {
+        // First boot: draw the code once and keep it, so it survives every
+        // later Save() and a phone stays bonded across reboots.
+        settings.passkey = 100000UL + (esp_random() % 900000UL);
+        Preferences rw;
+        rw.begin(kNamespace, false);
+        rw.putUInt(kKeyPasskey, settings.passkey);
+        rw.end();
+    }
     return stored;
 }
 

@@ -24,6 +24,12 @@ Highest-value areas, roughly in order:
   ships one today; `Loofdoes Spuitcomputer` is due to gain OTA (issue #34), and
   the reference sources it will be adapted from live at `Loofdoes Spuitcomputer/
   Documentation/reference/ota-framework/` (not compiled).
+- The Bluetooth link of `Loofdoes Spuitcomputer` (`BleSprayer`, `RemoteSprayer`):
+  anything that moves an output or persists a setting must only be accepted
+  on the bonded, authenticated characteristic (passkey shown on the LCD);
+  the open characteristic is limited to read-only commands and telemetry.
+  A way to run the pump or rewrite the calibration without the passkey is a
+  vulnerability.
 - `MeijWorks Libs/VehicleGps` — the NMEA/Trimble/CAN parser. Every byte it
   handles is untrusted input from a serial line.
 - The dosing and steering paths in `ImplementSprayer` and `ImplementPlough`,

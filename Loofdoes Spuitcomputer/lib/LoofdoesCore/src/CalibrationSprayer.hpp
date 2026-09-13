@@ -34,6 +34,11 @@ public:
     CalibrationSprayer(Stream* serial, ImplementSprayer* impl);
     void Process();
 
+    // Menu option 9, "Forget paired phones", shown once a handler is set
+    // (main.cpp points it at the Bluetooth link; this class stays BLE-free).
+    typedef void (*ActionHandler)();
+    void SetForgetPhonesHandler(ActionHandler handler) { forgetPhones = handler; }
+
 private:
     enum class State {
         IDLE, MENU,
@@ -45,6 +50,7 @@ private:
     Stream*           serial;
     ImplementSprayer* impl;
     State             state;
+    ActionHandler     forgetPhones = nullptr;
 
     int                  analogPointIdx;
     DoseCalibrationPoint newDosePoints[NUM_DOSE_CAL_POINTS] = {};

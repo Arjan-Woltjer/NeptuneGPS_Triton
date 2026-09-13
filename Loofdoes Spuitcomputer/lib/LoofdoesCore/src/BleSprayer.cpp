@@ -36,6 +36,15 @@ public:
     void onConnect(NimBLEServer*, NimBLEConnInfo&) override { owner->onConnectFromStack(); }
     void onDisconnect(NimBLEServer*, NimBLEConnInfo&, int) override { owner->onDisconnectFromStack(); }
     void onMTUChange(uint16_t newMtu, NimBLEConnInfo&) override { owner->mtu = newMtu; }
+    // The phone has to type this; the loop task puts it on the LCD.
+    uint32_t onPassKeyDisplay() override {
+        ++owner->passkeyEvents;
+        return owner->config->Get().passkey;
+    }
+    void onAuthenticationComplete(NimBLEConnInfo& info) override {
+        owner->lastAuthOk = info.isEncrypted() && info.isAuthenticated();
+        ++owner->authEvents;
+    }
 private:
     BleSprayer* owner;
 };
@@ -46,6 +55,19 @@ public:
     void onWrite(NimBLECharacteristic* c, NimBLEConnInfo&) override {
         NimBLEAttValue v = c->getValue();
         owner->onWriteFromStack(v.data(), v.size());
+    }
+private:
+    BleSprayer* owner;
+};
+
+class BleSprayer::SecureCallbacks : public NimBLECharacteristicCallbacks {
+public:
+    explicit SecureCallbacks(BleSprayer* owner) : owner(owner) {}
+    void onWrite(NimBLECharacteristic* c, NimBLEConnInfo&) override {
+        // The stack only delivers this once the link is encrypted and
+        // authenticated (WRITE_ENC | WRITE_AUTHEN); that is the trust.
+        NimBLEAttValue v = c->getValue();
+        owner->onSecureWriteFromStack(v.data(), v.size());
     }
 private:
     BleSprayer* owner;
@@ -65,16 +87,26 @@ private:
 // ---------------------------------------------------------------------------
 
 BleSprayer::BleSprayer(Stream* serialDebug, ImplementSprayer* impl, ConfigSprayer* config)
-    : serialDebug(serialDebug), remote(impl, config, this),
-      server(nullptr), eventChar(nullptr), controlChar(nullptr),
+    : serialDebug(serialDebug), config(config), remote(impl, config, this), pairingHandler(nullptr),
+      server(nullptr), eventChar(nullptr), controlChar(nullptr), secureChar(nullptr),
       mux(portMUX_INITIALIZER_UNLOCKED),
       connected(false), subscribed(false), mtu(23),
-      connectEvents(0), disconnectEvents(0), subscribeEvents(0),
-      connectsSeen(0), disconnectsSeen(0), subscribesSeen(0), notifyRetries(0) {}
+      connectEvents(0), disconnectEvents(0), subscribeEvents(0), passkeyEvents(0), authEvents(0), lastAuthOk(false),
+      connectsSeen(0), disconnectsSeen(0), subscribesSeen(0), passkeysSeen(0), authsSeen(0), notifyRetries(0) {}
 
 void BleSprayer::Begin() {
     NimBLEDevice::init(kDeviceName);
     NimBLEDevice::setMTU(kPreferredMtu);
+
+    // Bonded, MITM-protected, secure connections; the board only displays
+    // the code, the phone types it. The bond is stored by the stack so the
+    // phone is asked exactly once per board.
+    NimBLEDevice::setSecurityAuth(true, true, true);
+    NimBLEDevice::setSecurityIOCap(BLE_HS_IO_DISPLAY_ONLY);
+    // The code comes from onPassKeyDisplay(), not from setSecurityPasskey():
+    // NimBLE only consults the callback while its static key is still the
+    // default, and the callback is also what puts the code on the LCD.
+    // Bench: with the static key set, pairing worked but nothing was shown.
 
     server = NimBLEDevice::createServer();
     server->setCallbacks(new ServerCallbacks(this));
@@ -91,6 +123,14 @@ void BleSprayer::Begin() {
     controlChar = service->createCharacteristic(kControlUuid, NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_NR);
     controlChar->setCallbacks(new ControlCallbacks(this));
 
+    // Write requests only, no write-without-response: an unencrypted write
+    // command would be dropped without a word, and it is the error reply to
+    // a request that makes the phone pair.
+    secureChar = service->createCharacteristic(
+        kSecureUuid,
+        NIMBLE_PROPERTY::WRITE | NIMBLE_PROPERTY::WRITE_ENC | NIMBLE_PROPERTY::WRITE_AUTHEN);
+    secureChar->setCallbacks(new SecureCallbacks(this));
+
     service->start();
 
     NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
@@ -101,8 +141,15 @@ void BleSprayer::Begin() {
 
     if (serialDebug) {
         serialDebug->print("BLE advertising as ");
-        serialDebug->println(kDeviceName);
+        serialDebug->print(kDeviceName);
+        serialDebug->print(", ");
+        serialDebug->print(NimBLEDevice::getNumBonds());
+        serialDebug->println(" paired phone(s)");
     }
+}
+
+bool BleSprayer::ForgetBonds() {
+    return NimBLEDevice::deleteAllBonds();
 }
 
 // Loop-task side. Connection edges are counted rather than latched so a
@@ -131,24 +178,47 @@ void BleSprayer::Update() {
         if (serialDebug) serialDebug->println("BLE: app disconnected");
         remote.OnDisconnect();
         portENTER_CRITICAL(&mux);
-        rx = RemoteLineBuffer();   // a half-received command from the old link is garbage
+        rx       = RemoteLineBuffer();   // a half-received command from the old link is garbage
+        rxSecure = RemoteLineBuffer();
         portEXIT_CRITICAL(&mux);
     }
 
+    // Pairing: show the code while the phone asks for it, take it down when
+    // the stack reports the outcome. Both on this task, so the LCD driver
+    // and serial are never touched from the NimBLE task.
+    while (passkeysSeen != passkeyEvents) {
+        ++passkeysSeen;
+        if (serialDebug) {
+            serialDebug->print("BLE: pairing, code ");
+            serialDebug->println(config->Get().passkey);
+        }
+        if (pairingHandler) pairingHandler(config->Get().passkey);
+    }
+    while (authsSeen != authEvents) {
+        ++authsSeen;
+        if (serialDebug) serialDebug->println(lastAuthOk ? "BLE: paired" : "BLE: pairing failed");
+        if (pairingHandler) pairingHandler(0);
+    }
+
+    drainLines(rx, false);
+    drainLines(rxSecure, true);
+
+    remote.Update();
+}
+
+void BleSprayer::drainLines(RemoteLineBuffer& ring, bool trusted) {
     char line[RemoteLineBuffer::kMaxLine];
     for (;;) {
         portENTER_CRITICAL(&mux);
-        const bool have = rx.PopLine(line, sizeof(line));
+        const bool have = ring.PopLine(line, sizeof(line));
         portEXIT_CRITICAL(&mux);
         if (!have) break;
         if (serialDebug) {
-            serialDebug->print("BLE< ");
+            serialDebug->print(trusted ? "BLE<< " : "BLE< ");
             serialDebug->println(line);
         }
-        remote.HandleLine(line);
+        remote.HandleLine(line, trusted);
     }
-
-    remote.Update();
 }
 
 // One line out, newline-terminated, in as many notifications as the
@@ -192,6 +262,12 @@ void BleSprayer::WriteLine(const char* line) {
 void BleSprayer::onWriteFromStack(const uint8_t* data, size_t len) {
     portENTER_CRITICAL(&mux);
     rx.Push(data, (int)len);
+    portEXIT_CRITICAL(&mux);
+}
+
+void BleSprayer::onSecureWriteFromStack(const uint8_t* data, size_t len) {
+    portENTER_CRITICAL(&mux);
+    rxSecure.Push(data, (int)len);
     portEXIT_CRITICAL(&mux);
 }
 

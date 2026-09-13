@@ -38,6 +38,10 @@ struct SprayerSettings {
     uint8_t       gpsBaudIndex      = 7;   // into the 4800 x n table below; 7 = 115200
     uint8_t       gpsMinQuality     = 0;   // GGA quality: 0 any, 1 GPS, 2 DGPS, 4 RTK fixed
     bool          buzzerEnabled     = true; // OUT4 deviation buzzer (NeptuneGPS_Triton#72)
+    // Bluetooth pairing code, six digits, drawn once per board on first boot
+    // and kept in NVS; shown on the LCD when a phone pairs (#53). The
+    // default only exists off the board.
+    uint32_t      passkey           = 123456;
 };
 
 class ConfigSprayer {

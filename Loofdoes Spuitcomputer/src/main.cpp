@@ -57,6 +57,29 @@ triton::BleSprayer*        ble;
 triton::VehicleGps*        gps;
 //triton::InterfaceGps*      interfaceGps;
 
+// Bluetooth pairing (NeptuneGPS_Triton#53): while a phone asks for the code
+// the LCD shows it; afterwards the banner comes back.
+static void GShowPairing(uint32_t passkey) {
+  if (passkey != 0) {
+    char line[21];
+    snprintf(line, sizeof(line), "    Code: %06lu    ", (unsigned long)passkey);
+    lcd->WriteBuffer("     Bluetooth      ", 0);
+    lcd->WriteBuffer("   koppelen met     ", 1);
+    lcd->WriteBuffer("     de tablet      ", 2);
+    lcd->WriteBuffer(line, 3);
+  } else {
+    lcd->WriteBuffer(L2_MEIJWORKS, 0);
+    lcd->WriteBuffer(L2_DEVICE, 1);
+    lcd->WriteBuffer(L2_COPYRIGHT, 2);
+    lcd->WriteBuffer(L2_AUTHOR, 3);
+  }
+  lcd->WriteScreen(0xFF);
+}
+
+static void GForgetPhones() {
+  triton::BleSprayer::ForgetBonds();
+}
+
 
 void setup() {
   // Allocate EEPROM in memory
@@ -84,6 +107,8 @@ void setup() {
   implement    = new triton::ImplementSprayer(serialDebug, gps, interface, config);
   calibration  = new triton::CalibrationSprayer(serialDebug, implement);
   ble          = new triton::BleSprayer(serialDebug, implement, config);
+  ble->SetPairingHandler(GShowPairing);
+  calibration->SetForgetPhonesHandler(GForgetPhones);
 
   implement->LoadCalibration();
   
@@ -105,6 +130,7 @@ void setup() {
   Serial.print("  gps baudrate   "); Serial.println(triton::ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
   Serial.print("  gps min fix    "); Serial.println(config->Get().gpsMinQuality);
   Serial.print("  buzzer         "); Serial.println(config->Get().buzzerEnabled ? "on" : "off");
+  Serial.print("  ble passkey    "); Serial.println(config->Get().passkey);
   Serial.println("-------------------------------");
 
 
