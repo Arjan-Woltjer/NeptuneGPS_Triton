@@ -32,6 +32,8 @@ object SprayerController {
     val nmeaEnabled: StateFlow<Boolean> get() = _nmeaEnabled.asStateFlow()
     fun setNmea(on: Boolean) { _nmeaEnabled.value = on; service?.setNmea(on) }
 
+    fun clearLog() = publish { it.copy(log = emptyList()) }
+
     /** Re-read the calibration tables and settings from the board. */
     fun refresh() = service?.refresh()
 
