@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meijworks.loofdoes.SprayerState
 
-/** The Calibrate menu (NeptuneGPS_Triton#46): the five agreed entries. */
+/** The Calibrate menu (NeptuneGPS_Triton#46): the five agreed entries plus the console (#69). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalibrateMenuScreen(
@@ -35,6 +35,7 @@ fun CalibrateMenuScreen(
     onSprayer: () -> Unit,
     onGps: () -> Unit,
     onAdvanced: () -> Unit,
+    onConsole: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -64,9 +65,16 @@ fun CalibrateMenuScreen(
                     HorizontalDivider()
                     MenuEntry(
                         "Advanced",
-                        "Calibration tables, settings and a console",
+                        "Calibration tables, settings, pump point correction",
                         enabled = sprayer.connected,
                         onClick = onAdvanced,
+                    )
+                    HorizontalDivider()
+                    MenuEntry(
+                        "Console",
+                        "Raw protocol lines, GPS sentences, for the bench",
+                        enabled = sprayer.connected,
+                        onClick = onConsole,
                     )
                 }
             }

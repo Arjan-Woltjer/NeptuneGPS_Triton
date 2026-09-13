@@ -33,6 +33,7 @@ import com.meijworks.loofdoes.service.WizardMode
 import com.meijworks.loofdoes.service.SprayerService
 import com.meijworks.loofdoes.ui.AdvancedScreen
 import com.meijworks.loofdoes.ui.CalibrateMenuScreen
+import com.meijworks.loofdoes.ui.ConsoleScreen
 import com.meijworks.loofdoes.ui.GpsConfigScreen
 import com.meijworks.loofdoes.ui.PotmeterScreen
 import com.meijworks.loofdoes.ui.SprayerConfigScreen
@@ -82,7 +83,7 @@ class MainActivity : ComponentActivity() {
                 BackHandler(enabled = screen != Screen.STATUS) {
                     screen = when (screen) {
                         Screen.WIZARD -> { SprayerController.cancelWizard(); Screen.CALIBRATE }
-                        Screen.POTMETER, Screen.SPRAYER, Screen.GPS, Screen.ADVANCED -> Screen.CALIBRATE
+                        Screen.POTMETER, Screen.SPRAYER, Screen.GPS, Screen.ADVANCED, Screen.CONSOLE -> Screen.CALIBRATE
                         else -> Screen.STATUS
                     }
                 }
@@ -104,7 +105,9 @@ class MainActivity : ComponentActivity() {
                         onSprayer = { screen = Screen.SPRAYER },
                         onGps = { screen = Screen.GPS },
                         onAdvanced = { screen = Screen.ADVANCED },
+                        onConsole = { screen = Screen.CONSOLE },
                     )
+                    Screen.CONSOLE -> ConsoleScreen(sprayer = sprayer, onBack = { screen = Screen.CALIBRATE })
                     Screen.WIZARD -> WizardScreen(
                         sprayer = sprayer,
                         title = when (sprayer.wizard?.mode) {

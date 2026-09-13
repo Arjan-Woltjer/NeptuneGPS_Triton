@@ -15,7 +15,7 @@ app/src/main/java/com/meijworks/loofdoes/
   protocol/SprayerProtocol.kt the line protocol (RemoteSprayer.hpp on the board), unit-tested
   service/SprayerService.kt   foreground service: owns the link and the alarm
   service/SprayerController.kt bridge between service and UI
-  ui/                         Status, Calibrate menu, Advanced, Settings
+  ui/                         Status, Calibrate menu, wizard, Advanced, Console, Settings
   audio/                      synthesised alarm sounds, unchanged from Buzzer-game
 ```
 
@@ -45,9 +45,9 @@ cd "Loofdoes Spuitcomputer/android"
    knob positions then the pump curve with five board-timed one-minute
    runs), **Potmeter calibration** (the knob positions alone, or one of
    them), **Sprayer** (width, guidance timeout), **GPS config** (minimum fix
-   to dose, receiver baudrate, with a live readout) and **Advanced** (the
-   tables, the board settings, a pump-point correction and a console for
-   raw protocol lines with the last lines in both directions).
+   to dose, receiver baudrate, with a live readout), **Advanced** (the
+   tables, the board settings, a pump-point correction) and **Console** (raw
+   protocol lines both ways, full screen, with a copy button).
    Calibration edits are staged on the board and only applied by the final
    save; cancelling, or losing the link, keeps the old values.
    The console hides the status and GPS lines unless "Show status and GPS

@@ -36,6 +36,6 @@ data class SprayerState(
 
     companion object {
         const val STATUS_STALE_MS = 2000L
-        const val LOG_LINES = 40
+        const val LOG_LINES = 300
     }
 }

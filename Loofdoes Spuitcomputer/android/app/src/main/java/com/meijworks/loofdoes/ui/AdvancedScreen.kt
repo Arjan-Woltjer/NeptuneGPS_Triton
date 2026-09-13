@@ -9,13 +9,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -26,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -34,12 +30,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.meijworks.loofdoes.SprayerState
@@ -48,9 +41,9 @@ import com.meijworks.loofdoes.protocol.SprayerProtocol
 import com.meijworks.loofdoes.service.SprayerController
 
 /**
- * What the board holds, plus a console that sends raw protocol lines and
- * shows the last lines in both directions. A pump point's flow can be
- * corrected here (serial menu option 4).
+ * What the board holds: the two calibration tables, the settings, and a
+ * pump point's flow correction (serial menu option 4). The console has its
+ * own screen (ConsoleScreen).
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +74,6 @@ fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
         ) {
             TablesCard(sprayer)
             SettingsValuesCard(sprayer)
-            ConsoleCard(sprayer)
             Spacer(Modifier.height(24.dp))
         }
     }
@@ -146,64 +138,6 @@ private fun SettingsValuesCard(sprayer: SprayerState) {
 }
 
 @Composable
-private fun ConsoleCard(sprayer: SprayerState) {
-    var command by rememberSaveable { mutableStateOf("") }
-    fun send() {
-        if (command.isNotBlank()) {
-            SprayerController.sendRaw(command)
-            command = ""
-        }
-    }
-    val showTelemetry by SprayerController.showTelemetry.collectAsStateWithLifecycle()
-    val nmea by SprayerController.nmeaEnabled.collectAsStateWithLifecycle()
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Console", style = MaterialTheme.typography.titleMedium)
-            Text(
-                "Raw protocol lines, for the bench. Try PING, CAL GET, CFG GET.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            ToggleRow("Show status and GPS lines", "5 per second; they push replies out of view", showTelemetry) {
-                SprayerController.setShowTelemetry(it)
-            }
-            ToggleRow("GPS raw sentences", "The board forwards what the receiver sends (N: lines)", nmea, enabled = sprayer.connected) {
-                SprayerController.setNmea(it)
-            }
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = command,
-                    onValueChange = { command = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    placeholder = { Text("PING") },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { send() }),
-                    enabled = sprayer.connected,
-                )
-                Spacer(Modifier.width(8.dp))
-                Button(onClick = { send() }, enabled = sprayer.connected && command.isNotBlank()) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
-                }
-            }
-            SelectionContainer {
-                Column {
-                    sprayer.log.takeLast(20).forEach { line ->
-                        Text(
-                            line,
-                            fontFamily = FontFamily.Monospace,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = if (line.startsWith(">")) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun PwmPointEditor(sprayer: SprayerState) {
     var pointText by rememberSaveable { mutableStateOf("") }
     var flowText by rememberSaveable { mutableStateOf("") }
@@ -232,17 +166,6 @@ private fun PwmPointEditor(sprayer: SprayerState) {
             onClick = { if (point != null && flow != null) SprayerController.editPwmPointFlow(point.index, flow) },
             enabled = sprayer.connected && point != null && flow != null && flow in 1..4000,
         ) { Text("Save") }
-    }
-}
-
-@Composable
-private fun ToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyMedium)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
     }
 }
 
