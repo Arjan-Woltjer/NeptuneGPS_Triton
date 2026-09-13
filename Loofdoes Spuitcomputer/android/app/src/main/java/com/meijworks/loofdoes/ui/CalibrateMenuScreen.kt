@@ -16,6 +16,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -23,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meijworks.loofdoes.SprayerState
+import com.meijworks.loofdoes.protocol.SprayerProtocol
+import com.meijworks.loofdoes.service.SprayerController
 
 /** The Calibrate menu (NeptuneGPS_Triton#46): the five agreed entries plus the console (#69). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,6 +73,9 @@ fun CalibrateMenuScreen(
                         onClick = onAdvanced,
                     )
                     HorizontalDivider()
+                    HorizontalDivider()
+                    BuzzerRow(sprayer)
+                    HorizontalDivider()
                     MenuEntry(
                         "Console",
                         "Raw protocol lines, GPS sentences, for the bench",
@@ -85,6 +91,38 @@ fun CalibrateMenuScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+    }
+}
+
+/**
+ * The board's deviation buzzer on OUT4 (NeptuneGPS_Triton#72). A board-side
+ * setting, so it holds without the app; the phone alarm is separate.
+ */
+@Composable
+private fun BuzzerRow(sprayer: SprayerState) {
+    val value = sprayer.config[SprayerProtocol.KEY_BUZZER]
+    val enabled = sprayer.connected && value != null
+    val alpha = if (enabled) 1f else 0.45f
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled) { SprayerController.setConfig(SprayerProtocol.KEY_BUZZER, if (value == 1L) 0L else 1L) }
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text("Buzzer on the board", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha))
+            Text(
+                "Sounds while the dose is outside 5 % of requested. The phone alarm is separate (Settings).",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
+            )
+        }
+        Switch(
+            checked = value == 1L,
+            onCheckedChange = { SprayerController.setConfig(SprayerProtocol.KEY_BUZZER, if (it) 1L else 0L) },
+            enabled = enabled,
+        )
     }
 }
 

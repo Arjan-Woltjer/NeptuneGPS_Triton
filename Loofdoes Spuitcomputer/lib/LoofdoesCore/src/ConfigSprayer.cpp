@@ -37,6 +37,7 @@ constexpr const char* kKeyWidth   = "width_cm";
 constexpr const char* kKeyGuid    = "guid_ms";
 constexpr const char* kKeyBaud    = "gps_baud";
 constexpr const char* kKeyMinQ    = "gps_minq";
+constexpr const char* kKeyBuzzer  = "buzzer";
 }  // namespace
 
 bool ConfigSprayer::SetWidthCm(int cm) {
@@ -66,6 +67,10 @@ bool ConfigSprayer::SetGpsMinQuality(uint8_t quality) {
     return true;
 }
 
+void ConfigSprayer::SetBuzzerEnabled(bool enabled) {
+    settings.buzzerEnabled = enabled;
+}
+
 long ConfigSprayer::BaudFromIndex(uint8_t index) {
     // Out of range can only come from a corrupt store; 115200 is what every
     // board in the field has always been opened at, so that is the safe rate.
@@ -93,6 +98,7 @@ bool ConfigSprayer::Load() {
         SetGuidanceTimeoutMs(prefs.getULong(kKeyGuid, settings.guidanceTimeoutMs));
         SetGpsBaudIndex(prefs.getUChar(kKeyBaud, settings.gpsBaudIndex));
         SetGpsMinQuality(prefs.getUChar(kKeyMinQ, settings.gpsMinQuality));
+        SetBuzzerEnabled(prefs.getBool(kKeyBuzzer, settings.buzzerEnabled));
     }
     prefs.end();
     return stored;
@@ -105,6 +111,7 @@ void ConfigSprayer::Save() {
     prefs.putULong(kKeyGuid, settings.guidanceTimeoutMs);
     prefs.putUChar(kKeyBaud, settings.gpsBaudIndex);
     prefs.putUChar(kKeyMinQ, settings.gpsMinQuality);
+    prefs.putBool(kKeyBuzzer, settings.buzzerEnabled);
     prefs.end();
 }
 #else

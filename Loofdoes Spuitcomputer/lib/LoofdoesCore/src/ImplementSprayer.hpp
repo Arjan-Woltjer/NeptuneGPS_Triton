@@ -138,6 +138,11 @@ public:
     // True once actualLHA has been outside kDoseTolerance of doseLHA for
     // kDeviationHoldMs while the pump output is on; drives the OUT4 buzzer
     // and is reported to the companion app so both agree.
+    // Below this the machine counts as standing still: a receiver with a fix
+    // reports a few tenths of a km/h of creep while parked, which would
+    // otherwise read as "too slow to dose" and sound the deviation alarm
+    // (NeptuneGPS_Triton#74). Same 0.5 m/s VehicleGps::MinSpeed() uses.
+    static constexpr float         kStandstillSpeedMs = 0.5f;
     static constexpr float         kDoseTolerance   = 0.05f;
     static constexpr unsigned long kDeviationHoldMs = 1000;
     bool doseDeviation = false;

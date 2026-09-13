@@ -469,7 +469,9 @@ void CalibrationSprayer::printCurrentCalibration() {
     serial->print(" ms  gpsBaud=");
     serial->print(ConfigSprayer::BaudFromIndex(cfg.gpsBaudIndex));
     serial->print("  gpsMinQuality=");
-    serial->println(cfg.gpsMinQuality);
+    serial->print(cfg.gpsMinQuality);
+    serial->print("  buzzer=");
+    serial->println(cfg.buzzerEnabled ? "on" : "off");
 }
 
 void CalibrationSprayer::printDoseData() {

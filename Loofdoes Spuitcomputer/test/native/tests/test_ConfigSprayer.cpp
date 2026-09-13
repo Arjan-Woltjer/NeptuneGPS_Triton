@@ -34,6 +34,15 @@ test(ConfigSprayer, defaults_matchOldCompileTimeConstants) {
     assertEqual(cfg.Get().guidanceTimeoutMs, (unsigned long)2000);
     assertEqual(cfg.Get().gpsBaudIndex, (uint8_t)7);
     assertEqual(cfg.Get().gpsMinQuality, (uint8_t)0);
+    assertTrue(cfg.Get().buzzerEnabled);
+}
+
+test(ConfigSprayer, buzzer_canBeSwitchedOff) {
+    ConfigSprayer cfg;
+    cfg.SetBuzzerEnabled(false);
+    assertFalse(cfg.Get().buzzerEnabled);
+    cfg.SetBuzzerEnabled(true);
+    assertTrue(cfg.Get().buzzerEnabled);
 }
 
 test(ConfigSprayer, load_offBoard_reportsNothingStored_keepsDefaults) {

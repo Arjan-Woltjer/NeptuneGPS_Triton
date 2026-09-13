@@ -104,6 +104,7 @@ void setup() {
   Serial.print("  guidance limit "); Serial.print(config->Get().guidanceTimeoutMs); Serial.println(" ms");
   Serial.print("  gps baudrate   "); Serial.println(triton::ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
   Serial.print("  gps min fix    "); Serial.println(config->Get().gpsMinQuality);
+  Serial.print("  buzzer         "); Serial.println(config->Get().buzzerEnabled ? "on" : "off");
   Serial.println("-------------------------------");
 
 

@@ -362,12 +362,13 @@ test(RemoteSprayer, disconnect_leavesSerialWizardAlone) {
 test(RemoteSprayer, cfgGet_listsEveryKeyThenOk) {
     rReset();
     remote.HandleLine("CFG GET");
-    assertEqual(sink.count(), (size_t)5);
+    assertEqual(sink.count(), (size_t)6);
     assertEqual(sink.at(0).c_str(), "K:width_cm,300");
     assertEqual(sink.at(1).c_str(), "K:guid_ms,2000");
     assertEqual(sink.at(2).c_str(), "K:gps_baud,7");
     assertEqual(sink.at(3).c_str(), "K:gps_minq,0");
-    assertEqual(sink.at(4).c_str(), "OK");
+    assertEqual(sink.at(4).c_str(), "K:buzzer,1");
+    assertEqual(sink.at(5).c_str(), "OK");
 }
 
 test(RemoteSprayer, cfgSet_appliesValidatedValue) {
@@ -394,6 +395,18 @@ test(RemoteSprayer, cfgSet_gpsBaud_reopensThePortAtOnce) {
     assertEqual(rGps.appliedBaud, 9600L);
     remote.HandleLine("CFG SET width_cm 400");    // other keys leave the port alone
     assertEqual(rGps.appliedBaud, 9600L);
+}
+
+test(RemoteSprayer, cfgSet_buzzer) {
+    rReset();
+    remote.HandleLine("CFG SET buzzer 0");
+    assertEqual(sink.last().c_str(), "OK");
+    assertFalse(rCfg.Get().buzzerEnabled);
+    remote.HandleLine("CFG SET buzzer 2");
+    assertEqual(sink.last().c_str(), "ERR:range");
+    assertFalse(rCfg.Get().buzzerEnabled);
+    remote.HandleLine("CFG SET buzzer 1");
+    assertTrue(rCfg.Get().buzzerEnabled);
 }
 
 test(RemoteSprayer, cfgSet_rejectsBadInput) {
