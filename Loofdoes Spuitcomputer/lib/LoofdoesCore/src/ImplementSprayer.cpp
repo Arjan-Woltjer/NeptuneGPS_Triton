@@ -250,8 +250,8 @@ void ImplementSprayer::calculatePWMValues(byte outputIndex) {
     // Standing still: no demand, so the pump is off and there is no dose to
     // compare against. Left undefined rather than 0 on purpose -- 0 is what
     // the app shows for "pump cut while moving", which needs the driver to
-    // react, and this does not.
-    if (speed <= 0.0f) {
+    // react, and this does not. GPS creep while parked lands here too.
+    if (speed < kStandstillSpeedMs) {
         outputs[outputIndex].value = 0;
         return;
     }

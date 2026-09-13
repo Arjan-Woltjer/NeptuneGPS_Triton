@@ -583,6 +583,18 @@ test(ImplementSprayer, actual_standingStill_isUndefined) {
     assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
 }
 
+test(ImplementSprayer, actual_gpsCreepAtStandstill_isUndefined_noDeviation) {
+    // Bench: a receiver with a fix reports 0.5 km/h while the tractor stands
+    // still. That must count as standing still, not as "too slow to dose".
+    resetAll();
+    startSpraying(0.3f, 4095);              // 0.3 m/s = 1.1 km/h, switches on
+    runUntil(2000 + ImplementSprayer::kDeviationHoldMs + 500, 0.3f);
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+}
+
 test(ImplementSprayer, actual_tooFewPwmPoints_isUndefined) {
     resetAll();
     impl.outputs[2].pwm = true;
