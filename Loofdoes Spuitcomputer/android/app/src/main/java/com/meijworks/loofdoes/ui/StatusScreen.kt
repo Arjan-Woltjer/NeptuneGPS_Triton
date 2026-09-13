@@ -265,7 +265,7 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
                     else -> "%.1f s".format(g.fixAgeMs / 1000.0)
                 },
             )
-            DetailRow("Position", g?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
+            DetailRow("Position", g?.takeIf { it.hasPosition }?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
             if (!sprayer.connected) {
                 Text(
                     sprayer.lastMessage,

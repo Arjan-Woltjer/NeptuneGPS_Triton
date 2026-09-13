@@ -72,7 +72,7 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
                         },
                     )
                     DetailRow("Speed", sprayer.status?.let { "%.1f km/h".format(it.speedKmh) } ?: "–")
-                    DetailRow("Position", g?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
+                    DetailRow("Position", g?.takeIf { it.hasPosition }?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
                 }
             }
 

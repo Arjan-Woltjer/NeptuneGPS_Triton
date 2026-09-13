@@ -76,6 +76,11 @@ class SprayerProtocolTest {
 
         val none = (SprayerProtocol.parse("G:1,0.000000,0.000000,-1") as BoardMessage.Gps).sample
         assertNull(none.fixAgeMs)
+
+        // The board's parser reports its invalid sentinel until the first fix.
+        val sentinel = (SprayerProtocol.parse("G:0,999999.875000,999999.875000,-1") as BoardMessage.Gps).sample
+        assertFalse(sentinel.hasPosition)
+        assertTrue(g.hasPosition)
         assertEquals("GPS", none.qualityLabel)
     }
 

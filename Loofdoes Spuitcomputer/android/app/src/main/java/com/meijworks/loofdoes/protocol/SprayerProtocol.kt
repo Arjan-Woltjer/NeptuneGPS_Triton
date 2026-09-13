@@ -64,6 +64,9 @@ enum class CalibrationOwner { NONE, SERIAL, APP;
 data class GpsSample(val quality: Int, val latitude: Double, val longitude: Double, val fixAgeMs: Long?) {
     val qualityLabel: String get() = qualityLabel(quality)
 
+    /** The parser reports 999999.9 until the first position; anything outside the globe is "none". */
+    val hasPosition: Boolean get() = latitude in -90.0..90.0 && longitude in -180.0..180.0
+
     companion object {
         fun qualityLabel(q: Int): String = when (q) {
             0 -> "No fix"
