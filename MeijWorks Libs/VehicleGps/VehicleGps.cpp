@@ -571,6 +571,21 @@ void VehicleGps::writeCalibrationData() {
     EEPROM.write(11, rtkQuality);
 }
 
+void VehicleGps::ApplyBaudrate(long baud) {
+    if (serialGps == nullptr || baud <= 0) return;
+#if defined(ESP32)
+    // Keeps the pins main.cpp assigned; end()/begin() would need them again.
+    serialGps->updateBaudRate((unsigned long)baud);
+#else
+    serialGps->end();
+    serialGps->begin((unsigned long)baud);
+#endif
+    // A partial sentence read at the old rate is garbage; start clean.
+    termNumber = 0;
+    termOffset = 0;
+    rawLen     = 0;
+}
+
 void VehicleGps::PrintCalibrationData() {
     byte rates[8] = { 1, 2, 3, 4, 6, 8, 12, 24 };
 

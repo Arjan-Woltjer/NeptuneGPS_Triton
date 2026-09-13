@@ -143,6 +143,10 @@ public:
 
     void PrintCalibrationData();
 
+    // Reopen the receiver port at another rate without a reboot (the
+    // Loofdoes companion app changes it at runtime, NeptuneGPS_Triton#62).
+    void ApplyBaudrate(long baud);
+
 #ifndef GPS_NO_STATS
     void Stats(unsigned long* chars, unsigned short* sentences, unsigned short* failedCs);
 #endif

@@ -52,6 +52,9 @@ public:
         size_t n = strlen(s); if (n > 90) n = 90;
         memcpy(lastSentence, s, n); lastSentence[n] = 0; sentenceSeq++;
     }
+    long appliedBaud = 0;                     // what ApplyBaudrate() was last given
+    void ApplyBaudrate(long baud) { appliedBaud = baud; }
+
     const char* GetLastSentence() const { return lastSentence; }
     uint32_t    GetSentenceSeq() const  { return sentenceSeq; }
 };

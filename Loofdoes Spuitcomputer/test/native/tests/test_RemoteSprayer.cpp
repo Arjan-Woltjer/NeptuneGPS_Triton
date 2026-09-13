@@ -384,6 +384,18 @@ test(RemoteSprayer, cfgSet_appliesValidatedValue) {
     assertEqual(rCfg.Get().gpsBaudIndex, (uint8_t)3);
 }
 
+test(RemoteSprayer, cfgSet_gpsBaud_reopensThePortAtOnce) {
+    rReset();
+    remote.HandleLine("CFG SET gps_baud 1");
+    assertEqual(sink.last().c_str(), "OK");
+    assertEqual(rGps.appliedBaud, 9600L);
+    remote.HandleLine("CFG SET gps_baud 9");      // refused: nothing reopened
+    assertEqual(sink.last().c_str(), "ERR:range");
+    assertEqual(rGps.appliedBaud, 9600L);
+    remote.HandleLine("CFG SET width_cm 400");    // other keys leave the port alone
+    assertEqual(rGps.appliedBaud, 9600L);
+}
+
 test(RemoteSprayer, cfgSet_rejectsBadInput) {
     rReset();
     remote.HandleLine("CFG SET width_cm 10");

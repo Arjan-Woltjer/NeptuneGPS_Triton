@@ -329,6 +329,10 @@ void RemoteSprayer::handleCfg(int argc, const char* const argv[]) {
 
         if (!applied) { err("range"); return; }
         config->Save();
+        // The receiver port follows at once; a reboot used to be needed.
+        if (strcmp(key, kKeyBaud) == 0) {
+            impl->gps->ApplyBaudrate(ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
+        }
         ok();
         return;
     }
