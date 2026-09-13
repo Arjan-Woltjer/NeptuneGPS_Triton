@@ -24,7 +24,9 @@ app/src/main/java/com/meijworks/loofdoes/
 CI builds the debug APK on every push that touches this directory
 (`.github/workflows/loofdoes-android.yml` at the repository root) and runs the
 protocol unit tests. Download `loofdoes-debug-apk` from the workflow run's
-Artifacts and sideload it. Locally:
+Artifacts and sideload it (`adb install -r app-debug.apk`). Debug builds are
+signed with the committed `debug.keystore`, so a newer build installs over an
+older one. Locally:
 
 ```sh
 cd "Loofdoes Spuitcomputer/android"

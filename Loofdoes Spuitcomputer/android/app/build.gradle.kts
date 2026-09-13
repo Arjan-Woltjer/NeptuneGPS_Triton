@@ -16,6 +16,19 @@ android {
         versionName = "1.0"
     }
 
+    // A committed debug keystore (standard Android debug credentials, not a
+    // secret) so every CI build signs identically: without it each runner
+    // generates its own key and a newer APK refuses to install over an
+    // older one (INSTALL_FAILED_UPDATE_INCOMPATIBLE) until uninstalled.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
