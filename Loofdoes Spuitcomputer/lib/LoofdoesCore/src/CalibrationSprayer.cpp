@@ -481,7 +481,11 @@ void CalibrationSprayer::printCurrentCalibration() {
     serial->print("  gpsMinQuality=");
     serial->print(cfg.gpsMinQuality);
     serial->print("  buzzer=");
-    serial->println(cfg.buzzerEnabled ? "on" : "off");
+    serial->print(cfg.buzzerEnabled ? "on" : "off");
+    // The Bluetooth pairing code. The sprayer has no display, so this is
+    // read once at installation and written inside the control box.
+    serial->print("  blePasskey=");
+    serial->println(cfg.passkey);
 }
 
 void CalibrationSprayer::printDoseData() {

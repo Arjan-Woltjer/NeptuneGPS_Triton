@@ -59,7 +59,10 @@ cd "Loofdoes Spuitcomputer/android"
 
 Commands that move an output or change a setting go over a bonded,
 authenticated characteristic: the first time, Android asks for a six-digit
-code that the sprayer shows on its display (and on serial). After that the
+code. The code is drawn once per board and kept on it; the sprayer has no
+display, so read it over serial at installation (it is in the boot banner
+and in menu option 3, `blePasskey=`) and write it inside the control box.
+A board with an LCD also shows it while a phone pairs. After that the
 phone stays paired; serial menu option 9 on the board forgets paired phones.
 Forget the pairing on the tablet as well (Bluetooth settings, Loofdoes,
 Forget) whenever the board has forgotten it, otherwise the tablet keeps a
