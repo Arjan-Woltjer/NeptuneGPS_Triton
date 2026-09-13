@@ -444,6 +444,18 @@ void ImplementSprayer::setOutputDuty(const OutputState& out, uint32_t duty) {
 bool ImplementSprayer::AcquireCalibration(CalibrationOwner who) {
     if (who == CalibrationOwner::None) return false;
     if (calibrationOwner != CalibrationOwner::None && calibrationOwner != who) return false;
+    if (calibrationOwner == CalibrationOwner::None) {
+        // Calibration is about the pump alone. Mixer and vernevelaar go off
+        // and their state is cleared, so the interlock cascade restarts from
+        // scratch once calibration is handed back (NeptuneGPS_Triton#66).
+        // Before this they simply kept whatever state they had, for the
+        // whole of a five-run pump calibration.
+        for (int i = 0; i < 3; ++i) {
+            outputs[i].state = false;
+            setOutputDuty(outputs[i], PWM_MAX_DUTY);
+        }
+        calibrationDuty = 0;
+    }
     calibrationOwner = who;
     calibrationMode  = true;
     return true;

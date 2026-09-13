@@ -74,6 +74,11 @@ static void resetAll() {
     iface.analogInputs[0].value = 0;
     impl.actualLHA     = ImplementSprayer::kActualDoseUndefined;
     impl.doseDeviation = false;
+    // A test that fails mid-way may leave calibration held; the next test
+    // would then run with the output logic frozen and fail for the wrong reason.
+    impl.ReleaseCalibration(CalibrationOwner::Serial);
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+    impl.calibrationMode = false;
 }
 
 static unsigned long kHoldMinus1() { return ImplementSprayer::kDeviationHoldMs - 1; }
@@ -820,4 +825,55 @@ test(ImplementSprayer, releaseCalibration_endsRunAndDuty) {
     impl.ReleaseCalibration(CalibrationOwner::Serial);
     assertFalse(impl.CalibrationRunActive());
     assertEqual(impl.GetCalibrationDuty(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Taking calibration switches the mixer and vernevelaar off (NeptuneGPS_Triton
+// #66): calibration is about the pump alone, and on the bench the two stayed
+// on for five one-minute runs because the output logic was merely frozen.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, acquireCalibration_switchesMixerAndVernevelaarOff) {
+    resetAll();
+    startSpraying(1.0f, 2048);              // full cascade on at t=2000
+    assertTrue(impl.outputs[0].state);
+    assertTrue(impl.outputs[1].state);
+    assertTrue(impl.outputs[2].state);
+
+    assertTrue(impl.AcquireCalibration(CalibrationOwner::Remote));
+    assertFalse(impl.outputs[0].state);
+    assertFalse(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+    assertEqual(impl.GetCalibrationDuty(), 0);
+
+    // Still off while calibration is held, whatever the switches say.
+    runUntil(3000, 1.0f);
+    assertFalse(impl.outputs[0].state);
+    assertFalse(impl.outputs[1].state);
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(ImplementSprayer, releaseCalibration_cascadeRestartsWithItsDelays) {
+    resetAll();
+    startSpraying(1.0f, 2048);
+    impl.AcquireCalibration(CalibrationOwner::Remote);
+    runUntil(3000, 1.0f);
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+
+    // Switches are still held: mixer at once, vernevelaar 1 s later, pump 1 s after that.
+    millisValue(3100); mockGps.SetSpeed(1.0f); impl.Update();
+    assertTrue(impl.outputs[0].state);
+    assertFalse(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    runUntil(4099, 1.0f);
+    assertFalse(impl.outputs[1].state);
+    runUntil(4100, 1.0f);
+    assertTrue(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    runUntil(5099, 1.0f);
+    assertFalse(impl.outputs[2].state);
+    runUntil(5100, 1.0f);
+    assertTrue(impl.outputs[2].state);
 }
