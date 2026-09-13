@@ -30,6 +30,27 @@ class SprayerProtocolTest {
     }
 
     @Test
+    fun status_protocol2_inputAndOutputBits() {
+        val s = (SprayerProtocol.parse("S:0.00,50.0,-1.0,0.0,0,1,0,0,0,0,0,1001,1000") as BoardMessage.Status).sample
+        assertEquals(listOf(true, false, false, true), s.inputs)
+        assertEquals(listOf(true, false, false, false), s.outputs)
+    }
+
+    @Test
+    fun status_protocol1_hasNoBits() {
+        val s = (SprayerProtocol.parse("S:1.00,100.0,100.0,1800.0,2048,0,0,0,1843,0,0") as BoardMessage.Status).sample
+        assertTrue(s.inputs.isEmpty())
+        assertTrue(s.outputs.isEmpty())
+    }
+
+    @Test
+    fun nmea_lineKeepsTheSentenceVerbatim() {
+        val m = SprayerProtocol.parse("N:\$GPGGA,123519,4807.038,N,01131.000,E,0,00,,,M,,M,,*47")
+        assertEquals(BoardMessage.Nmea("\$GPGGA,123519,4807.038,N,01131.000,E,0,00,,,M,,M,,*47"), m)
+        assertEquals("TELEM N 1", SprayerProtocol.cmdTelemetryNmea(true))
+    }
+
+    @Test
     fun status_undefinedActual_isNull_andCalibrationOwnerApp() {
         val s = (SprayerProtocol.parse("S:0.00,50.0,-1.0,0.0,0,0,0,0,777,0,2") as BoardMessage.Status).sample
         assertNull(s.actualLha)
@@ -55,6 +76,11 @@ class SprayerProtocolTest {
 
         val none = (SprayerProtocol.parse("G:1,0.000000,0.000000,-1") as BoardMessage.Gps).sample
         assertNull(none.fixAgeMs)
+
+        // The board's parser reports its invalid sentinel until the first fix.
+        val sentinel = (SprayerProtocol.parse("G:0,999999.875000,999999.875000,-1") as BoardMessage.Gps).sample
+        assertFalse(sentinel.hasPosition)
+        assertTrue(g.hasPosition)
         assertEquals("GPS", none.qualityLabel)
     }
 

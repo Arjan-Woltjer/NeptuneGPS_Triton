@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -32,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
@@ -151,14 +154,22 @@ private fun ConsoleCard(sprayer: SprayerState) {
             command = ""
         }
     }
+    val showTelemetry by SprayerController.showTelemetry.collectAsStateWithLifecycle()
+    val nmea by SprayerController.nmeaEnabled.collectAsStateWithLifecycle()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Console", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Raw protocol lines, for the bench. Try PING, CAL GET, CFG GET. Status and GPS lines are left out.",
+                "Raw protocol lines, for the bench. Try PING, CAL GET, CFG GET.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            ToggleRow("Show status and GPS lines", "5 per second; they push replies out of view", showTelemetry) {
+                SprayerController.setShowTelemetry(it)
+            }
+            ToggleRow("GPS raw sentences", "The board forwards what the receiver sends (N: lines)", nmea, enabled = sprayer.connected) {
+                SprayerController.setNmea(it)
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
                     value = command,
@@ -175,15 +186,17 @@ private fun ConsoleCard(sprayer: SprayerState) {
                     Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
                 }
             }
-            Column {
-                sprayer.log.takeLast(15).forEach { line ->
-                    Text(
-                        line,
-                        fontFamily = FontFamily.Monospace,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = if (line.startsWith(">")) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurface,
-                    )
+            SelectionContainer {
+                Column {
+                    sprayer.log.takeLast(20).forEach { line ->
+                        Text(
+                            line,
+                            fontFamily = FontFamily.Monospace,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (line.startsWith(">")) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
             }
         }
@@ -219,6 +232,17 @@ private fun PwmPointEditor(sprayer: SprayerState) {
             onClick = { if (point != null && flow != null) SprayerController.editPwmPointFlow(point.index, flow) },
             enabled = sprayer.connected && point != null && flow != null && flow in 1..4000,
         ) { Text("Save") }
+    }
+}
+
+@Composable
+private fun ToggleRow(title: String, subtitle: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
     }
 }
 

@@ -32,7 +32,7 @@ import com.meijworks.loofdoes.service.SprayerController
 
 /**
  * Receiver settings on the board plus a live readout so the effect of a
- * change is visible at once. The baudrate takes effect at the next boot.
+ * change is visible at once, the baudrate included.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +72,7 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
                         },
                     )
                     DetailRow("Speed", sprayer.status?.let { "%.1f km/h".format(it.speedKmh) } ?: "–")
-                    DetailRow("Position", g?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
+                    DetailRow("Position", g?.takeIf { it.hasPosition }?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
                 }
             }
 
@@ -108,7 +108,7 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                     Text(
-                        "Applied when the board next starts.",
+                        "Applied at once; the port reopens at the new rate.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),

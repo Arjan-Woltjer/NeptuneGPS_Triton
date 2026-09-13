@@ -46,7 +46,8 @@ constexpr int kReplyLength = 96;
 
 RemoteSprayer::RemoteSprayer(ImplementSprayer* impl, ConfigSprayer* config, RemoteSink* sink)
     : impl(impl), config(config), sink(sink),
-      statusEnabled(false), gpsEnabled(false), lastStatusAt(0), lastGpsAt(0),
+      statusEnabled(false), gpsEnabled(false), nmeaEnabled(false),
+      lastStatusAt(0), lastGpsAt(0), lastNmeaAt(0), lastNmeaSeq(0),
       runWasActive(false), lastReportedSeconds(0), stagedPwmCount(0) {
     stageFromLive();
 }
@@ -97,6 +98,11 @@ void RemoteSprayer::Update() {
         lastGpsAt = now;
         sendGps();
     }
+    if (nmeaEnabled && impl->gps->GetSentenceSeq() != lastNmeaSeq && now - lastNmeaAt >= kNmeaMinIntervalMs) {
+        lastNmeaAt  = now;
+        lastNmeaSeq = impl->gps->GetSentenceSeq();
+        sendNmea();
+    }
 }
 
 void RemoteSprayer::OnConnect() {
@@ -110,6 +116,7 @@ void RemoteSprayer::OnDisconnect() {
     impl->ReleaseCalibration(CalibrationOwner::Remote);
     statusEnabled = false;
     gpsEnabled    = false;
+    nmeaEnabled   = false;
     runWasActive  = false;   // no R:0 into a dead link
     lastReportedSeconds = 0;
 }
@@ -322,6 +329,10 @@ void RemoteSprayer::handleCfg(int argc, const char* const argv[]) {
 
         if (!applied) { err("range"); return; }
         config->Save();
+        // The receiver port follows at once; a reboot used to be needed.
+        if (strcmp(key, kKeyBaud) == 0) {
+            impl->gps->ApplyBaudrate(ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
+        }
         ok();
         return;
     }
@@ -347,6 +358,10 @@ void RemoteSprayer::handleTelem(int argc, const char* const argv[]) {
     } else if (strcmp(argv[1], "G") == 0) {
         gpsEnabled = on;
         lastGpsAt  = now;
+    } else if (strcmp(argv[1], "N") == 0) {
+        nmeaEnabled = on;
+        lastNmeaSeq = impl->gps->GetSentenceSeq();   // only sentences from now on
+        lastNmeaAt  = now;
     } else {
         err("args");
         return;
@@ -387,7 +402,7 @@ void RemoteSprayer::sendConfig() {
     snprintf(line, sizeof(line), "K:%s,%u",  kKeyMinQ,  (unsigned)s.gpsMinQuality);    reply(line);
 }
 
-// S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>
+// S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>,<in1..4>,<out1..4>
 // While someone holds calibration the pump duty shown is the calibration
 // duty, since that is what actually reaches the pump then.
 void RemoteSprayer::sendStatus() {
@@ -396,9 +411,10 @@ void RemoteSprayer::sendStatus() {
                       ? impl->GetCalibrationDuty()
                       : (int)impl->outputs[2].value;
     const int raw = impl->interface->GetAnalogInputs()[0].value;
+    const DigitalInputState* in = impl->interface->GetDigitalInputs();
 
     char line[kReplyLength];
-    snprintf(line, sizeof(line), "S:%.2f,%.1f,%.1f,%.1f,%d,%d,%d,%d,%d,%d,%d",
+    snprintf(line, sizeof(line), "S:%.2f,%.1f,%.1f,%.1f,%d,%d,%d,%d,%d,%d,%d,%d%d%d%d,%d%d%d%d",
              (double)impl->speed,
              (double)impl->doseLHA,
              (double)impl->actualLHA,
@@ -409,7 +425,18 @@ void RemoteSprayer::sendStatus() {
              impl->outputs[2].state ? 1 : 0,
              pumpPwm,
              impl->doseDeviation ? 1 : 0,
-             (int)owner);
+             (int)owner,
+             in[0].state ? 1 : 0, in[1].state ? 1 : 0, in[2].state ? 1 : 0, in[3].state ? 1 : 0,
+             impl->outputs[0].state ? 1 : 0, impl->outputs[1].state ? 1 : 0,
+             impl->outputs[2].state ? 1 : 0, impl->outputs[3].state ? 1 : 0);
+    reply(line);
+}
+
+// N:<sentence>, the receiver's last complete line as it came in. For
+// debugging the receiver from the app; the parser is not involved.
+void RemoteSprayer::sendNmea() {
+    char line[kReplyLength];
+    snprintf(line, sizeof(line), "N:%s", impl->gps->GetLastSentence());
     reply(line);
 }
 

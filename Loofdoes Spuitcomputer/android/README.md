@@ -50,6 +50,11 @@ cd "Loofdoes Spuitcomputer/android"
    raw protocol lines with the last lines in both directions).
    Calibration edits are staged on the board and only applied by the final
    save; cancelling, or losing the link, keeps the old values.
+   The console hides the status and GPS lines unless "Show status and GPS
+   lines" is on; "GPS raw sentences" makes the board forward every NMEA
+   sentence it receives (`N:` lines), the equivalent of serial menu option 8.
+   The Status screen's Details card shows the four inputs (switches) and
+   four outputs as green/red dots, one column per channel.
 5. The gear icon holds the alarm sound, volume, vibration and screen options.
 
 The board is fully standalone: without the app it doses and sounds its own

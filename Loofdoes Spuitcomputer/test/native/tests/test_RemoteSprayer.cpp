@@ -115,14 +115,14 @@ test(RemoteSprayer, info_versionLineThenOk) {
     rReset();
     remote.HandleLine("INFO");
     assertEqual(sink.count(), (size_t)2);
-    assertEqual(sink.at(0).c_str(), "V:0.2,1");
+    assertEqual(sink.at(0).c_str(), "V:0.2,2");
     assertEqual(sink.at(1).c_str(), "OK");
 }
 
 test(RemoteSprayer, onConnect_sendsVersion) {
     rReset();
     remote.OnConnect();
-    assertEqual(sink.at(0).c_str(), "V:0.2,1");
+    assertEqual(sink.at(0).c_str(), "V:0.2,2");
 }
 
 // ---------------------------------------------------------------------------
@@ -384,6 +384,18 @@ test(RemoteSprayer, cfgSet_appliesValidatedValue) {
     assertEqual(rCfg.Get().gpsBaudIndex, (uint8_t)3);
 }
 
+test(RemoteSprayer, cfgSet_gpsBaud_reopensThePortAtOnce) {
+    rReset();
+    remote.HandleLine("CFG SET gps_baud 1");
+    assertEqual(sink.last().c_str(), "OK");
+    assertEqual(rGps.appliedBaud, 9600L);
+    remote.HandleLine("CFG SET gps_baud 9");      // refused: nothing reopened
+    assertEqual(sink.last().c_str(), "ERR:range");
+    assertEqual(rGps.appliedBaud, 9600L);
+    remote.HandleLine("CFG SET width_cm 400");    // other keys leave the port alone
+    assertEqual(rGps.appliedBaud, 9600L);
+}
+
 test(RemoteSprayer, cfgSet_rejectsBadInput) {
     rReset();
     remote.HandleLine("CFG SET width_cm 10");
@@ -418,8 +430,8 @@ test(RemoteSprayer, status_lineFormatAndRate) {
     // 100 ms ticks for one second at 1.0 m/s: 5 lines at 200 ms spacing.
     for (unsigned long t = 100; t <= 1000; t += 100) tick(t, 1.0f);
     assertEqual(sink.count(), (size_t)5);
-    // speed, req, act, flow, raw, mixer, vern, pump, pumpPwm, dev, cal
-    assertEqual(sink.last().c_str(), "S:1.00,100.0,100.0,1800.0,2048,0,0,0,1843,0,0");
+    // speed, req, act, flow, raw, mixer, vern, pump, pumpPwm, dev, cal, inputs, outputs
+    assertEqual(sink.last().c_str(), "S:1.00,100.0,100.0,1800.0,2048,0,0,0,1843,0,0,0000,0000");
 
     remote.HandleLine("TELEM S 0");
     sink.clear();
@@ -436,7 +448,61 @@ test(RemoteSprayer, status_showsUndefinedActualAndCalibrationOwner) {
     sink.clear();
     tick(200, 0.0f);   // standing still: actual undefined, pump pwm is the calibration duty
     assertEqual(sink.count(), (size_t)1);
-    assertEqual(sink.last().c_str(), "S:0.00,50.0,-1.0,0.0,0,0,0,0,777,0,2");
+    assertEqual(sink.last().c_str(), "S:0.00,50.0,-1.0,0.0,0,0,0,0,777,0,2,0000,0000");
+}
+
+test(RemoteSprayer, status_inputAndOutputBits) {
+    // IN1 (mixer switch) and IN4 (aux) held: inputs 1001; the mixer output
+    // follows its switch at once, nothing else is on yet: outputs 1000.
+    rReset();
+    rIface.buttons[0].state = true;
+    rIface.buttons[3].state = true;
+    remote.HandleLine("TELEM S 1");
+    sink.clear();
+    tick(200, 0.0f);
+    assertEqual(sink.count(), (size_t)1);
+    const std::string& s = sink.last();
+    assertTrue(s.size() > 10 && s.compare(s.size() - 10, 10, ",1001,1000") == 0);
+}
+
+test(RemoteSprayer, nmea_offByDefault_onDemand_rateLimited) {
+    rReset();
+    rGps.FeedSentence("$GPGGA,123519,4807.038,N,01131.000,E,0,00,,,M,,M,,*47");
+    tick(100, 0.0f);
+    assertEqual(sink.count(), (size_t)0);          // nothing without TELEM N
+
+    remote.HandleLine("TELEM N 1");
+    assertEqual(sink.last().c_str(), "OK");
+    sink.clear();
+    tick(200, 0.0f);
+    assertEqual(sink.count(), (size_t)0);          // the sentence before TELEM N is not replayed
+
+    rGps.FeedSentence("$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48");
+    tick(300, 0.0f);
+    assertEqual(sink.count(), (size_t)1);
+    assertEqual(sink.last().c_str(), "N:$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48");
+
+    // Two sentences 20 ms apart: the second waits for the 50 ms slot.
+    rGps.FeedSentence("$GPGGA,1,*01");
+    tick(320, 0.0f);
+    assertEqual(sink.count(), (size_t)1);
+    tick(350, 0.0f);
+    assertEqual(sink.count(), (size_t)2);
+    assertEqual(sink.last().c_str(), "N:$GPGGA,1,*01");
+
+    remote.HandleLine("TELEM N 0");
+    sink.clear();
+    rGps.FeedSentence("$GPGGA,2,*02");
+    tick(500, 0.0f);
+    assertEqual(sink.count(), (size_t)0);
+}
+
+test(RemoteSprayer, nmea_offAfterDisconnect) {
+    rReset();
+    remote.HandleLine("TELEM N 1");
+    assertTrue(remote.NmeaEnabled());
+    remote.OnDisconnect();
+    assertFalse(remote.NmeaEnabled());
 }
 
 test(RemoteSprayer, gps_lineFormatAndRate) {

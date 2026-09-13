@@ -19,12 +19,15 @@
 */
 #include "VehicleGps.hpp"
 
+#include <string.h>
+
 namespace triton
 {
 
 VehicleGps::VehicleGps(Stream* serialDebug, HardwareSerial* serialGps)
     : serialDebug(serialDebug), serialGps(serialGps),
       baudrate(7), rtkQuality(4), rawEcho(false),
+      rawLen(0), sentenceSeq(0),
       time(GPS_INVALID_FLOAT), newTime(0),
       date(GPS_INVALID_LONG), newDate(0),
       latitude(GPS_INVALID_FLOAT), newLatitude(0),
@@ -43,6 +46,8 @@ VehicleGps::VehicleGps(Stream* serialDebug, HardwareSerial* serialGps)
 #endif
 {
     term[0] = '\0';
+    rawSentence[0]  = '\0';
+    lastSentence[0] = '\0';
 
 #ifdef DEBUG
     serialDebug->println("-------------------------------");
@@ -342,6 +347,21 @@ bool VehicleGps::Update() {
         c = uint8_t(serialGps->read());
         if (rawEcho) serialDebug->write(c);
 
+        // Sentence tap, independent of the parser below.
+        if (c == '$' || c == '@' || c == 191) {
+            rawLen = 0;
+        }
+        if (c == '\n' || c == '\r') {
+            if (rawLen > 0) {
+                memcpy(lastSentence, rawSentence, rawLen);
+                lastSentence[rawLen] = '\0';
+                sentenceSeq++;
+                rawLen = 0;
+            }
+        } else if (c >= 32 && c < 127 && rawLen < kMaxSentence) {
+            rawSentence[rawLen++] = (char)c;
+        }
+
 #ifndef GPS_NO_STATS
         encodedCharacters++;
 #endif
@@ -549,6 +569,21 @@ bool VehicleGps::readCalibrationData() {
 void VehicleGps::writeCalibrationData() {
     EEPROM.write(10, baudrate);
     EEPROM.write(11, rtkQuality);
+}
+
+void VehicleGps::ApplyBaudrate(long baud) {
+    if (serialGps == nullptr || baud <= 0) return;
+#if defined(ESP32)
+    // Keeps the pins main.cpp assigned; end()/begin() would need them again.
+    serialGps->updateBaudRate((unsigned long)baud);
+#else
+    serialGps->end();
+    serialGps->begin((unsigned long)baud);
+#endif
+    // A partial sentence read at the old rate is garbage; start clean.
+    termNumber = 0;
+    termOffset = 0;
+    rawLen     = 0;
 }
 
 void VehicleGps::PrintCalibrationData() {

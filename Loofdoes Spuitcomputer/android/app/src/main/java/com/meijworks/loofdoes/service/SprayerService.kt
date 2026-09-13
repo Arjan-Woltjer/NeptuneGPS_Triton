@@ -132,6 +132,8 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
 
     fun sendRaw(line: String) = send(line.trim())
 
+    fun setNmea(on: Boolean) = send(SprayerProtocol.cmdTelemetryNmea(on))
+
     fun setConfig(key: String, value: Long) {
         lifecycleScope.launch {
             val r = command(SprayerProtocol.cmdCfgSet(key, value))
@@ -213,6 +215,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
             refresh()
             send(SprayerProtocol.cmdTelemetryStatus(true))
             send(SprayerProtocol.cmdTelemetryGps(true))
+            SprayerController.setNmea(false)   // board-side switch is off after a (re)connect
         } else {
             // The board keeps its own buzzer going; the phone has nothing to
             // base an alarm on without the link. Every command still waiting
@@ -226,8 +229,10 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
 
     override fun onLine(line: String) {
         // The 5 Hz status and 1 Hz GPS lines are on the Status screen; in the
-        // console they would push every reply out of view within seconds.
-        if (!line.startsWith("S:") && !line.startsWith("G:")) log("< $line")
+        // console they would push every reply out of view within seconds,
+        // unless the operator asked to see them.
+        val telemetry = line.startsWith("S:") || line.startsWith("G:")
+        if (!telemetry || SprayerController.showTelemetry.value) log("< $line")
         when (val m = SprayerProtocol.parse(line)) {
             is BoardMessage.Version -> SprayerController.publish {
                 it.copy(firmwareVersion = m.firmware, protocolVersion = m.protocol)
@@ -259,6 +264,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
                 SprayerController.publish { it.copy(lastMessage = "Board refused: ${m.reason}") }
                 pendingReplies.poll()?.complete(Reply.Error(m.reason))
             }
+            is BoardMessage.Nmea -> Unit   // already in the log; nothing else to do
             is BoardMessage.Unknown -> Log.w(TAG, "unknown line: $line")
         }
     }

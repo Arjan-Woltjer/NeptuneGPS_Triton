@@ -4,6 +4,7 @@ import com.meijworks.loofdoes.SprayerState
 import com.meijworks.loofdoes.audio.AlarmSound
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Process-wide bridge between the UI and [SprayerService]. The service
@@ -20,6 +21,16 @@ object SprayerController {
     }
 
     val isRunning: Boolean get() = service != null
+
+    // Console options. Telemetry (S:/G:) is hidden from the log by default;
+    // raw NMEA (N:) is a board-side switch and always logged while on.
+    private val _showTelemetry = MutableStateFlow(false)
+    val showTelemetry: StateFlow<Boolean> get() = _showTelemetry.asStateFlow()
+    fun setShowTelemetry(on: Boolean) { _showTelemetry.value = on }
+
+    private val _nmeaEnabled = MutableStateFlow(false)
+    val nmeaEnabled: StateFlow<Boolean> get() = _nmeaEnabled.asStateFlow()
+    fun setNmea(on: Boolean) { _nmeaEnabled.value = on; service?.setNmea(on) }
 
     /** Re-read the calibration tables and settings from the board. */
     fun refresh() = service?.refresh()
