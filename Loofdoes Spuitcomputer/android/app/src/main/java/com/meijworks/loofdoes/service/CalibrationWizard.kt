@@ -277,6 +277,10 @@ class CalibrationWizard(
 
     private suspend fun finish() {
         command(SprayerProtocol.cmdCalMode(false))
+        // Bench 2026-09-13: Advanced kept showing the tables read at connect
+        // time (three pump points) after a five-point wizard had saved. The
+        // service commits the C: lines this answer brings on its OK.
+        command(SprayerProtocol.CMD_CAL_GET)
         set { it.copy(step = WizardStep.DONE, busy = false, message = null) }
     }
 
