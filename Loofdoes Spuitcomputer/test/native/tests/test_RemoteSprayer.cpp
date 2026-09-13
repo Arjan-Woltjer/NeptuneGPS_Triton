@@ -17,9 +17,13 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include <AUnit.h>
+// Standard headers first: the Arduino stub behind AUnit.h defines min/max
+// as macros, and GCC's <string>/<vector> use std::min/max with three
+// arguments, which the macros then break. MSVC's headers happened not to.
 #include <string>
 #include <vector>
+
+#include <AUnit.h>
 #include "ConfigSprayer.hpp"
 #include "ImplementSprayer.hpp"
 #include "RemoteSprayer.hpp"
