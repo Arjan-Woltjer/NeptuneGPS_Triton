@@ -10,6 +10,7 @@ object WizardMath {
     const val MAX_DUTY = 4095
     const val RUN_SECONDS = 60
     const val MAX_FLOW_ML_MIN = 4000
+    const val MIN_START_DUTY = 1      // a start point of 0 means the pump is not flowing
 
     val DOSE_LABELS = listOf("MINIMUM", "MIDDLE", "MAXIMUM")
 
