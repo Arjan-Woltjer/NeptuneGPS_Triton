@@ -155,7 +155,7 @@ private fun ConsoleCard(sprayer: SprayerState) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Console", style = MaterialTheme.typography.titleMedium)
             Text(
-                "Raw protocol lines, for the bench. Try PING, CAL GET, CFG GET.",
+                "Raw protocol lines, for the bench. Try PING, CAL GET, CFG GET. Status and GPS lines are left out.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

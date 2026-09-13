@@ -225,7 +225,9 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     }
 
     override fun onLine(line: String) {
-        log("< $line")
+        // The 5 Hz status and 1 Hz GPS lines are on the Status screen; in the
+        // console they would push every reply out of view within seconds.
+        if (!line.startsWith("S:") && !line.startsWith("G:")) log("< $line")
         when (val m = SprayerProtocol.parse(line)) {
             is BoardMessage.Version -> SprayerController.publish {
                 it.copy(firmwareVersion = m.firmware, protocolVersion = m.protocol)
