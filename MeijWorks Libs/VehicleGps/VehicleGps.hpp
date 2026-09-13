@@ -71,6 +71,16 @@ private:
     byte            rtkQuality;
     bool            rawEcho;
 
+    // Last complete line as received, for a remote passthrough (Loofdoes
+    // companion app, NeptuneGPS_Triton#62). Printable characters only, so a
+    // Trimble binary frame shows up as its printable remains, and capped at
+    // the NMEA maximum. The sequence number lets a poller notice a new one.
+    static constexpr uint8_t kMaxSentence = 90;
+    char          rawSentence[kMaxSentence + 1];
+    uint8_t       rawLen;
+    char          lastSentence[kMaxSentence + 1];
+    uint32_t      sentenceSeq;
+
     float         time,      newTime;
     unsigned long date,      newDate;
     float         latitude,  newLatitude;
@@ -145,6 +155,12 @@ public:
     // verbatim to serialDebug — raw NMEA/CAN passthrough for diagnostics.
     inline void SetRawEcho(bool enable) { rawEcho = enable; }
     inline bool GetRawEcho()            { return rawEcho; }
+
+    // Passthrough tap: the most recent complete sentence and a counter that
+    // increments once per sentence. Sentences that arrive between two reads
+    // are overwritten; this is a debugging aid, not a logger.
+    inline const char* GetLastSentence() const { return lastSentence; }
+    inline uint32_t    GetSentenceSeq() const  { return sentenceSeq; }
 
     // Setters for values arriving via CAN / NMEA 2000 rather than serial NMEA
     inline void SetSpeedKnots(float knots)         { speed = knots;   lastVtgFix = millis(); }

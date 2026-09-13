@@ -51,11 +51,14 @@ public:
 //   PWM STOP                            OK
 //   CFG GET                             K:<key>,<value> x4  OK
 //   CFG SET <key> <value>               OK | ERR:...       (persisted at once)
-//   TELEM S 1|0 / TELEM G 1|0           OK
+//   TELEM S 1|0 / TELEM G 1|0 / TELEM N 1|0   OK
 //
 // Periodic (board -> app), while enabled
-//   S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>
+//   S:<speed>,<req>,<act>,<flow>,<raw>,<mixer>,<vern>,<pump>,<pumpPwm>,<dev>,<cal>,<in1..4>,<out1..4>
+//     (protocol 2 appended the last two: four input bits IN1..IN4 and four
+//      output bits OUT1..OUT4, each as a 4-character field of 0/1)
 //   G:<quality>,<lat>,<lon>,<fixAgeMs>
+//   N:<sentence>            each GPS sentence as received, while TELEM N is on
 //
 // Every command answers OK, BUSY or ERR:<reason>; reason is one word:
 // args, range, mode, key, running, unknown.
@@ -65,7 +68,8 @@ public:
 // stops telemetry. Nothing else changes when the app goes away.
 class RemoteSprayer {
 public:
-    static constexpr uint8_t       kProtocolVersion   = 1;
+    static constexpr uint8_t       kProtocolVersion   = 2;
+    static constexpr unsigned long kNmeaMinIntervalMs = 50;   // at most 20 sentences/s over the link
     static constexpr unsigned long kStatusIntervalMs  = 200;
     static constexpr unsigned long kGpsIntervalMs     = 1000;
     static constexpr unsigned long kDefaultRunMs      = ImplementSprayer::kCalibrationRunMaxMs;
@@ -84,6 +88,7 @@ public:
 
     bool StatusEnabled() const { return statusEnabled; }
     bool GpsEnabled() const    { return gpsEnabled; }
+    bool NmeaEnabled() const   { return nmeaEnabled; }
 
 private:
     ImplementSprayer* impl;
@@ -92,8 +97,11 @@ private:
 
     bool          statusEnabled;
     bool          gpsEnabled;
+    bool          nmeaEnabled;
     unsigned long lastStatusAt;
     unsigned long lastGpsAt;
+    unsigned long lastNmeaAt;
+    uint32_t      lastNmeaSeq;
 
     // Countdown bookkeeping so R: lines only go out when the second changes.
     bool          runWasActive;
@@ -118,6 +126,7 @@ private:
     void sendConfig();
     void sendStatus();
     void sendGps();
+    void sendNmea();
     void serviceRunCountdown();
 
     void reply(const char* line) { sink->WriteLine(line); }

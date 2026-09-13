@@ -2,6 +2,7 @@
 // Minimal VehicleGps stub for native/MSVC unit tests.
 // Only exposes the interface used by ImplementSprayer.
 #include <Arduino.h>
+#include <string.h>
 
 class Stream;
 class HardwareSerial;
@@ -43,4 +44,14 @@ public:
         if (lon) *lon = longitude;
     }
     unsigned long GetGgaFixAge() { return ggaFix; }
+
+    // Sentence tap as on the real class; FeedSentence() is the test helper.
+    char     lastSentence[91] = "";
+    uint32_t sentenceSeq = 0;
+    void FeedSentence(const char* s) {
+        size_t n = strlen(s); if (n > 90) n = 90;
+        memcpy(lastSentence, s, n); lastSentence[n] = 0; sentenceSeq++;
+    }
+    const char* GetLastSentence() const { return lastSentence; }
+    uint32_t    GetSentenceSeq() const  { return sentenceSeq; }
 };
