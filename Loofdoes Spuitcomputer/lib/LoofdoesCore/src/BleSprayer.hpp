@@ -53,7 +53,7 @@ namespace triton
 // UUIDs are this project's own, so the Buzzer-game app never connects here.
 class BleSprayer : public RemoteSink {
 public:
-    static constexpr const char* kDeviceName  = "Loofdoes";
+    static constexpr const char* kDeviceName  = "SprayComputer LD";
     static constexpr const char* kServiceUuid = "7c1a0001-4b6e-4c0f-9c3a-2f1d5e8a0001";
     static constexpr const char* kControlUuid = "7c1a0002-4b6e-4c0f-9c3a-2f1d5e8a0001";
     static constexpr const char* kEventUuid   = "7c1a0003-4b6e-4c0f-9c3a-2f1d5e8a0001";

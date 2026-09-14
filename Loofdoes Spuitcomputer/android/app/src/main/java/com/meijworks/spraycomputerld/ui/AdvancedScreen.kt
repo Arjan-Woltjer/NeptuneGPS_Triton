@@ -1,0 +1,188 @@
+package com.meijworks.spraycomputerld.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import com.meijworks.spraycomputerld.SprayerState
+import com.meijworks.spraycomputerld.protocol.GpsSample
+import com.meijworks.spraycomputerld.protocol.SprayerProtocol
+import com.meijworks.spraycomputerld.service.SprayerController
+
+/**
+ * What the board holds: the two calibration tables, the settings, and a
+ * pump point's flow correction (serial menu option 4). The console has its
+ * own screen (ConsoleScreen).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Advanced") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { SprayerController.refresh() }, enabled = sprayer.connected) {
+                        Icon(Icons.Filled.Refresh, contentDescription = "Re-read from the board")
+                    }
+                },
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            TablesCard(sprayer)
+            SettingsValuesCard(sprayer)
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun TablesCard(sprayer: SprayerState) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Knob calibration", style = MaterialTheme.typography.titleMedium)
+            if (sprayer.dosePoints.isEmpty()) {
+                Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                TableHeader("#", "Analog", "Dose (l/ha)")
+                sprayer.dosePoints.forEach { p ->
+                    TableRow("${p.index + 1}", "${p.analog}", "${p.doseLha}")
+                }
+            }
+            Spacer(Modifier.height(8.dp))
+            Text("Pump curve", style = MaterialTheme.typography.titleMedium)
+            if (sprayer.pwmPoints.isEmpty()) {
+                Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                TableHeader("#", "PWM", "Flow (ml/min)")
+                sprayer.pwmPoints.forEach { p ->
+                    TableRow("${p.index + 1}", "${p.pwm}", "${p.flowMlMin}")
+                }
+                PwmPointEditor(sprayer)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SettingsValuesCard(sprayer: SprayerState) {
+    val c = sprayer.config
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("Board settings", style = MaterialTheme.typography.titleMedium)
+            if (c.isEmpty()) {
+                Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                DetailRow("Width", c[SprayerProtocol.KEY_WIDTH_CM]?.let { "$it cm" } ?: "–")
+                DetailRow("Guidance timeout", c[SprayerProtocol.KEY_GUIDANCE_MS]?.let { "$it ms" } ?: "–")
+                DetailRow(
+                    "GPS baudrate",
+                    c[SprayerProtocol.KEY_GPS_BAUD]?.let { idx ->
+                        SprayerProtocol.BAUD_RATES.getOrNull(idx.toInt())?.toString() ?: "index $idx"
+                    } ?: "–",
+                )
+                DetailRow(
+                    "Minimum fix to dose",
+                    c[SprayerProtocol.KEY_GPS_MIN_QUALITY]?.let { q ->
+                        if (q == 0L) "any" else GpsSample.qualityLabel(q.toInt())
+                    } ?: "–",
+                )
+            }
+            sprayer.protocolVersion?.let { DetailRow("Protocol", "v$it") }
+            sprayer.firmwareVersion?.let { DetailRow("Firmware", it) }
+        }
+    }
+}
+
+@Composable
+private fun PwmPointEditor(sprayer: SprayerState) {
+    var pointText by rememberSaveable { mutableStateOf("") }
+    var flowText by rememberSaveable { mutableStateOf("") }
+    val point = pointText.toIntOrNull()?.let { n -> sprayer.pwmPoints.firstOrNull { it.index == n - 1 } }
+    val flow = flowText.toIntOrNull()
+    Spacer(Modifier.height(4.dp))
+    Text("Correct a point's flow", style = MaterialTheme.typography.labelLarge)
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = pointText,
+            onValueChange = { pointText = it.filter { c -> c.isDigit() } },
+            label = { Text("#") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(0.6f),
+        )
+        OutlinedTextField(
+            value = flowText,
+            onValueChange = { flowText = it.filter { c -> c.isDigit() } },
+            label = { Text("ml/min") },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            modifier = Modifier.weight(1f),
+        )
+        OutlinedButton(
+            onClick = { if (point != null && flow != null) SprayerController.editPwmPointFlow(point.index, flow) },
+            enabled = sprayer.connected && point != null && flow != null && flow in 1..4000,
+        ) { Text("Save") }
+    }
+}
+
+@Composable
+private fun TableHeader(a: String, b: String, c: String) {
+    Row(Modifier.fillMaxWidth()) {
+        Text(a, Modifier.weight(0.5f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(b, Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(c, Modifier.weight(1.5f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun TableRow(a: String, b: String, c: String) {
+    Row(Modifier.fillMaxWidth()) {
+        Text(a, Modifier.weight(0.5f), fontWeight = FontWeight.Medium)
+        Text(b, Modifier.weight(1f))
+        Text(c, Modifier.weight(1.5f))
+    }
+}

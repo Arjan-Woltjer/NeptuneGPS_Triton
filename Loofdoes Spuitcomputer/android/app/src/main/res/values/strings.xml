@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Loofdoes</string>
-    <string name="notification_channel_name">Loofdoes link</string>
+    <string name="app_name">MeijWorks SprayComputer LD</string>
+    <string name="notification_channel_name">Sprayer link</string>
     <string name="notification_channel_description">Keeps the connection to the sprayer alive while the screen is off</string>
-    <string name="notification_title">Loofdoes</string>
+    <string name="notification_title">SprayComputer LD</string>
     <string name="notification_disconnected">Searching for the sprayer…</string>
     <string name="notification_connected_no_status">Connected</string>
     <string name="notification_connected">Requested %1$.0f l/ha, actual %2$s l/ha</string>
