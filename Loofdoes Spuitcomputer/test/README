@@ -1,11 +1,17 @@
 
 `native/` holds the AUnit tests for InterfaceSprayer/ImplementSprayer/ConfigSprayer/RemoteSprayer/RemoteLineBuffer
-(../lib/LoofdoesCore/src/), run natively (no ESP32 attached):
+(../lib/LoofdoesCore/src/), run natively (no ESP32 attached). The shared
+guidance library they build against (../../MeijWorks Libs/VehicleGuidance)
+has its own suite in Ploegbesturing Isobus' native build:
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
-  `native_main.cpp` (the host `int main()` entry point).
+  `native_main.cpp` (the host `int main()` entry point). These stand in only
+  for the Arduino framework: the guidance data model and receiver port
+  (`GuidanceSource`, `SerialGuidanceChannel` from `MeijWorks Libs/
+  VehicleGuidance`) are the real classes, fed through a fake `HardwareSerial`
+  in `test_RemoteSprayer.cpp`. No native stub exists for them.
 - `native/LoofdoesNativeTests.cpp` -- the single AUnit driver (`setup()`/
   `loop()`), matching Salacia's `test/native/SalaciaNativeTests.cpp` pattern.
   Every `test_*.cpp` file only registers `test(...)` blocks; none of them

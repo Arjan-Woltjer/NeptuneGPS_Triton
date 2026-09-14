@@ -27,9 +27,9 @@ namespace triton
 {
 
 namespace {
-// Same multipliers VehicleGps::PrintCalibrationData() uses for its byte
-// index; kept here so Loofdoes no longer depends on VehicleGps' EEPROM copy
-// (bytes 10-11), which it never read or applied anyway.
+// The 4800 x n rate table the Triton receivers have always been configured
+// with (it came from VehicleGps, which Loofdoes no longer uses); the index
+// is stored in NVS with the other settings, never in EEPROM.
 constexpr uint8_t kBaudMultipliers[ConfigSprayer::kMaxGpsBaudIndex + 1] = { 1, 2, 3, 4, 6, 8, 12, 24 };
 constexpr long    kBaudBase = 4800;
 

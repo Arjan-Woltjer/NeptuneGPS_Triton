@@ -14,7 +14,7 @@ repository is a submodule.
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and CAN. |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
 | `Loofdoes Spuitcomputer` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), used by `Ploegbesturing Isobus`; the other projects still build against `VehicleGps` until #77, #79, #80 and #81 land. |
+| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), used by `Ploegbesturing Isobus` and `Loofdoes Spuitcomputer`; the three other Teensy projects still build against `VehicleGps` until #79, #80 and #81 land. |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
 of `lib/PloegbesturingCore` — see
@@ -72,6 +72,47 @@ build setup follows `FIRMWARE_PLATFORMIO_CONVENTIONS.md`. Both are in the
 [Documentation repository](https://github.com/Arjan-Woltjer/NeptuneGPS_Documentation).
 New and substantially reworked files take the canonical source header from
 `FILE_HEADERS.md` verbatim.
+
+### Persistence
+
+Settings and calibration live in one place per board, and never inside a shared
+library (#78):
+
+- **Shared libraries never touch storage.** `MeijWorks Libs` classes expose
+  `Set*()`/`Get*()` for their calibratable values and nothing else. The project
+  that owns the calibration menu or config class decides where a value is
+  stored and hands it back at boot (`CalibrationPlough` for `GuidanceSource`'s
+  RTK quality, `ConfigSprayer` for Loofdoes' settings). `VehicleGps` and
+  `VehicleTractor` predate this rule and still write their own bytes; they lose
+  that when their consumers migrate (#79, #80, #81).
+- **Teensy boards use the Arduino `EEPROM` API** (wear-levelled flash
+  emulation) at the addresses in the map below. A new block claims a range here
+  before it claims it in code.
+- **ESP32 boards use `Preferences` (NVS) only.** The ESP32 `EEPROM` library is a
+  RAM shadow that needs `EEPROM.commit()`, which no project calls, so writes
+  through it never reach flash. Loofdoes keeps every setting in the
+  `sprayer_cfg` namespace and does not include `EEPROM.h`.
+
+EEPROM map (Teensy projects; one board never links two implement blocks, so
+same-range rows for different boards do not collide):
+
+| Bytes | Owner | Contents |
+|---|---|---|
+| 0 | every `Implement*` | boot counter, printed at start-up (never incremented) |
+| 1 | `CalibrationPlough`, `CalibrationPlanter` | program selection from the wizard; nothing reads it back |
+| 10 | `VehicleGps` | baud index |
+| 11 | `VehicleGps`, `CalibrationPlough` | RTK quality; the plough keeps `VehicleGps`' slot so a board keeps its setting across the migration |
+| 20 to 28 | `VehicleTractor` | speed constant, simulation, inversion |
+| 40 to 66 | `ImplementPlough` (both plough projects) | position/rotation calibration, offset, shares, correction |
+| 70 to 94 | `ImplementPlanter` | |
+| 100 to 181 | `ImplementKipper` | |
+| 100 to 191 | `Slangenpomp` `ImplementSprayer` | |
+| 130 to 148 | `ImplementScraper` | |
+| 200 to 222 | `ImplementRooier` | |
+
+Validity is a sentinel check (`0xFF` means unwritten) with no version byte or
+checksum yet; see `docs/security-review-2026-07-31.md` for what a torn write
+does and the block-header fix still open under #78.
 
 ## Licence
 

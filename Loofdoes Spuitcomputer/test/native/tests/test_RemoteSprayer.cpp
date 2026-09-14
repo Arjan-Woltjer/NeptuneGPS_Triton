@@ -27,6 +27,7 @@
 #include "ConfigSprayer.hpp"
 #include "ImplementSprayer.hpp"
 #include "RemoteSprayer.hpp"
+#include "SerialGuidanceChannel.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -49,17 +50,38 @@ struct CaptureSink : public RemoteSink {
     }
 };
 
-static InterfaceSprayer rIface;
-static VehicleGps       rGps;
-static ConfigSprayer    rCfg;
-static ImplementSprayer rImpl(nullptr, &rGps, &rIface, &rCfg);
-static CaptureSink      sink;
-static RemoteSprayer    remote(&rImpl, &rCfg, &sink);
+// The receiver port, as the real SerialGuidanceChannel sees it: a byte
+// queue the test fills with whole lines. No stub for the channel or the
+// data model -- the tap, the baudrate change and the fix bookkeeping under
+// test are the real ones.
+struct FakeGpsSerial : public HardwareSerial {
+    std::string bytes;
+    size_t      pos = 0;
+    void Feed(const char* line) { bytes += line; }
+    void clear() { bytes.clear(); pos = 0; }
+    int available() override { return int(bytes.size() - pos); }
+    int read() override      { return pos < bytes.size() ? (uint8_t)bytes[pos++] : -1; }
+};
+
+static InterfaceSprayer      rIface;
+static GuidanceSource        rGps;
+static FakeGpsSerial         rSerial;
+static SerialGuidanceChannel rChannel(nullptr, &rSerial, &rGps);
+static ConfigSprayer         rCfg;
+static ImplementSprayer      rImpl(nullptr, &rGps, &rIface, &rCfg);
+static CaptureSink           sink;
+static RemoteSprayer         remote(&rImpl, &rChannel, &rCfg, &sink);
+
+// Speed in m/s, as the tests think of it; GuidanceSource stores knots and
+// stamps the VTG fix like a real receiver's message would.
+static void gpsSpeed(float speedMs) { rGps.SetSpeedKnots(speedMs / GPS_MS_PER_KNOT); }
 
 static void rReset() {
     millisValue(0);
-    rGps.speed = 0.0f; rGps.vtgFix = 0; rGps.ggaFix = 0; rGps.quality = 1;
-    rGps.latitude = 0.0f; rGps.longitude = 0.0f;
+    rGps = GuidanceSource();   // no fix ever, speed 0, position 0
+    rGps.SetQuality(1);
+    rSerial.clear();
+    rSerial.begunBaud = 0;
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) { rIface.buttons[i].state = false; rIface.buttons[i].flag = true; rIface.buttons[i].timer = 0; }
     rIface.analogInputs[0].value = 0;
     for (int i = 0; i < NUM_OUTPUTS; ++i) { rImpl.outputs[i].state = false; rImpl.outputs[i].pwm = false; rImpl.outputs[i].value = 0; rImpl.outputs[i].timer = 0; }
@@ -87,7 +109,8 @@ static void rReset() {
 // One main-loop iteration: time, a fresh speed message, implement, remote.
 static void tick(unsigned long ms, float speedMs) {
     millisValue(ms);
-    rGps.SetSpeed(speedMs);
+    rChannel.Update();          // whatever the test fed the port arrives now
+    gpsSpeed(speedMs);
     rImpl.Update();
     remote.Update();
 }
@@ -433,12 +456,12 @@ test(RemoteSprayer, cfgSet_gpsBaud_reopensThePortAtOnce) {
     rReset();
     remote.HandleLine("CFG SET gps_baud 1");
     assertEqual(sink.last().c_str(), "OK");
-    assertEqual(rGps.appliedBaud, 9600L);
+    assertEqual(rSerial.begunBaud, (unsigned long)9600);
     remote.HandleLine("CFG SET gps_baud 9");      // refused: nothing reopened
     assertEqual(sink.last().c_str(), "ERR:range");
-    assertEqual(rGps.appliedBaud, 9600L);
+    assertEqual(rSerial.begunBaud, (unsigned long)9600);
     remote.HandleLine("CFG SET width_cm 400");    // other keys leave the port alone
-    assertEqual(rGps.appliedBaud, 9600L);
+    assertEqual(rSerial.begunBaud, (unsigned long)9600);
 }
 
 test(RemoteSprayer, cfgSet_buzzer) {
@@ -524,7 +547,7 @@ test(RemoteSprayer, status_inputAndOutputBits) {
 
 test(RemoteSprayer, nmea_offByDefault_onDemand_rateLimited) {
     rReset();
-    rGps.FeedSentence("$GPGGA,123519,4807.038,N,01131.000,E,0,00,,,M,,M,,*47");
+    rSerial.Feed("$GPGGA,123519,4807.038,N,01131.000,E,0,00,,,M,,M,,*47\r\n");
     tick(100, 0.0f);
     assertEqual(sink.count(), (size_t)0);          // nothing without TELEM N
 
@@ -534,13 +557,13 @@ test(RemoteSprayer, nmea_offByDefault_onDemand_rateLimited) {
     tick(200, 0.0f);
     assertEqual(sink.count(), (size_t)0);          // the sentence before TELEM N is not replayed
 
-    rGps.FeedSentence("$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48");
+    rSerial.Feed("$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48\r\n");
     tick(300, 0.0f);
     assertEqual(sink.count(), (size_t)1);
     assertEqual(sink.last().c_str(), "N:$GPVTG,054.7,T,034.4,M,005.5,N,010.2,K*48");
 
     // Two sentences 20 ms apart: the second waits for the 50 ms slot.
-    rGps.FeedSentence("$GPGGA,1,*01");
+    rSerial.Feed("$GPGGA,1,*01\r\n");
     tick(320, 0.0f);
     assertEqual(sink.count(), (size_t)1);
     tick(350, 0.0f);
@@ -549,9 +572,40 @@ test(RemoteSprayer, nmea_offByDefault_onDemand_rateLimited) {
 
     remote.HandleLine("TELEM N 0");
     sink.clear();
-    rGps.FeedSentence("$GPGGA,2,*02");
+    rSerial.Feed("$GPGGA,2,*02\r\n");
     tick(500, 0.0f);
     assertEqual(sink.count(), (size_t)0);
+}
+
+// The whole path a real receiver takes: bytes on the port, the channel's
+// checksum and parser, GuidanceSource, ImplementSprayer's speed average, a
+// pump duty. The stub this suite used before could only assert the last
+// two steps.
+test(RemoteSprayer, vtgSentence_onThePort_drivesTheDose) {
+    rReset();
+    rImpl.outputs[2].pwm = true;
+    rIface.analogInputs[0].value = 2048;
+    remote.HandleLine("TELEM N 1");
+    sink.clear();
+
+    millisValue(1000);
+    rSerial.Feed("$GPVTG,213.4,T,,M,002.91,N,005.39,K*61\r\n");   // 2.91 kt = 1.497 m/s
+    rChannel.Update();
+    assertNear(rGps.GetSpeedMs(), 1.497f, 0.001f);
+    assertEqual(rGps.GetVtgFixAge(), (unsigned long)1000);
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) rImpl.Update();
+    assertMore(rImpl.outputs[2].value, (unsigned int)0);
+
+    // The same sentence also reaches the app through the tap.
+    remote.Update();
+    assertEqual(sink.last().c_str(), "N:$GPVTG,213.4,T,,M,002.91,N,005.39,K*61");
+
+    // A corrupted copy changes nothing: no fix stamp, no speed.
+    millisValue(1100);
+    rSerial.Feed("$GPVTG,213.4,T,,M,009.99,N,005.39,K*61\r\n");
+    rChannel.Update();
+    assertNear(rGps.GetSpeedMs(), 1.497f, 0.001f);
+    assertEqual(rGps.GetVtgFixAge(), (unsigned long)1000);
 }
 
 test(RemoteSprayer, nmea_offAfterDisconnect) {
@@ -564,14 +618,12 @@ test(RemoteSprayer, nmea_offAfterDisconnect) {
 
 test(RemoteSprayer, gps_lineFormatAndRate) {
     rReset();
-    rGps.quality = 4;
-    rGps.latitude = 52.5f;
-    rGps.longitude = 6.25f;
+    rGps.SetQuality(4);
     remote.HandleLine("TELEM G 1");
     sink.clear();
 
     millisValue(400);
-    rGps.SetPosition();          // stamps ggaFix = 400
+    rGps.SetPosition(52.5f, 6.25f);   // stamps the GGA fix at 400
     for (unsigned long t = 500; t <= 2000; t += 100) tick(t, 1.0f);
     assertEqual(sink.count(), (size_t)2);              // at 1000 and 2000
     assertEqual(sink.at(0).c_str(), "G:4,52.500000,6.250000,600");

@@ -7,6 +7,7 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\LoofdoesCore\src"
+$guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\LoofdoesNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -47,7 +48,7 @@ $aunitSources = @(
 # GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
 # (default) preprocessor expands wrong (see Salacia's platformio.ini/test
 # README for the same issue, hit there first).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches
@@ -58,7 +59,7 @@ Write-Host "=== Building LoofdoesNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" `"$lib\ConfigSprayer.cpp`" `"$lib\RemoteSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\LoofdoesNativeTests.exe`" && `"$out\LoofdoesNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" `"$lib\ConfigSprayer.cpp`" `"$lib\RemoteSprayer.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\LoofdoesNativeTests.exe`" && `"$out\LoofdoesNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

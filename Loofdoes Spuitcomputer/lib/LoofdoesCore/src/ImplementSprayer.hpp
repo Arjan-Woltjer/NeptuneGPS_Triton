@@ -22,7 +22,7 @@
 
 #include "ConfigSprayer.hpp"
 #include "InterfaceSprayer.hpp"
-#include "VehicleGps.hpp"
+#include "GuidanceSource.hpp"
 
 namespace triton
 {
@@ -76,7 +76,7 @@ class ImplementSprayer {
 
 private:
     Stream*           serialDebug;
-    VehicleGps*       gps;
+    GuidanceSource*   guidance;
     InterfaceSprayer* interface;
     ConfigSprayer*    config;
 
@@ -141,7 +141,7 @@ public:
     // Below this the machine counts as standing still: a receiver with a fix
     // reports a few tenths of a km/h of creep while parked, which would
     // otherwise read as "too slow to dose" and sound the deviation alarm
-    // (NeptuneGPS_Triton#74). Same 0.5 m/s VehicleGps::MinSpeed() uses.
+    // (NeptuneGPS_Triton#74). Same 0.5 m/s GuidanceSource::MinSpeed() uses.
     static constexpr float         kStandstillSpeedMs = 0.5f;
     static constexpr float         kDoseTolerance   = 0.05f;
     static constexpr unsigned long kDeviationHoldMs = 1000;
@@ -175,7 +175,7 @@ public:
         { OUT4, 3, false, false, 0, 0 },
     };
 
-    ImplementSprayer(Stream* serialDebug, VehicleGps* gps, InterfaceSprayer* interface,
+    ImplementSprayer(Stream* serialDebug, GuidanceSource* guidance, InterfaceSprayer* interface,
                      ConfigSprayer* config);
 
     void Update();

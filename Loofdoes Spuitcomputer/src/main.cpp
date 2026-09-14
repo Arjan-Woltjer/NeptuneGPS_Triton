@@ -19,18 +19,15 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <EEPROM.h>
 
 #include "BleSprayer.hpp"
 #include "CalibrationSprayer.hpp"
 #include "ConfigSprayer.hpp"
+#include "GuidanceSource.hpp"
 #include "ImplementSprayer.hpp"
-#include "InterfaceGps.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceSprayer.hpp"
-#include "VehicleGps.hpp"
-
-#define EEPROM_SIZE 64
+#include "SerialGuidanceChannel.hpp"
 
 #define L2_MEIJWORKS     "     MeijWorks      "
 #define L2_DEVICE        "    Loofdoes 0.2    "
@@ -54,8 +51,11 @@ triton::ImplementSprayer*  implement;
 triton::CalibrationSprayer* calibration;
 triton::ConfigSprayer*     config;
 triton::BleSprayer*        ble;
-triton::VehicleGps*        gps;
-//triton::InterfaceGps*      interfaceGps;
+// Guidance data model and the receiver port that feeds it (shared MeijWorks
+// Libs/VehicleGuidance, NeptuneGPS_Triton#76/#77). Everything reads the
+// source; only the console and the app link touch the channel.
+triton::GuidanceSource*        guidance;
+triton::SerialGuidanceChannel* gpsChannel;
 
 // Bluetooth pairing (NeptuneGPS_Triton#53): while a phone asks for the code
 // the LCD shows it; afterwards the banner comes back.
@@ -82,14 +82,12 @@ static void GForgetPhones() {
 
 
 void setup() {
-  // Allocate EEPROM in memory
-  EEPROM.begin(EEPROM_SIZE);
-
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  // Settings first: the GPS port rate is one of them, and the stored
-  // baudrate in VehicleGps' EEPROM bytes was never applied before this.
+  // Settings first: the GPS port rate is one of them. This board keeps every
+  // setting in NVS (ConfigSprayer); nothing here touches the EEPROM shim,
+  // whose writes never reached flash on ESP32 anyway (NeptuneGPS_Triton#78).
   config = new triton::ConfigSprayer();
   config->Load();
   gpsSerial.begin(triton::ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex),
@@ -102,11 +100,12 @@ void setup() {
   lcd->Clear();
   delay(200);
 
-  gps          = new triton::VehicleGps(serialDebug, serialGps);
+  guidance     = new triton::GuidanceSource();
+  gpsChannel   = new triton::SerialGuidanceChannel(serialDebug, serialGps, guidance);
   interface    = new triton::InterfaceSprayer(serialDebug);
-  implement    = new triton::ImplementSprayer(serialDebug, gps, interface, config);
-  calibration  = new triton::CalibrationSprayer(serialDebug, implement);
-  ble          = new triton::BleSprayer(serialDebug, implement, config);
+  implement    = new triton::ImplementSprayer(serialDebug, guidance, interface, config);
+  calibration  = new triton::CalibrationSprayer(serialDebug, implement, gpsChannel);
+  ble          = new triton::BleSprayer(serialDebug, implement, gpsChannel, config);
   ble->SetPairingHandler(GShowPairing);
   calibration->SetForgetPhonesHandler(GForgetPhones);
 
@@ -119,9 +118,6 @@ void setup() {
   Serial.println("    Loofdoes version 0.2");
   Serial.println("(c) 2011 - 2026 by J.A. Woltjer");
   Serial.println("-------------------------------");
-  Serial.println("-------------------------------");
-  Serial.println("Times started:");
-  Serial.println(EEPROM.read(0));
   Serial.println("-------------------------------");
 
   Serial.println("Settings:");
@@ -149,7 +145,7 @@ void setup() {
 }
 
 void loop() {
-  gps->Update();
+  gpsChannel->Update();
   interface->Update();
   implement->Update();
   calibration->Process();

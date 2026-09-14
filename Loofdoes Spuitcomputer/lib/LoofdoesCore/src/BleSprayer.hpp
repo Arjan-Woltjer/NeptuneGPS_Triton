@@ -62,7 +62,7 @@ public:
     static constexpr int         kNotifyRetries      = 40;   // x kNotifyRetryDelayMs = 200 ms worst case per piece
     static constexpr unsigned    kNotifyRetryDelayMs = 5;
 
-    BleSprayer(Stream* serialDebug, ImplementSprayer* impl, ConfigSprayer* config);
+    BleSprayer(Stream* serialDebug, ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel, ConfigSprayer* config);
 
     // Bring the stack up and start advertising. Call once from setup().
     void Begin();

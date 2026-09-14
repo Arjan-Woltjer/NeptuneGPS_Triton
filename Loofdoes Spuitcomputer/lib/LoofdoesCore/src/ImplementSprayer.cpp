@@ -38,9 +38,9 @@ inline bool GIsFinite(float v) {
 }  // namespace
 
 
-ImplementSprayer::ImplementSprayer(Stream* serialDebug, VehicleGps* gps,
+ImplementSprayer::ImplementSprayer(Stream* serialDebug, GuidanceSource* guidance,
                                    InterfaceSprayer* interface, ConfigSprayer* config)
-    : serialDebug(serialDebug), gps(gps), interface(interface), config(config),
+    : serialDebug(serialDebug), guidance(guidance), interface(interface), config(config),
       speed(0), width((float)config->Get().widthCm), doseLHA(0.0f), doseLM(0.0f) {
 #ifdef DEBUG
     serialDebug->println(S_DIVIDE);
@@ -110,8 +110,8 @@ void ImplementSprayer::updateInputs() {
     }
 }
 
-// VehicleGps::speed is only overwritten when a fresh, checksum-valid message
-// arrives -- it is never invalidated. Without this check, losing the antenna or
+// GuidanceSource's speed is only overwritten when a fresh, checksum-valid
+// message arrives -- it is never invalidated. Without this check, losing the antenna or
 // the fix left the last known speed latched forever, and the sprayer went on
 // dosing from it. Stopping the tractor at that point kept the pump injecting
 // onto one stationary spot.
@@ -124,14 +124,14 @@ void ImplementSprayer::updateInputs() {
 // trust is treated exactly like no fix, so every fail-closed path that
 // already handles stale guidance covers it without a second set of checks.
 bool ImplementSprayer::guidanceStale() const {
-    const unsigned long lastFix = gps->GetVtgFixAge();
+    const unsigned long lastFix = guidance->GetVtgFixAge();
     if (lastFix == 0) {
         return true;
     }
     if ((millis() - lastFix) > config->Get().guidanceTimeoutMs) {
         return true;
     }
-    return !config->GuidanceQualityOk(gps->GetQuality());
+    return !config->GuidanceQualityOk(guidance->GetQuality());
 }
 
 void ImplementSprayer::updateSpeed() {
@@ -147,7 +147,7 @@ void ImplementSprayer::updateSpeed() {
     }
 
     speedSum -= speedBuf[speedBufIdx];
-    speedBuf[speedBufIdx] = gps->GetSpeedMs();
+    speedBuf[speedBufIdx] = guidance->GetSpeedMs();
     speedSum += speedBuf[speedBufIdx];
     speedBufIdx = (speedBufIdx + 1) % SPEED_AVG_SAMPLES;
     speed = speedSum / SPEED_AVG_SAMPLES;

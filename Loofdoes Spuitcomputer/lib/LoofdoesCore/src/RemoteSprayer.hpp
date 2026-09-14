@@ -20,6 +20,7 @@
 
 #include "ConfigSprayer.hpp"
 #include "ImplementSprayer.hpp"
+#include "SerialGuidanceChannel.hpp"
 
 namespace triton
 {
@@ -81,7 +82,10 @@ public:
     static constexpr unsigned long kDefaultRunMs      = ImplementSprayer::kCalibrationRunMaxMs;
     static constexpr int           kMaxLineLength     = 96;
 
-    RemoteSprayer(ImplementSprayer* impl, ConfigSprayer* config, RemoteSink* sink);
+    // gpsChannel is the receiver port itself: the raw-sentence tap (TELEM N)
+    // and the runtime baudrate change (CFG SET gps_baud). Guidance values
+    // come through impl, which owns the GuidanceSource.
+    RemoteSprayer(ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel, ConfigSprayer* config, RemoteSink* sink);
 
     // One command without its line terminator. Safe to call with anything.
     // `trusted` says the line arrived on the authenticated channel.
@@ -101,9 +105,10 @@ public:
     bool NmeaEnabled() const   { return nmeaEnabled; }
 
 private:
-    ImplementSprayer* impl;
-    ConfigSprayer*    config;
-    RemoteSink*       sink;
+    ImplementSprayer*      impl;
+    SerialGuidanceChannel* gpsChannel;
+    ConfigSprayer*         config;
+    RemoteSink*            sink;
 
     bool          statusEnabled;
     bool          gpsEnabled;

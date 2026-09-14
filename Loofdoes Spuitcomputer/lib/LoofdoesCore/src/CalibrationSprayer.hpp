@@ -23,6 +23,7 @@
 #include <Arduino.h>
 
 #include "ImplementSprayer.hpp"
+#include "SerialGuidanceChannel.hpp"
 
 namespace triton
 {
@@ -31,7 +32,9 @@ namespace triton
 // continues in the background. Any serial character while idle opens the menu.
 class CalibrationSprayer {
 public:
-    CalibrationSprayer(Stream* serial, ImplementSprayer* impl);
+    // The channel is only for the raw-passthrough switch (menu option 8);
+    // guidance values come through impl, which owns the GuidanceSource.
+    CalibrationSprayer(Stream* serial, ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel);
     void Process();
 
     // Menu option 9, "Forget paired phones", shown once a handler is set
@@ -47,9 +50,10 @@ private:
         EDIT_PWM_SELECT, EDIT_PWM_VALUE
     };
 
-    Stream*           serial;
-    ImplementSprayer* impl;
-    State             state;
+    Stream*                serial;
+    ImplementSprayer*      impl;
+    SerialGuidanceChannel* gpsChannel;
+    State                  state;
     ActionHandler     forgetPhones = nullptr;
 
     int                  analogPointIdx;

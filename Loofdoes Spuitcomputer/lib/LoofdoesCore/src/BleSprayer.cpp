@@ -86,8 +86,8 @@ private:
 
 // ---------------------------------------------------------------------------
 
-BleSprayer::BleSprayer(Stream* serialDebug, ImplementSprayer* impl, ConfigSprayer* config)
-    : serialDebug(serialDebug), config(config), remote(impl, config, this), pairingHandler(nullptr),
+BleSprayer::BleSprayer(Stream* serialDebug, ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel, ConfigSprayer* config)
+    : serialDebug(serialDebug), config(config), remote(impl, gpsChannel, config, this), pairingHandler(nullptr),
       server(nullptr), eventChar(nullptr), controlChar(nullptr), secureChar(nullptr),
       mux(portMUX_INITIALIZER_UNLOCKED),
       connected(false), subscribed(false), mtu(23),

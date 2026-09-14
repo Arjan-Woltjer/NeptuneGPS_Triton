@@ -80,7 +80,7 @@ public:
     inline unsigned long GetGgaFixAge()  { return lastGgaFix; }
     inline unsigned long GetVtgFixAge()  { return lastVtgFix; }
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
-    inline boolean       MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
+    inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
 
     inline float  GetLatitude()  { return latitude; }

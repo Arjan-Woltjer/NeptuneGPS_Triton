@@ -35,15 +35,22 @@ using namespace triton;
 // duplicate-symbol link error.
 // ---------------------------------------------------------------------------
 static InterfaceSprayer iface;
-static VehicleGps       mockGps;
+static GuidanceSource   mockGps;
 static ConfigSprayer    cfg;
 static ImplementSprayer impl(nullptr, &mockGps, &iface, &cfg);
 
+// Speed in m/s, as the tests think of it. GuidanceSource stores knots and
+// stamps the VTG fix, the way a real receiver's message would -- so a test
+// cannot express "moving, but no fix has ever arrived", a state a real
+// receiver cannot produce either.
+static void gpsSpeed(float speedMs) { mockGps.SetSpeedKnots(speedMs / GPS_MS_PER_KNOT); }
+
 static void resetAll() {
     millisValue(0);
-    mockGps.speed   = 0.0f;
-    mockGps.vtgFix  = 0;
-    mockGps.quality = 1;
+    // Fresh source: no fix ever, speed 0. Quality 1 (plain GPS) so the tests
+    // that predate the minimum-quality rule keep dosing.
+    mockGps = GuidanceSource();
+    mockGps.SetQuality(1);
     cfg = ConfigSprayer();   // back to the defaults every test assumes
 
     for (int i = 0; i < NUM_DIGITAL_IN; ++i) {
@@ -91,7 +98,7 @@ static void runUntil(unsigned long untilMs, float speedMs, unsigned long stepMs 
         unsigned long next = millis() + stepMs;
         if (next > untilMs) next = untilMs;
         millisValue(next);
-        mockGps.SetSpeed(speedMs);
+        gpsSpeed(speedMs);
         impl.Update();
     }
 }
@@ -102,15 +109,15 @@ static void startSpraying(float speedMs, int analog) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = analog;
     iface.buttons[0].state = true;
-    mockGps.SetSpeed(speedMs);
+    gpsSpeed(speedMs);
     impl.Update();                          // t=0:    mixer on
     runUntil(1000, speedMs);
     iface.buttons[1].state = true;
-    mockGps.SetSpeed(speedMs);
+    gpsSpeed(speedMs);
     impl.Update();                          // t=1000: vernevelaar on
     runUntil(2000, speedMs);
     iface.buttons[2].state = true;
-    mockGps.SetSpeed(speedMs);
+    gpsSpeed(speedMs);
     impl.Update();                          // t=2000: pump on
 }
 
@@ -356,7 +363,7 @@ test(ImplementSprayer, doseLM_from_doseLHA_and_speed) {
     resetAll();
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     // Update() SPEED_AVG_SAMPLES times so the rolling speed average fully
     // converges to mockGps.speed instead of only weighting it 1/SPEED_AVG_SAMPLES.
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
@@ -368,7 +375,7 @@ test(ImplementSprayer, doseLM_zero_when_stationary) {
     resetAll();
     iface.analogInputs[0].value = 4095;
     millisValue(1000);
-    mockGps.SetSpeed(0.0f);
+    gpsSpeed(0.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertNear(impl.doseLM, 0.0f, 0.001f);
 }
@@ -386,7 +393,7 @@ test(ImplementSprayer, endToEnd_analog1024_speed1_pwm1382) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 1024;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertNear(impl.doseLHA, 75.0f, 0.01f);
     assertNear(impl.doseLM, 1.35f, 0.01f);
@@ -401,7 +408,7 @@ test(ImplementSprayer, pwm_disabled_valueUnchanged) {
     resetAll();
     impl.outputs[2].pwm = false;
     millisValue(1000);
-    mockGps.SetSpeed(10.0f);
+    gpsSpeed(10.0f);
 
     impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)0);
@@ -415,7 +422,7 @@ test(ImplementSprayer, pwm_enabled_lowerSegment_output1843) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
 
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)1843);
@@ -429,7 +436,7 @@ test(ImplementSprayer, pwm_enabled_upperSegment_output3685) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 4095;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
 
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)3685);
@@ -445,11 +452,11 @@ test(ImplementSprayer, staleGuidance_stopsPump) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertMore(impl.outputs[2].value, (unsigned int)0);
 
-    // No further messages. VehicleGps::speed keeps its last value forever, so
+    // No further messages. GuidanceSource keeps the last speed forever, so
     // before this fix the pump went on dosing from it indefinitely.
     millisValue(1000 + 2001);
     impl.Update();
@@ -462,7 +469,7 @@ test(ImplementSprayer, guidanceJustWithinTimeout_keepsDosing) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
 
     millisValue(1000 + 2000);
@@ -475,7 +482,12 @@ test(ImplementSprayer, noFixSinceBoot_doesNotDose) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    mockGps.speed = 5.0f;   // set directly: speed present, no message ever seen
+    // A message stamped at millis()=0 leaves lastVtgFix at 0, the very value
+    // "never received" carries: the sentinel has to win over the speed it
+    // brought. (The stub this test was written against could set the speed
+    // without any stamp; the real GuidanceSource cannot, and this is the
+    // closest state a real receiver can produce.)
+    gpsSpeed(5.0f);
     millisValue(500);
 
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
@@ -494,7 +506,7 @@ test(ImplementSprayer, duplicateDoseCalibrationPoints_doNotProduceNaN) {
     }
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
 
     // Self-comparison rather than isfinite(): <math.h> collides with Arduino.h's
@@ -511,7 +523,7 @@ test(ImplementSprayer, tooFewPwmCalibrationPoints_stopsPump) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertMore(impl.outputs[2].value, (unsigned int)0);
 
@@ -730,7 +742,7 @@ test(ImplementSprayer, width_fromSettings_scalesDoseLM) {
     cfg.SetWidthCm(600);
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertNear(impl.doseLM, 3.6f, 0.01f);
 }
@@ -742,7 +754,7 @@ test(ImplementSprayer, guidanceTimeout_fromSettings) {
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
 
     millisValue(1500);
@@ -757,16 +769,16 @@ test(ImplementSprayer, guidanceTimeout_fromSettings) {
 test(ImplementSprayer, minQualityRtk_plainGpsFix_stopsPump) {
     resetAll();
     cfg.SetGpsMinQuality(4);
-    mockGps.quality = 1;
+    mockGps.SetQuality(1);
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertEqual(impl.outputs[2].value, (unsigned int)0);
 
     // Fix improves to RTK fixed: dosing resumes on the same speed.
-    mockGps.quality = 4;
+    mockGps.SetQuality(4);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertMore(impl.outputs[2].value, (unsigned int)0);
 }
@@ -774,11 +786,11 @@ test(ImplementSprayer, minQualityRtk_plainGpsFix_stopsPump) {
 test(ImplementSprayer, minQualityAny_default_dosesWithoutFixQuality) {
     // Default 0 keeps today's behaviour: a speed is a speed, whatever the fix says.
     resetAll();
-    mockGps.quality = 0;
+    mockGps.SetQuality(0);
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
     millisValue(1000);
-    mockGps.SetSpeed(1.0f);
+    gpsSpeed(1.0f);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
     assertMore(impl.outputs[2].value, (unsigned int)0);
 }
@@ -888,7 +900,7 @@ test(ImplementSprayer, releaseCalibration_cascadeRestartsWithItsDelays) {
     impl.ReleaseCalibration(CalibrationOwner::Remote);
 
     // Switches are still held: mixer at once, vernevelaar 1 s later, pump 1 s after that.
-    millisValue(3100); mockGps.SetSpeed(1.0f); impl.Update();
+    millisValue(3100); gpsSpeed(1.0f); impl.Update();
     assertTrue(impl.outputs[0].state);
     assertFalse(impl.outputs[1].state);
     assertFalse(impl.outputs[2].state);

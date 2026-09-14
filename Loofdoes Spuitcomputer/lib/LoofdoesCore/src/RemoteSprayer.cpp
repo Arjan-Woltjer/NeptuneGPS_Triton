@@ -45,8 +45,8 @@ constexpr const char* kKeyBuzzer = "buzzer";
 constexpr int kReplyLength = 96;
 }  // namespace
 
-RemoteSprayer::RemoteSprayer(ImplementSprayer* impl, ConfigSprayer* config, RemoteSink* sink)
-    : impl(impl), config(config), sink(sink),
+RemoteSprayer::RemoteSprayer(ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel, ConfigSprayer* config, RemoteSink* sink)
+    : impl(impl), gpsChannel(gpsChannel), config(config), sink(sink),
       statusEnabled(false), gpsEnabled(false), nmeaEnabled(false),
       lastStatusAt(0), lastGpsAt(0), lastNmeaAt(0), lastNmeaSeq(0),
       runWasActive(false), lastReportedSeconds(0), stagedPwmCount(0) {
@@ -117,9 +117,9 @@ void RemoteSprayer::Update() {
         lastGpsAt = now;
         sendGps();
     }
-    if (nmeaEnabled && impl->gps->GetSentenceSeq() != lastNmeaSeq && now - lastNmeaAt >= kNmeaMinIntervalMs) {
+    if (nmeaEnabled && gpsChannel->GetSentenceSeq() != lastNmeaSeq && now - lastNmeaAt >= kNmeaMinIntervalMs) {
         lastNmeaAt  = now;
-        lastNmeaSeq = impl->gps->GetSentenceSeq();
+        lastNmeaSeq = gpsChannel->GetSentenceSeq();
         sendNmea();
     }
 }
@@ -352,7 +352,7 @@ void RemoteSprayer::handleCfg(int argc, const char* const argv[]) {
         config->Save();
         // The receiver port follows at once; a reboot used to be needed.
         if (strcmp(key, kKeyBaud) == 0) {
-            impl->gps->ApplyBaudrate(ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
+            gpsChannel->ApplyBaudrate(ConfigSprayer::BaudFromIndex(config->Get().gpsBaudIndex));
         }
         ok();
         return;
@@ -381,7 +381,7 @@ void RemoteSprayer::handleTelem(int argc, const char* const argv[]) {
         lastGpsAt  = now;
     } else if (strcmp(argv[1], "N") == 0) {
         nmeaEnabled = on;
-        lastNmeaSeq = impl->gps->GetSentenceSeq();   // only sentences from now on
+        lastNmeaSeq = gpsChannel->GetSentenceSeq();   // only sentences from now on
         lastNmeaAt  = now;
     } else {
         err("args");
@@ -458,20 +458,20 @@ void RemoteSprayer::sendStatus() {
 // debugging the receiver from the app; the parser is not involved.
 void RemoteSprayer::sendNmea() {
     char line[kReplyLength];
-    snprintf(line, sizeof(line), "N:%s", impl->gps->GetLastSentence());
+    snprintf(line, sizeof(line), "N:%s", gpsChannel->GetLastSentence());
     reply(line);
 }
 
 // G:<quality>,<lat>,<lon>,<fixAgeMs>; age -1 until the first position fix.
 void RemoteSprayer::sendGps() {
-    float lat = 0.0f, lon = 0.0f;
-    impl->gps->GetPosition(&lat, &lon);
-    const unsigned long fixAt = impl->gps->GetGgaFixAge();
+    const float lat = impl->guidance->GetLatitude();
+    const float lon = impl->guidance->GetLongitude();
+    const unsigned long fixAt = impl->guidance->GetGgaFixAge();
     const long ageMs = (fixAt == 0) ? -1L : (long)(millis() - fixAt);
 
     char line[kReplyLength];
     snprintf(line, sizeof(line), "G:%d,%.6f,%.6f,%ld",
-             (int)impl->gps->GetQuality(), (double)lat, (double)lon, ageMs);
+             (int)impl->guidance->GetQuality(), (double)lat, (double)lon, ageMs);
     reply(line);
 }
 
