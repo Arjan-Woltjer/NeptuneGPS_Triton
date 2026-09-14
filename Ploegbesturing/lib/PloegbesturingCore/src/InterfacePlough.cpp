@@ -28,7 +28,7 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
                                   InterfaceI2CLCD* lcd,
                                   ImplementPlough* implement,
                                   VehicleTractor* tractor,
-                                  VehicleGps* gps) {
+                                  GuidanceSource* guidance) {
     // Pin assignments and configuration
     // Schmitt triggered inputs
     pinMode(LEFT_BUTTON_2, INPUT);
@@ -62,7 +62,7 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
     this->lcd = lcd;
     this->implement = implement;
     this->tractor = tractor;
-    this->gps = gps;
+    this->guidance = guidance;
 }
 
 // ------------------------
@@ -72,10 +72,11 @@ void InterfacePlough::Update() {
     // Check buttons
     CheckButtons(255, 0);
 
-    // =======================
-    // Process GPS and tractor
-    // =======================
-    gps->Update();
+    // ===============
+    // Process tractor
+    // ===============
+    // The receiver port and the CAN bus are pumped by main.cpp's loop();
+    // this class only reads what they committed to the GuidanceSource.
     tractor->Update(mode);
 
     // ====================
@@ -99,11 +100,11 @@ void InterfacePlough::Update() {
     // ----
     // Hold
     // ----
-    else if (millis() - gps->GetGgaFixAge() > 2000 ||
-             millis() - gps->GetVtgFixAge() > 2000 ||
-             millis() - gps->GetXteFixAge() > 2000 ||
-             !gps->IsRtkQuality() ||
-             !gps->MinSpeed()
+    else if (millis() - guidance->GetGgaFixAge() > 2000 ||
+             millis() - guidance->GetVtgFixAge() > 2000 ||
+             millis() - guidance->GetXteTimestamp() > 2000 ||
+             !guidance->IsRtkQuality() ||
+             !guidance->MinSpeed()
             ) {
         // set mode to hold
         mode = 1;
@@ -246,7 +247,7 @@ void InterfacePlough::UpdateScreen(boolean rewrite) {
 
 
     // Regel 2
-    temp2 = gps->GetXte();
+    temp2 = guidance->GetXte();
     temp = abs(temp2);
 
     if (temp > 99) {
@@ -344,7 +345,7 @@ void InterfacePlough::UpdateScreen(boolean rewrite) {
             break;
         case 1: // HOLD
             lcd->WriteBuffer('H', 3, 14);
-            if (!gps->MinSpeed() && millis() - gps->GetVtgFixAge() < 2000) {
+            if (!guidance->MinSpeed() && millis() - guidance->GetVtgFixAge() < 2000) {
                 lcd->WriteBuffer('S', 3, 17);
                 lcd->WriteBuffer('!', 3, 18);
             }

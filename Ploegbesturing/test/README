@@ -4,6 +4,12 @@
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  for the Arduino framework and MeijWorks Libs' `VehicleTractor`/
+  `InterfaceI2CLCD`; `GuidanceSource` (MeijWorks Libs/VehicleGuidance) is the
+  real header-only class, driven through its own setters -- there is no stub
+  for it. The channels that feed it on the board (`SerialGuidanceChannel`,
+  `CanFrameGuidanceChannel`) have their suites in Ploegbesturing Isobus'
+  native build.
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point).
 - `native/PloegbesturingNativeTests.cpp` -- the single AUnit driver (`setup()`/

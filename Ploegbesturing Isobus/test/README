@@ -13,7 +13,10 @@ Teensy attached):
   `GuidanceSource` and the channel's diagnostics: sentence tap, raw echo,
   runtime baudrate change). `test_IsobusPgnDecode.cpp` covers
   `IsobusPgnDecode` -- the byte-level PGN decode pulled out of
-  `IsobusGuidanceChannel` (see "Known gaps" below).
+  `IsobusGuidanceChannel`, now in the shared library so the raw-CAN
+  projects decode the same way -- and `test_CanFrameGuidanceChannel.cpp`
+  covers `CanFrameGuidanceChannel`, the raw-frame entry point those projects
+  call from their ACAN_T4 callback (see "Known gaps" below).
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point). These stand in only

@@ -30,7 +30,7 @@ using namespace triton;
 // constructs fresh instances after resetAll() re-erases the fake EEPROM,
 // rather than sharing one static instance across tests.
 // ---------------------------------------------------------------------------
-static VehicleGps       mockGps;
+static GuidanceSource   mockGuidance;
 static VehicleTractor   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
@@ -38,12 +38,16 @@ static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
 
-    mockGps.xte = 0;
-    mockGps.xteFixAge = 0;
-    mockGps.ggaFixAge = 0;
-    mockGps.vtgFixAge = 0;
-    mockGps.rtkQuality = true;
-    mockGps.minSpeed = true;
+    // Fresh gga/vtg/xte fixes (all timestamped at millis()=0, matching "now"),
+    // rtk-equivalent quality (SetQuality(4) matches GuidanceSource's own
+    // default rtkQuality=4, so IsRtkQuality() reads true), and fast enough for
+    // MinSpeed() -- everything Update()'s AUTO-eligibility check needs to pass
+    // by default. Individual tests below make exactly one of these stale/bad.
+    mockGuidance = GuidanceSource();
+    mockGuidance.SetXte(0);
+    mockGuidance.NoteGgaFixReceived();
+    mockGuidance.SetSpeedKnots(10.0f);
+    mockGuidance.SetQuality(4);
     mockTractor.hitch = false;
 
     digitalReadValue(LEFT_BUTTON_2, false);
@@ -61,16 +65,16 @@ static void resetAll() {
 
 test(InterfacePlough, checkButtons_noneHeld_returnsZero) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     assertEqual(iface.CheckButtons(0, 0), (short int)0);
 }
 
 test(InterfacePlough, checkButtons_leftHeld_delayZero_returnsMinusOneImmediately) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_2, true);
     assertEqual(iface.CheckButtons(0, 0), (short int)-1);
@@ -79,8 +83,8 @@ test(InterfacePlough, checkButtons_leftHeld_delayZero_returnsMinusOneImmediately
 
 test(InterfacePlough, checkButtons_rightHeld_delayZero_returnsOneImmediately) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(RIGHT_BUTTON_2, true);
     assertEqual(iface.CheckButtons(0, 0), (short int)1);
@@ -88,8 +92,8 @@ test(InterfacePlough, checkButtons_rightHeld_delayZero_returnsOneImmediately) {
 
 test(InterfacePlough, checkButtons_leftHeld_withDelay_waitsForDebounce) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_2, true);
     // Not yet at the delay2 threshold -> falls back to 0.
@@ -101,8 +105,8 @@ test(InterfacePlough, checkButtons_leftHeld_withDelay_waitsForDebounce) {
 
 test(InterfacePlough, checkButtons_bothHeld_delayZero_returnsTwoImmediately) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_2, true);
     digitalReadValue(RIGHT_BUTTON_2, true);
@@ -111,8 +115,8 @@ test(InterfacePlough, checkButtons_bothHeld_delayZero_returnsTwoImmediately) {
 
 test(InterfacePlough, checkButtons_bothHeld_withDelay1_waitsForCombo) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_2, true);
     digitalReadValue(RIGHT_BUTTON_2, true);
@@ -129,8 +133,8 @@ test(InterfacePlough, checkButtons_bothHeld_withDelay1_waitsForCombo) {
 
 test(InterfacePlough, update_modePinLow_selectsManual) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(MODE_PIN_2, false);  // !digitalRead(MODE_PIN_2) -> true -> manual
     iface.Update();
@@ -139,8 +143,8 @@ test(InterfacePlough, update_modePinLow_selectsManual) {
 
 test(InterfacePlough, update_hitchEngaged_selectsManual) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     mockTractor.hitch = true;
     iface.Update();
@@ -149,8 +153,8 @@ test(InterfacePlough, update_hitchEngaged_selectsManual) {
 
 test(InterfacePlough, update_allConditionsGood_selectsAuto) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     // All fix ages "fresh" relative to millis()=0 (0-0=0, not > 2000); rtkQuality
     // and minSpeed both good; not manual (MODE_PIN_2 true, hitch false, per resetAll()).
@@ -160,59 +164,59 @@ test(InterfacePlough, update_allConditionsGood_selectsAuto) {
 
 test(InterfacePlough, update_staleGgaFix_selectsHold) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 0;     // 2001 - 0 = 2001 > 2000 -> stale
-    mockGps.vtgFixAge = 2001;  // fresh
-    mockGps.xteFixAge = 2001;  // fresh
+    // lastGgaFix stays 0 from resetAll(): 2001 - 0 = 2001 > 2000 -> stale
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh); keeps MinSpeed() true
+    mockGuidance.SetXte(0);             // lastXteFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlough, update_staleVtgFix_selectsHold) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 2001;  // fresh
-    mockGps.vtgFixAge = 0;     // stale
-    mockGps.xteFixAge = 2001;  // fresh
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    // lastVtgFix stays 0 from resetAll(): stale
+    mockGuidance.SetXte(0);             // lastXteFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlough, update_staleXteFix_selectsHold) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 2001;  // fresh
-    mockGps.vtgFixAge = 2001;  // fresh
-    mockGps.xteFixAge = 0;     // stale
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh); keeps MinSpeed() true
+    // lastXteFix stays 0 from resetAll(): stale
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlough, update_notRtkQuality_selectsHold) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    mockGps.rtkQuality = false;
+    mockGuidance.SetQuality(0);  // 0 != rtkQuality(4) -> IsRtkQuality() false
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlough, update_belowMinSpeed_selectsHold) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    mockGps.minSpeed = false;
+    mockGuidance.SetSpeedKnots(0.0f);  // GetSpeedMs()=0 < MINSPEED(0.5) -> MinSpeed() false
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }

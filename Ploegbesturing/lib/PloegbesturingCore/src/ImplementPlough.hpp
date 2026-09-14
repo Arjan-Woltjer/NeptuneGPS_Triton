@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "VehicleGps.hpp"
+#include "GuidanceSource.hpp"
 
 #include "ConfigImplementPlough.hpp"
 
@@ -88,8 +88,8 @@ private:
     unsigned long       shutoffTimer;
 
     // Objects
-    Stream*     serialDebug;
-    VehicleGps* gps;
+    Stream*         serialDebug;
+    GuidanceSource* guidance;
 
     //------------------------------------------------------------
     // private member functions implemented in ImplementPlough.cpp
@@ -116,7 +116,7 @@ public:
     // ----------------------------------------------------------
 
     // Constructor
-    ImplementPlough(Stream* serialDebug, VehicleGps* gps);
+    ImplementPlough(Stream* serialDebug, GuidanceSource* guidance);
 
     void Update(byte mode, short int buttons);
     void Stop();

@@ -20,7 +20,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "isobus/IsobusPgnDecode.hpp"
+#include "IsobusPgnDecode.hpp"
 
 using namespace aunit;
 using namespace triton;

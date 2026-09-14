@@ -11,10 +11,10 @@ repository is a submodule.
 
 | Directory | Board | What it does |
 |---|---|---|
-| `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and CAN. |
+| `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and raw CAN frames (`CanFrameGuidanceChannel`). |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
 | `Loofdoes Spuitcomputer` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), used by `Ploegbesturing Isobus` and `Loofdoes Spuitcomputer`; the three other Teensy projects still build against `VehicleGps` until #79, #80 and #81 land. |
+| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders and `InterfaceGuidance`, the LCD baudrate autodetect), used by `Ploegbesturing Isobus`, `Ploegbesturing` and `Loofdoes Spuitcomputer`; `Pootmachinebesturing` and `Kilverbakbesturing` still build against `VehicleGps` until #80 and #81 land. |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
 of `lib/PloegbesturingCore` — see
@@ -54,9 +54,11 @@ sources through MSVC instead.
 
 `MeijWorks Libs` has no test environment of its own.
 `MeijWorks Libs`' `VehicleGuidance` is covered from `Ploegbesturing Isobus`, whose
-native build compiles the real `GuidanceSource`, sentence parsers and
-`SerialGuidanceChannel` rather than stubs (`test_GpsParsers.cpp`,
-`test_SerialGuidanceChannel.cpp`). `VehicleGps` has no native coverage.
+native build compiles the real `GuidanceSource`, sentence parsers,
+`SerialGuidanceChannel`, `IsobusPgnDecode` and `CanFrameGuidanceChannel` rather
+than stubs (`test_GpsParsers.cpp`, `test_SerialGuidanceChannel.cpp`,
+`test_IsobusPgnDecode.cpp`, `test_CanFrameGuidanceChannel.cpp`). `VehicleGps`
+has no native coverage.
 
 ## Static analysis
 
@@ -100,8 +102,8 @@ same-range rows for different boards do not collide):
 |---|---|---|
 | 0 | every `Implement*` | boot counter, printed at start-up (never incremented) |
 | 1 | `CalibrationPlough`, `CalibrationPlanter` | program selection from the wizard; nothing reads it back |
-| 10 | `VehicleGps` | baud index |
-| 11 | `VehicleGps`, `CalibrationPlough` | RTK quality; the plough keeps `VehicleGps`' slot so a board keeps its setting across the migration |
+| 10 | `VehicleGps`, `CalibrationPlough` (`Ploegbesturing`) | receiver rate index found by the boot autodetect |
+| 11 | `VehicleGps`, `CalibrationPlough` (both plough projects) | RTK quality; the plough keeps `VehicleGps`' slots so a board keeps its settings across the migration |
 | 20 to 28 | `VehicleTractor` | speed constant, simulation, inversion |
 | 40 to 66 | `ImplementPlough` (both plough projects) | position/rotation calibration, offset, shares, correction |
 | 70 to 94 | `ImplementPlanter` | |
