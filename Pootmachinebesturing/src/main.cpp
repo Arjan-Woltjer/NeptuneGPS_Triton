@@ -21,12 +21,14 @@
 #include <ACAN_T4.h>
 
 #include "CalibrationPlanter.hpp"
+#include "CanFrameGuidanceChannel.hpp"
+#include "GuidanceSource.hpp"
 #include "ImplementPlanter.hpp"
-#include "InterfaceGps.hpp"
+#include "InterfaceGuidance.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlanter.hpp"
 #include "LanguagePlanter.hpp"
-#include "VehicleGps.hpp"
+#include "SerialGuidanceChannel.hpp"
 #include "VehicleTractor.hpp"
 
 // Serial ports
@@ -48,8 +50,13 @@ triton::VehicleTractor*    gTractor;
 triton::ImplementPlanter*  gImplement;
 triton::InterfacePlanter*  gInterface;
 triton::CalibrationPlanter* gCalibration;
-triton::VehicleGps*        gGps;
-triton::InterfaceGps*      gInterfaceGps;
+// Guidance data model and the two channels that feed it (shared MeijWorks
+// Libs/VehicleGuidance, NeptuneGPS_Triton#76/#80): the receiver on the UART
+// and the raw frames ACAN_T4 hands GHandleCanMessage(). Everything else
+// only reads gGuidance.
+triton::GuidanceSource*          gGuidance;
+triton::SerialGuidanceChannel*   gGuidanceChannel;
+triton::CanFrameGuidanceChannel* gCanChannel;
 
 static void GCanSetup();
 static void GHandleCanMessage(const CANMessage& inMessage);
@@ -71,14 +78,28 @@ void setup() {
     gLcd->Begin();
 
     gTractor = new triton::VehicleTractor(gSerialDebug);
-    gGps = new triton::VehicleGps(gSerialDebug, gSerialGps);
-    // Constructor also runs a real (blocking) GPS baud-rate autodetect probe;
-    // CheckGps() is never called again after setup().
-    gInterfaceGps = new triton::InterfaceGps(gLcd, gGps);
+    gGuidance = new triton::GuidanceSource();
+    gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
+    gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);
 
-    gImplement = new triton::ImplementPlanter(gSerialDebug, gTractor, gGps);
-    gInterface = new triton::InterfacePlanter(gSerialDebug, gLcd, gImplement, gTractor, gGps);
-    gCalibration = new triton::CalibrationPlanter(gSerialDebug, gLcd, gImplement, gTractor, gGps, gInterface);
+    gImplement = new triton::ImplementPlanter(gSerialDebug, gTractor, gGuidance);
+    gInterface = new triton::InterfacePlanter(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
+    // Also loads the stored receiver rate index for the detect below (the
+    // data model itself never touches EEPROM, #78).
+    gCalibration = new triton::CalibrationPlanter(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
+
+    // Blocking receiver baudrate autodetect on the LCD, as InterfaceGps did
+    // from its constructor; the found index is persisted only when it
+    // differs from the stored one, so a stable installation never writes.
+    {
+        triton::InterfaceGuidance detect(gLcd, gGuidanceChannel, gGuidance);
+        const byte stored = gCalibration->GetGpsBaudIndex();
+        const byte found  = detect.DetectBaudrate(stored, triton::InterfaceGuidance::kAll);
+        if (found != triton::InterfaceGuidance::kNotFound && found != stored) {
+            gCalibration->SetGpsBaudIndex(found);
+            gCalibration->CommitGuidanceCalibration();
+        }
+    }
 
     // Print message to computer
     gSerialDebug->println(S_DIVIDE);
@@ -89,7 +110,7 @@ void setup() {
     gSerialDebug->println(S_DIVIDE);
 
     gTractor->PrintCalibrationData();
-    gGps->PrintCalibrationData();
+    gCalibration->PrintCalibrationData();
     gImplement->PrintCalibrationData();
 
     // Write message to screen
@@ -112,8 +133,10 @@ void setup() {
 // Main loop
 // ---------
 void loop() {
-    // Update CAN messages
+    // Pump both guidance channels: CAN frames through GHandleCanMessage(),
+    // and the receiver on the UART. Both commit into gGuidance.
     ACAN_T4::can1.dispatchReceivedMessage();
+    gGuidanceChannel->Update();
 
     // Update interface
     gInterface->Update();
@@ -172,5 +195,5 @@ static void GCanSetup() {
 }
 
 static void GHandleCanMessage(const CANMessage& inMessage) {
-    gGps->Update(inMessage.id, inMessage.data, inMessage.len);
+    gCanChannel->Update(inMessage.id, inMessage.data, inMessage.len);
 }

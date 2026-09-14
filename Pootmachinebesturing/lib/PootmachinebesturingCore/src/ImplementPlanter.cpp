@@ -24,10 +24,10 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementPlanter::ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor, VehicleGps* gps) {
+ImplementPlanter::ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor, GuidanceSource* guidance) {
     // Connected classes
     this->serialDebug = serialDebug;
-    this->gps = gps;
+    this->guidance = guidance;
     this->tractor = tractor;
 
 #ifdef DEBUG
@@ -152,15 +152,15 @@ void ImplementPlanter::Update() {
     // When using GPS for XTE measurement
     if (gpsEnabled) {
         // update offset, xte, position and setpoint
-        if (gps->GetXteFixAge() - updateAge > 0) {
+        if (guidance->GetXteTimestamp() - updateAge > 0) {
             // Update xte, position and setpoint
-            xte = gps->GetXte();
-            speed = gps->GetSpeedMs();
+            xte = guidance->GetXte();
+            speed = guidance->GetSpeedMs();
             position = getActualPosition();
 
             setSetpoint();
 
-            updateAge = gps->GetXteFixAge();
+            updateAge = guidance->GetXteTimestamp();
         }
     }
     // When GPS is not used as XTE sensor

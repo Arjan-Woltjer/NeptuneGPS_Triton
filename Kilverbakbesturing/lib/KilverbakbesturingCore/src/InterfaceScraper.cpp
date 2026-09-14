@@ -27,7 +27,7 @@ namespace triton
 InterfaceScraper::InterfaceScraper(InterfaceI2CLCD* lcd,
                                     ImplementScraper* implement,
                                     VehicleTractor* tractor,
-                                    VehicleGps* gps) {
+                                    GuidanceSource* guidance) {
 #ifdef DEBUG
     Serial.println(S_DIVIDE);
     Serial.println("Initialising scraper interface");
@@ -67,7 +67,7 @@ InterfaceScraper::InterfaceScraper(InterfaceI2CLCD* lcd,
     this->lcd = lcd;
     this->implement = implement;
     this->tractor = tractor;
-    this->gps = gps;
+    this->guidance = guidance;
 }
 
 // ------------------------
@@ -79,10 +79,11 @@ void InterfaceScraper::Update() {
     // ===============
     CheckButtons(255, 0);
 
-    // =======================
-    // Process GPS and tractor
-    // =======================
-    gps->Update();
+    // ===============
+    // Process tractor
+    // ===============
+    // The receiver port and the CAN bus are pumped by main.cpp's loop();
+    // this class only reads what they committed to the GuidanceSource.
     tractor->Update(mode);
 
     // ====================
@@ -103,7 +104,7 @@ void InterfaceScraper::Update() {
     // ----
     // Hold
     // ----
-    else if (millis() - gps->GetGgaFixAge() > 2000 || millis() - gps->GetVtgFixAge() > 2000) {
+    else if (millis() - guidance->GetGgaFixAge() > 2000 || millis() - guidance->GetVtgFixAge() > 2000) {
         // set mode to hold
         mode = 1;
 
@@ -375,7 +376,7 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
             break;
         case 1:  // HOLD
             lcd->WriteBuffer('H', 3, 14);
-            if (gps->MinSpeed()) {
+            if (guidance->MinSpeed()) {
                 lcd->WriteBuffer('G', 3, 17);
                 lcd->WriteBuffer('!', 3, 18);
             }

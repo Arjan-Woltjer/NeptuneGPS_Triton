@@ -7,6 +7,7 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PootmachinebesturingCore\src"
+$guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource, NeptuneGPS_Triton#76
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PootmachinebesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -47,7 +48,7 @@ $aunitSources = @(
 # GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
 # (default) preprocessor expands wrong (see Ploegbesturing's/Salacia's/
 # Loofdoes' platformio.ini/test README for the same issue, hit there first).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches

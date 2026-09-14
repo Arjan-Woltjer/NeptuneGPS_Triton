@@ -14,7 +14,7 @@ repository is a submodule.
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and raw CAN frames (`CanFrameGuidanceChannel`). |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
 | `Loofdoes Spuitcomputer` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders and `InterfaceGuidance`, the LCD baudrate autodetect), used by `Ploegbesturing Isobus`, `Ploegbesturing` and `Loofdoes Spuitcomputer`; `Pootmachinebesturing` and `Kilverbakbesturing` still build against `VehicleGps` until #80 and #81 land. |
+| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders, `InterfaceGuidance`, the LCD baudrate autodetect, and `GuidanceGeometry`'s `DistanceBetween()`), used by every GPS-consuming project: `Ploegbesturing Isobus`, `Ploegbesturing`, `Pootmachinebesturing`, `Kilverbakbesturing` and `Loofdoes Spuitcomputer`. `VehicleGps` and `InterfaceGps` have no consumer left and are kept only until their removal is decided. |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
 of `lib/PloegbesturingCore` — see
@@ -45,6 +45,8 @@ builds one combined binary and is run directly — `pio test` ignores
 pio run -d "Loofdoes Spuitcomputer" -e native && "./Loofdoes Spuitcomputer/.pio/build/native/program"
 pio run -d "Ploegbesturing"         -e native && "./Ploegbesturing/.pio/build/native/program"
 pio run -d "Ploegbesturing Isobus"  -e native && "./Ploegbesturing Isobus/.pio/build/native/program"
+pio run -d "Pootmachinebesturing"   -e native && "./Pootmachinebesturing/.pio/build/native/program"
+pio run -d "Kilverbakbesturing"     -e native && "./Kilverbakbesturing/.pio/build/native/program"
 ```
 
 Quote the paths — every project directory name contains a space.
@@ -55,9 +57,10 @@ sources through MSVC instead.
 `MeijWorks Libs` has no test environment of its own.
 `MeijWorks Libs`' `VehicleGuidance` is covered from `Ploegbesturing Isobus`, whose
 native build compiles the real `GuidanceSource`, sentence parsers,
-`SerialGuidanceChannel`, `IsobusPgnDecode` and `CanFrameGuidanceChannel` rather
-than stubs (`test_GpsParsers.cpp`, `test_SerialGuidanceChannel.cpp`,
-`test_IsobusPgnDecode.cpp`, `test_CanFrameGuidanceChannel.cpp`). `VehicleGps`
+`SerialGuidanceChannel`, `IsobusPgnDecode`, `CanFrameGuidanceChannel` and
+`GuidanceGeometry` rather than stubs (`test_GpsParsers.cpp`,
+`test_SerialGuidanceChannel.cpp`, `test_IsobusPgnDecode.cpp`,
+`test_CanFrameGuidanceChannel.cpp`, `test_GuidanceGeometry.cpp`). `VehicleGps`
 has no native coverage.
 
 ## Static analysis
@@ -84,9 +87,10 @@ library (#78):
   `Set*()`/`Get*()` for their calibratable values and nothing else. The project
   that owns the calibration menu or config class decides where a value is
   stored and hands it back at boot (`CalibrationPlough` for `GuidanceSource`'s
-  RTK quality, `ConfigSprayer` for Loofdoes' settings). `VehicleGps` and
-  `VehicleTractor` predate this rule and still write their own bytes; they lose
-  that when their consumers migrate (#79, #80, #81).
+  RTK quality, `CalibrationPlanter`/`CalibrationScraper` for the receiver rate
+  index, `ConfigSprayer` for Loofdoes' settings). `VehicleTractor` predates
+  this rule and still writes its own bytes; `VehicleGps` did too and no longer
+  has a consumer.
 - **Teensy boards use the Arduino `EEPROM` API** (wear-levelled flash
   emulation) at the addresses in the map below. A new block claims a range here
   before it claims it in code.
@@ -102,8 +106,8 @@ same-range rows for different boards do not collide):
 |---|---|---|
 | 0 | every `Implement*` | boot counter, printed at start-up (never incremented) |
 | 1 | `CalibrationPlough`, `CalibrationPlanter` | program selection from the wizard; nothing reads it back |
-| 10 | `VehicleGps`, `CalibrationPlough` (`Ploegbesturing`) | receiver rate index found by the boot autodetect |
-| 11 | `VehicleGps`, `CalibrationPlough` (both plough projects) | RTK quality; the plough keeps `VehicleGps`' slots so a board keeps its settings across the migration |
+| 10 | `VehicleGps`, `CalibrationPlough` (`Ploegbesturing`), `CalibrationPlanter`, `CalibrationScraper` | receiver rate index found by the boot autodetect |
+| 11 | `VehicleGps`, `CalibrationPlough` (both plough projects) | RTK quality; every migrated project keeps `VehicleGps`' slots so a board keeps its settings across the migration |
 | 20 to 28 | `VehicleTractor` | speed constant, simulation, inversion |
 | 40 to 66 | `ImplementPlough` (both plough projects) | position/rotation calibration, offset, shares, correction |
 | 70 to 94 | `ImplementPlanter` | |

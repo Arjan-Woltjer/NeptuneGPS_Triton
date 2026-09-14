@@ -38,17 +38,15 @@ using namespace triton;
 // invertHydraulics=invertPlantingelementSensor=false (see
 // ImplementPlanter.cpp's constructor).
 // ---------------------------------------------------------------------------
-static VehicleGps     mockGps;
+static GuidanceSource mockGuidance;
 static VehicleTractor mockTractor;
 
 static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
-    mockGps.xte = 0;
-    mockGps.xteFixAge = 0;
-    mockGps.quality = 4;
-    mockGps.minSpeed = true;
-    mockGps.speed = 0;
+    // Fresh source: xte 0, no fix ever (all timestamps 0), speed 0, RTK fixed.
+    mockGuidance = GuidanceSource();
+    mockGuidance.SetQuality(4);
     mockTractor.speed = 0;
 }
 
@@ -60,9 +58,10 @@ static void resetAll() {
 
 test(ImplementPlanter, position_ascendingCalibration_atPoint0) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.SetGpsEnabled(true);
-    mockGps.xteFixAge = 1;  // > impl's internal updateAge(0) -> triggers recompute
+    millisValue(1);
+    mockGuidance.SetXte(0);  // stamps lastXteFix=1 > impl's internal updateAge(0) -> triggers recompute
     // Default calibration is ascending: data={201,428,687}, points={-6,0,6}.
     analogReadValue(POSITION_SENS_PIN_3, 201);
     impl.Update();
@@ -71,9 +70,10 @@ test(ImplementPlanter, position_ascendingCalibration_atPoint0) {
 
 test(ImplementPlanter, position_ascendingCalibration_atPoint1) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.SetGpsEnabled(true);
-    mockGps.xteFixAge = 1;
+    millisValue(1);
+    mockGuidance.SetXte(0);   // stamps lastXteFix=1 -> triggers recompute
     analogReadValue(POSITION_SENS_PIN_3, 428);
     impl.Update();
     assertEqual(impl.GetPosition(), 0);
@@ -81,9 +81,10 @@ test(ImplementPlanter, position_ascendingCalibration_atPoint1) {
 
 test(ImplementPlanter, position_ascendingCalibration_atPoint2) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.SetGpsEnabled(true);
-    mockGps.xteFixAge = 1;
+    millisValue(1);
+    mockGuidance.SetXte(0);   // stamps lastXteFix=1 -> triggers recompute
     analogReadValue(POSITION_SENS_PIN_3, 687);
     impl.Update();
     assertEqual(impl.GetPosition(), 6);
@@ -96,7 +97,7 @@ test(ImplementPlanter, position_equalCalibrationPoints_doNotProduceNonFinitePosi
     // zero denominator into the interpolation, and narrowing the resulting
     // inf/NaN to int is undefined behaviour.
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
 
     analogReadValue(POSITION_SENS_PIN_3, 512);
     impl.SetPositionCalibrationData(0);
@@ -104,7 +105,8 @@ test(ImplementPlanter, position_equalCalibrationPoints_doNotProduceNonFinitePosi
     impl.SetPositionCalibrationData(2);
 
     impl.SetGpsEnabled(true);
-    mockGps.xteFixAge = 1;
+    millisValue(1);
+    mockGuidance.SetXte(0);   // stamps lastXteFix=1 -> triggers recompute
     analogReadValue(POSITION_SENS_PIN_3, 512);
     impl.Update();
     const int position = impl.GetPosition();
@@ -124,7 +126,7 @@ test(ImplementPlanter, position_equalCalibrationPoints_doNotProduceNonFinitePosi
 
 test(ImplementPlanter, xte_ascendingCalibration_atPoint0) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     analogReadValue(XTE_SENS_PIN_3, 201);
     millisValue(250);
     impl.Update();
@@ -134,7 +136,7 @@ test(ImplementPlanter, xte_ascendingCalibration_atPoint0) {
 
 test(ImplementPlanter, xte_ascendingCalibration_atPoint1) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     analogReadValue(XTE_SENS_PIN_3, 428);
     millisValue(250);
     impl.Update();
@@ -144,7 +146,7 @@ test(ImplementPlanter, xte_ascendingCalibration_atPoint1) {
 
 test(ImplementPlanter, xte_ascendingCalibration_atPoint2) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     analogReadValue(XTE_SENS_PIN_3, 687);
     millisValue(250);
     impl.Update();
@@ -162,7 +164,7 @@ test(ImplementPlanter, xte_ascendingCalibration_atPoint2) {
 
 test(ImplementPlanter, adjust_sensorEnabled_positiveDirection_movesLeft) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.SetSensorEnabled(true);
     impl.Adjust(1, 5);  // manual mode -> setpoint=5 -> setpoint>0 -> Left(manPwm)
     assertEqual(analogWriteValue(OUTPUT_NARROW_3), 90);
@@ -171,7 +173,7 @@ test(ImplementPlanter, adjust_sensorEnabled_positiveDirection_movesLeft) {
 
 test(ImplementPlanter, adjust_sensorEnabled_negativeDirection_movesRight) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.SetSensorEnabled(true);
     impl.Adjust(1, -5);  // setpoint=-5 -> Right(manPwm)
     assertEqual(analogWriteValue(OUTPUT_WIDE_3), 90);
@@ -180,7 +182,7 @@ test(ImplementPlanter, adjust_sensorEnabled_negativeDirection_movesRight) {
 
 test(ImplementPlanter, adjust_sensorEnabled_zeroDirection_stops) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.SetSensorEnabled(true);
     impl.Adjust(1, 5);
     assertEqual(analogWriteValue(OUTPUT_NARROW_3), 90);
@@ -200,7 +202,7 @@ test(ImplementPlanter, adjust_sensorEnabled_zeroDirection_stops) {
 
 test(ImplementPlanter, adjust_sensorDisabled_manualMode_directionPositive_narrows) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.Adjust(1, 1);  // actualPosition = 0 - 1 = -1 < setpoint(0)
     assertEqual(analogWriteValue(OUTPUT_NARROW_3), 90);
     assertEqual(analogWriteValue(OUTPUT_WIDE_3), 0);
@@ -208,7 +210,7 @@ test(ImplementPlanter, adjust_sensorDisabled_manualMode_directionPositive_narrow
 
 test(ImplementPlanter, adjust_sensorDisabled_manualMode_directionNegative_widens) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.Adjust(1, -1);  // actualPosition = 0 - (-1) = 1 > setpoint(0)
     assertEqual(analogWriteValue(OUTPUT_WIDE_3), 90);
     assertEqual(analogWriteValue(OUTPUT_NARROW_3), 0);
@@ -216,7 +218,7 @@ test(ImplementPlanter, adjust_sensorDisabled_manualMode_directionNegative_widens
 
 test(ImplementPlanter, adjust_sensorDisabled_manualMode_directionZero_stops) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     impl.Adjust(1, 1);
     assertEqual(analogWriteValue(OUTPUT_NARROW_3), 90);
 
@@ -227,7 +229,7 @@ test(ImplementPlanter, adjust_sensorDisabled_manualMode_directionZero_stops) {
 
 test(ImplementPlanter, adjust_sensorDisabled_endShutoff_latchesAfterShutoffTime) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
 
     // direction=1 -> actualPosition = -1 every call (setpoint stays 0).
     impl.Adjust(1, 1);  // 1st call: lastPosition(0) != actualPosition(-1) -> shutoffTimer resets to millis()=0
@@ -275,9 +277,10 @@ test(ImplementPlanter, corruptEepromPositionData_fallsBackToDefaults) {
     EEPROM.write(72, 0x02); EEPROM.write(73, 0x00);
     EEPROM.write(74, 0x02); EEPROM.write(75, 0x00);
 
-    ImplementPlanter corrupt(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter corrupt(nullptr, &mockTractor, &mockGuidance);
     corrupt.SetGpsEnabled(true);
-    mockGps.xteFixAge = 1;
+    millisValue(1);
+    mockGuidance.SetXte(0);   // stamps lastXteFix=1 -> triggers recompute
     analogReadValue(POSITION_SENS_PIN_3, 300);
     corrupt.Update();
     const int fromCorrupt = corrupt.GetPosition();
@@ -286,9 +289,10 @@ test(ImplementPlanter, corruptEepromPositionData_fallsBackToDefaults) {
     // data has to land on the same defaults rather than on whatever it
     // contained.
     resetAll();
-    ImplementPlanter reference(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter reference(nullptr, &mockTractor, &mockGuidance);
     reference.SetGpsEnabled(true);
-    mockGps.xteFixAge = 1;
+    millisValue(1);
+    mockGuidance.SetXte(0);   // stamps lastXteFix=1 -> triggers recompute
     analogReadValue(POSITION_SENS_PIN_3, 300);
     reference.Update();
 
@@ -297,6 +301,6 @@ test(ImplementPlanter, corruptEepromPositionData_fallsBackToDefaults) {
 
 test(ImplementPlanter, offset_defaultsToZero) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     assertEqual(impl.GetOffset(), 0);
 }

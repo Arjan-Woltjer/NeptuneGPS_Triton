@@ -21,12 +21,14 @@
 #include <ACAN_T4.h>
 
 #include "CalibrationScraper.hpp"
+#include "CanFrameGuidanceChannel.hpp"
+#include "GuidanceSource.hpp"
 #include "ImplementScraper.hpp"
-#include "InterfaceGps.hpp"
+#include "InterfaceGuidance.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceScraper.hpp"
 #include "LanguageScraper.hpp"
-#include "VehicleGps.hpp"
+#include "SerialGuidanceChannel.hpp"
 #include "VehicleTractor.hpp"
 
 // Serial ports
@@ -48,8 +50,13 @@ triton::VehicleTractor*    gTractor;
 triton::ImplementScraper*  gImplement;
 triton::InterfaceScraper*  gInterface;
 triton::CalibrationScraper* gCalibration;
-triton::VehicleGps*        gGps;
-triton::InterfaceGps*      gInterfaceGps;
+// Guidance data model and the two channels that feed it (shared MeijWorks
+// Libs/VehicleGuidance, NeptuneGPS_Triton#76/#81): the receiver on the UART
+// and the raw frames ACAN_T4 hands GHandleCanMessage(). Everything else
+// only reads gGuidance.
+triton::GuidanceSource*          gGuidance;
+triton::SerialGuidanceChannel*   gGuidanceChannel;
+triton::CanFrameGuidanceChannel* gCanChannel;
 
 static void GCanSetup();
 static void GHandleCanMessage(const CANMessage& inMessage);
@@ -71,14 +78,30 @@ void setup() {
     gLcd->Begin();
 
     gTractor = new triton::VehicleTractor(gSerialDebug);
-    gGps = new triton::VehicleGps(gSerialDebug, gSerialGps);
-    // Constructor also runs a real (blocking) GPS baud-rate autodetect probe;
-    // CheckGps() is never called again after setup().
-    gInterfaceGps = new triton::InterfaceGps(gLcd, gGps);
+    gGuidance = new triton::GuidanceSource();
+    gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
+    gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);
 
-    gImplement = new triton::ImplementScraper(gGps);
-    gInterface = new triton::InterfaceScraper(gLcd, gImplement, gTractor, gGps);
-    gCalibration = new triton::CalibrationScraper(gLcd, gImplement, gTractor, gGps, gInterface);
+    gImplement = new triton::ImplementScraper(gGuidance);
+    gInterface = new triton::InterfaceScraper(gLcd, gImplement, gTractor, gGuidance);
+    // Also loads the stored receiver rate index for the detect below (the
+    // data model itself never touches EEPROM, #78).
+    gCalibration = new triton::CalibrationScraper(gLcd, gImplement, gTractor, gGuidance, gGuidanceChannel, gInterface);
+
+    // Blocking receiver baudrate autodetect on the LCD, as InterfaceGps did
+    // from its constructor. The scraper reads position and speed only, so a
+    // receiver without XTE sentences is found promptly (InterfaceGps waited
+    // the full timeout for one). The found index is persisted only when it
+    // differs from the stored one, so a stable installation never writes.
+    {
+        triton::InterfaceGuidance detect(gLcd, gGuidanceChannel, gGuidance);
+        const byte stored = gCalibration->GetGpsBaudIndex();
+        const byte found  = detect.DetectBaudrate(stored, triton::InterfaceGuidance::kGga | triton::InterfaceGuidance::kVtg);
+        if (found != triton::InterfaceGuidance::kNotFound && found != stored) {
+            gCalibration->SetGpsBaudIndex(found);
+            gCalibration->CommitGuidanceCalibration();
+        }
+    }
 
     // Print message to computer
     gSerialDebug->println("-------------------------------");
@@ -89,7 +112,7 @@ void setup() {
     gSerialDebug->println("-------------------------------");
 
     gTractor->PrintCalibrationData();
-    gGps->PrintCalibrationData();
+    gCalibration->PrintCalibrationData(gSerialDebug);
     gImplement->PrintCalibrationData();
 
     // Write message to screen
@@ -112,8 +135,10 @@ void setup() {
 // Main loop
 // ---------
 void loop() {
-    // Update CAN messages
+    // Pump both guidance channels: CAN frames through GHandleCanMessage(),
+    // and the receiver on the UART. Both commit into gGuidance.
     ACAN_T4::can1.dispatchReceivedMessage();
+    gGuidanceChannel->Update();
 
     // Update interface
     gInterface->Update();
@@ -174,5 +199,5 @@ static void GCanSetup() {
 }
 
 static void GHandleCanMessage(const CANMessage& inMessage) {
-    gGps->Update(inMessage.id, inMessage.data, inMessage.len);
+    gCanChannel->Update(inMessage.id, inMessage.data, inMessage.len);
 }

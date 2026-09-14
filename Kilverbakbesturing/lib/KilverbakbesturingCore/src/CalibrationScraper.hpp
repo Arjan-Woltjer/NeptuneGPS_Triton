@@ -26,8 +26,9 @@
 #include "ImplementScraper.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceScraper.hpp"
+#include "GuidanceSource.hpp"
 #include "LanguageScraper.hpp"
-#include "VehicleGps.hpp"
+#include "SerialGuidanceChannel.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton
@@ -41,17 +42,39 @@ namespace triton
 // triggers itself.
 class CalibrationScraper {
 public:
-    CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement,
-                        VehicleTractor* tractor, VehicleGps* gps, InterfaceScraper* interface);
+    // gpsChannel is pumped inside the wizard's wait-for-a-button loops so the
+    // reference points are taken from a live position, as the wizard did
+    // through VehicleGps::Update(). CAN frames are not dispatched while the
+    // wizard blocks, as before.
+    CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement, VehicleTractor* tractor,
+                        GuidanceSource* guidance, SerialGuidanceChannel* gpsChannel, InterfaceScraper* interface);
 
     void Calibrate();
+
+    // The one guidance value this board persists: the receiver rate index the
+    // boot autodetect (InterfaceGuidance) finds. GuidanceSource is a shared
+    // data model with no storage of its own (NeptuneGPS_Triton#78), so this
+    // class owns the byte, at the slot VehicleGps kept it. The scraper has no
+    // RTK quality menu, so byte 11 is left alone.
+    static constexpr int kEepromGpsBaudIndex = 10;
+
+    byte GetGpsBaudIndex() const   { return gpsBaudIndex; }
+    void SetGpsBaudIndex(byte idx) { gpsBaudIndex = idx % 8; }
+    void CommitGuidanceCalibration();
+
+    void PrintCalibrationData(Stream* serial);
 
 private:
     InterfaceI2CLCD*  lcd;
     ImplementScraper* implement;
-    VehicleTractor*   tractor;
-    VehicleGps*       gps;
-    InterfaceScraper* interface;
+    VehicleTractor*        tractor;
+    GuidanceSource*        guidance;
+    SerialGuidanceChannel* gpsChannel;
+    InterfaceScraper*      interface;
+
+    byte gpsBaudIndex = 0;   // 4800 x {1,2,3,4,6,8,12,24}; 0 until stored or detected
+
+    bool loadGuidanceCalibration();
 };
 
 }  // namespace triton

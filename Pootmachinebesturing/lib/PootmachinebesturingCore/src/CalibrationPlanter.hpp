@@ -26,8 +26,8 @@
 #include "ImplementPlanter.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlanter.hpp"
+#include "GuidanceSource.hpp"
 #include "LanguagePlanter.hpp"
-#include "VehicleGps.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton
@@ -41,17 +41,35 @@ namespace triton
 class CalibrationPlanter {
 public:
     CalibrationPlanter(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlanter* implement,
-                        VehicleTractor* tractor, VehicleGps* gps, InterfacePlanter* interface);
+                        VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlanter* interface);
 
     void Calibrate();
+
+    // The one guidance value this board persists: the receiver rate index the
+    // boot autodetect (InterfaceGuidance) finds. GuidanceSource is a shared
+    // data model with no storage of its own (NeptuneGPS_Triton#78), so this
+    // class owns the byte, at the slot VehicleGps kept it. The planter checks
+    // the raw fix quality against 4 directly and has no RTK quality menu, so
+    // byte 11 is left alone.
+    static constexpr int kEepromGpsBaudIndex = 10;
+
+    byte GetGpsBaudIndex() const   { return gpsBaudIndex; }
+    void SetGpsBaudIndex(byte idx) { gpsBaudIndex = idx % 8; }
+    void CommitGuidanceCalibration();
+
+    void PrintCalibrationData();
 
 private:
     Stream*            serialDebug;
     InterfaceI2CLCD*   lcd;
     ImplementPlanter*  implement;
     VehicleTractor*    tractor;
-    VehicleGps*        gps;
+    GuidanceSource*    guidance;
     InterfacePlanter*  interface;
+
+    byte gpsBaudIndex = 0;   // 4800 x {1,2,3,4,6,8,12,24}; 0 until stored or detected
+
+    bool loadGuidanceCalibration();
 };
 
 }  // namespace triton

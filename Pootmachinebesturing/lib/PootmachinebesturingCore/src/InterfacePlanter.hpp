@@ -20,7 +20,7 @@
 
 #include "InterfaceI2CLCD.hpp"
 #include "VehicleTractor.hpp"
-#include "VehicleGps.hpp"
+#include "GuidanceSource.hpp"
 
 #include "ConfigInterfacePlanter.hpp"
 #include "ImplementPlanter.hpp"
@@ -50,7 +50,7 @@ private:
     InterfaceI2CLCD* lcd;
     ImplementPlanter* implement;
     VehicleTractor*  tractor;
-    VehicleGps*      gps;
+    GuidanceSource*  guidance;
 
 public:
     // -----------------------------------------------------------
@@ -62,14 +62,13 @@ public:
                       InterfaceI2CLCD* lcd,
                       ImplementPlanter* implement,
                       VehicleTractor* tractor,
-                      VehicleGps* gps);
+                      GuidanceSource* guidance);
 
-    // GPS-less overload. Never called by src/main.cpp today (kept for API
-    // parity with the legacy library) -- Update() unconditionally calls
-    // gps->Update(), so this leaves `gps` at nullptr rather than the
-    // uninitialized-pointer read the legacy code had; using an instance
-    // built this way still requires wiring up a gps pointer before Update()
-    // is ever called.
+    // Guidance-less overload. Never called by src/main.cpp today (kept for
+    // API parity with the legacy library) -- Update() reads the guidance
+    // source unconditionally, so this leaves `guidance` at nullptr rather
+    // than the uninitialized-pointer read the legacy code had; an instance
+    // built this way must not have Update() called on it.
     InterfacePlanter(Stream* serialDebug,
                       InterfaceI2CLCD* lcd,
                       ImplementPlanter* implement,

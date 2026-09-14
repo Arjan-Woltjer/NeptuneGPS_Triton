@@ -28,7 +28,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
                                     InterfaceI2CLCD* lcd,
                                     ImplementPlanter* implement,
                                     VehicleTractor* tractor,
-                                    VehicleGps* gps) {
+                                    GuidanceSource* guidance) {
 #ifdef DEBUG
     serialDebug->println(S_DIVIDE);
     serialDebug->println("Initialising planter interface");
@@ -69,7 +69,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
     this->lcd = lcd;
     this->implement = implement;
     this->tractor = tractor;
-    this->gps = gps;
+    this->guidance = guidance;
 }
 
 InterfacePlanter::InterfacePlanter(Stream* serialDebug,
@@ -101,14 +101,14 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
     button1Timer = millis();
     button2Timer = millis();
 
-    // Connected classes. No gps supplied by this overload -- see the
-    // constructor-selection comment in InterfacePlanter.hpp; Update() still
-    // requires one before it can be called safely.
+    // Connected classes. No guidance source supplied by this overload -- see
+    // the constructor-selection comment in InterfacePlanter.hpp; Update()
+    // still requires one before it can be called safely.
     this->serialDebug = serialDebug;
     this->lcd = lcd;
     this->implement = implement;
     this->tractor = tractor;
-    this->gps = nullptr;
+    this->guidance = nullptr;
 
 #ifdef DEBUG
     serialDebug->println(S_DIVIDE);
@@ -126,10 +126,11 @@ void InterfacePlanter::Update() {
     // ===============
     CheckButtons(255, 0);
 
-    // =======================
-    // Process GPS and tractor
-    // =======================
-    gps->Update();
+    // ===============
+    // Process tractor
+    // ===============
+    // The receiver port and the CAN bus are pumped by main.cpp's loop();
+    // this class only reads what they committed to the GuidanceSource.
     tractor->Update(mode);
 
     // ====================
@@ -155,11 +156,11 @@ void InterfacePlanter::Update() {
     //-----
     // Hold
     //-----
-    else if (millis() - gps->GetGgaFixAge() > 2000 ||
-             millis() - gps->GetVtgFixAge() > 2000 ||
-             millis() - gps->GetXteFixAge() > 2000 ||
-             gps->GetQuality() != 4 ||
-             !gps->MinSpeed()) {
+    else if (millis() - guidance->GetGgaFixAge() > 2000 ||
+             millis() - guidance->GetVtgFixAge() > 2000 ||
+             millis() - guidance->GetXteTimestamp() > 2000 ||
+             guidance->GetQuality() != 4 ||
+             !guidance->MinSpeed()) {
         // set mode to hold
         mode = 1;
 
@@ -379,23 +380,23 @@ void InterfacePlanter::UpdateScreen(boolean rewrite) {
             break;
         case 1:  // HOLD
             lcd->WriteBuffer('H', 3, 14);
-            if (!gps->MinSpeed()) {
+            if (!guidance->MinSpeed()) {
                 lcd->WriteBuffer('S', 3, 17);
                 lcd->WriteBuffer('!', 3, 18);
             }
-            else if (gps->GetQuality() != 4) {
+            else if (guidance->GetQuality() != 4) {
                 lcd->WriteBuffer('Q', 3, 17);
                 lcd->WriteBuffer('!', 3, 18);
             }
             else {
                 lcd->WriteBuffer('G', 3, 17);
-                if (millis() - gps->GetGgaFixAge() > 2000) {
+                if (millis() - guidance->GetGgaFixAge() > 2000) {
                     lcd->WriteBuffer('G', 3, 18);
                 }
-                else if (millis() - gps->GetVtgFixAge() > 2000) {
+                else if (millis() - guidance->GetVtgFixAge() > 2000) {
                     lcd->WriteBuffer('V', 3, 18);
                 }
-                else if (millis() - gps->GetXteFixAge() > 2000) {
+                else if (millis() - guidance->GetXteTimestamp() > 2000) {
                     lcd->WriteBuffer('X', 3, 18);
                 }
                 else {
