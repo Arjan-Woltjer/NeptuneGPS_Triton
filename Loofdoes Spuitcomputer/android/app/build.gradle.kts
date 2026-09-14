@@ -36,12 +36,12 @@ val gitSha = System.getenv("GITHUB_SHA")?.take(7) ?: runCatching {
 }.getOrNull() ?: "unknown"
 
 android {
-    namespace = "com.meijworks.spraycomputerld"
+    namespace = "nl.meijworks.spraycomputerld"
     // Play requires new apps to target API 36 (Android 16) since 2026-08-31.
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.meijworks.spraycomputerld"
+        applicationId = "nl.meijworks.spraycomputerld"
         minSdk = 26
         targetSdk = 36
         versionCode = versionCodeFromEnv

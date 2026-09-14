@@ -10,7 +10,7 @@ app: same Kotlin + Jetpack Compose skeleton, same BLE client and foreground
 service pattern. Part of [NeptuneGPS_Triton#46](https://github.com/Arjan-Woltjer/NeptuneGPS_Triton/issues/46).
 
 ```
-app/src/main/java/com/meijworks/spraycomputerld/
+app/src/main/java/nl/meijworks/spraycomputerld/
   ble/SprayerBleClient.kt     scan, connect, MTU, notifications -> lines, command queue
   protocol/SprayerProtocol.kt the line protocol (RemoteSprayer.hpp on the board), unit-tested
   service/SprayerService.kt   foreground service: owns the link and the alarm
