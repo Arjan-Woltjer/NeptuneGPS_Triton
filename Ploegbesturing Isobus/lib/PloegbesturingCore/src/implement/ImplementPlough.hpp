@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "../guidance/GuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 #include "../config/ConfigImplementPlough.hpp"
 

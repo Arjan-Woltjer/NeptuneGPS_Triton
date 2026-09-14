@@ -27,7 +27,7 @@
 #include <AgIsoStack.hpp>
 
 #include "../implement/ImplementPlough.hpp"
-#include "../guidance/GuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 namespace triton
 {

@@ -26,7 +26,7 @@
 #include "../implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "../InterfacePlough.hpp"
-#include "../guidance/GuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 #include "../config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 
@@ -45,7 +45,20 @@ public:
 
     void Calibrate();
 
+    // The RTK quality the operator picked in the wizard is the one
+    // GuidanceSource value that persists. GuidanceSource is a shared data
+    // model with no storage of its own (NeptuneGPS_Triton#78), so this class
+    // owns its EEPROM byte: read into the source at construction, written
+    // back by the wizard's Save step. Byte 11 is the slot VehicleGps used for
+    // the same value, so a board coming from that firmware keeps its setting.
+    static constexpr int kEepromRtkQuality = 11;
+
+    void PrintCalibrationData();
+
 private:
+    bool loadGuidanceCalibration();
+    void commitGuidanceCalibration();
+
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;

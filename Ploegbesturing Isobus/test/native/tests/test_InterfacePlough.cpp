@@ -31,7 +31,7 @@ using namespace triton;
 // constructs fresh instances after resetAll() re-erases the fake EEPROM,
 // rather than sharing one static instance across tests.
 // ---------------------------------------------------------------------------
-static GuidanceSource       mockGuidance(nullptr);
+static GuidanceSource   mockGuidance;
 static VehicleTractor   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 

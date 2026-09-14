@@ -22,9 +22,9 @@ namespace triton
 {
 
 // Mirrors GuidanceSource.hpp's GPS_MS_PER_KNOT -- kept as a local constant
-// rather than pulled in via that header so this file stays free of the
-// GuidanceSource/EEPROM dependency chain. 1 knot = 0.51444444 m/s exactly;
-// both must stay numerically identical.
+// rather than pulled in via that header so this file stays a pure byte-math
+// unit with no dependency on the shared data model. 1 knot = 0.51444444 m/s
+// exactly; both must stay numerically identical.
 static constexpr float kMetersPerSecondPerKnot = 0.51444444f;
 
 // Shared plausibility guard for both position decoders. The legacy encoding

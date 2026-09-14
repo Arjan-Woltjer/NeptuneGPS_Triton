@@ -14,7 +14,7 @@ repository is a submodule.
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and CAN. |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
 | `Loofdoes Spuitcomputer` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `MeijWorks Libs` | — | Shared libraries (`VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. |
+| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), used by `Ploegbesturing Isobus`; the other projects still build against `VehicleGps` until #77, #79, #80 and #81 land. |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
 of `lib/PloegbesturingCore` — see
@@ -53,8 +53,10 @@ On Windows without GCC on `PATH`, `test/native/run_tests_msvc.ps1` builds the sa
 sources through MSVC instead.
 
 `MeijWorks Libs` has no test environment of its own.
-`MeijWorks Libs`' `VehicleGps` is covered from `Ploegbesturing Isobus`, whose
-native build compiles the real parser rather than a stub.
+`MeijWorks Libs`' `VehicleGuidance` is covered from `Ploegbesturing Isobus`, whose
+native build compiles the real `GuidanceSource`, sentence parsers and
+`SerialGuidanceChannel` rather than stubs (`test_GpsParsers.cpp`,
+`test_SerialGuidanceChannel.cpp`). `VehicleGps` has no native coverage.
 
 ## Static analysis
 
