@@ -1,0 +1,45 @@
+name: Spike 98 (throwaway) -- does the AgIsoStack core build with GCC on Linux
+
+# NeptuneGPS_Triton#98 phase 1. This workflow exists only to answer one
+# question CI can answer and a Windows workstation cannot: does the vendored
+# AgIsoStack core compile and run under the same GCC/Linux toolchain the
+# native-tests job uses? It builds nothing the repository ships and is deleted
+# with its branch once the answer is recorded on the issue.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  agisostack-native-gcc:
+    name: AgIsoStack core, g++ on ubuntu-latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # The same fork and tag Ploegbesturing Isobus pins in its lib_deps.
+      - name: Fetch the pinned AgIsoStack fork
+        run: git clone --depth 1 --branch 0.1.5-neptune1 https://github.com/Arjan-Woltjer/AgIsoStack-Arduino.git /tmp/agisostack
+
+      - name: Report toolchain and source count
+        run: |
+          g++ --version | head -1
+          ls /tmp/agisostack/src/*.cpp | grep -v flex_can_t4_plugin | wc -l
+
+      # Every src/*.cpp except the one Teensy-bound plugin, plus the spike.
+      # -D CAN_STACK_DISABLE_THREADS is what makes thread_synchronization.hpp
+      # no-op its mutexes off-target.
+      - name: Compile the core and the spike
+        run: |
+          SRC=$(ls /tmp/agisostack/src/*.cpp | grep -v flex_can_t4_plugin)
+          g++ -std=c++17 -O1 -Wall -DCAN_STACK_DISABLE_THREADS \
+              -I/tmp/agisostack/src \
+              $SRC spike/spike.cpp -o /tmp/spike98 2>&1 | tee /tmp/build.log
+          echo "--- warnings: $(grep -c 'warning:' /tmp/build.log || true)"
+
+      - name: Run it
+        run: /tmp/spike98
