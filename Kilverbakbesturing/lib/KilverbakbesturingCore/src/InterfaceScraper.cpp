@@ -104,7 +104,7 @@ void InterfaceScraper::Update() {
     // ----
     // Hold
     // ----
-    else if (millis() - guidance->GetGgaFixAge() > 2000 || millis() - guidance->GetVtgFixAge() > 2000) {
+    else if (millis() - guidance->GetGgaTimestamp() > 2000 || millis() - guidance->GetVtgTimestamp() > 2000) {
         // set mode to hold
         mode = 1;
 

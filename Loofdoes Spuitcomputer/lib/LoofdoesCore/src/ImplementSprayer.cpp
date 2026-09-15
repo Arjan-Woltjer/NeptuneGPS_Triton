@@ -124,7 +124,7 @@ void ImplementSprayer::updateInputs() {
 // trust is treated exactly like no fix, so every fail-closed path that
 // already handles stale guidance covers it without a second set of checks.
 bool ImplementSprayer::guidanceStale() const {
-    const unsigned long lastFix = guidance->GetVtgFixAge();
+    const unsigned long lastFix = guidance->GetVtgTimestamp();
     if (lastFix == 0) {
         return true;
     }

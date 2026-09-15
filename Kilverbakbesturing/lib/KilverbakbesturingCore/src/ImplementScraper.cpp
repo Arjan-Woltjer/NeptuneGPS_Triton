@@ -149,7 +149,7 @@ void ImplementScraper::Update(byte mode, int buttons) {
 
     // Update gps height, position, distance to refpoint and setpoint once
     // every GGA fix
-    if (guidance->GetGgaFixAge() - lastGgaFix > 0) {
+    if (guidance->GetGgaTimestamp() - lastGgaFix > 0) {
         // Update altitude and position
         height = altitudeCm();
         latitude  = guidance->GetLatitude();
@@ -160,7 +160,7 @@ void ImplementScraper::Update(byte mode, int buttons) {
         setSetpoint();
 
         // Register time of last GGA fix
-        lastGgaFix = guidance->GetGgaFixAge();
+        lastGgaFix = guidance->GetGgaTimestamp();
     }
 }
 
@@ -203,7 +203,7 @@ void ImplementScraper::Adjust(byte mode, int direction) {
         else {
             settime = 0;
         }
-        inputtime = millis() - guidance->GetGgaFixAge();
+        inputtime = millis() - guidance->GetGgaTimestamp();
     }
     else {
         setpoint = direction;

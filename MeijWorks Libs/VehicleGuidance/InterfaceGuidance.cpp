@@ -87,8 +87,8 @@ byte InterfaceGuidance::testRate(long baud, byte required) {
         channel->Update();
 
         const unsigned long now = millis();
-        const bool gga = (now - guidance->GetGgaFixAge()) < kFreshMs && guidance->GetGgaFixAge() != 0;
-        const bool vtg = (now - guidance->GetVtgFixAge()) < kFreshMs && guidance->GetVtgFixAge() != 0;
+        const bool gga = (now - guidance->GetGgaTimestamp()) < kFreshMs && guidance->GetGgaTimestamp() != 0;
+        const bool vtg = (now - guidance->GetVtgTimestamp()) < kFreshMs && guidance->GetVtgTimestamp() != 0;
         const bool xte = (now - guidance->GetXteTimestamp()) < kFreshMs && guidance->GetXteTimestamp() != 0;
 
         seen = 0;

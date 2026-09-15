@@ -69,7 +69,7 @@ test(CanFrameGuidanceChannel, legacy_position) {
     assertTrue(ch.Update(kIdLegacyPosition, d, 8));
     assertTrue(near(g.GetLatitude(), 52.0f, 1e-5f));
     assertTrue(near(g.GetLongitude(), 5.0f, 1e-5f));
-    assertEqual(g.GetGgaFixAge(), (unsigned long)1234);
+    assertEqual(g.GetGgaTimestamp(), (unsigned long)1234);
 }
 
 // $0CFEE81C,002D00020000804F -> course 90.0, speed 2.0 kt, altitude 44.0 m
@@ -82,7 +82,7 @@ test(CanFrameGuidanceChannel, legacy_speed_course_altitude) {
     assertTrue(near(g.GetCourse(), 90.0f));
     assertTrue(near(g.GetSpeed(), 2.0f));
     assertTrue(near(g.GetAltitude(), 44.0f));
-    assertEqual(g.GetVtgFixAge(), (unsigned long)50);
+    assertEqual(g.GetVtgTimestamp(), (unsigned long)50);
 }
 
 test(CanFrameGuidanceChannel, legacy_speed_not_available_is_skipped) {
@@ -146,7 +146,7 @@ test(CanFrameGuidanceChannel, short_frame_is_ignored) {
     CanFrameGuidanceChannel ch(&g);
     const uint8_t d[7] = { 0x00, 0x07, 0x2A, 0x9C, 0x80, 0x65, 0x26 };
     assertFalse(ch.Update(kIdLegacyPosition, d, 7));
-    assertEqual(g.GetGgaFixAge(), (unsigned long)0);
+    assertEqual(g.GetGgaTimestamp(), (unsigned long)0);
 }
 
 test(CanFrameGuidanceChannel, unrelated_pgn_is_ignored) {

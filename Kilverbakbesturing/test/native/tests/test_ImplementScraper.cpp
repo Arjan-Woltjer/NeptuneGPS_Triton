@@ -138,7 +138,7 @@ test(ImplementScraper, update_setpointTracksHeightDelta) {
     impl.Update(0, 0);
     assertEqual(impl.GetHeight(), (short int)250);
 
-    // Auto mode's inputtime = millis() - guidance->GetGgaFixAge() -- advance
+    // Auto mode's inputtime = millis() - guidance->GetGgaTimestamp() -- advance
     // millis() past the fix age first so this doesn't wrap negative (this
     // module's own Update() always runs after a real GGA fix has aged, so
     // millis() > fix age holds in practice; only an artifact of testing

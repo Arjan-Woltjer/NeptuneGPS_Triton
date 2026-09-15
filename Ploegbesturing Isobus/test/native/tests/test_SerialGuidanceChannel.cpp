@@ -143,7 +143,7 @@ test(SerialGuidanceChannel, bad_nmea_checksum_is_not_committed) {
     serial.Feed("$GPVTG,213.4,T,,M,002.91,N,005.39,K*62\r\n");   // should be *61
     assertFalse(ch.Update());
     assertTrue(near(g.GetSpeed(), 0.0f));
-    assertEqual(g.GetVtgFixAge(), (unsigned long)0);
+    assertEqual(g.GetVtgTimestamp(), (unsigned long)0);
 }
 
 test(SerialGuidanceChannel, can_over_serial_position) {

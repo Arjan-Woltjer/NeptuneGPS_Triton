@@ -69,16 +69,15 @@ public:
     // Getters
     // ------------------------------------------------------------
     inline int           GetXte()          { return xte; }
-    // Named Timestamp, not "FixAge" -- this returns the millis() value the
-    // fix was received at, not an elapsed age. Callers compute the age
-    // themselves (millis() - GetXteTimestamp()). Renamed 2026-08-09; the
-    // old name invited a future bug (see Triton_TC_Client_Design.md P5).
+    // Named Timestamp, not "FixAge" -- these return the millis() value the
+    // sentence was received at, not an elapsed age. Callers compute the age
+    // themselves (millis() - GetXteTimestamp()); 0 means never received.
+    // XTE renamed 2026-08-09, GGA and VTG followed 2026-09-15 when the
+    // library became shared; the old names invited a future bug (see
+    // Triton_TC_Client_Design.md P5).
     inline unsigned long GetXteTimestamp() { return lastXteFix; }
-    // Same convention as GetXteTimestamp() despite the names: absolute
-    // millis() values, kept as VehicleGps spelled them so migrating
-    // projects (NeptuneGPS_Triton#77, #79, #80, #81) compile unchanged.
-    inline unsigned long GetGgaFixAge()  { return lastGgaFix; }
-    inline unsigned long GetVtgFixAge()  { return lastVtgFix; }
+    inline unsigned long GetGgaTimestamp() { return lastGgaFix; }
+    inline unsigned long GetVtgTimestamp() { return lastVtgFix; }
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
     inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }

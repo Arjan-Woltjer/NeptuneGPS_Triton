@@ -466,7 +466,7 @@ void RemoteSprayer::sendNmea() {
 void RemoteSprayer::sendGps() {
     const float lat = impl->guidance->GetLatitude();
     const float lon = impl->guidance->GetLongitude();
-    const unsigned long fixAt = impl->guidance->GetGgaFixAge();
+    const unsigned long fixAt = impl->guidance->GetGgaTimestamp();
     const long ageMs = (fixAt == 0) ? -1L : (long)(millis() - fixAt);
 
     char line[kReplyLength];

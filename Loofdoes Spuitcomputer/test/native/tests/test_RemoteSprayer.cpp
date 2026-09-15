@@ -592,7 +592,7 @@ test(RemoteSprayer, vtgSentence_onThePort_drivesTheDose) {
     rSerial.Feed("$GPVTG,213.4,T,,M,002.91,N,005.39,K*61\r\n");   // 2.91 kt = 1.497 m/s
     rChannel.Update();
     assertNear(rGps.GetSpeedMs(), 1.497f, 0.001f);
-    assertEqual(rGps.GetVtgFixAge(), (unsigned long)1000);
+    assertEqual(rGps.GetVtgTimestamp(), (unsigned long)1000);
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) rImpl.Update();
     assertMore(rImpl.outputs[2].value, (unsigned int)0);
 
@@ -605,7 +605,7 @@ test(RemoteSprayer, vtgSentence_onThePort_drivesTheDose) {
     rSerial.Feed("$GPVTG,213.4,T,,M,009.99,N,005.39,K*61\r\n");
     rChannel.Update();
     assertNear(rGps.GetSpeedMs(), 1.497f, 0.001f);
-    assertEqual(rGps.GetVtgFixAge(), (unsigned long)1000);
+    assertEqual(rGps.GetVtgTimestamp(), (unsigned long)1000);
 }
 
 test(RemoteSprayer, nmea_offAfterDisconnect) {
