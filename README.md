@@ -63,6 +63,14 @@ native build compiles the real `GuidanceSource`, sentence parsers,
 `test_CanFrameGuidanceChannel.cpp`, `test_GuidanceGeometry.cpp`). `VehicleGps`
 has no native coverage.
 
+`Loofdoes Spuitcomputer` links the same library files and proves its own parser
+set with one sentence each (`test_GuidanceChannelSprayer.cpp`: NMEA, Trimble,
+CAN-serial and an NMEA2000 bridge line); the exhaustive per-decoder coverage of
+`IsobusPgnDecode` and `CanFrameGuidanceChannel` stays with the Isobus project, so
+those two read low in a Loofdoes-only coverage report by design. Its serial
+calibration wizard (`CalibrationSprayer`) is in the native build since #87;
+`BleSprayer` is not (NimBLE) and is verified on the bench checklist instead.
+
 ## Static analysis
 
 ```sh
