@@ -916,3 +916,31 @@ test(ImplementSprayer, releaseCalibration_cascadeRestartsWithItsDelays) {
     runUntil(5100, 1.0f);
     assertTrue(impl.outputs[2].state);
 }
+
+// ---------------------------------------------------------------------------
+// calculatePWMValues() branches the earlier scenarios never reached
+// (NeptuneGPS_Triton#87): standing still with a fresh fix, and a pump curve
+// with more than three points so the segment search walks past the first.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, standstill_withFreshFix_pumpOffAndActualUndefined) {
+    resetAll();
+    startSpraying(0.2f, 1024);              // below kStandstillSpeedMs, fix fresh
+    assertTrue(impl.outputs[2].state);      // the cascade did switch the pump on
+    assertEqual(impl.outputs[2].value, (unsigned int)0);  // but standing still it does not run
+    assertTrue(impl.actualLHA == ImplementSprayer::kActualDoseUndefined);
+}
+
+test(ImplementSprayer, fivePointPumpCurve_upperSegmentInterpolates) {
+    resetAll();
+    impl.pwmCalibrationPoints[0] = { 0,    0 };
+    impl.pwmCalibrationPoints[1] = { 500,  1000 };
+    impl.pwmCalibrationPoints[2] = { 1000, 2000 };
+    impl.pwmCalibrationPoints[3] = { 2000, 3000 };
+    impl.pwmCalibrationPoints[4] = { 4000, 4095 };
+    impl.numPwmCalibrationPoints = 5;
+    startSpraying(2.0f, 4095);              // top dose, brisk speed: high flow demand
+    assertTrue(impl.outputs[2].value > 2000u);
+    assertTrue(impl.outputs[2].value <= 4095u);
+    assertTrue(impl.actualLHA > 0.0f);
+}
