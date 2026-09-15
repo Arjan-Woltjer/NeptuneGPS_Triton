@@ -18,6 +18,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Standard headers first: the Arduino stub behind AUnit.h defines min/max as
+// macros, and GCC's <string> uses std::min/max with three arguments.
+#include <string>
+
 #include <AUnit.h>
 #include "ImplementPlough.hpp"
 
@@ -357,4 +361,84 @@ test(ImplementPlough, corruptEepromPositionData_fallsBackToDefaults) {
     reference.Update(2, 0);
 
     assertEqual(fromCorrupt, reference.GetPosition());
+}
+
+// ---------------------------------------------------------------------------
+// EEPROM persistence (NeptuneGPS_Triton#89): the write/read round trip, the
+// range checks on every stored byte, and the serial dump.
+// ---------------------------------------------------------------------------
+
+struct PloughCaptureStream : public Stream {
+    std::string out;
+    size_t write(uint8_t c) override { out.push_back((char)c); return 1; }
+    bool has(const char* s) const { return out.find(s) != std::string::npos; }
+};
+
+test(ImplementPlough, resetCalibration_erasedEeprom_reportsNoData) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    assertFalse(impl.ResetCalibration());
+    assertEqual((int)impl.GetShares(), 4);
+    assertEqual((int)impl.GetError(), 2);
+    assertEqual(impl.GetMaxCorrection(), (short int)50);
+    assertFalse(impl.GetSide());
+}
+
+test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    analogReadValue(POSITION_SENS_PIN_2, 700); impl.SetPositionCalibrationData(0);
+    analogReadValue(POSITION_SENS_PIN_2, 500); impl.SetPositionCalibrationData(1);
+    analogReadValue(POSITION_SENS_PIN_2, 300); impl.SetPositionCalibrationData(2);
+    impl.SetShares(6);
+    impl.SetError(7);
+    impl.SetMaxCorrection(5);
+    impl.SetSwap(true);
+    impl.CommitCalibration();
+
+    PloughCaptureStream dbg;
+    ImplementPlough fresh(&dbg, &mockGuidance);
+    assertTrue(fresh.ResetCalibration());
+    assertEqual((int)fresh.GetShares(), 6);
+    assertEqual((int)fresh.GetError(), 7);
+    assertEqual(fresh.GetMaxCorrection(), (short int)5);
+    assertTrue(fresh.GetSide());                 // swap=1 with the side pin low
+
+    fresh.PrintCalibrationData();
+    assertTrue(dbg.has("Offset calibration data\n700, 34\n500, 42\n300, 50\n"));
+    assertTrue(dbg.has("Number of shares\n6\n"));
+    assertTrue(dbg.has("error margin\n7\n"));
+    assertTrue(dbg.has("error ploughside\n1\n"));
+    assertTrue(dbg.has("Maximum correction\n5\n"));
+}
+
+test(ImplementPlough, outOfRangeStoredBytes_fallBackToDefaults) {
+    resetAll();
+    // Valid, distinct position data so the block counts as present ...
+    EEPROM.write(40, 0x02); EEPROM.write(41, 0xBC);   // 700
+    EEPROM.write(42, 0x01); EEPROM.write(43, 0xF4);   // 500
+    EEPROM.write(44, 0x01); EEPROM.write(45, 0x2C);   // 300
+    // ... and every scalar out of its accepted range.
+    EEPROM.write(58, 200);   // error margin >= 10
+    EEPROM.write(60, 200);   // max correction >= 10
+    EEPROM.write(62, 9);     // swap not 0/1
+    EEPROM.write(64, 99);    // shares >= 10
+    ImplementPlough impl(nullptr, &mockGuidance);
+    assertEqual((int)impl.GetError(), 2);
+    assertEqual(impl.GetMaxCorrection(), (short int)50);
+    assertEqual((int)impl.GetShares(), 4);
+    assertFalse(impl.GetSide());
+}
+
+test(ImplementPlough, printCalibrationData_onErasedEeprom_printsTheDefaults) {
+    resetAll();
+    PloughCaptureStream dbg;
+    ImplementPlough impl(&dbg, &mockGuidance);
+    impl.PrintCalibrationData();
+    assertTrue(dbg.has("Times started\n255\n"));
+    assertTrue(dbg.has("Offset calibration data\n600, 34\n461, 42\n308, 50\n"));
+    assertTrue(dbg.has("Number of shares\n4\n"));
+    assertTrue(dbg.has("error margin\n2\n"));
+    assertTrue(dbg.has("error ploughside\n0\n"));
+    assertTrue(dbg.has("Maximum correction\n50\n"));
 }
