@@ -18,6 +18,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Standard headers first: the Arduino stub behind AUnit.h defines min/max as
+// macros, and GCC's <string> uses std::min/max with three arguments.
+#include <string>
+
 #include <AUnit.h>
 #include "implement/ImplementPlough.hpp"
 
@@ -364,7 +368,6 @@ test(ImplementPlough, corruptEepromPositionData_fallsBackToDefaults) {
 // range checks on every stored byte, and the serial dump.
 // ---------------------------------------------------------------------------
 
-#include <string>
 struct PloughCaptureStream : public Stream {
     std::string out;
     size_t write(uint8_t c) override { out.push_back((char)c); return 1; }
