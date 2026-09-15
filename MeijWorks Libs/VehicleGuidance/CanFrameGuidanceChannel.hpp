@@ -51,6 +51,12 @@ public:
     // as it likes.
     bool Update(uint32_t id, const uint8_t* data, uint8_t length);
 
+    // The same decode and commit rules as Update(), for a caller that holds
+    // a frame but no channel: CanSerialParser hands the NMEA2000 lines a
+    // CAN-to-serial bridge forwards through here, so a bridged bus and a
+    // directly read bus commit identical values to the source.
+    static bool Decode(uint32_t id, const uint8_t* data, uint8_t length, GuidanceSource* guidance);
+
     // SAE J1939 / ISO 11783 identifier fields. PGN keeps the data page bit
     // and, for PDU2 (PF >= 240), the PS byte; for PDU1 the PS byte is a
     // destination address and is not part of the PGN.

@@ -54,7 +54,11 @@ bool GApply(const XteResult& r, GuidanceSource* g) {
 }  // namespace
 
 bool CanFrameGuidanceChannel::Update(uint32_t id, const uint8_t* data, uint8_t length) {
-    if (data == nullptr) return false;
+    return Decode(id, data, length, guidance);
+}
+
+bool CanFrameGuidanceChannel::Decode(uint32_t id, const uint8_t* data, uint8_t length, GuidanceSource* guidance) {
+    if (data == nullptr || guidance == nullptr) return false;
 
     const uint32_t pgn = PgnFromId(id);
     const uint8_t  sa  = SourceAddressFromId(id);
