@@ -18,7 +18,9 @@
 */
 #pragma once
 
-#ifdef ARDUINO
+// Built for the board and for the native test binary (EPOXY_DUINO, where
+// Arduino.h is the test stub); excluded from any other host build.
+#if defined(ARDUINO) || defined(EPOXY_DUINO)
 
 #include <Arduino.h>
 #include <EEPROM.h>
@@ -78,4 +80,4 @@ private:
 
 }  // namespace triton
 
-#endif  // ARDUINO
+#endif  // ARDUINO || EPOXY_DUINO
