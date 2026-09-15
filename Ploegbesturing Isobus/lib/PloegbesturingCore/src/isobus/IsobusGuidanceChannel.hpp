@@ -18,18 +18,35 @@
 */
 #pragma once
 
-// ARDUINO: excluded from [env:native] (matches CalibrationPlough's exclusion --
-// this is a hardware/protocol adapter, not pure logic worth native testing).
 // ISOBUS: PlatformIO's LDF compiles every .cpp under a library folder it's
 // pulled in at all, regardless of which #ifdef branch main.cpp's own
 // #include takes -- so on teensy41_serial (no ISOBUS, no AgIsoStack lib_dep
 // installed) this header must itself become empty, not just conditionally
-// unused, or IsobusGuidanceChannel.cpp's #include <AgIsoStack.hpp> below
-// fails to resolve.
-#if defined(ARDUINO) && defined(ISOBUS)
+// unused, or the AgIsoStack includes below fail to resolve.
+//
+// EPOXY_DUINO admits it to [env:native]. This header used to say the class
+// was "a hardware/protocol adapter, not pure logic worth native testing":
+// that was true only while AgIsoStack could not be built off-target. It can
+// (NeptuneGPS_Triton#98), so the commit rules and the per-PGN counters -- the
+// half of this class that is not the stack -- are tested there now.
+#if (defined(ARDUINO) || defined(EPOXY_DUINO)) && defined(ISOBUS)
 
 #include <Arduino.h>
-#include <AgIsoStack.hpp>
+
+// Specific headers rather than <AgIsoStack.hpp>: that umbrella pulls in the
+// Teensy-only FlexCAN files. Arduino.h above defines min()/max() as macros,
+// which mangle the three-argument std::min/std::max these headers reach
+// through the STL, so they are parked around the include and restored after
+// -- the same sandwich GuidanceGeometry.hpp puts around its <math.h>.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
+#include <can_hardware_plugin.hpp>
+#include <can_internal_control_function.hpp>
+#include <can_message.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
@@ -111,6 +128,14 @@ public:
     inline void            ResetMessageCounters()      { counters = MessageCounters(); }
 
 private:
+    // The native suite drives the eight PGN callbacks below directly, with a
+    // CANMessage it builds itself. Routing a frame through the network
+    // manager instead would make every test wait on the stack's own
+    // std::chrono timers for an address claim; these callbacks are bytes in,
+    // GuidanceSource and counters out (NeptuneGPS_Triton#98). Declared here,
+    // defined only in the test build.
+    friend struct IsobusGuidanceChannelTestAccess;
+
     Stream*          serialDebug;
     GuidanceSource*  guidance;
     ImplementPlough* implement;

@@ -83,6 +83,7 @@ $clArgs = @(
     $commonFlags
     "/Fo`"$out\\`""
     "`"$lib\isobus\IsobusTcInterface.cpp`""
+    "`"$lib\isobus\IsobusGuidanceChannel.cpp`""
     $agisostackSources
     "`"$implement\ImplementPlough.cpp`""
     "`"$lib\InterfacePlough.cpp`""
