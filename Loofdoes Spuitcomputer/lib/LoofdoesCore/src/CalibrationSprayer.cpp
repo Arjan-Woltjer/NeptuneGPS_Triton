@@ -16,7 +16,7 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifdef ARDUINO
+#if defined(ARDUINO) || defined(EPOXY_DUINO)
 
 #include "CalibrationSprayer.hpp"
 #include <stdlib.h>
@@ -604,4 +604,4 @@ bool CalibrationSprayer::parseInt(int* out) {
 
 }  // namespace triton
 
-#endif  // ARDUINO
+#endif  // ARDUINO || EPOXY_DUINO
