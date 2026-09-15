@@ -18,16 +18,31 @@
 */
 #pragma once
 
-// See IsobusGuidanceChannel.hpp's matching comment: ARDUINO excludes this
-// from [env:native]; ISOBUS is required too so this header (and its
-// #include <AgIsoStack.hpp>) becomes entirely empty on teensy41_serial,
-// where AgIsoStack isn't installed as a lib_dep -- PlatformIO's LDF compiles
-// every .cpp under a pulled-in library folder regardless of which #ifdef
-// branch main.cpp's own #include takes.
-#if defined(ARDUINO) && defined(ISOBUS)
+// See IsobusGuidanceChannel.hpp's matching comment: ISOBUS is required so this
+// header becomes entirely empty on teensy41_serial, where AgIsoStack isn't
+// installed as a lib_dep -- PlatformIO's LDF compiles every .cpp under a
+// pulled-in library folder regardless of which #ifdef branch main.cpp's own
+// #include takes. EPOXY_DUINO admits it to [env:native] (#98).
+#if (defined(ARDUINO) || defined(EPOXY_DUINO)) && defined(ISOBUS)
 
 #include <Arduino.h>
-#include <AgIsoStack.hpp>
+
+// Specific headers rather than <AgIsoStack.hpp>, which pulls in the
+// Teensy-only FlexCAN files; the min()/max() macros Arduino.h defines are
+// parked around them, as in IsobusTcInterface.hpp.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
+#include <can_internal_control_function.hpp>
+#include <can_message.hpp>
+#include <can_partnered_control_function.hpp>
+#include <can_stack_logger.hpp>
+#include <event_dispatcher.hpp>
+#include <isobus_diagnostic_protocol.hpp>
+#include <isobus_virtual_terminal_client.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
@@ -150,6 +165,13 @@ public:
     }
 
 private:
+    // The native suite drives the VT-to-ECU callback, the key handler and the
+    // reconnect watchdog directly, and sets the connection history the
+    // watchdog keys off: a real VT server is the one thing a host test cannot
+    // stand up (NeptuneGPS_Triton#98). Declared here, defined only in the
+    // test build.
+    friend struct IsobusVtInterfaceTestAccess;
+
     class Logger : public isobus::CANStackLogger {
     public:
         void sink_CAN_stack_log(isobus::CANStackLogger::LoggingLevel level, const std::string& text) override;

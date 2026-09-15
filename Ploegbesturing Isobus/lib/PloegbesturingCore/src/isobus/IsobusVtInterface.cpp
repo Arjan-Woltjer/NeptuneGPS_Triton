@@ -24,6 +24,17 @@
 // file in on teensy41_serial anyway.
 #ifdef ISOBUS
 
+// Specific headers for what the body uses beyond the class declaration; see
+// the header for why the umbrella is avoided and the macros parked.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
+#include <can_NAME_filter.hpp>
+#include <can_network_manager.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
+
 #include "VTObjectPool.hpp"
 
 using namespace isobus;
