@@ -10,3 +10,9 @@
 .cxx/
 *.apk
 *.aab
+
+# Release signing: the upload key and its passwords never enter the repository.
+keystore.properties
+*.jks
+*.keystore
+!debug.keystore

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Loofdoes"
+rootProject.name = "SprayComputerLD"
 include(":app")

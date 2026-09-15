@@ -26,12 +26,12 @@
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
     <application
-        android:name=".LoofdoesApp"
+        android:name=".SprayComputerApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Loofdoes">
+        android:theme="@style/Theme.SprayComputer">
 
         <activity
             android:name=".MainActivity"
