@@ -183,3 +183,124 @@ test(InterfaceScraper, update_staleVtgFix_selectsHold) {
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
+
+// ---------------------------------------------------------------------------
+// UpdateScreen(rewrite) per mode, the joystick inputs and the remaining
+// CheckButtons() branches (NeptuneGPS_Triton#91). The LCD stub records
+// nothing, so these pin the mode and button state each screen is drawn for
+// and prove the draw paths run.
+// ---------------------------------------------------------------------------
+
+test(InterfaceScraper, updateScreen_rewrite_autoMode) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    mockGuidance.NoteGgaFixReceived();
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 0);
+    iface.UpdateScreen(true);
+    iface.UpdateScreen(false);
+}
+
+test(InterfaceScraper, updateScreen_rewrite_holdMode_movingAndStandingStill) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    millisValue(3000);                          // both fixes stale: HOLD
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 1);
+    iface.UpdateScreen(true);                   // MinSpeed() true: the "still moving" hint
+    mockGuidance.SetSpeedKnots(0.1f);
+    iface.UpdateScreen(true);                   // standing still
+}
+
+test(InterfaceScraper, updateScreen_rewrite_manualMode_eachButtonState) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    digitalReadValue(MODE_PIN_5, false);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 2);
+    digitalReadValue(LEFT_BUTTON_5, true);
+    assertEqual(iface.CheckButtons(0, 0), -1);
+    iface.UpdateScreen(true);
+    digitalReadValue(LEFT_BUTTON_5, false);
+    digitalReadValue(RIGHT_BUTTON_5, true);
+    assertEqual(iface.CheckButtons(0, 0), 1);
+    iface.UpdateScreen(true);
+    digitalReadValue(RIGHT_BUTTON_5, false);
+    assertEqual(iface.CheckButtons(0, 0), 0);
+    iface.UpdateScreen(true);
+}
+
+test(InterfaceScraper, joystick_leftAndRight_actLikeTheButtons) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    digitalReadValue(JOY_LEFT_5, true);
+    assertEqual(iface.CheckButtons(0, 0), -1);
+    digitalReadValue(JOY_LEFT_5, false);
+    digitalReadValue(JOY_RIGHT_5, true);
+    assertEqual(iface.CheckButtons(0, 0), 1);
+    digitalReadValue(JOY_RIGHT_5, false);
+    assertEqual(iface.CheckButtons(0, 0), 0);
+}
+
+test(InterfaceScraper, checkButtons_rightHeld_withDelay_waitsForDebounce) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    digitalReadValue(RIGHT_BUTTON_5, true);
+    millisValue(10);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    millisValue(60);
+    assertEqual(iface.CheckButtons(0, 50), 1);
+}
+
+test(InterfaceScraper, checkButtons_bothHeld_withDelay_thenReleased_returnsZero) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    digitalReadValue(LEFT_BUTTON_5, true);
+    digitalReadValue(RIGHT_BUTTON_5, true);
+    millisValue(5);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    millisValue(50);
+    assertEqual(iface.CheckButtons(10, 0), 2);
+    digitalReadValue(LEFT_BUTTON_5, false);
+    digitalReadValue(RIGHT_BUTTON_5, false);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+}
+
+// The screen renders reference height, height, distance and slope digit by
+// digit with separate branches for the sign and for five-digit values.
+// Drive them with a high reference, a deep negative one and a far B point.
+test(InterfaceScraper, updateScreen_rendersLargeAndNegativeValues) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    impl.SetSlope(-12);
+    mockGuidance.SetPosition(52.0f, 5.0f);
+    mockGuidance.SetAltitude(150.0f);              // 15000 cm: five digits
+    mockGuidance.NoteGgaFixReceived();
+    impl.SetRefA();
+    mockGuidance.SetPosition(52.02f, 5.0f);        // ~2.2 km north
+    mockGuidance.SetAltitude(-150.0f);
+    mockGuidance.NoteGgaFixReceived();
+    impl.SetRefB();
+    millisValue(1);
+    mockGuidance.SetPosition(52.019f, 5.001f);
+    mockGuidance.SetAltitude(-140.0f);
+    mockGuidance.NoteGgaFixReceived();
+    iface.Update();
+    iface.UpdateScreen(true);
+    millisValue(2);
+    mockGuidance.SetPosition(52.001f, 4.999f);
+    mockGuidance.SetAltitude(140.0f);
+    mockGuidance.NoteGgaFixReceived();
+    iface.Update();
+    iface.UpdateScreen(true);
+    assertEqual(impl.GetSlope(), (short int)-12);
+}

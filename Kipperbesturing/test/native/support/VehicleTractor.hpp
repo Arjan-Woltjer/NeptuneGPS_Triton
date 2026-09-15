@@ -20,4 +20,9 @@ class VehicleTractor {
 
     bool  minSpeedFlag;
     float speedKmh;
+    // The calibration wizard (CalibrationKipper, in the native build since
+    // NeptuneGPS_Triton#92) commits the tractor block; nothing here is asserted
+    // on, the wizard is never run.
+    bool ResetCalibration() { return false; }
+    void CommitCalibration() {}
 };

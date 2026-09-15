@@ -43,6 +43,11 @@ jobs:
           - 'Pootmachinebesturing'
           - 'Kilverbakbesturing'
           - 'Motorcontroller'
+          # The three below had suites and MSVC scripts but sat only in the
+          # cppcheck matrix until NeptuneGPS_Triton#86 (2026-09-15).
+          - 'Kipperbesturing'
+          - 'Rooierbesturing'
+          - 'Slangenpomp Spuitcomputer'
     steps:
       # Motorcontroller/lib/SteeringActuator is a submodule of the private
       # Arjan-Woltjer/SteeringActuator repo -- the default GITHUB_TOKEN below only has
@@ -111,6 +116,12 @@ jobs:
             env: teensy41
           - project: 'Motorcontroller'
             env: seeed_xiao
+          - project: 'Kipperbesturing'
+            env: teensy41
+          - project: 'Rooierbesturing'
+            env: teensy41
+          - project: 'Slangenpomp Spuitcomputer'
+            env: teensy41
     steps:
       # See the native-tests job above for why this is needed: Motorcontroller/lib/
       # SteeringActuator is a submodule of a private repo the default GITHUB_TOKEN can't
