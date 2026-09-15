@@ -279,3 +279,106 @@ test(ImplementRooier, adjust_autoMode_longUnchangedDrive_latchesShutoff) {
     // Spuitcomputer's equivalent tests).
     millisValue(0);
 }
+
+// ---------------------------------------------------------------------------
+// EEPROM persistence (NeptuneGPS_Triton#93): the write/read round trip, the
+// range checks, the sign loss on skew and offset (#100), Stop() and the dump.
+// ---------------------------------------------------------------------------
+
+test(ImplementRooier, resetCalibration_erasedEeprom_reportsNoData) {
+    resetAll();
+    ImplementRooier impl;
+    assertFalse(impl.ResetCalibration());
+    assertEqual((int)impl.GetError(), 2);
+    assertEqual(impl.GetSkew(), 0);
+    assertEqual(impl.GetOffset(), 0);
+}
+
+test(ImplementRooier, commitThenFreshInstance_roundTripsEveryField) {
+    resetAll();
+    ImplementRooier impl;
+    analogReadValue(HEIGHT_SENS_PIN_L_8, 0);    impl.SetPositionCalibrationDataL(0);
+    analogReadValue(HEIGHT_SENS_PIN_L_8, 500);  impl.SetPositionCalibrationDataL(1);
+    analogReadValue(HEIGHT_SENS_PIN_L_8, 1000); impl.SetPositionCalibrationDataL(2);
+    analogReadValue(HEIGHT_SENS_PIN_R_8, 100);  impl.SetPositionCalibrationDataR(0);
+    analogReadValue(HEIGHT_SENS_PIN_R_8, 550);  impl.SetPositionCalibrationDataR(1);
+    analogReadValue(HEIGHT_SENS_PIN_R_8, 1000); impl.SetPositionCalibrationDataR(2);
+    impl.SetKP(12); impl.SetKI(3); impl.SetKD(4);
+    impl.SetPwmMan(120); impl.SetPwmAuto(200);
+    impl.SetError(7);
+    impl.SetSkew(9);
+    impl.SetOffset(11);
+    impl.CommitCalibration();
+
+    ImplementRooier fresh;
+    assertTrue(fresh.ResetCalibration());
+    assertEqual((int)fresh.GetKP(), 12);
+    assertEqual((int)fresh.GetKI(), 3);
+    assertEqual((int)fresh.GetKD(), 4);
+    assertEqual((int)fresh.GetPwmMan(), 120);
+    assertEqual((int)fresh.GetPwmAuto(), 200);
+    assertEqual((int)fresh.GetError(), 7);
+    assertEqual(fresh.GetSkew(), 9);
+    assertEqual(fresh.GetOffset(), 11);
+
+    // The persisted curves are what the interpolation runs on.
+    analogReadValue(HEIGHT_SENS_PIN_L_8, 1000);
+    analogReadValue(HEIGHT_SENS_PIN_R_8, 550);
+    millisValue(25);
+    fresh.Update(0, 0);
+    assertEqual(fresh.GetHeightL(), 100 + fresh.GetSkew());   // the skew rides on the left height
+    assertEqual(fresh.GetHeightR(), 50 - fresh.GetSkew());    // and is taken off the right
+}
+
+test(ImplementRooier, outOfRangeStoredBytes_fallBackToDefaults) {
+    resetAll();
+    ImplementRooier seed;
+    seed.CommitCalibration();                       // block present
+    EEPROM.write(217, 200);                         // error margin > 10
+    EEPROM.write(218, 0x01); EEPROM.write(219, 0xF4);   // skew 500, beyond +-30
+    EEPROM.write(220, 0);                           // setpoint outside 1..99
+    EEPROM.write(221, 0x00); EEPROM.write(222, 100);    // offset 100, beyond +-30
+    ImplementRooier impl;
+    assertEqual((int)impl.GetError(), 2);
+    assertEqual(impl.GetSkew(), 0);
+    assertEqual(impl.GetSetpoint(), 50);
+    assertEqual(impl.GetOffset(), 0);
+}
+
+// readCalibrationData() rebuilds skew and offset with word(), which is
+// unsigned: a stored -7 comes back as 65529, fails the +-30 window and is
+// reset to 0. Pinned as the current behaviour, not the intended one:
+// NeptuneGPS_Triton#100 (this project has it on two fields).
+test(ImplementRooier, storedSkewAndOffset_negative_areLostAcrossReboot) {
+    resetAll();
+    ImplementRooier seed;
+    seed.SetSkew(-7);
+    seed.SetOffset(-9);
+    seed.CommitCalibration();
+    assertEqual((int)EEPROM.read(218), 0xFF);
+    assertEqual((int)EEPROM.read(221), 0xFF);
+    ImplementRooier impl;
+    assertEqual(impl.GetSkew(), 0);     // would be -7 once the sign is preserved
+    assertEqual(impl.GetOffset(), 0);   // would be -9
+}
+
+test(ImplementRooier, stop_afterDriving_leavesBothSidesIdle) {
+    resetAll();
+    ImplementRooier impl;
+    analogReadValue(HEIGHT_SENS_PIN_L_8, 0);
+    analogReadValue(HEIGHT_SENS_PIN_R_8, 0);
+    millisValue(25);
+    impl.Update(2, 0);
+    impl.Adjust(2, 1);                              // manual: drive up
+    impl.Stop();
+    impl.Adjust(2, -1);                             // and down
+    impl.Stop();
+    assertEqual(impl.GetOffset(), 0);
+}
+
+test(ImplementRooier, printCalibrationData_runs) {
+    resetAll();
+    ImplementRooier impl;
+    impl.PrintCalibrationData();                    // writes to Serial (stdout in the stub)
+    assertEqual((int)impl.GetError(), 2);
+}
