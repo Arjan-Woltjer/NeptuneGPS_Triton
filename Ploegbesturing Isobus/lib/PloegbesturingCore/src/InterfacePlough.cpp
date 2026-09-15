@@ -99,8 +99,8 @@ void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed, bool v
     // ----
     // Hold
     // ----
-    else if (millis() - guidance->GetGgaFixAge() > 2000 ||
-             millis() - guidance->GetVtgFixAge() > 2000 ||
+    else if (millis() - guidance->GetGgaTimestamp() > 2000 ||
+             millis() - guidance->GetVtgTimestamp() > 2000 ||
              millis() - guidance->GetXteTimestamp() > 2000 ||
              !guidance->IsRtkQuality() ||
              !guidance->MinSpeed()
@@ -344,7 +344,7 @@ void InterfacePlough::UpdateScreen(bool rewrite) {
             break;
         case 1: // HOLD
             lcd->WriteBuffer('H', 3, 14);
-            if (!guidance->MinSpeed() && millis() - guidance->GetVtgFixAge() < 2000) {
+            if (!guidance->MinSpeed() && millis() - guidance->GetVtgTimestamp() < 2000) {
                 lcd->WriteBuffer('S', 3, 17);
                 lcd->WriteBuffer('!', 3, 18);
             }

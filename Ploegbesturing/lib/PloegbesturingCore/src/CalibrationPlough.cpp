@@ -22,8 +22,46 @@ namespace triton
 {
 
 CalibrationPlough::CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                                      VehicleTractor* tractor, VehicleGps* gps, InterfacePlough* interface)
-    : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), gps(gps), interface(interface) {
+                                      VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface)
+    : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), interface(interface) {
+    loadGuidanceCalibration();
+}
+
+// Returns true when at least one stored value was found. An erased byte
+// (255) leaves the default: rate index 0, and GuidanceSource's own RTK
+// fixed (4). SetRtkQuality() clamps anything that is not 4 or 2 back to 4,
+// so a stale or corrupt byte cannot leak through.
+bool CalibrationPlough::loadGuidanceCalibration() {
+    bool found = false;
+    const byte storedBaud = EEPROM.read(kEepromGpsBaudIndex);
+    if (storedBaud != 255) {
+        SetGpsBaudIndex(storedBaud);
+        found = true;
+    }
+    const byte storedRtk = EEPROM.read(kEepromRtkQuality);
+    if (storedRtk != 255) {
+        guidance->SetRtkQuality(storedRtk);
+        found = true;
+    }
+    return found;
+}
+
+void CalibrationPlough::CommitGuidanceCalibration() {
+    EEPROM.write(kEepromGpsBaudIndex, gpsBaudIndex);
+    EEPROM.write(kEepromRtkQuality, guidance->GetRtkQuality());
+}
+
+void CalibrationPlough::PrintCalibrationData() {
+    static const byte rates[8] = { 1, 2, 3, 4, 6, 8, 12, 24 };
+    serialDebug->println("=====================================");
+    serialDebug->println("Guidance source using following data:");
+    serialDebug->println("=====================================");
+    serialDebug->println("Baudrate");
+    serialDebug->println(rates[gpsBaudIndex % 8] * long(4800));
+    serialDebug->println("-------------------------------");
+    serialDebug->println("RTK Quality");
+    serialDebug->println(guidance->GetRtkQuality());
+    serialDebug->println("-------------------------------");
 }
 
 // --------------------------------
@@ -807,7 +845,7 @@ void CalibrationPlough::Calibrate() {
 
             lcd->WriteScreen(-1);
 
-            temp = gps->GetRtkQuality();
+            temp = guidance->GetRtkQuality();
 
             while (true) {
                 lcd->WriteScreen(1);
@@ -815,11 +853,11 @@ void CalibrationPlough::Calibrate() {
 
                 if (interface->GetButtons() == 1) {
                     temp = 4;
-                    gps->SetRtkQuality(4);
+                    guidance->SetRtkQuality(4);
                 }
                 else if (interface->GetButtons() == -1) {
                     temp = 2;
-                    gps->SetRtkQuality(2);
+                    guidance->SetRtkQuality(2);
                 }
                 else if (interface->GetButtons() == 2) {
                     break;
@@ -1027,7 +1065,7 @@ void CalibrationPlough::Calibrate() {
             // Commit data
             implement->CommitCalibration();
             tractor->CommitCalibration();
-            gps->CommitCalibration();
+            CommitGuidanceCalibration();
 
             // Print message to LCD
             lcd->WriteBuffer(L2_CAL_DDONE, 1);

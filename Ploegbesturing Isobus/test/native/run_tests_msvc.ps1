@@ -7,10 +7,9 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PloegbesturingCore\src"
-$serial  = "$root\lib\PloegbesturingCore\src\serial"
+$guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
 $config  = "$root\lib\PloegbesturingCore\src\config"
 $implement = "$root\lib\PloegbesturingCore\src\implement"
-$isobus  = "$root\lib\PloegbesturingCore\src\isobus"
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PloegbesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -56,7 +55,7 @@ $aunitSources = @(
 # SalaciaFirmwareCore convention), and $lib is only for the test_*.cpp files
 # below reaching in via library-root-relative paths ("implement/
 # ImplementPlough.hpp" etc.).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches
@@ -67,7 +66,7 @@ Write-Host "=== Building PloegbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$serial\NmeaParser.cpp`" `"$serial\TrimbleParser.cpp`" `"$serial\CanSerialParser.cpp`" `"$isobus\IsobusPgnDecode.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

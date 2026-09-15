@@ -40,6 +40,8 @@ jobs:
           - 'Loofdoes Spuitcomputer'
           - 'Ploegbesturing'
           - 'Ploegbesturing Isobus'
+          - 'Pootmachinebesturing'
+          - 'Kilverbakbesturing'
           - 'Motorcontroller'
     steps:
       # Motorcontroller/lib/SteeringActuator is a submodule of the private
@@ -103,6 +105,10 @@ jobs:
             env: teensy41_isobus
           - project: 'Ploegbesturing Isobus'
             env: teensy41_serial
+          - project: 'Pootmachinebesturing'
+            env: teensy41
+          - project: 'Kilverbakbesturing'
+            env: teensy41
           - project: 'Motorcontroller'
             env: seeed_xiao
     steps:

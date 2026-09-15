@@ -22,8 +22,32 @@ namespace triton
 {
 
 CalibrationPlanter::CalibrationPlanter(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlanter* implement,
-                                        VehicleTractor* tractor, VehicleGps* gps, InterfacePlanter* interface)
-    : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), gps(gps), interface(interface) {
+                                        VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlanter* interface)
+    : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), interface(interface) {
+    loadGuidanceCalibration();
+}
+
+// Returns true when a stored index was found; an erased byte (255) leaves
+// the default 0 (4800, the common NMEA default).
+bool CalibrationPlanter::loadGuidanceCalibration() {
+    const byte stored = EEPROM.read(kEepromGpsBaudIndex);
+    if (stored == 255) return false;
+    SetGpsBaudIndex(stored);
+    return true;
+}
+
+void CalibrationPlanter::CommitGuidanceCalibration() {
+    EEPROM.write(kEepromGpsBaudIndex, gpsBaudIndex);
+}
+
+void CalibrationPlanter::PrintCalibrationData() {
+    static const byte rates[8] = { 1, 2, 3, 4, 6, 8, 12, 24 };
+    serialDebug->println("=====================================");
+    serialDebug->println("Guidance source using following data:");
+    serialDebug->println("=====================================");
+    serialDebug->println("Baudrate");
+    serialDebug->println(rates[gpsBaudIndex % 8] * long(4800));
+    serialDebug->println("-------------------------------");
 }
 
 // --------------------------------

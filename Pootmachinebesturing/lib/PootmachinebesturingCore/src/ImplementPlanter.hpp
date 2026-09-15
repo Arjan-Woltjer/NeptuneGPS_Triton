@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "VehicleGps.hpp"
+#include "GuidanceSource.hpp"
 #include "VehicleTractor.hpp"
 
 #include "ConfigImplementPlanter.hpp"
@@ -108,7 +108,7 @@ private:
     // Objects
     Stream*         serialDebug;
     VehicleTractor* tractor;
-    VehicleGps*     gps;
+    GuidanceSource* guidance;
 
     //-------------------------------------------------------------
     // private member functions implemented in ImplementPlanter.cpp
@@ -128,7 +128,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor, VehicleGps* gps);
+    ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor, GuidanceSource* guidance);
 
     void Update();
     void Adjust(byte mode, int direction);

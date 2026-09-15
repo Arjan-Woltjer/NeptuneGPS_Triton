@@ -166,10 +166,13 @@ inline uint16_t makeWord(uint8_t h, uint8_t l) { return (uint16_t)((h << 8) | l)
 #  define word(...) makeWord(__VA_ARGS__)
 #endif
 
-// HardwareSerial: a Print that writes to stdout; begin() is a no-op
+// HardwareSerial: a Print that writes to stdout. begin() only records the
+// rate it was given so a test can assert on SerialGuidanceChannel::
+// ApplyBaudrate(); end() is a no-op.
 class HardwareSerial : public Stream {
   public:
-    void begin(unsigned long) {}
+    unsigned long begunBaud = 0;
+    void begin(unsigned long baud) { begunBaud = baud; }
     void end() {}
     operator bool() { return true; }
 };

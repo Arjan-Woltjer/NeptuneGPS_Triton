@@ -105,10 +105,10 @@ test(ConfigSprayer, gpsMinQuality_onlyKnownLevels) {
 }
 
 // ---------------------------------------------------------------------------
-// Baud table: the same 4800 x n table VehicleGps::PrintCalibrationData uses
+// Baud table: the 4800 x n table the Triton receivers are configured with
 // ---------------------------------------------------------------------------
 
-test(ConfigSprayer, baudFromIndex_matchesVehicleGpsTable) {
+test(ConfigSprayer, baudFromIndex_matchesReceiverTable) {
     assertEqual(ConfigSprayer::BaudFromIndex(0), 4800L);
     assertEqual(ConfigSprayer::BaudFromIndex(1), 9600L);
     assertEqual(ConfigSprayer::BaudFromIndex(2), 14400L);

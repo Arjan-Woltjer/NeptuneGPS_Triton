@@ -27,8 +27,8 @@
 namespace triton
 {
 
-CalibrationSprayer::CalibrationSprayer(Stream* serial, ImplementSprayer* impl)
-    : serial(serial), impl(impl), state(State::IDLE),
+CalibrationSprayer::CalibrationSprayer(Stream* serial, ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel)
+    : serial(serial), impl(impl), gpsChannel(gpsChannel), state(State::IDLE),
       analogPointIdx(0), currentPWM(0), pwmStepIdx(0),
       lastCountdown(0),
       doseOutputEnabled(false), pumpOutputEnabled(false), gpsOutputEnabled(false),
@@ -175,7 +175,7 @@ void CalibrationSprayer::printMenu() {
     serial->print(gpsOutputEnabled ? "ON" : "OFF");
     serial->println(" - press to toggle)");
     serial->print("8. GPS raw passthrough (");
-    serial->print(impl->gps->GetRawEcho() ? "ON" : "OFF");
+    serial->print(gpsChannel->GetRawEcho() ? "ON" : "OFF");
     serial->println(" - press to toggle)");
     if (forgetPhones) serial->println("9. Forget paired phones (Bluetooth)");
     serial->println("q. Exit");
@@ -241,9 +241,9 @@ void CalibrationSprayer::handleMenu() {
             printMenu();
             break;
         case '8':
-            impl->gps->SetRawEcho(!impl->gps->GetRawEcho());
+            gpsChannel->SetRawEcho(!gpsChannel->GetRawEcho());
             serial->print("\nGPS raw passthrough ");
-            serial->println(impl->gps->GetRawEcho() ? "enabled." : "disabled.");
+            serial->println(gpsChannel->GetRawEcho() ? "enabled." : "disabled.");
             printMenu();
             break;
         case '9':
@@ -500,7 +500,7 @@ void CalibrationSprayer::printDoseData() {
     serial->print(",dose:");
     serial->print(impl->doseLHA, 1);
     serial->print(",speed:");
-    serial->print(impl->gps->GetSpeedMs(), 2);
+    serial->print(impl->guidance->GetSpeedMs(), 2);
     serial->print(",flow:");
     serial->print(impl->doseLM * 1000.0f, 1);
     // Actual dose after clamping and the held 5 % deviation flag (see
@@ -528,16 +528,16 @@ void CalibrationSprayer::printPumpData() {
 }
 
 void CalibrationSprayer::printGpsData() {
-    float lat, lon;
-    impl->gps->GetPosition(&lat, &lon);
+    const float lat = impl->guidance->GetLatitude();
+    const float lon = impl->guidance->GetLongitude();
     serial->print("GPS: speed=");
-    serial->print(impl->gps->GetSpeedMs(), 2);
+    serial->print(impl->guidance->GetSpeedMs(), 2);
     serial->print(" m/s  lat=");
     serial->print(lat, 6);
     serial->print("  lon=");
     serial->print(lon, 6);
     serial->print("  quality=");
-    serial->println(impl->gps->GetQuality());
+    serial->println(impl->guidance->GetQuality());
 }
 
 // ---------------------------------------------------------------------------

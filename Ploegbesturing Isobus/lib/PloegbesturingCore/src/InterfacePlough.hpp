@@ -20,7 +20,7 @@
 
 #include "InterfaceI2CLCD.hpp"
 #include "VehicleTractor.hpp"
-#include "guidance/GuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 
 #include "config/ConfigInterfacePlough.hpp"
 #include "implement/ImplementPlough.hpp"

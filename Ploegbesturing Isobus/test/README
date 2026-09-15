@@ -1,22 +1,35 @@
 
-`native/` holds the AUnit tests for ImplementPlough/InterfacePlough and the
-serial-path GPS sentence parsers (../lib/PloegbesturingCore/src/), run
-natively (no Teensy attached):
+`native/` holds the AUnit tests for ImplementPlough/InterfacePlough
+(../lib/PloegbesturingCore/src/) and for the shared guidance library this
+project consumes (../../MeijWorks Libs/VehicleGuidance: GuidanceSource, the
+serial-path GPS sentence parsers and SerialGuidanceChannel), run natively (no
+Teensy attached):
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test, or a
   descriptive group name for a related set (`test_GpsParsers.cpp` covers
-  `NmeaParser`/`TrimbleParser`/`CanSerialParser`). `test_IsobusPgnDecode.cpp`
-  covers `IsobusPgnDecode` -- the byte-level PGN decode pulled out of
-  `IsobusGuidanceChannel` (see "Known gaps" below).
+  `NmeaParser`/`TrimbleParser`/`CanSerialParser` term by term;
+  `test_SerialGuidanceChannel.cpp` feeds whole NMEA/CAN-over-serial/Trimble
+  lines through the character loop via a fake UART and also covers
+  `GuidanceSource` and the channel's diagnostics: sentence tap, raw echo,
+  runtime baudrate change). `test_IsobusPgnDecode.cpp` covers
+  `IsobusPgnDecode` -- the byte-level PGN decode pulled out of
+  `IsobusGuidanceChannel`, now in the shared library so the raw-CAN
+  projects decode the same way -- and `test_CanFrameGuidanceChannel.cpp`
+  covers `CanFrameGuidanceChannel`, the raw-frame entry point those projects
+  call from their ACAN_T4 callback, and `test_GuidanceGeometry.cpp` the
+  shared `DistanceBetween()` the scraper's levelling plane uses (see "Known
+  gaps" below).
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point). These stand in only
   for *external* headers (the Arduino framework, MeijWorks Libs' `VehicleTractor`/
   `InterfaceI2CLCD`) -- `GuidanceSource` is not one of them: every test uses the
-  real class from `lib/PloegbesturingCore/src/guidance/GuidanceSource.hpp`
-  directly (`GuidanceSource mockGuidance(nullptr);`, real `Set*()`/`Get*()`
-  calls), same as `teensy41_isobus`/`teensy41_serial` do. No native fake exists
-  for it.
+  real class from `MeijWorks Libs/VehicleGuidance/GuidanceSource.hpp` directly
+  (`GuidanceSource mockGuidance;`, real `Set*()`/`Get*()` calls), same as
+  `teensy41_isobus`/`teensy41_serial` do. No native fake exists for it, nor
+  for the parsers or `SerialGuidanceChannel`; this native build is where that
+  shared library gets its coverage (`MeijWorks Libs` has no test env of its
+  own).
 - `native/PloegbesturingNativeTests.cpp` -- the single AUnit driver (`setup()`/
   `loop()`), matching Salacia's/Loofdoes' `SalaciaNativeTests.cpp`/
   `LoofdoesNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
@@ -68,10 +81,11 @@ built directly), mirroring Salacia's own base-env + variant pattern.
   *are* tested, live in the same file) but its output isn't asserted on by
   any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
   `WriteScreen` are no-ops.
-- `IsobusGuidanceChannel`/`IsobusVtInterface`/`SerialGuidanceChannel`/
-  `IsobusDebugMenu` are all thin hardware/transport adapters (CAN bus, ISOBUS
-  stack, raw UART byte reading, or a read-only serial status menu) with no
-  native coverage by design -- the real logic worth testing (PGN byte-decode
+- `IsobusGuidanceChannel`/`IsobusVtInterface`/`IsobusDebugMenu` are thin
+  hardware/transport adapters (CAN bus, ISOBUS stack, or a read-only serial
+  status menu) with no native coverage by design (`SerialGuidanceChannel`
+  used to be in this list; since it moved to the shared library it is fed
+  through a fake `HardwareSerial` in `test_SerialGuidanceChannel.cpp`) -- the real logic worth testing (PGN byte-decode
   math, sentence parsing) lives in the natively-tested classes each of them
   calls into (`GuidanceSource`, `NmeaParser`/`TrimbleParser`/
   `CanSerialParser`, and -- as of `IsobusPgnDecode` -- `IsobusGuidanceChannel`'s
@@ -79,7 +93,7 @@ built directly), mirroring Salacia's own base-env + variant pattern.
   extract `data`/`length`/source-address from a real `isobus::CANMessage` and
   apply an `IsobusPgnDecode::Decode*()` result -- the CAN/AgIsoStack plumbing
   around that (address claim, PGN request/retry, callback registration)
-  remains untested by design, same reasoning as `SerialGuidanceChannel`.
+  remains untested by design.
   `IsobusDebugMenu` only reads `IsobusGuidanceChannel`'s message counters and
   `GuidanceSource`'s existing getters -- it has no decode/parsing logic of
   its own.

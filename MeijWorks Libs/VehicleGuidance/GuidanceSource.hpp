@@ -1,5 +1,5 @@
 /*
-  GuidanceSource - shared guidance data model for the plough controller
+  GuidanceSource - shared guidance data model (position, speed, course, XTE)
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -19,31 +19,40 @@
 #pragma once
 
 #include <Arduino.h>
-#include <EEPROM.h>
 
 namespace triton
 {
 
+// Guarded: VehicleGps defines the same two names, and a project halfway
+// through migrating from it may include both headers in one translation unit.
+#ifndef GPS_MS_PER_KNOT
 #define GPS_MS_PER_KNOT 0.51444444f
+#endif
+#ifndef MINSPEED
 #define MINSPEED        0.5f
+#endif
 
-// Replaces VehicleGps for this project: a plain data model, transport-
-// agnostic, fed by either IsobusGuidanceChannel's PGN callbacks (CAN/ISOBUS,
-// standard NMEA2000 messages and legacy JD/Trimble/CNH proprietary ones) or
-// SerialGuidanceChannel's GpsParser-family sentence parsers (plain UART),
-// selected at compile time by the ISOBUS macro. Read by ImplementPlough/
-// InterfacePlough/CalibrationPlough regardless of which channel feeds it --
-// that split (data model vs. hardware/protocol adapter) mirrors Salacia's
-// Source/Channel convention.
+// The successor to VehicleGps's decoded state, on its own: a plain,
+// transport-agnostic data model with no serial port, no CAN bus and no
+// storage behind it. Whatever acquires guidance data feeds it through the
+// setters -- SerialGuidanceChannel's GpsParser family for a receiver on a
+// UART, an ISOBUS/CAN channel's PGN callbacks, or a test -- and the
+// implement, interface and calibration classes of a project only ever read
+// the getters. That split (data model vs. hardware/protocol adapter) mirrors
+// Salacia's Source/Channel convention.
+//
+// Persistence is deliberately not in here. rtkQuality is the one value an
+// operator calibrates; the project that owns the calibration menu decides
+// where it is stored (EEPROM on the Teensy projects, NVS on the ESP32 ones,
+// see NeptuneGPS_Triton#78) and hands it back through SetRtkQuality() at
+// boot. A shared library that hard-codes a storage address would force every
+// consumer onto one layout.
 class GuidanceSource {
 public:
-    inline explicit GuidanceSource(Stream* serialDebug) : serialDebug(serialDebug) {
-        readCalibrationData();
-    }
+    GuidanceSource() = default;
 
     // ------------------------------------------------------------
-    // Setters -- called only from IsobusGuidanceChannel's PGN callbacks or
-    // SerialGuidanceChannel's GpsParser-family sentence parsers
+    // Setters -- called by whichever channel feeds this instance
     // ------------------------------------------------------------
     inline void NoteGgaFixReceived()            { lastGgaFix = millis(); }
     inline void SetPosition(float lat, float lon) { latitude = lat; longitude = lon; lastGgaFix = millis(); }
@@ -57,21 +66,20 @@ public:
     inline void SetXte(int hundredthsM, byte q) { xte = hundredthsM; quality = q; lastXteFix = millis(); }
 
     // ------------------------------------------------------------
-    // Getters -- exact mirror of what ImplementPlough/InterfacePlough/
-    // CalibrationPlough called on VehicleGps before this port, plus the
-    // fuller surface the serial-path parsers need (position/altitude/
-    // course/quality/datetime), matching the prototype's GpsState.
+    // Getters
     // ------------------------------------------------------------
     inline int           GetXte()          { return xte; }
-    // Named Timestamp, not "FixAge" -- this returns the millis() value the
-    // fix was received at, not an elapsed age. Callers compute the age
-    // themselves (millis() - GetXteTimestamp()). Renamed 2026-08-09; the
-    // old name invited a future bug (see Triton_TC_Client_Design.md P5).
+    // Named Timestamp, not "FixAge" -- these return the millis() value the
+    // sentence was received at, not an elapsed age. Callers compute the age
+    // themselves (millis() - GetXteTimestamp()); 0 means never received.
+    // XTE renamed 2026-08-09, GGA and VTG followed 2026-09-15 when the
+    // library became shared; the old names invited a future bug (see
+    // Triton_TC_Client_Design.md P5).
     inline unsigned long GetXteTimestamp() { return lastXteFix; }
-    inline unsigned long GetGgaFixAge()  { return lastGgaFix; }
-    inline unsigned long GetVtgFixAge()  { return lastVtgFix; }
+    inline unsigned long GetGgaTimestamp() { return lastGgaFix; }
+    inline unsigned long GetVtgTimestamp() { return lastVtgFix; }
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
-    inline boolean       MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
+    inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
 
     inline float  GetLatitude()  { return latitude; }
@@ -86,29 +94,12 @@ public:
         if (outtime) *outtime = (unsigned long)time;
     }
 
+    // The GGA fix quality IsRtkQuality() compares against: 4 (RTK fixed) or
+    // 2 (DGPS); anything else falls back to 4, as VehicleGps always did.
     inline void SetRtkQuality(byte q) { rtkQuality = (q == 4 || q == 2) ? q : 4; }
     inline byte GetRtkQuality()       { return rtkQuality; }
 
-    inline void CommitCalibration() { writeCalibrationData(); }
-
-    void PrintCalibrationData();
-
 private:
-    // Only the rtkQuality byte survives from VehicleGps's calibration data --
-    // the baudrate byte it also stored has no meaning left in a CAN-only build.
-    inline bool readCalibrationData() {
-        if (EEPROM.read(11) != 255) {
-            rtkQuality = EEPROM.read(11);
-            if (rtkQuality != 4 && rtkQuality != 2) rtkQuality = 4;
-            return true;
-        }
-        return false;
-    }
-
-    inline void writeCalibrationData() { EEPROM.write(11, rtkQuality); }
-
-    Stream* serialDebug;
-
     float         latitude = 0.0f;
     float         longitude = 0.0f;
     float         altitude = 0.0f;
@@ -123,14 +114,5 @@ private:
     unsigned long lastVtgFix = 0;
     unsigned long lastXteFix = 0;
 };
-
-inline void GuidanceSource::PrintCalibrationData() {
-    serialDebug->println("=====================================");
-    serialDebug->println("Guidance source using following data:");
-    serialDebug->println("=====================================");
-    serialDebug->println("RTK Quality");
-    serialDebug->println(rtkQuality);
-    serialDebug->println("-------------------------------");
-}
 
 }  // namespace triton

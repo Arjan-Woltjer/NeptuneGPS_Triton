@@ -35,13 +35,12 @@ using namespace triton;
 // positionCalibrationPoints={34,42,50}, offset=160, shares=4, error=2,
 // maxCorrection=50, kp=100 -- see ImplementPlough.cpp's constructor).
 // ---------------------------------------------------------------------------
-static VehicleGps mockGps;
+static GuidanceSource mockGuidance;
 
 static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
-    mockGps.xte = 0;
-    mockGps.xteFixAge = 0;
+    mockGuidance = GuidanceSource();   // xte 0, no fix ever (all timestamps 0)
     digitalReadValue(PLOUGHSIDE_PIN_2, false);
 }
 
@@ -59,7 +58,7 @@ static void resetAll() {
 
 test(ImplementPlough, position_descendingCalibration_atPoint0) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     // Default calibration is descending: data={600,461,308}, points={34,42,50}, shares=4.
     // At raw=600 (point 0): actualPosition=34cm exactly -> reading=34*4=136.
     analogReadValue(POSITION_SENS_PIN_2, 600);
@@ -70,7 +69,7 @@ test(ImplementPlough, position_descendingCalibration_atPoint0) {
 
 test(ImplementPlough, position_descendingCalibration_atPoint1) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     // At raw=461 (point 1): actualPosition=42cm exactly -> reading=42*4=168.
     analogReadValue(POSITION_SENS_PIN_2, 461);
     impl.Update(0, 0);
@@ -80,7 +79,7 @@ test(ImplementPlough, position_descendingCalibration_atPoint1) {
 
 test(ImplementPlough, position_descendingCalibration_atPoint2) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     // At raw=308 (point 2): actualPosition=50cm exactly -> reading=50*4=200.
     analogReadValue(POSITION_SENS_PIN_2, 308);
     impl.Update(0, 0);
@@ -90,7 +89,7 @@ test(ImplementPlough, position_descendingCalibration_atPoint2) {
 
 test(ImplementPlough, position_ascendingCalibration_atPoint1) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     // Reprogram calibration data to ascending order via the public setter,
     // exercising GetActualPosition()'s other branch (data[0] < data[1]).
     analogReadValue(POSITION_SENS_PIN_2, 0);
@@ -118,7 +117,7 @@ test(ImplementPlough, position_ascendingCalibration_atPoint1) {
 
 test(ImplementPlough, adjust_manualMode_directionPositive_narrows) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, 1);  // actualPosition = 0 - 1*3 = -3 < setpoint(0)-error(2)=-2
     assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
     assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
@@ -126,7 +125,7 @@ test(ImplementPlough, adjust_manualMode_directionPositive_narrows) {
 
 test(ImplementPlough, adjust_manualMode_directionNegative_widens) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, -1);  // actualPosition = 0 - (-1)*3 = 3 > setpoint(0)+error(2)=2
     assertEqual(analogWriteValue(OUTPUT_WIDE_2), 255);
     assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
@@ -134,7 +133,7 @@ test(ImplementPlough, adjust_manualMode_directionNegative_widens) {
 
 test(ImplementPlough, adjust_manualMode_directionZero_stops) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     // Leave a nonzero value in place first so Stop() zeroing it is observable.
     impl.Adjust(2, 1);
     assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
@@ -155,7 +154,7 @@ test(ImplementPlough, adjust_manualMode_directionZero_stops) {
 
 test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
 
     // Ascending calibration [0,100,200] with the default points [34,42,50]:
     // extrapolating far below data[0] (raw=-1000) gives an exact, deeply
@@ -207,7 +206,7 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
 
 test(ImplementPlough, setOffset_withinRange_adds) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
     impl.Update(0, 50);  // 160 + 50 = 210, within (80,240]
     assertEqual(impl.GetOffset(), (short int)210);
@@ -215,7 +214,7 @@ test(ImplementPlough, setOffset_withinRange_adds) {
 
 test(ImplementPlough, setOffset_aboveUpperBound_resetsToDefault) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
     impl.Update(0, 100);  // 160 + 100 = 260 > 240 -> reset to shares*40=160
     assertEqual(impl.GetOffset(), (short int)160);
@@ -223,7 +222,7 @@ test(ImplementPlough, setOffset_aboveUpperBound_resetsToDefault) {
 
 test(ImplementPlough, setOffset_belowLowerBound_resetsToDefault) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
     impl.Update(0, -100);  // 160 - 100 = 60 < 80 -> reset to shares*40=160
     assertEqual(impl.GetOffset(), (short int)160);
@@ -231,7 +230,7 @@ test(ImplementPlough, setOffset_belowLowerBound_resetsToDefault) {
 
 test(ImplementPlough, setOffset_zeroCorrection_isNoOp) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
     impl.Update(0, 0);
     assertEqual(impl.GetOffset(), (short int)160);
@@ -239,7 +238,7 @@ test(ImplementPlough, setOffset_zeroCorrection_isNoOp) {
 
 test(ImplementPlough, setOffset_manualMode_neverCalled) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
     impl.Update(2, 90);  // mode>=2 -> Update()'s "mode < 2" guard skips setOffset entirely
     assertEqual(impl.GetOffset(), (short int)160);
@@ -254,27 +253,27 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
 
 test(ImplementPlough, setSetpoint_withinMaxCorrection) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    mockGps.xte = 30;
-    mockGps.xteFixAge = 1;  // > impl's internal lastXteFix(0) -> triggers recompute
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(1);
+    mockGuidance.SetXte(30);   // stamps lastXteFix=1 > impl's internal lastXteFix(0) -> triggers recompute
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 30));
 }
 
 test(ImplementPlough, setSetpoint_clampsAboveMaxCorrection) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    mockGps.xte = 100;  // pe=100 > maxCorrection(50) -> clamped to 50
-    mockGps.xteFixAge = 1;
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(1);
+    mockGuidance.SetXte(100);  // pe=100 > maxCorrection(50) -> clamped to 50
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 50));
 }
 
 test(ImplementPlough, setSetpoint_clampsBelowNegativeMaxCorrection) {
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
-    mockGps.xte = -100;  // pe=-100 <= -maxCorrection(-50) -> clamped to -50
-    mockGps.xteFixAge = 1;
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(1);
+    mockGuidance.SetXte(-100);  // pe=-100 <= -maxCorrection(-50) -> clamped to -50
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - (-50)));
 }
@@ -290,7 +289,7 @@ test(ImplementPlough, equalCalibrationPoints_doNotProduceNonFinitePosition) {
     // zero denominator into the interpolation, and narrowing the resulting inf
     // or NaN to short int is undefined behaviour.
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
 
     analogReadValue(POSITION_SENS_PIN_2, 512);
     impl.SetPositionCalibrationData(0);
@@ -312,7 +311,7 @@ test(ImplementPlough, partiallyEqualCalibrationPoints_doNotProduceNonFinitePosit
     // Only two of the three captures coinciding is enough: the segment the
     // reading falls into is the one that divides by zero.
     resetAll();
-    ImplementPlough impl(nullptr, &mockGps);
+    ImplementPlough impl(nullptr, &mockGuidance);
 
     analogReadValue(POSITION_SENS_PIN_2, 300);
     impl.SetPositionCalibrationData(0);
@@ -342,7 +341,7 @@ test(ImplementPlough, corruptEepromPositionData_fallsBackToDefaults) {
     EEPROM.write(42, 0x02); EEPROM.write(43, 0x00);
     EEPROM.write(44, 0x02); EEPROM.write(45, 0x00);
 
-    ImplementPlough corrupt(nullptr, &mockGps);
+    ImplementPlough corrupt(nullptr, &mockGuidance);
 
     analogReadValue(POSITION_SENS_PIN_2, 600);
     corrupt.Update(2, 0);
@@ -352,7 +351,7 @@ test(ImplementPlough, corruptEepromPositionData_fallsBackToDefaults) {
     // Erased EEPROM is the known-good "no calibration data" path. Corrupt data
     // has to land on the same defaults rather than on whatever it contained.
     resetAll();
-    ImplementPlough reference(nullptr, &mockGps);
+    ImplementPlough reference(nullptr, &mockGuidance);
     analogReadValue(POSITION_SENS_PIN_2, 600);
     reference.Update(2, 0);
     reference.Update(2, 0);

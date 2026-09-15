@@ -21,7 +21,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "ImplementScraper.hpp"
 #include "VehicleTractor.hpp"
-#include "VehicleGps.hpp"
+#include "GuidanceSource.hpp"
 #include "ConfigInterfaceScraper.hpp"
 #include "LanguageScraper.hpp"
 
@@ -48,7 +48,7 @@ private:
     InterfaceI2CLCD* lcd;
     ImplementScraper* implement;
     VehicleTractor*  tractor;
-    VehicleGps*      gps;
+    GuidanceSource*  guidance;
 
 public:
     // ----------------------------------------------------
@@ -59,7 +59,7 @@ public:
     InterfaceScraper(InterfaceI2CLCD* lcd,
                       ImplementScraper* implement,
                       VehicleTractor* tractor,
-                      VehicleGps* gps);
+                      GuidanceSource* guidance);
 
     void Update();
     void UpdateScreen(boolean rewrite);

@@ -24,7 +24,7 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementScraper::ImplementScraper(VehicleGps* gps) {
+ImplementScraper::ImplementScraper(GuidanceSource* guidance) {
 #ifdef DEBUG
     Serial.println(S_DIVIDE);
     Serial.println("Initialising scraper");
@@ -74,7 +74,7 @@ ImplementScraper::ImplementScraper(VehicleGps* gps) {
     lastGgaFix = 0;
 
     // Connected classes
-    this->gps = gps;
+    this->guidance = guidance;
 
     // Get calibration data from EEPROM otherwise use defaults
     if (!readCalibrationData()) {
@@ -149,17 +149,18 @@ void ImplementScraper::Update(byte mode, int buttons) {
 
     // Update gps height, position, distance to refpoint and setpoint once
     // every GGA fix
-    if (gps->GetGgaFixAge() - lastGgaFix > 0) {
+    if (guidance->GetGgaTimestamp() - lastGgaFix > 0) {
         // Update altitude and position
-        height = gps->GetAltitudeCm();
-        gps->GetPosition(&latitude, &longitude);
+        height = altitudeCm();
+        latitude  = guidance->GetLatitude();
+        longitude = guidance->GetLongitude();
 
         calculateDistances();
 
         setSetpoint();
 
         // Register time of last GGA fix
-        lastGgaFix = gps->GetGgaFixAge();
+        lastGgaFix = guidance->GetGgaTimestamp();
     }
 }
 
@@ -202,7 +203,7 @@ void ImplementScraper::Adjust(byte mode, int direction) {
         else {
             settime = 0;
         }
-        inputtime = millis() - gps->GetGgaFixAge();
+        inputtime = millis() - guidance->GetGgaTimestamp();
     }
     else {
         setpoint = direction;
@@ -363,8 +364,8 @@ int ImplementScraper::getActualPosition() {
 // ---------------------------------------------
 void ImplementScraper::calculateDistances() {
     // Vector AB
-    float latAb = VehicleGps::DistanceBetween(&latRa, &longRa, &latRa, &longRb);
-    float longAb = VehicleGps::DistanceBetween(&latRa, &longRa, &latRb, &longRa);
+    float latAb = DistanceBetween(latRa, longRa, latRa, longRb);
+    float longAb = DistanceBetween(latRa, longRa, latRb, longRa);
 
     if (latRa > latRb) {
         latAb = -latAb;
@@ -375,11 +376,11 @@ void ImplementScraper::calculateDistances() {
     }
 
     // Length of vector AB
-    lAb = VehicleGps::DistanceBetween(&latRa, &longRa, &latRb, &longRb);
+    lAb = DistanceBetween(latRa, longRa, latRb, longRb);
 
     // Vector AC
-    float latAc = VehicleGps::DistanceBetween(&latRa, &longRa, &latRa, &longitude);
-    float longAc = VehicleGps::DistanceBetween(&latRa, &longRa, &latitude, &longRa);
+    float latAc = DistanceBetween(latRa, longRa, latRa, longitude);
+    float longAc = DistanceBetween(latRa, longRa, latitude, longRa);
 
     if (latRa > latitude) {
         latAc = -latAc;
@@ -480,8 +481,9 @@ void ImplementScraper::readRefB() {
 // Method for setting a Reference
 // ------------------------------
 void ImplementScraper::setRef(float* lat, float* lon, short int* height, byte addr) {
-    gps->GetPosition(lat, lon);
-    *height = gps->GetAltitudeCm();
+    *lat = guidance->GetLatitude();
+    *lon = guidance->GetLongitude();
+    *height = altitudeCm();
 
     writeFloat(*lat, addr);
     writeFloat(*lon, addr + 4);

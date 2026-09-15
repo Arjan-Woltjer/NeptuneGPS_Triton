@@ -118,9 +118,13 @@ inline void delay(unsigned long) {}
 #endif
 
 // HardwareSerial: a Print that writes to stdout; begin() is a no-op
+// HardwareSerial: a Print that writes to stdout. begin() only records the
+// rate it was given so a test can assert on SerialGuidanceChannel::
+// ApplyBaudrate(); end() is a no-op.
 class HardwareSerial : public Stream {
   public:
-    void begin(unsigned long) {}
+    unsigned long begunBaud = 0;
+    void begin(unsigned long baud) { begunBaud = baud; }
     void end() {}
     operator bool() { return true; }
 };

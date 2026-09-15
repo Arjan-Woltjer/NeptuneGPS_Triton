@@ -31,7 +31,7 @@ using namespace triton;
 // test_ImplementPlanter.cpp, every test constructs fresh instances after
 // resetAll() re-erases the fake EEPROM.
 // ---------------------------------------------------------------------------
-static VehicleGps       mockGps;
+static GuidanceSource   mockGuidance;
 static VehicleTractor   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
@@ -39,13 +39,13 @@ static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
 
-    mockGps.xte = 0;
-    mockGps.xteFixAge = 0;
-    mockGps.ggaFixAge = 0;
-    mockGps.vtgFixAge = 0;
-    mockGps.quality = 4;
-    mockGps.minSpeed = true;
-    mockGps.speed = 0;
+    // Fresh source, then RTK fixed and a speed above MinSpeed(). Every fix
+    // timestamp stays 0 (SetSpeedKnots() stamps at millis()=0), matching the
+    // stub this suite was written against; tests that need a fresh fix at a
+    // later time stamp it themselves.
+    mockGuidance = GuidanceSource();
+    mockGuidance.SetQuality(4);
+    mockGuidance.SetSpeedKnots(10.0f);
     mockTractor.speed = 0;
 
     digitalReadValue(LEFT_BUTTON_3, false);
@@ -64,16 +64,16 @@ static void resetAll() {
 
 test(InterfacePlanter, checkButtons_noneHeld_returnsZero) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     assertEqual(iface.CheckButtons(0, 0), 0);
 }
 
 test(InterfacePlanter, checkButtons_leftHeld_delayZero_returnsMinusOneImmediately) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_3, true);
     assertEqual(iface.CheckButtons(0, 0), -1);
@@ -82,8 +82,8 @@ test(InterfacePlanter, checkButtons_leftHeld_delayZero_returnsMinusOneImmediatel
 
 test(InterfacePlanter, checkButtons_rightHeld_delayZero_returnsOneImmediately) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(RIGHT_BUTTON_3, true);
     assertEqual(iface.CheckButtons(0, 0), 1);
@@ -91,8 +91,8 @@ test(InterfacePlanter, checkButtons_rightHeld_delayZero_returnsOneImmediately) {
 
 test(InterfacePlanter, checkButtons_leftHeld_withDelay_waitsForDebounce) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_3, true);
     // Not yet at the delay2 threshold -> falls back to 0.
@@ -104,8 +104,8 @@ test(InterfacePlanter, checkButtons_leftHeld_withDelay_waitsForDebounce) {
 
 test(InterfacePlanter, checkButtons_bothHeld_delayZero_returnsTwoImmediately) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_3, true);
     digitalReadValue(RIGHT_BUTTON_3, true);
@@ -114,8 +114,8 @@ test(InterfacePlanter, checkButtons_bothHeld_delayZero_returnsTwoImmediately) {
 
 test(InterfacePlanter, checkButtons_bothHeld_withDelay1_waitsForCombo) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_3, true);
     digitalReadValue(RIGHT_BUTTON_3, true);
@@ -132,8 +132,8 @@ test(InterfacePlanter, checkButtons_bothHeld_withDelay1_waitsForCombo) {
 
 test(InterfacePlanter, update_modePinLow_selectsManual) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(MODE_PIN_3, false);  // !digitalRead(MODE_PIN_3) -> true -> manual
     iface.Update();
@@ -142,8 +142,8 @@ test(InterfacePlanter, update_modePinLow_selectsManual) {
 
 test(InterfacePlanter, update_plantingelementSensor_selectsManual) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     // GetPlantingelement() == digitalRead(PLANTINGELEMENT_PIN_3) ^ invertPlantingelementSensor(false).
     digitalReadValue(PLANTINGELEMENT_PIN_3, true);
@@ -153,8 +153,8 @@ test(InterfacePlanter, update_plantingelementSensor_selectsManual) {
 
 test(InterfacePlanter, update_allConditionsGood_selectsAuto) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     // All fix ages "fresh" relative to millis()=0 (0-0=0, not > 2000); quality
     // good (4) and minSpeed good; not manual (MODE_PIN_3 true, planting
@@ -165,59 +165,59 @@ test(InterfacePlanter, update_allConditionsGood_selectsAuto) {
 
 test(InterfacePlanter, update_staleGgaFix_selectsHold) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 0;     // 2001 - 0 = 2001 > 2000 -> stale
-    mockGps.vtgFixAge = 2001;  // fresh
-    mockGps.xteFixAge = 2001;  // fresh
+    // lastGgaFix stays 0 from resetAll(): 2001 - 0 = 2001 > 2000 -> stale
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh); keeps MinSpeed() true
+    mockGuidance.SetXte(0);             // lastXteFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlanter, update_staleVtgFix_selectsHold) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 2001;  // fresh
-    mockGps.vtgFixAge = 0;     // stale
-    mockGps.xteFixAge = 2001;  // fresh
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    // lastVtgFix stays 0 from resetAll(): stale
+    mockGuidance.SetXte(0);             // lastXteFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlanter, update_staleXteFix_selectsHold) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 2001;  // fresh
-    mockGps.vtgFixAge = 2001;  // fresh
-    mockGps.xteFixAge = 0;     // stale
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh)
+    // lastXteFix stays 0 from resetAll(): stale
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlanter, update_qualityNotFour_selectsHold) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    mockGps.quality = 2;
+    mockGuidance.SetQuality(2);
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfacePlanter, update_belowMinSpeed_selectsHold) {
     resetAll();
-    ImplementPlanter impl(nullptr, &mockTractor, &mockGps);
-    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    InterfacePlanter iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    mockGps.minSpeed = false;
+    mockGuidance.SetSpeedKnots(0.0f);  // GetSpeedMs()=0 < MINSPEED(0.5) -> MinSpeed() false
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }

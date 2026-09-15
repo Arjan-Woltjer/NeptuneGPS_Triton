@@ -242,10 +242,10 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print("  IsRtkQuality=");
     serialDebug->println(guidance->IsRtkQuality() ? "Y" : "N");
     serialDebug->print("  GGA fix age:  ");
-    serialDebug->print(millis() - guidance->GetGgaFixAge());
+    serialDebug->print(millis() - guidance->GetGgaTimestamp());
     serialDebug->println(" ms");
     serialDebug->print("  VTG fix age:  ");
-    serialDebug->print(millis() - guidance->GetVtgFixAge());
+    serialDebug->print(millis() - guidance->GetVtgTimestamp());
     serialDebug->println(" ms");
     serialDebug->print("  XTE fix age:  ");
     serialDebug->print(millis() - guidance->GetXteTimestamp());
@@ -408,9 +408,9 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->print("m/s q=");
     serialDebug->print(guidance->GetQuality());
     serialDebug->print(" ggaAge=");
-    serialDebug->print(now - guidance->GetGgaFixAge());
+    serialDebug->print(now - guidance->GetGgaTimestamp());
     serialDebug->print(" vtgAge=");
-    serialDebug->print(now - guidance->GetVtgFixAge());
+    serialDebug->print(now - guidance->GetVtgTimestamp());
     serialDebug->print(" xteAge=");
     serialDebug->print(now - guidance->GetXteTimestamp());
 

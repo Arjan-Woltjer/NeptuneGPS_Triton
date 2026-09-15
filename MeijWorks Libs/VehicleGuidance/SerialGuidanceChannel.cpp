@@ -19,6 +19,8 @@
 */
 #include "SerialGuidanceChannel.hpp"
 
+#include <string.h>
+
 namespace triton
 {
 
@@ -28,25 +30,44 @@ SerialGuidanceChannel::SerialGuidanceChannel(Stream* serialDebug, HardwareSerial
     serialDebug->println("-------------------------------");
     serialDebug->println("Initialising GPS");
     serialDebug->println("-------------------------------");
+    rawEcho = true;
 #endif
 
     parsers[0] = &nmeaParser;
     parsers[1] = &trimbleParser;
     parsers[2] = &canSerialParser;
     activeParse = nullptr;
-    // term/termNumber/termOffset/parity/checksum/sum/isChecksumTerm carry
-    // default member initializers in the header instead of being assigned here.
+    // term/termNumber/termOffset/parity/checksum/sum/isChecksumTerm and the
+    // sentence-tap buffers carry default member initializers in the header
+    // instead of being assigned here.
 }
 
 bool SerialGuidanceChannel::Update() {
-    char c;
+    // Unsigned deliberately. Dispatching on a plain char made `case 191` (the
+    // Trimble packet-start byte) unreachable wherever char is signed, so the
+    // parser behaved differently on the host than on the target -- and host
+    // tests could never have exercised the Trimble path at all.
+    uint8_t c;
     bool validSentence = false;
 
     while (serialGps->available()) {
-        c = serialGps->read();
-#ifdef DEBUG
-        serialDebug->print(c);
-#endif
+        c = uint8_t(serialGps->read());
+        if (rawEcho && serialDebug) serialDebug->write(c);
+
+        // Sentence tap, independent of the parser below.
+        if (c == '$' || c == '@' || c == 191) {
+            rawLen = 0;
+        }
+        if (c == '\n' || c == '\r') {
+            if (rawLen > 0) {
+                memcpy(lastSentence, rawSentence, rawLen);
+                lastSentence[rawLen] = '\0';
+                sentenceSeq++;
+                rawLen = 0;
+            }
+        } else if (c >= 32 && c < 127 && rawLen < kMaxSentence) {
+            rawSentence[rawLen++] = (char)c;
+        }
 
         switch (c) {
             // Trimble packet start -- reset sum and term state
@@ -78,6 +99,7 @@ bool SerialGuidanceChannel::Update() {
             case ',':
                 // Comma is a term separator and part of the parity calculation, and part of the checksum sum (fall through)
                 parity ^= c;
+                // fall through
             case ':':
             case '*':
             case '\r':
@@ -90,21 +112,32 @@ bool SerialGuidanceChannel::Update() {
                 isChecksumTerm = (c == '*');
                 break;
 
-            // Trimble packet end marker
+            // Trimble packet end marker: byte 3 preceded by byte 16.
+            //
+            // termOffset is reset to 0 by five other cases above, so without
+            // the length guard a single 0x03 arriving after any delimiter
+            // read term[-1] -- and if the bytes there happened to satisfy the
+            // checksum arithmetic, term[-4] = '\0' wrote outside the buffer.
+            // Four bytes are the minimum this block indexes.
             case 3:
                 if (termOffset >= 4 && term[termOffset - 1] == 16 && !isChecksumTerm) {
                     sum -= byte(term[termOffset - 1]);
                     sum -= byte(term[termOffset - 2]);
                     sum -= byte(term[termOffset - 3]);
-                    //Checksum verification of Trimble outer packet
+                    // Checksum verification of the Trimble outer packet
                     if (sum - byte(term[termOffset - 2])
                            - (256 * byte(term[termOffset - 3])) == 0) {
                         // Trim the 4 trailing Trimble framing bytes, dispatch the data term
                         term[termOffset - 4] = '\0';
-                        //Parse the last term of the Trimble packet
-                        //dispatchTerm() doesn't commit, because isChecksumTerm is not set for Trimble outer packet.
+                        // dispatchTerm() doesn't commit: isChecksumTerm is
+                        // never set for the Trimble outer packet.
                         dispatchTerm();
-                        // Commit: Checksum already verified
+                        // Commit here, and only here, for a parser that relies
+                        // on the outer frame instead of an NMEA checksum. This
+                        // branch is the sole path that commits without a
+                        // verified '*XX' term, and it is only reached once the
+                        // frame's own checksum has just passed -- the guarantee
+                        // VehicleGps tracked as trimbleFrameVerified.
                         if (activeParse && activeParse->useParityAsChecksum()) {
                             activeParse->commitTo(guidance);
                             validSentence = true;
@@ -114,6 +147,7 @@ bool SerialGuidanceChannel::Update() {
                     break;
                 }
                 // Not a valid Trimble end -- fall through and treat as ordinary character
+                // fall through
 
             default:
                 if (termOffset < sizeof(term) - 1)
@@ -126,6 +160,23 @@ bool SerialGuidanceChannel::Update() {
     return validSentence;
 }
 
+void SerialGuidanceChannel::ApplyBaudrate(long baud) {
+    if (serialGps == nullptr || baud <= 0) return;
+#if defined(ESP32)
+    // Keeps the pins main.cpp assigned; end()/begin() would need them again.
+    serialGps->updateBaudRate((unsigned long)baud);
+#else
+    serialGps->end();
+    serialGps->begin((unsigned long)baud);
+#endif
+    // A partial sentence read at the old rate is garbage; start clean.
+    termNumber  = 0;
+    termOffset  = 0;
+    rawLen      = 0;
+    activeParse = nullptr;
+    isChecksumTerm = false;
+}
+
 // Route the current null-terminated term to the active parser.
 // Returns true when a valid sentence was just committed to state.
 bool SerialGuidanceChannel::dispatchTerm() {
@@ -134,9 +185,7 @@ bool SerialGuidanceChannel::dispatchTerm() {
             return false;
         }
 
-        // TrimbleParser: outer packet already verified, so parity == parity always
-        if (//activeParse->useParityAsChecksum() ||
-           (GpsParser::hexToInt(term[0]) << 4) + GpsParser::hexToInt(term[1]) == parity) {
+        if ((GpsParser::hexToInt(term[0]) << 4) + GpsParser::hexToInt(term[1]) == parity) {
             activeParse->commitTo(guidance);
             return true;
         }

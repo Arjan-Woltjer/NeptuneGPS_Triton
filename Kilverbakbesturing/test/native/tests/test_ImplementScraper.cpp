@@ -36,17 +36,16 @@ using namespace triton;
 // maxCorrection=5, slope=0, offset=0, Reference A/B both (0,0,0) -- an erased
 // EEPROM read (see ImplementScraper.cpp's constructor).
 // ---------------------------------------------------------------------------
-static VehicleGps mockGps;
+static GuidanceSource mockGuidance;
 
 static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
-    mockGps.ggaFixAge = 0;
-    mockGps.vtgFixAge = 0;
-    mockGps.minSpeedFlag = true;
-    mockGps.latitude = 0;
-    mockGps.longitude = 0;
-    mockGps.altitudeCm = 0;
+    // Fresh source (no fix ever, position 0/0, altitude 0), then a speed
+    // above MinSpeed(); its VTG stamp lands at millis()=0, matching the stub
+    // this suite was written against.
+    mockGuidance = GuidanceSource();
+    mockGuidance.SetSpeedKnots(10.0f);
 }
 
 // ---------------------------------------------------------------------------
@@ -55,7 +54,7 @@ static void resetAll() {
 
 test(ImplementScraper, construct_defaultsMatchErasedEeprom) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
     assertEqual(impl.GetOffset(), (short int)0);
     assertEqual(impl.GetSlope(), (short int)0);
     assertEqual(impl.GetError(), (byte)2);
@@ -72,12 +71,11 @@ test(ImplementScraper, construct_defaultsMatchErasedEeprom) {
 
 test(ImplementScraper, calculateDistances_degenerateReferencePoints_fallsBackToZero) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
 
-    mockGps.latitude = 52.0f;
-    mockGps.longitude = 5.0f;
-    mockGps.altitudeCm = 1000;
-    mockGps.ggaFixAge = 1;  // > impl's internal lastGgaFix(0) -> triggers recompute
+    millisValue(1);
+    mockGuidance.SetPosition(52.0f, 5.0f);   // stamps lastGgaFix=1 > impl's internal lastGgaFix(0) -> triggers recompute
+    mockGuidance.SetAltitude(10.0f);         // 1000 cm
 
     impl.Update(0, 0);
 
@@ -88,7 +86,7 @@ test(ImplementScraper, calculateDistances_degenerateReferencePoints_fallsBackToZ
 
 // ---------------------------------------------------------------------------
 // calculateDistances() with real, distinct reference points -- exercises the
-// newly-implemented VehicleGps::DistanceBetween() end to end. Reference A at
+// shared DistanceBetween() (GuidanceGeometry.hpp) end to end. Reference A at
 // the origin, Reference B 100m due north (roughly -- at these latitudes
 // 111320m per degree of latitude is the approximation both the real library
 // and this stub use), both at 1000cm altitude with slope=0, so heightRef
@@ -97,25 +95,23 @@ test(ImplementScraper, calculateDistances_degenerateReferencePoints_fallsBackToZ
 
 test(ImplementScraper, calculateDistances_realReferencePoints_computesRefHeight) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
 
     // Reference A at (52.0, 5.0), altitude 1000cm.
-    mockGps.latitude = 52.0f;
-    mockGps.longitude = 5.0f;
-    mockGps.altitudeCm = 1000;
+    mockGuidance.SetPosition(52.0f, 5.0f);
+    mockGuidance.SetAltitude(10.0f);
     impl.SetRefA();
 
     // Reference B ~100m north of A (100m / 111320 m-per-degree).
-    mockGps.latitude = 52.0f + (100.0f / 111320.0f);
-    mockGps.longitude = 5.0f;
-    mockGps.altitudeCm = 1200;
+    mockGuidance.SetPosition(52.0f + (100.0f / 111320.0f), 5.0f);
+    mockGuidance.SetAltitude(12.0f);
     impl.SetRefB();
 
-    // Current position: back at Reference A's location.
-    mockGps.latitude = 52.0f;
-    mockGps.longitude = 5.0f;
-    mockGps.altitudeCm = 1000;
-    mockGps.ggaFixAge = 1;
+    // Current position: back at Reference A's location, stamped at 1 so
+    // Update() sees a fix newer than its internal lastGgaFix(0).
+    millisValue(1);
+    mockGuidance.SetPosition(52.0f, 5.0f);
+    mockGuidance.SetAltitude(10.0f);
 
     impl.Update(0, 0);
 
@@ -133,15 +129,16 @@ test(ImplementScraper, calculateDistances_realReferencePoints_computesRefHeight)
 
 test(ImplementScraper, update_setpointTracksHeightDelta) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
 
-    mockGps.altitudeCm = 250;  // height=250, heightRef=0, offset=0 -> setpoint = -(250-0+0) = -250
-    mockGps.ggaFixAge = 1;
+    mockGuidance.SetAltitude(2.5f);   // height=250, heightRef=0, offset=0 -> setpoint = -(250-0+0) = -250
+    millisValue(1);
+    mockGuidance.NoteGgaFixReceived();   // lastGgaFix=1 -> triggers recompute
 
     impl.Update(0, 0);
     assertEqual(impl.GetHeight(), (short int)250);
 
-    // Auto mode's inputtime = millis() - gps->GetGgaFixAge() -- advance
+    // Auto mode's inputtime = millis() - guidance->GetGgaTimestamp() -- advance
     // millis() past the fix age first so this doesn't wrap negative (this
     // module's own Update() always runs after a real GGA fix has aged, so
     // millis() > fix age holds in practice; only an artifact of testing
@@ -163,7 +160,7 @@ test(ImplementScraper, update_setpointTracksHeightDelta) {
 
 test(ImplementScraper, adjust_manualMode_positiveDirection_narrows) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, 5);
     assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
     assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
@@ -171,7 +168,7 @@ test(ImplementScraper, adjust_manualMode_positiveDirection_narrows) {
 
 test(ImplementScraper, adjust_manualMode_negativeDirection_widens) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, -5);
     assertEqual(analogWriteValue(OUTPUT_WIDE_5), 255);
     assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
@@ -179,7 +176,7 @@ test(ImplementScraper, adjust_manualMode_negativeDirection_widens) {
 
 test(ImplementScraper, adjust_manualMode_zeroDirection_stops) {
     resetAll();
-    ImplementScraper impl(&mockGps);
+    ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, 5);
     assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
 

@@ -30,7 +30,7 @@ using namespace triton;
 // test_ImplementScraper.cpp, every test constructs fresh instances after
 // resetAll() re-erases the fake EEPROM.
 // ---------------------------------------------------------------------------
-static VehicleGps       mockGps;
+static GuidanceSource   mockGuidance;
 static VehicleTractor   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
@@ -38,12 +38,11 @@ static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
 
-    mockGps.ggaFixAge = 0;
-    mockGps.vtgFixAge = 0;
-    mockGps.minSpeedFlag = true;
-    mockGps.latitude = 0;
-    mockGps.longitude = 0;
-    mockGps.altitudeCm = 0;
+    // Fresh source (no fix ever, position 0/0, altitude 0), then a speed
+    // above MinSpeed(); its VTG stamp lands at millis()=0, matching the stub
+    // this suite was written against.
+    mockGuidance = GuidanceSource();
+    mockGuidance.SetSpeedKnots(10.0f);
 
     digitalReadValue(LEFT_BUTTON_5, false);
     digitalReadValue(RIGHT_BUTTON_5, false);
@@ -64,16 +63,16 @@ static void resetAll() {
 
 test(InterfaceScraper, checkButtons_noneHeld_returnsZero) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     assertEqual(iface.CheckButtons(0, 0), 0);
 }
 
 test(InterfaceScraper, checkButtons_leftHeld_delayZero_returnsMinusOneImmediately) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_5, true);
     assertEqual(iface.CheckButtons(0, 0), -1);
@@ -82,8 +81,8 @@ test(InterfaceScraper, checkButtons_leftHeld_delayZero_returnsMinusOneImmediatel
 
 test(InterfaceScraper, checkButtons_rightHeld_delayZero_returnsOneImmediately) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(RIGHT_BUTTON_5, true);
     assertEqual(iface.CheckButtons(0, 0), 1);
@@ -91,8 +90,8 @@ test(InterfaceScraper, checkButtons_rightHeld_delayZero_returnsOneImmediately) {
 
 test(InterfaceScraper, checkButtons_leftHeld_withDelay_waitsForDebounce) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_5, true);
     // Not yet at the delay2 threshold -> falls back to 0.
@@ -104,8 +103,8 @@ test(InterfaceScraper, checkButtons_leftHeld_withDelay_waitsForDebounce) {
 
 test(InterfaceScraper, checkButtons_bothHeld_delayZero_returnsTwoImmediately) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_5, true);
     digitalReadValue(RIGHT_BUTTON_5, true);
@@ -114,8 +113,8 @@ test(InterfaceScraper, checkButtons_bothHeld_delayZero_returnsTwoImmediately) {
 
 test(InterfaceScraper, checkButtons_bothHeld_withDelay1_waitsForCombo) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(LEFT_BUTTON_5, true);
     digitalReadValue(RIGHT_BUTTON_5, true);
@@ -132,8 +131,8 @@ test(InterfaceScraper, checkButtons_bothHeld_withDelay1_waitsForCombo) {
 
 test(InterfaceScraper, update_modePinLow_selectsManual) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(MODE_PIN_5, false);
     iface.Update();
@@ -142,8 +141,8 @@ test(InterfaceScraper, update_modePinLow_selectsManual) {
 
 test(InterfaceScraper, update_joyModeLow_selectsManual) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     digitalReadValue(JOY_MODE_5, false);
     iface.Update();
@@ -152,8 +151,8 @@ test(InterfaceScraper, update_joyModeLow_selectsManual) {
 
 test(InterfaceScraper, update_allConditionsGood_selectsAuto) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     // All fix ages "fresh" relative to millis()=0 (0-0=0, not > 2000); not
     // manual (MODE_PIN_5/JOY_MODE_5 both true per resetAll()).
@@ -163,24 +162,24 @@ test(InterfaceScraper, update_allConditionsGood_selectsAuto) {
 
 test(InterfaceScraper, update_staleGgaFix_selectsHold) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 0;     // 2001 - 0 = 2001 > 2000 -> stale
-    mockGps.vtgFixAge = 2001;  // fresh
+    // lastGgaFix stays 0 from resetAll(): 2001 - 0 = 2001 > 2000 -> stale
+    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh)
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
 
 test(InterfaceScraper, update_staleVtgFix_selectsHold) {
     resetAll();
-    ImplementScraper impl(&mockGps);
-    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGps);
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
     millisValue(2001);
-    mockGps.ggaFixAge = 2001;  // fresh
-    mockGps.vtgFixAge = 0;     // stale
+    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
+    // lastVtgFix stays 0 from resetAll(): stale
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }

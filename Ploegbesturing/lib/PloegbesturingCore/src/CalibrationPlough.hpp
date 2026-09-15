@@ -26,8 +26,8 @@
 #include "ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
+#include "GuidanceSource.hpp"
 #include "LanguagePlough.hpp"
-#include "VehicleGps.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton
@@ -41,17 +41,39 @@ namespace triton
 class CalibrationPlough {
 public:
     CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                       VehicleTractor* tractor, VehicleGps* gps, InterfacePlough* interface);
+                       VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface);
 
     void Calibrate();
+
+    // The two guidance values this board persists. GuidanceSource is a shared
+    // data model with no storage of its own (NeptuneGPS_Triton#78), so this
+    // class owns their EEPROM bytes: the RTK quality the wizard sets, and the
+    // receiver rate index the boot autodetect (InterfaceGuidance) finds. Both
+    // sit where VehicleGps kept them, so a board coming from that firmware
+    // keeps its settings. Read at construction, written by the wizard's Save
+    // step and by main.cpp after a successful detect.
+    static constexpr int kEepromGpsBaudIndex = 10;
+    static constexpr int kEepromRtkQuality   = 11;
+
+    byte GetGpsBaudIndex() const   { return gpsBaudIndex; }
+    void SetGpsBaudIndex(byte idx) { gpsBaudIndex = idx % 8; }
+    void CommitGuidanceCalibration();
+
+    void PrintCalibrationData();
 
 private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
     VehicleTractor*  tractor;
-    VehicleGps*      gps;
+    GuidanceSource*  guidance;
     InterfacePlough* interface;
+
+    // 4800 x {1,2,3,4,6,8,12,24}; index 0 (4800, the common NMEA default)
+    // until a detect or a stored byte says otherwise.
+    byte gpsBaudIndex = 0;
+
+    bool loadGuidanceCalibration();
 };
 
 }  // namespace triton

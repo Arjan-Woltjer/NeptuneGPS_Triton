@@ -21,9 +21,33 @@
 namespace triton
 {
 
-CalibrationScraper::CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement,
-                                        VehicleTractor* tractor, VehicleGps* gps, InterfaceScraper* interface)
-    : lcd(lcd), implement(implement), tractor(tractor), gps(gps), interface(interface) {
+CalibrationScraper::CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement, VehicleTractor* tractor,
+                                        GuidanceSource* guidance, SerialGuidanceChannel* gpsChannel, InterfaceScraper* interface)
+    : lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), gpsChannel(gpsChannel), interface(interface) {
+    loadGuidanceCalibration();
+}
+
+// Returns true when a stored index was found; an erased byte (255) leaves
+// the default 0 (4800, the common NMEA default).
+bool CalibrationScraper::loadGuidanceCalibration() {
+    const byte stored = EEPROM.read(kEepromGpsBaudIndex);
+    if (stored == 255) return false;
+    SetGpsBaudIndex(stored);
+    return true;
+}
+
+void CalibrationScraper::CommitGuidanceCalibration() {
+    EEPROM.write(kEepromGpsBaudIndex, gpsBaudIndex);
+}
+
+void CalibrationScraper::PrintCalibrationData(Stream* serial) {
+    static const byte rates[8] = { 1, 2, 3, 4, 6, 8, 12, 24 };
+    serial->println("=====================================");
+    serial->println("Guidance source using following data:");
+    serial->println("=====================================");
+    serial->println("Baudrate");
+    serial->println(rates[gpsBaudIndex % 8] * long(4800));
+    serial->println("-------------------------------");
 }
 
 // --------------------------------
@@ -72,7 +96,7 @@ void CalibrationScraper::Calibrate() {
             }
 
             while (true) {
-                gps->Update();
+                gpsChannel->Update();
 
                 if (interface->CheckButtons(0, 0) == -1) {
                     lcd->WriteBuffer(L5_CAL_DECLINED, 1);
@@ -113,7 +137,7 @@ void CalibrationScraper::Calibrate() {
             }
 
             while (true) {
-                gps->Update();
+                gpsChannel->Update();
 
                 if (interface->CheckButtons(0, 0) == -1) {
                     lcd->WriteBuffer(L5_CAL_DECLINED, 1);

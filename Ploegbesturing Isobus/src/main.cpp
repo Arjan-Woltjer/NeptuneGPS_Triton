@@ -20,7 +20,7 @@
 #include <EEPROM.h>
 
 #include "calibration/CalibrationPlough.hpp"
-#include "guidance/GuidanceSource.hpp"
+#include "GuidanceSource.hpp"
 #include "implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
@@ -33,7 +33,7 @@
 #include "isobus/IsobusVtInterface.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 #else
-#include "serial/SerialGuidanceChannel.hpp"
+#include "SerialGuidanceChannel.hpp"
 #endif
 
 // Serial ports
@@ -100,19 +100,20 @@ void setup() {
     // constructed first -- gGuidanceChannel needs both already built (the
     // ISOBUS one feeds gGuidance from its PGN callbacks and calls
     // gImplement->Stop() on AISO).
-    gGuidance = new triton::GuidanceSource(gSerialDebug);
+    gGuidance = new triton::GuidanceSource();
     gTractor = new triton::VehicleTractor(gSerialDebug);
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
 
-    gGuidance->PrintCalibrationData();
     gTractor->PrintCalibrationData();
     gImplement->PrintCalibrationData();
-    
-    // Initialise interfaces
+
+    // Initialise interfaces. CalibrationPlough also loads the stored RTK
+    // quality into gGuidance (GuidanceSource itself never touches EEPROM --
+    // the shared data model leaves storage to the project, #78).
     gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
     gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
 
-    gGuidance->PrintCalibrationData();
+    gCalibration->PrintCalibrationData();
     gImplement->PrintCalibrationData();
 
 #ifdef ISOBUS

@@ -35,7 +35,7 @@ using namespace triton;
 // positionCalibrationPoints={34,42,50}, offset=160, shares=4, error=2,
 // maxCorrection=50, kp=100 -- see ImplementPlough.cpp's constructor).
 // ---------------------------------------------------------------------------
-static GuidanceSource mockGuidance(nullptr);
+static GuidanceSource mockGuidance;
 
 static void resetAll() {
     millisValue(0);

@@ -68,7 +68,7 @@ public:
     bool SetGpsMinQuality(uint8_t quality);
     void SetBuzzerEnabled(bool enabled);
 
-    // The same 4800 x {1,2,3,4,6,8,12,24} table VehicleGps prints; index 7
+    // The 4800 x {1,2,3,4,6,8,12,24} table the receivers are set to; index 7
     // is the 115200 the port has always been opened at.
     static long BaudFromIndex(uint8_t index);
 

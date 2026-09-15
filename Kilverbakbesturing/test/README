@@ -5,12 +5,14 @@
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
-  `native_main.cpp` (the host `int main()` entry point). `VehicleGps.hpp`
-  here also implements `DistanceBetween()`/`GetPosition()`/`GetAltitudeCm()`
-  with real math (a flat local-tangent-plane approximation, matching the real
-  `triton::VehicleGps::DistanceBetween()` now does too) rather than a fixed
-  stub value -- this module's leveling calculation needs genuine relative
-  distances between deliberately-chosen lat/long test fixtures.
+  `native_main.cpp` (the host `int main()` entry point). These stand in for
+  the Arduino framework and MeijWorks Libs' `VehicleTractor`/`InterfaceI2CLCD`
+  only: `GuidanceSource` and `DistanceBetween()` (MeijWorks Libs/
+  VehicleGuidance, `GuidanceSource.hpp` and `GuidanceGeometry.hpp`) are the
+  real header-only code, so this module's leveling calculation runs on the
+  same flat local-tangent-plane distances the board computes. The channels
+  that feed the source on the board have their suites in Ploegbesturing
+  Isobus' native build.
 - `native/KilverbakbesturingNativeTests.cpp` -- the single AUnit driver
   (`setup()`/`loop()`), matching Ploegbesturing's/Pootmachinebesturing's/
   Slangenpomp Spuitcomputer's `*NativeTests.cpp` pattern. Every `test_*.cpp`

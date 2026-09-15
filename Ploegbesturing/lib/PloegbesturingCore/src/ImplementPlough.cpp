@@ -24,7 +24,7 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementPlough::ImplementPlough(Stream* serialDebug, VehicleGps* gps) {
+ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) {
     // Pin configuration
     // Inputs
     pinMode(PLOUGHSIDE_PIN_2, INPUT);
@@ -90,7 +90,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, VehicleGps* gps) {
     updateFlag = false;
 
     // Connected classes
-    this->gps = gps;
+    this->guidance = guidance;
     this->serialDebug = serialDebug;
 
     // Get calibration data from EEPROM otherwise use defaults
@@ -163,13 +163,13 @@ void ImplementPlough::Update(byte mode, short int buttons) {
     }
 
     // Update XTE every XTE fix
-    if (gps->GetXteFixAge() - lastXteFix > 0) {
+    if (guidance->GetXteTimestamp() - lastXteFix > 0) {
         // Update xte, rotation and setpoint
-        xte = gps->GetXte();
+        xte = guidance->GetXte();
 
         setSetpoint();
 
-        lastXteFix = gps->GetXteFixAge();
+        lastXteFix = guidance->GetXteTimestamp();
     }
 
     // Update analog inputs

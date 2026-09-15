@@ -21,7 +21,8 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "VehicleGps.hpp"
+#include "GuidanceGeometry.hpp"
+#include "GuidanceSource.hpp"
 
 #include "ConfigImplementScraper.hpp"
 
@@ -105,7 +106,10 @@ private:
     unsigned long shutoffTimer;
 
     // Objects
-    VehicleGps* gps;
+    GuidanceSource* guidance;
+
+    // VehicleGps::GetAltitudeCm(), kept local: the data model reports metres.
+    int altitudeCm() const { return int(guidance->GetAltitude() * 100); }
 
     //------------------------------------------------------------
     // private member functions implemented in ImplementScraper.cpp
@@ -139,7 +143,7 @@ public:
     // ----------------------------------------------------------
 
     // Constructor
-    explicit ImplementScraper(VehicleGps* gps);
+    explicit ImplementScraper(GuidanceSource* guidance);
 
     void Update(byte mode, int buttons);
     void Stop();

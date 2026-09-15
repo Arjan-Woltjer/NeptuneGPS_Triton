@@ -24,7 +24,14 @@ namespace triton
 {
 
 // Parses CAN frames forwarded as ASCII hex strings on the NMEA serial port.
-// The sentence "type" is the CAN arbitration ID in hex (e.g. "0CFEF31C").
+// The sentence "type" is the CAN arbitration ID in hex (e.g. "0CFEF31C"),
+// the single data term the frame's eight payload bytes as sixteen hex digits.
+//
+// Two families arrive this way. The legacy JD proprietary frames keep the
+// layouts VehicleGps decoded. The standard NMEA2000 single-frame PGNs the
+// same receivers broadcast (129025 position, 129026 COG/SOG, 129283 XTE) are
+// rebuilt into bytes and handed to CanFrameGuidanceChannel::Decode(), so a
+// bridged bus commits exactly what a directly read bus would.
 class CanSerialParser : public GpsParser {
 public:
     bool claimsSentenceType(const char* header) override;
@@ -32,7 +39,20 @@ public:
     void commitTo(GuidanceSource* state) override;
 
 private:
-    enum Type : byte { CAN_POS, CAN_SPD, CAN_XTE, CAN_XTE2, NONE } type = NONE;
+    enum Type : byte { CAN_POS, CAN_SPD, CAN_XTE, CAN_XTE2, NMEA2000, NONE } type = NONE;
+
+    // Set by parseTerm() only when the payload term had the full hex length
+    // the layout needs; commitTo() leaves the source untouched otherwise. A
+    // frame with DLC < 8, or a line cut short by a baudrate change, must not
+    // become a plausible but invented fix (VehicleGps guarded this with
+    // termIsHex()).
+    bool fieldsValid = false;
+    static bool termIsHex(const char* term, byte need);
+
+    // NMEA2000 lines: the 29-bit identifier from the header and the payload
+    // bytes from the term, decoded in commitTo().
+    uint32_t frameId = 0;
+    uint8_t  frameData[8] = {0};
 
     float newLat = 0, newLon = 0;
     float newSpeed = 0, newCourse = 0, newAlt = 0;
