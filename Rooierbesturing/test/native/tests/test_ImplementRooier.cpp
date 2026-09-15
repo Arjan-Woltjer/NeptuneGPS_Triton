@@ -335,9 +335,10 @@ test(ImplementRooier, outOfRangeStoredBytes_fallBackToDefaults) {
     ImplementRooier seed;
     seed.CommitCalibration();                       // block present
     EEPROM.write(217, 200);                         // error margin > 10
-    EEPROM.write(218, 0x01); EEPROM.write(219, 0xF4);   // skew 500, beyond +-30
+    // Bytes in the order writeInt() uses: low at the address, high after it.
+    EEPROM.write(218, 0xF4); EEPROM.write(219, 0x01);   // skew 500, beyond +-30
     EEPROM.write(220, 0);                           // setpoint outside 1..99
-    EEPROM.write(221, 0x00); EEPROM.write(222, 100);    // offset 100, beyond +-30
+    EEPROM.write(221, 100); EEPROM.write(222, 0x00);    // offset 100, beyond +-30
     ImplementRooier impl;
     assertEqual((int)impl.GetError(), 2);
     assertEqual(impl.GetSkew(), 0);
@@ -345,21 +346,25 @@ test(ImplementRooier, outOfRangeStoredBytes_fallBackToDefaults) {
     assertEqual(impl.GetOffset(), 0);
 }
 
-// readCalibrationData() rebuilds skew and offset with word(), which is
-// unsigned: a stored -7 comes back as 65529, fails the +-30 window and is
-// reset to 0. Pinned as the current behaviour, not the intended one:
-// NeptuneGPS_Triton#100 (this project has it on two fields).
-test(ImplementRooier, storedSkewAndOffset_negative_areLostAcrossReboot) {
+// A negative skew and a negative offset both survive a reboot
+// (NeptuneGPS_Triton#100, two fields in this project): each is signed and is
+// stored and rebuilt with the writeInt()/readInt() helpers, as in
+// ImplementPlough. The unsigned word() used before turned a stored -7 into
+// 65529, which failed the +-30 window and reset the field to 0 every boot.
+test(ImplementRooier, storedSkewAndOffset_negative_surviveAReboot) {
     resetAll();
     ImplementRooier seed;
     seed.SetSkew(-7);
     seed.SetOffset(-9);
     seed.CommitCalibration();
-    assertEqual((int)EEPROM.read(218), 0xFF);
-    assertEqual((int)EEPROM.read(221), 0xFF);
+    // writeInt() stores the two bytes in host order, low byte first.
+    assertEqual((int)EEPROM.read(218), 0xF9);
+    assertEqual((int)EEPROM.read(219), 0xFF);
+    assertEqual((int)EEPROM.read(221), 0xF7);
+    assertEqual((int)EEPROM.read(222), 0xFF);
     ImplementRooier impl;
-    assertEqual(impl.GetSkew(), 0);     // would be -7 once the sign is preserved
-    assertEqual(impl.GetOffset(), 0);   // would be -9
+    assertEqual(impl.GetSkew(), -7);
+    assertEqual(impl.GetOffset(), -9);
 }
 
 test(ImplementRooier, stop_afterDriving_leavesBothSidesIdle) {

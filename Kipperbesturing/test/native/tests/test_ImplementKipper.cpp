@@ -243,26 +243,29 @@ test(ImplementKipper, storedOffsetOutOfRange_fallsBackToZero) {
     ImplementKipper seed(&mockTractor);
     seed.SetOffset(5);
     seed.CommitCalibration();
-    EEPROM.write(180, 0x00); EEPROM.write(181, 100);   // +100, beyond the +-20 window
+    // Bytes in the order writeInt() uses: low at the address, high after it.
+    EEPROM.write(180, 100); EEPROM.write(181, 0x00);   // +100, beyond the +-20 window
     ImplementKipper impl(&mockTractor);
     assertEqual(impl.GetOffset(), 0);
-    EEPROM.write(180, 0x00); EEPROM.write(181, 20);    // +20, the edge, kept
+    EEPROM.write(180, 20); EEPROM.write(181, 0x00);    // +20, the edge, kept
     ImplementKipper edge(&mockTractor);
     assertEqual(edge.GetOffset(), 20);
 }
 
-// readCalibrationData() rebuilds the offset with word(), which is unsigned:
-// a stored -7 comes back as 65529, fails the +-20 window and is reset to 0.
-// Pinned as the current behaviour, not the intended one: NeptuneGPS_Triton#100.
-test(ImplementKipper, storedOffset_negative_isLostAcrossReboot) {
+// A negative offset survives a reboot (NeptuneGPS_Triton#100): it is stored
+// and rebuilt with the signed writeInt()/readInt() helpers, as in
+// ImplementPlough. The unsigned word() used before turned a stored -7 into
+// 65529, which failed the +-20 window and reset the offset to 0 every boot.
+test(ImplementKipper, storedOffset_negative_survivesAReboot) {
     resetAll();
     ImplementKipper seed(&mockTractor);
     seed.SetOffset(-7);
     seed.CommitCalibration();
-    assertEqual((int)EEPROM.read(180), 0xFF);
-    assertEqual((int)EEPROM.read(181), 0xF9);
+    // writeInt() stores the two bytes in host order, low byte first.
+    assertEqual((int)EEPROM.read(180), 0xF9);
+    assertEqual((int)EEPROM.read(181), 0xFF);
     ImplementKipper impl(&mockTractor);
-    assertEqual(impl.GetOffset(), 0);   // would be -7 once the sign is preserved
+    assertEqual(impl.GetOffset(), -7);
 }
 
 // CommitCalibration() wipes bytes 1..254 before writing its own block, so
