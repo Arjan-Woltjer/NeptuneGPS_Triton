@@ -58,7 +58,7 @@ Write-Host "=== Building SlangenpompNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementSprayer.cpp`" `"$lib\InterfaceSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\SlangenpompNativeTests.exe`" && `"$out\SlangenpompNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementSprayer.cpp`" `"$lib\InterfaceSprayer.cpp`" `"$lib\CalibrationSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\SlangenpompNativeTests.exe`" && `"$out\SlangenpompNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
