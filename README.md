@@ -128,6 +128,13 @@ Validity is a sentinel check (`0xFF` means unwritten) with no version byte or
 checksum yet; see `docs/security-review-2026-07-31.md` for what a torn write
 does and the block-header fix still open under #78.
 
+A **signed** 16-bit field is stored and rebuilt with each implement class's
+`writeInt(value, addr)` / `readInt(addr)` helpers, never with
+`highByte()`/`lowByte()` and `word()`. `word()` is unsigned, so a negative
+value came back as a large positive one, failed its range check and was reset
+on every boot (#100). Unsigned fields, the sensor calibration arrays among
+them, keep their existing byte pairs.
+
 ## Licence
 
 Every source file in this repository carries a GNU Lesser General Public License

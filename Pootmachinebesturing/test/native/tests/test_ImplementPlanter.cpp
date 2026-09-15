@@ -340,7 +340,7 @@ test(ImplementPlanter, commitThenFreshInstance_roundTripsEveryField) {
     analogReadValue(XTE_SENS_PIN_3, 900); impl.SetXteCalibrationData(2);
     impl.SetKP(12); impl.SetKI(3); impl.SetKD(4);
     impl.SetPwmMan(120); impl.SetPwmAuto(200);
-    impl.SetOffset(7);   // positive: see storedOffset_negative_isLostAcrossReboot below
+    impl.SetOffset(7);   // negatives get their own test, storedOffset_negative_survivesAReboot
     impl.SetGpsEnabled(true);
     impl.SetSensorEnabled(false);
     impl.SetPwmEnabled(true);
@@ -389,28 +389,31 @@ test(ImplementPlanter, storedOffsetOutOfRange_fallsBackToZero) {
     ImplementPlanter seed(nullptr, &mockTractor, &mockGuidance);
     seed.SetOffset(5);
     seed.CommitCalibration();
-    EEPROM.write(92, 0x00); EEPROM.write(93, 100);   // +100, beyond the +-20 window
+    // Bytes in the order writeInt() uses: low at the address, high after it.
+    EEPROM.write(92, 100); EEPROM.write(93, 0x00);   // +100, beyond the +-20 window
     ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
     assertEqual(impl.GetOffset(), 0);
-    EEPROM.write(92, 0x00); EEPROM.write(93, 20);    // +20, the edge, kept
+    EEPROM.write(92, 20); EEPROM.write(93, 0x00);    // +20, the edge, kept
     ImplementPlanter edge(nullptr, &mockTractor, &mockGuidance);
     assertEqual(edge.GetOffset(), 20);
 }
 
-// readCalibrationData() rebuilds the offset with word(), which is unsigned:
-// a stored -7 comes back as 65529, fails the +-20 window and is reset to 0.
-// So a negative offset never survives a reboot. Pinned as the current
-// behaviour, not the intended one; the fix is a firmware change tracked
-// as NeptuneGPS_Triton#100.
-test(ImplementPlanter, storedOffset_negative_isLostAcrossReboot) {
+// A negative offset survives a reboot (NeptuneGPS_Triton#100). The offset is
+// signed and is now stored and rebuilt with the writeInt()/readInt() helpers
+// ImplementPlough has always used; the unsigned word() it used before turned
+// a stored -7 into 65529, which failed the +-20 window and reset the offset
+// to 0 on every boot.
+test(ImplementPlanter, storedOffset_negative_survivesAReboot) {
     resetAll();
     ImplementPlanter seed(nullptr, &mockTractor, &mockGuidance);
     seed.SetOffset(-7);
     seed.CommitCalibration();
-    assertEqual((int)EEPROM.read(92), 0xFF);
-    assertEqual((int)EEPROM.read(93), 0xF9);
+    // writeInt() stores the two bytes in host order, low byte first, exactly
+    // as ImplementPlough does at its own address 66.
+    assertEqual((int)EEPROM.read(92), 0xF9);
+    assertEqual((int)EEPROM.read(93), 0xFF);
     ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
-    assertEqual(impl.GetOffset(), 0);   // would be -7 once the sign is preserved
+    assertEqual(impl.GetOffset(), -7);
 }
 
 test(ImplementPlanter, printCalibrationData_onErasedEeprom_printsTheDefaults) {

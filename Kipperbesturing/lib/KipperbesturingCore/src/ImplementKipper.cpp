@@ -379,8 +379,12 @@ bool ImplementKipper::readCalibrationData() {
         kd = EEPROM.read(140);
 
         if (EEPROM.read(180) < 255 || EEPROM.read(181) < 255) {
-            // Read offset (2 bytes)
-            offset = word(EEPROM.read(180), EEPROM.read(181));
+            // Read offset (2 bytes). Signed, so it goes through readInt()
+            // rather than word(), which is unsigned and turned every stored
+            // negative offset into a large positive number that failed the
+            // range check below and reset the offset to 0 on every boot
+            // (NeptuneGPS_Triton#100). Same helper ImplementPlough uses.
+            offset = readInt(180);
             if (offset > 20 || offset < -20) {
                 offset = 0;
             }
@@ -455,8 +459,7 @@ void ImplementKipper::writeCalibrationData() {
     EEPROM.write(130, ki);
     EEPROM.write(140, kd);
 
-    EEPROM.write(180, highByte(offset));
-    EEPROM.write(181, lowByte(offset));
+    writeInt(offset, 180);  // 180 - 181, signed; see readCalibrationData()
 
 #ifdef DEBUG
     Serial.println("Calibration data written");
@@ -475,6 +478,41 @@ void ImplementKipper::wipeCalibrationData() {
 #ifdef DEBUG
     Serial.println("Calibration data wiped");
 #endif
+}
+
+// ---------------------------------------
+// Method for reading int data from EEPROM
+// ---------------------------------------
+// Signed 16-bit, byte for byte in host order. Every signed value this class
+// persists goes through here and writeInt() below rather than through
+// word()/highByte(), which are unsigned and silently lose the sign
+// (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
+// stored its own offset this way.
+short int ImplementKipper::readInt(byte addr) {
+    union {
+        byte b[2];
+        short int i;
+    } data;
+
+    for (short int i = 0; i < 2; i++) {
+        data.b[i] = EEPROM.read(addr + i);
+    }
+    return data.i;
+}
+
+// -------------------------------------
+// Method for writing int data to EEPROM
+// -------------------------------------
+void ImplementKipper::writeInt(short int x, byte addr) {
+    union {
+        byte b[2];
+        short int i;
+    } data;
+
+    data.i = x;
+    for (short int i = 0; i < 2; i++) {
+        EEPROM.write(addr + i, data.b[i]);
+    }
 }
 
 }  // namespace triton

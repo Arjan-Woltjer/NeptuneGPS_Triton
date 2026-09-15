@@ -381,7 +381,12 @@ bool ImplementRooier::readCalibrationData() {
             error = 2;
         }
 
-        skew = word(EEPROM.read(218), EEPROM.read(219));
+        // Signed, so it goes through readInt() rather than word(), which is
+        // unsigned and turned every stored negative skew into a large
+        // positive number that failed the range check below and reset the
+        // skew to 0 on every boot (NeptuneGPS_Triton#100). Same helper
+        // ImplementPlough uses.
+        skew = readInt(218);
         if (skew > 30 || skew < -30) {
             skew = 0;
         }
@@ -391,7 +396,7 @@ bool ImplementRooier::readCalibrationData() {
             setpoint = 50;
         }
 
-        offset = word(EEPROM.read(221), EEPROM.read(222));
+        offset = readInt(221);   // signed, as skew above
         if (offset > 30 || offset < -30) {
             offset = 0;
         }
@@ -423,13 +428,11 @@ void ImplementRooier::writeCalibrationData() {
 
     EEPROM.write(217, error);
 
-    EEPROM.write(218, highByte(skew));
-    EEPROM.write(219, lowByte(skew));
+    writeInt(skew, 218);  // 218 - 219, signed; see readCalibrationData()
 
     EEPROM.write(220, byte(setpoint));
 
-    EEPROM.write(221, highByte(offset));
-    EEPROM.write(222, lowByte(offset));
+    writeInt(offset, 221);  // 221 - 222, signed
 
 #ifdef DEBUG
     Serial.println("Calibration data written");
@@ -497,6 +500,41 @@ void ImplementRooier::PrintCalibrationData() {
     Serial.println(setpoint);
     Serial.println(offset);
     Serial.println("--------------------------");
+}
+
+// ---------------------------------------
+// Method for reading int data from EEPROM
+// ---------------------------------------
+// Signed 16-bit, byte for byte in host order. Every signed value this class
+// persists goes through here and writeInt() below rather than through
+// word()/highByte(), which are unsigned and silently lose the sign
+// (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
+// stored its own offset this way.
+short int ImplementRooier::readInt(byte addr) {
+    union {
+        byte b[2];
+        short int i;
+    } data;
+
+    for (short int i = 0; i < 2; i++) {
+        data.b[i] = EEPROM.read(addr + i);
+    }
+    return data.i;
+}
+
+// -------------------------------------
+// Method for writing int data to EEPROM
+// -------------------------------------
+void ImplementRooier::writeInt(short int x, byte addr) {
+    union {
+        byte b[2];
+        short int i;
+    } data;
+
+    data.i = x;
+    for (short int i = 0; i < 2; i++) {
+        EEPROM.write(addr + i, data.b[i]);
+    }
 }
 
 }  // namespace triton

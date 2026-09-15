@@ -574,8 +574,12 @@ bool ImplementPlanter::readCalibrationData() {
         kd = EEPROM.read(90);
 
         if (EEPROM.read(92) < 255 || EEPROM.read(93) < 255) {
-            // Read offset (2 bytes)
-            offset = word(EEPROM.read(92), EEPROM.read(93));
+            // Read offset (2 bytes). Signed, so it goes through readInt()
+            // rather than word(), which is unsigned and turned every stored
+            // negative offset into a large positive number that failed the
+            // range check below and reset the offset to 0 on every boot
+            // (NeptuneGPS_Triton#100). Same helper ImplementPlough uses.
+            offset = readInt(92);
             if (offset > 20 || offset < -20) {
                 offset = 0;
             }
@@ -621,8 +625,7 @@ void ImplementPlanter::writeCalibrationData() {
     EEPROM.write(88, ki);  // 88
     EEPROM.write(90, kd);  // 90
 
-    EEPROM.write(92, highByte(offset));  // 92
-    EEPROM.write(93, lowByte(offset));   // 93
+    writeInt(offset, 92);  // 92 - 93, signed; see readCalibrationData()
 
     byte settings = 0;
 
@@ -711,6 +714,41 @@ void ImplementPlanter::PrintCalibrationData() {
     serialDebug->println("Plantingelement Sensor Inverted");
     serialDebug->println(invertPlantingelementSensor);
     serialDebug->println("-------------------------------");
+}
+
+// ---------------------------------------
+// Method for reading int data from EEPROM
+// ---------------------------------------
+// Signed 16-bit, byte for byte in host order. Every signed value this class
+// persists goes through here and writeInt() below rather than through
+// word()/highByte(), which are unsigned and silently lose the sign
+// (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
+// stored its own offset this way.
+short int ImplementPlanter::readInt(byte addr) {
+    union {
+        byte b[2];
+        short int i;
+    } data;
+
+    for (short int i = 0; i < 2; i++) {
+        data.b[i] = EEPROM.read(addr + i);
+    }
+    return data.i;
+}
+
+// -------------------------------------
+// Method for writing int data to EEPROM
+// -------------------------------------
+void ImplementPlanter::writeInt(short int x, byte addr) {
+    union {
+        byte b[2];
+        short int i;
+    } data;
+
+    data.i = x;
+    for (short int i = 0; i < 2; i++) {
+        EEPROM.write(addr + i, data.b[i]);
+    }
 }
 
 }  // namespace triton

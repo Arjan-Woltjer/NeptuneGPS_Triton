@@ -114,6 +114,12 @@ private:
     // helper -- kept deliberately, nothing calls it yet.
     void wipeCalibrationData();
 
+    // Signed 16-bit EEPROM access, as ImplementPlough has always had. Every
+    // signed value goes through these instead of word()/highByte(), which
+    // are unsigned and lose the sign (NeptuneGPS_Triton#100).
+    short int readInt(byte addr);
+    void      writeInt(short int x, byte addr);
+
 public:
     // -----------------------------------------------------------
     // public member functions implemented in ImplementRooier.cpp
