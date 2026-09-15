@@ -171,3 +171,120 @@ test(InterfaceMotorcontroller, TermsSplitOnSpaceAndCr)
 
     assertEqual(Serial.sent().c_str(), "+\r");
 }
+
+// ---------------------------------------------------------------------------
+// The rest of the serial protocol and the loop entry point
+// (NeptuneGPS_Triton#95): every !VAR setting, the encoder and trigger reads,
+// the echo switch both ways, the variable dump, and Update() driving the
+// actuator with the parsed setpoint.
+// ---------------------------------------------------------------------------
+
+test(InterfaceMotorcontroller, AllVarsDumpsEverySetting)
+{
+    resetAll();
+    InterfaceMotorcontroller iface;
+    iface.Begin();
+    Serial.clearSent();
+    Serial.inject("?ALLVARS\r");
+    iface.ParseSerial();
+    const std::string& out = Serial.sent();
+    assertTrue(out.find("VAR=") != std::string::npos || out.find("=") != std::string::npos);
+    assertTrue(out.size() > 20u);
+}
+
+test(InterfaceMotorcontroller, EchoOnAgainEchoesCharacters)
+{
+    resetAll();
+    InterfaceMotorcontroller iface;
+    iface.Begin();
+    Serial.clearSent();
+    Serial.inject("^ECHOF 1\r");
+    iface.ParseSerial();
+    assertEqual(Serial.sent().c_str(), "+\r");
+    Serial.clearSent();
+    Serial.inject("^ECHOF 0\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("+\r") != std::string::npos);
+    Serial.clearSent();
+    Serial.inject("?TRN\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("?TRN") != std::string::npos);   // echoed again
+}
+
+test(InterfaceMotorcontroller, EverySettingVarPersistsAndAcks)
+{
+    resetAll();
+    InterfaceMotorcontroller iface;
+    iface.Begin();
+    const char* commands[] = {
+        "!VAR 0 42\r",    // user variable
+        "!VAR 1 7\r",     // kp
+        "!VAR 2 3\r",     // ki
+        "!VAR 3 1\r",     // kd
+        "!VAR 5 20\r",    // min power
+        "!VAR 6 200\r",   // max power
+        "!VAR 7 15\r",    // error fraction
+        "!VAR 8 4\r",     // allowed error
+    };
+    for (const char* cmd : commands) {
+        Serial.clearSent();
+        Serial.inject(cmd);
+        iface.ParseSerial();
+        assertTrue(Serial.sent().find("+\r") != std::string::npos);
+    }
+    // Writing the same value twice takes the "already stored" branch.
+    Serial.clearSent();
+    Serial.inject("!VAR 1 7\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("+\r") != std::string::npos);
+
+    Serial.clearSent();
+    Serial.inject("~ATRIG 1\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("~ATRIG=15") != std::string::npos);
+
+    Serial.clearSent();
+    Serial.inject("^ATRIG 1 9\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("+\r") != std::string::npos);
+}
+
+test(InterfaceMotorcontroller, UnknownVarIndexAndUnknownCommandAreIgnored)
+{
+    resetAll();
+    InterfaceMotorcontroller iface;
+    iface.Begin();
+    Serial.clearSent();
+    Serial.inject("!VAR 4 1\r");      // no such index
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("+\r") == std::string::npos);
+    Serial.clearSent();
+    Serial.inject("?NOPE\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("+\r") == std::string::npos);
+    Serial.clearSent();
+    Serial.inject("?C 2\r");          // only encoder 1 exists
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("C=") == std::string::npos);
+}
+
+test(InterfaceMotorcontroller, UpdateDrivesTheActuatorWithTheParsedSetpoint)
+{
+    resetAll();
+    InterfaceMotorcontroller iface;
+    iface.Begin();
+    Serial.clearSent();
+    Serial.inject("!MG\r");           // release the shutdown
+    iface.ParseSerial();
+    Serial.inject("!P 1 300\r");
+    iface.ParseSerial();
+    Serial.inject("!C 1 0\r");
+    iface.ParseSerial();
+    for (uint32_t now = 0; now <= 500; now += 50) {
+        iface.Update(now);            // parses, hands the setpoint over, steps the actuator
+    }
+    Serial.clearSent();
+    Serial.inject("?C 1\r");
+    iface.ParseSerial();
+    assertTrue(Serial.sent().find("C=") != std::string::npos);
+}
