@@ -18,13 +18,22 @@
 */
 #pragma once
 
-// Same guard rationale as IsobusVtInterface.hpp: ARDUINO excludes this
-// from [env:native]; ISOBUS is required too so this header (and its
-// #include <AgIsoStack.hpp>) becomes entirely empty on teensy41_serial.
-#if defined(ARDUINO) && defined(ISOBUS)
+// ISOBUS is required, so this header becomes entirely empty on
+// teensy41_serial. EPOXY_DUINO admits it to [env:native], where the real
+// AgIsoStack core is compiled and driven from a fake CAN plugin
+// (NeptuneGPS_Triton#98); the Arduino.h there is the test stub.
+#if (defined(ARDUINO) || defined(EPOXY_DUINO)) && defined(ISOBUS)
 
 #include <Arduino.h>
-#include <AgIsoStack.hpp>
+
+// Specific headers rather than <AgIsoStack.hpp>: that umbrella pulls in
+// flex_can_t4_plugin.hpp and kinetis_flexcan.hpp, which are Teensy-only and
+// keep this class off any host build. Everything named below is portable
+// C++17 -- see #98.
+#include <can_internal_control_function.hpp>
+#include <can_partnered_control_function.hpp>
+#include <isobus_device_descriptor_object_pool.hpp>
+#include <isobus_task_controller_client.hpp>
 
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
@@ -180,6 +189,13 @@ public:
     }
 
 private:
+    // The native suite drives the two process-data callbacks below directly,
+    // the way AgIsoStack drives them: reaching them through a connected
+    // TaskControllerClient would need a TC server, which no host test has,
+    // and they are plain integers in and member state out
+    // (NeptuneGPS_Triton#98). Declared here, defined only in the test build.
+    friend struct IsobusTcInterfaceTestAccess;
+
     // --- TC callbacks (static, AgIsoStack uses raw function pointers) ---
     // Value types are int32_t, matching the AgIsoStack-Arduino version
     // actually vendored for this build (.pio/libdeps/teensy41_isobus/

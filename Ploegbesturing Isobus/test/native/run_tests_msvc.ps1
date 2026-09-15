@@ -10,6 +10,10 @@ $lib     = "$root\lib\PloegbesturingCore\src"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
 $config  = "$root\lib\PloegbesturingCore\src\config"
 $implement = "$root\lib\PloegbesturingCore\src\implement"
+# The real AgIsoStack, compiled for the host (NeptuneGPS_Triton#98). Its core
+# is portable C++17; only flex_can_t4_plugin.cpp is Teensy-bound and is
+# filtered out below. Fetched by "pio pkg install -e native".
+$agisostack = "$root\.pio\libdeps\native\AgIsoStack\src"
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PloegbesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -55,7 +59,7 @@ $aunitSources = @(
 # SalaciaFirmwareCore convention), and $lib is only for the test_*.cpp files
 # below reaching in via library-root-relative paths ("implement/
 # ImplementPlough.hpp" etc.).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /DISOBUS /DCAN_STACK_DISABLE_THREADS /I`"$aunit`" /I`"$agisostack`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches
@@ -66,7 +70,41 @@ Write-Host "=== Building PloegbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$lib\calibration\CalibrationPlough.cpp`" `"$lib\isobus\VTObjectPool.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
+# Every AgIsoStack core source except the one Teensy-bound plugin, matching
+# platformio.ini's glob-plus-exclusion for [env:native].
+$agisostackSources = (Get-ChildItem "$agisostack\*.cpp" |
+    Where-Object { $_.Name -ne 'flex_can_t4_plugin.cpp' } |
+    ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
+
+# Through a response file, not the command line: AgIsoStack adds 40 source
+# paths and the whole thing runs past cmd.exe's length limit ("The command
+# line is too long"). cl accepts @file with identical parsing.
+$clArgs = @(
+    $commonFlags
+    "/Fo`"$out\\`""
+    "`"$lib\isobus\IsobusTcInterface.cpp`""
+    $agisostackSources
+    "`"$implement\ImplementPlough.cpp`""
+    "`"$lib\InterfacePlough.cpp`""
+    "`"$lib\calibration\CalibrationPlough.cpp`""
+    "`"$lib\isobus\VTObjectPool.cpp`""
+    "`"$guidance\NmeaParser.cpp`""
+    "`"$guidance\TrimbleParser.cpp`""
+    "`"$guidance\CanSerialParser.cpp`""
+    "`"$guidance\SerialGuidanceChannel.cpp`""
+    "`"$guidance\IsobusPgnDecode.cpp`""
+    "`"$guidance\CanFrameGuidanceChannel.cpp`""
+    $testSources
+    "`"$driver`""
+    "`"$stubs\native_main.cpp`""
+    $aunitSources
+    "/Fe:`"$out\PloegbesturingNativeTests.exe`""
+) -join ' '
+
+$rsp = "$out\cl_args.rsp"
+Set-Content -Path $rsp -Value $clArgs -Encoding ascii
+
+$cmd = "`"$vcvars`" $vcvarsArch && cl @`"$rsp`" && `"$out\PloegbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

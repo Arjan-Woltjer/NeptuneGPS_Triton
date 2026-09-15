@@ -24,6 +24,13 @@
 // file in on teensy41_serial anyway.
 #ifdef ISOBUS
 
+// Specific headers for what the body uses beyond the class declaration; see
+// the header for why the AgIsoStack.hpp umbrella is avoided.
+#include <can_NAME_filter.hpp>
+#include <can_network_manager.hpp>
+#include <isobus_standard_data_description_indices.hpp>
+#include <isobus_task_controller_client_objects.hpp>
+
 using namespace isobus;
 
 namespace triton
