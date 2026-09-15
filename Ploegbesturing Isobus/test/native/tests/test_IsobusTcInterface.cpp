@@ -22,6 +22,7 @@
 
 // Standard headers first: the Arduino stub behind AUnit.h defines min/max as
 // macros, and GCC's <string>/<vector> use std::min/max with three arguments.
+#include <cstring>
 #include <set>
 #include <string>
 #include <vector>
@@ -63,6 +64,23 @@ struct IsobusTcInterfaceTestAccess {
         IsobusTcInterface::OnValueRequest(0, ddi, value, &tc);
         return value;
     }
+
+    // The reconnect watchdog (GitHub issue #18) and the connection history it
+    // arms off. get_is_connected() is driven by a private state machine only
+    // a real TC server on a real bus can advance, so the "we have been
+    // connected once" flag is set here rather than reached through it.
+    static void Watchdog(IsobusTcInterface& tc) { tc.updateReconnectWatchdog(); }
+
+    static void SetHasEverConnected(IsobusTcInterface& tc, bool value) { tc.hasEverConnected = value; }
+
+    static void ResetWatchdog(IsobusTcInterface& tc) {
+        tc.hasEverConnected    = false;
+        tc.disconnectedSinceMs = 0;
+        tc.lastReconnectTryMs  = 0;
+        tc.reconnectAttempts   = 0;
+    }
+
+    static unsigned long DisconnectedSinceMs(const IsobusTcInterface& tc) { return tc.disconnectedSinceMs; }
 };
 }  // namespace triton
 
@@ -79,7 +97,25 @@ struct IsobusTcInterfaceTestAccess {
 
 namespace {
 
+// A debug Stream that records what was written to it. The reconnect watchdog
+// dereferences serialDebug unconditionally when it fires, so this fixture
+// cannot pass nullptr the way it used to.
+class TcCaptureStream : public Stream {
+public:
+    size_t write(uint8_t c) override {
+        if (len < sizeof(text) - 1) text[len++] = (char)c;
+        text[len] = '\0';
+        return 1;
+    }
+    void Clear() { len = 0; text[0] = '\0'; }
+    bool Contains(const char* needle) const { return strstr(text, needle) != nullptr; }
+
+    char   text[1024] = {};
+    size_t len = 0;
+};
+
 GuidanceSource   tcGuidance;
+TcCaptureStream  tcDebug;
 FakeCanPlugin*   tcPlugin = nullptr;
 ImplementPlough* tcImplement = nullptr;
 IsobusTcInterface* tcInterface = nullptr;
@@ -107,7 +143,7 @@ IsobusTcInterface& Fixture() {
             isobus::CANNetworkManager::CANNetwork.create_internal_control_function(ourName, 0, 0x1C);
 
         tcImplement = new ImplementPlough(nullptr, &tcGuidance);
-        tcInterface = new IsobusTcInterface(nullptr, tcImplement, &tcGuidance, controlFunction);
+        tcInterface = new IsobusTcInterface(&tcDebug, tcImplement, &tcGuidance, controlFunction);
         tcInterface->Begin();
     }
     return *tcInterface;
@@ -302,6 +338,105 @@ test(IsobusTcInterface, valueRequest_countsEveryRequest) {
     Request(isobus::DataDescriptionIndex::GNSSQuality);
     Request(static_cast<isobus::DataDescriptionIndex>(0x4321));   // nothing we declare
     assertEqual(Fixture().GetValueRequestCount(), before + 2);
+}
+
+
+// ---------------------------------------------------------------------------
+// Reconnect watchdog (GitHub issue #18)
+//
+// Deliberately slower than the VT's 10 s equivalent: TaskControllerClient's
+// own connect sequence includes a six-second WaitForStartUpDelay, so a
+// shorter window would cut off a re-attempt already in progress. The
+// connected branch is not reachable from a host test -- get_is_connected()
+// reads a private state machine only a real TC server can advance -- so what
+// is pinned here is the whole of the disconnected policy.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+void ResetTcWatchdog() {
+    millisValue(0);
+    IsobusTcInterfaceTestAccess::ResetWatchdog(Fixture());
+    tcDebug.Clear();
+}
+
+void TcWatchdogAt(unsigned long ms) {
+    millisValue(ms);
+    IsobusTcInterfaceTestAccess::Watchdog(Fixture());
+}
+
+}  // namespace
+
+test(IsobusTcInterface, watchdog_neverFiresBeforeAFirstConnection) {
+    ResetTcWatchdog();
+    IsobusTcInterfaceTestAccess::SetHasEverConnected(Fixture(), false);
+    // A TC that has never connected is GitHub issue #19's case: the partner
+    // had been evicted from AgIsoStack's control-function table, and
+    // restarting the client would not have helped. Firing during the normal
+    // six-second startup delay would only interrupt a connection in progress.
+    for (unsigned long t = 0; t <= 180000UL; t += 5000UL) {
+        TcWatchdogAt(t);
+    }
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)0);
+    assertEqual(IsobusTcInterfaceTestAccess::DisconnectedSinceMs(Fixture()), (unsigned long)0);
+    millisValue(0);
+}
+
+test(IsobusTcInterface, watchdog_firstTickAfterAConnectionOnlyStartsTheClock) {
+    ResetTcWatchdog();
+    IsobusTcInterfaceTestAccess::SetHasEverConnected(Fixture(), true);
+    TcWatchdogAt(2000);
+    assertEqual(IsobusTcInterfaceTestAccess::DisconnectedSinceMs(Fixture()), (unsigned long)2000);
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)0);
+    millisValue(0);
+}
+
+test(IsobusTcInterface, watchdog_waitsFifteenSecondsBeforeTheFirstRestart) {
+    ResetTcWatchdog();
+    IsobusTcInterfaceTestAccess::SetHasEverConnected(Fixture(), true);
+    TcWatchdogAt(2000);
+
+    // 14999 ms into the outage. Shorter than this and the client's own
+    // six-second startup delay plus its handshake would be cut off mid-way.
+    TcWatchdogAt(16999);
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)0);
+
+    TcWatchdogAt(17000);
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)1);
+    assertTrue(tcDebug.Contains("forcing restart 1"));
+    assertTrue(tcDebug.Contains("TC: disconnected 15s"));
+    millisValue(0);
+}
+
+test(IsobusTcInterface, watchdog_spacesRepeatRestartsFifteenSecondsApart) {
+    ResetTcWatchdog();
+    IsobusTcInterfaceTestAccess::SetHasEverConnected(Fixture(), true);
+    TcWatchdogAt(2000);
+    TcWatchdogAt(17000);
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)1);
+
+    // A TC server that is genuinely gone stays gone. Without the retry
+    // spacing this would restart the client on every loop pass.
+    TcWatchdogAt(31999);
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)1);
+
+    TcWatchdogAt(32000);
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)2);
+    millisValue(0);
+}
+
+test(IsobusTcInterface, watchdog_restartsAreOnePerFifteenSecondsNotOnePerLoop) {
+    ResetTcWatchdog();
+    IsobusTcInterfaceTestAccess::SetHasEverConnected(Fixture(), true);
+    // Ninety seconds of outage pumped at a realistic loop rate. The attempt
+    // count is what a rig operator reads off the debug menu, so it has to
+    // track wall time rather than iteration count.
+    for (unsigned long t = 2000; t <= 92000UL; t += 20UL) {
+        TcWatchdogAt(t);
+    }
+    // The outage starts at 2000; restarts land at 17000, 32000 ... 92000.
+    assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)6);
+    millisValue(0);
 }
 
 #endif  // ISOBUS

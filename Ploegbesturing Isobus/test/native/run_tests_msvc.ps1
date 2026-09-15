@@ -84,6 +84,7 @@ $clArgs = @(
     "/Fo`"$out\\`""
     "`"$lib\isobus\IsobusTcInterface.cpp`""
     "`"$lib\isobus\IsobusGuidanceChannel.cpp`""
+    "`"$lib\isobus\IsobusVtInterface.cpp`""
     $agisostackSources
     "`"$implement\ImplementPlough.cpp`""
     "`"$lib\InterfacePlough.cpp`""
