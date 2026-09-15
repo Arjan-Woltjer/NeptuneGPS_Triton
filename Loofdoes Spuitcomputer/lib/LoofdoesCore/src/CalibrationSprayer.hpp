@@ -18,7 +18,11 @@
 */
 #pragma once
 
-#ifdef ARDUINO
+// Built for the board and for the native test binary (EPOXY_DUINO, where
+// Arduino.h is the test stub): the wizard talks to a Stream and to
+// ImplementSprayer only, nothing ESP32-specific, so it is testable with a
+// scripted serial port. Excluded from any other host build.
+#if defined(ARDUINO) || defined(EPOXY_DUINO)
 
 #include <Arduino.h>
 
@@ -102,4 +106,4 @@ private:
 
 }  // namespace triton
 
-#endif  // ARDUINO
+#endif  // ARDUINO || EPOXY_DUINO

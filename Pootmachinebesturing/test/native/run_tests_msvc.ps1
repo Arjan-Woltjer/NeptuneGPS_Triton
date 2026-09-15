@@ -59,7 +59,7 @@ Write-Host "=== Building PootmachinebesturingNativeTests ===" -ForegroundColor C
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementPlanter.cpp`" `"$lib\InterfacePlanter.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PootmachinebesturingNativeTests.exe`" && `"$out\PootmachinebesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementPlanter.cpp`" `"$lib\InterfacePlanter.cpp`" `"$lib\CalibrationPlanter.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PootmachinebesturingNativeTests.exe`" && `"$out\PootmachinebesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
