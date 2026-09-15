@@ -25,11 +25,18 @@
 #ifdef ISOBUS
 
 // Specific headers for what the body uses beyond the class declaration; see
-// the header for why the AgIsoStack.hpp umbrella is avoided.
+// the header for why the AgIsoStack.hpp umbrella is avoided, and for why the
+// min()/max() macros are parked around them.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
 #include <can_NAME_filter.hpp>
 #include <can_network_manager.hpp>
 #include <isobus_standard_data_description_indices.hpp>
 #include <isobus_task_controller_client_objects.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 
 using namespace isobus;
 

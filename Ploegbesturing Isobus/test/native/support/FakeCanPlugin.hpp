@@ -20,11 +20,20 @@
 
 #ifdef ISOBUS
 
+// Arduino.h's min()/max() macros mangle the three-argument std::min/std::max
+// these headers reach through <vector> and friends; parked and restored, the
+// same sandwich GuidanceGeometry.hpp puts around its <math.h>.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
 #include <cstddef>
 #include <vector>
 
 #include <can_hardware_plugin.hpp>
 #include <can_message_frame.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 
 namespace triton
 {

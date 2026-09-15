@@ -30,10 +30,21 @@
 // flex_can_t4_plugin.hpp and kinetis_flexcan.hpp, which are Teensy-only and
 // keep this class off any host build. Everything named below is portable
 // C++17 -- see #98.
+//
+// Arduino.h above defines min()/max() as macros, and these headers pull in
+// <algorithm>, <limits> and friends, whose three-argument std::min/std::max
+// the macros then mangle. Parked around the include and restored after, the
+// same sandwich GuidanceGeometry.hpp puts around its <math.h>.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
 #include <can_internal_control_function.hpp>
 #include <can_partnered_control_function.hpp>
 #include <isobus_device_descriptor_object_pool.hpp>
 #include <isobus_task_controller_client.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"

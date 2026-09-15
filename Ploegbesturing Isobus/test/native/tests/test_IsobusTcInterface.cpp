@@ -28,11 +28,20 @@
 
 #include <AUnit.h>
 
+// AUnit.h has pulled in the Arduino stub by now, so its min()/max() macros
+// are live and would mangle the three-argument std::min/std::max these
+// headers reach through the STL. Same sandwich as GuidanceGeometry.hpp's.
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
 #include <can_hardware_interface_single_thread.hpp>
 #include <can_network_manager.hpp>
 #include <isobus_device_descriptor_object_pool.hpp>
 #include <isobus_standard_data_description_indices.hpp>
 #include <isobus_task_controller_client_objects.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 
 #include "FakeCanPlugin.hpp"
 #include "isobus/IsobusTcInterface.hpp"
