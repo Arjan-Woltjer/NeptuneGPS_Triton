@@ -165,3 +165,83 @@ test(InterfaceKipper, update_manualOverridesHold) {
     iface.Update();
     assertEqual(iface.GetMode(), (byte)2);
 }
+
+// ---------------------------------------------------------------------------
+// UpdateScreen(rewrite) per mode and writeValue()'s width and sign cases,
+// plus the remaining CheckButtons() branches (NeptuneGPS_Triton#92). The LCD
+// stub records nothing, so these pin the mode and button state each screen
+// is drawn for and prove the draw paths run.
+// ---------------------------------------------------------------------------
+
+test(InterfaceKipper, updateScreen_rewrite_autoHoldManual) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    InterfaceKipper iface(&mockLcd, &impl, &mockTractor);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 0);
+    iface.UpdateScreen(true);
+    iface.UpdateScreen(false);
+
+    mockTractor.minSpeedFlag = false;
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 1);
+    iface.UpdateScreen(true);
+
+    mockTractor.minSpeedFlag = true;
+    digitalReadValue(MODE_PIN_4, false);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 2);
+    digitalReadValue(LEFT_BUTTON_4, true);
+    assertEqual(iface.CheckButtons(0, 0), -1);
+    iface.UpdateScreen(true);
+    digitalReadValue(LEFT_BUTTON_4, false);
+    digitalReadValue(RIGHT_BUTTON_4, true);
+    assertEqual(iface.CheckButtons(0, 0), 1);
+    iface.UpdateScreen(true);
+    digitalReadValue(RIGHT_BUTTON_4, false);
+    assertEqual(iface.CheckButtons(0, 0), 0);
+    iface.UpdateScreen(true);
+}
+
+// writeValue() picks a layout per magnitude (three digits, two, one) and
+// places the sign in front of the first digit. The offset field takes any
+// in-memory value, so it drives all six cases.
+test(InterfaceKipper, updateScreen_writeValue_everyWidthAndSign) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    InterfaceKipper iface(&mockLcd, &impl, &mockTractor);
+    const int values[6] = { 150, -150, 42, -42, 7, -7 };
+    for (int i = 0; i < 6; ++i) {
+        impl.SetOffset(values[i]);
+        iface.UpdateScreen(false);
+        assertEqual(impl.GetOffset(), values[i]);
+    }
+}
+
+test(InterfaceKipper, checkButtons_rightHeld_withDelay_waitsForDebounce) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    InterfaceKipper iface(&mockLcd, &impl, &mockTractor);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    digitalReadValue(RIGHT_BUTTON_4, true);
+    millisValue(10);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    millisValue(60);
+    assertEqual(iface.CheckButtons(0, 50), 1);
+}
+
+test(InterfaceKipper, checkButtons_bothHeld_withDelay_thenReleased_returnsZero) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    InterfaceKipper iface(&mockLcd, &impl, &mockTractor);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    digitalReadValue(LEFT_BUTTON_4, true);
+    digitalReadValue(RIGHT_BUTTON_4, true);
+    millisValue(5);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    millisValue(50);
+    assertEqual(iface.CheckButtons(10, 0), 2);
+    digitalReadValue(LEFT_BUTTON_4, false);
+    digitalReadValue(RIGHT_BUTTON_4, false);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+}

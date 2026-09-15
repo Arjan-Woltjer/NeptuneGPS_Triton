@@ -191,3 +191,95 @@ test(ImplementKipper, adjust_manualMode_zeroDirection_stops) {
     assertFalse(digitalWriteValue(OUTPUT_WIDE_4));
     assertFalse(digitalWriteValue(OUTPUT_NARROW_4));
 }
+
+// ---------------------------------------------------------------------------
+// EEPROM persistence (NeptuneGPS_Triton#92): the write/read round trip, the
+// offset window and its known sign loss (#100), what the wipe takes with it,
+// and the serial dump.
+// ---------------------------------------------------------------------------
+
+test(ImplementKipper, resetCalibration_erasedEeprom_reportsNoData) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    assertFalse(impl.ResetCalibration());
+    assertEqual((int)impl.GetKP(), 50);
+    assertEqual((int)impl.GetKI(), 50);
+    assertEqual((int)impl.GetKD(), 0);
+    assertEqual(impl.GetOffset(), 0);
+}
+
+test(ImplementKipper, commitThenFreshInstance_roundTripsEveryField) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    analogReadValue(STEER_SENS_PIN_4, 100); impl.SetSteerCalibrationData(0);
+    analogReadValue(STEER_SENS_PIN_4, 500); impl.SetSteerCalibrationData(1);
+    analogReadValue(STEER_SENS_PIN_4, 900); impl.SetSteerCalibrationData(2);
+    analogReadValue(ANGLE_SENS_PIN_4, 150); impl.SetAngleCalibrationData(0);
+    analogReadValue(ANGLE_SENS_PIN_4, 450); impl.SetAngleCalibrationData(1);
+    analogReadValue(ANGLE_SENS_PIN_4, 750); impl.SetAngleCalibrationData(2);
+    impl.SetKP(12); impl.SetKI(3); impl.SetKD(4);
+    impl.SetOffset(7);
+    impl.CommitCalibration();
+
+    ImplementKipper fresh(&mockTractor);
+    assertTrue(fresh.ResetCalibration());
+    assertEqual((int)fresh.GetKP(), 12);
+    assertEqual((int)fresh.GetKI(), 3);
+    assertEqual((int)fresh.GetKD(), 4);
+    assertEqual(fresh.GetOffset(), 7);
+
+    // The persisted curves are what the interpolation runs on: a reading at
+    // the stored top point lands on the top calibration point.
+    analogReadValue(STEER_SENS_PIN_4, 900);
+    analogReadValue(ANGLE_SENS_PIN_4, 750);
+    millisValue(25);
+    fresh.Update(0);
+    assertEqual(fresh.GetSteer(), fresh.GetSteerCalibrationPoint(2));
+    assertEqual(fresh.GetAngle(), fresh.GetAngleCalibrationPoint(2));
+}
+
+test(ImplementKipper, storedOffsetOutOfRange_fallsBackToZero) {
+    resetAll();
+    ImplementKipper seed(&mockTractor);
+    seed.SetOffset(5);
+    seed.CommitCalibration();
+    EEPROM.write(180, 0x00); EEPROM.write(181, 100);   // +100, beyond the +-20 window
+    ImplementKipper impl(&mockTractor);
+    assertEqual(impl.GetOffset(), 0);
+    EEPROM.write(180, 0x00); EEPROM.write(181, 20);    // +20, the edge, kept
+    ImplementKipper edge(&mockTractor);
+    assertEqual(edge.GetOffset(), 20);
+}
+
+// readCalibrationData() rebuilds the offset with word(), which is unsigned:
+// a stored -7 comes back as 65529, fails the +-20 window and is reset to 0.
+// Pinned as the current behaviour, not the intended one: NeptuneGPS_Triton#100.
+test(ImplementKipper, storedOffset_negative_isLostAcrossReboot) {
+    resetAll();
+    ImplementKipper seed(&mockTractor);
+    seed.SetOffset(-7);
+    seed.CommitCalibration();
+    assertEqual((int)EEPROM.read(180), 0xFF);
+    assertEqual((int)EEPROM.read(181), 0xF9);
+    ImplementKipper impl(&mockTractor);
+    assertEqual(impl.GetOffset(), 0);   // would be -7 once the sign is preserved
+}
+
+// CommitCalibration() wipes bytes 1..254 before writing its own block, so
+// anything else stored on the board (the tractor block at 20..28) goes with
+// it. Pinned so a change to it is deliberate.
+test(ImplementKipper, commitCalibration_wipesEverythingOutsideItsOwnBlock) {
+    resetAll();
+    EEPROM.write(20, 42);
+    ImplementKipper impl(&mockTractor);
+    impl.CommitCalibration();
+    assertEqual((int)EEPROM.read(20), 255);
+    assertNotEqual((int)EEPROM.read(120), 255);   // its own block is back
+}
+
+test(ImplementKipper, printCalibrationData_runs) {
+    resetAll();
+    ImplementKipper impl(&mockTractor);
+    impl.PrintCalibrationData();   // writes to Serial (stdout in the stub)
+    assertEqual((int)impl.GetKP(), 50);
+}

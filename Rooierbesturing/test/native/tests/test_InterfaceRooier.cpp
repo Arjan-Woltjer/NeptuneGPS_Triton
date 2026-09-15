@@ -168,3 +168,92 @@ test(InterfaceRooier, update_allConditionsGood_selectsAuto) {
     iface.Update();
     assertEqual(iface.GetMode(), (byte)0);
 }
+
+// ---------------------------------------------------------------------------
+// UpdateScreen(rewrite) per mode, writeValue()'s width cases, the joystick
+// inputs and the remaining CheckButtons() branches (NeptuneGPS_Triton#93).
+// The LCD stub records nothing, so these pin the mode and button state each
+// screen is drawn for and prove the draw paths run.
+// ---------------------------------------------------------------------------
+
+test(InterfaceRooier, updateScreen_rewrite_autoAndManual_everyButtonState) {
+    resetAll();
+    ImplementRooier impl;
+    InterfaceRooier iface(&mockLcd, &impl, &mockTractor);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 0);
+    iface.UpdateScreen(true);
+    iface.UpdateScreen(false);
+
+    digitalReadValue(MODE_PIN_8, false);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 2);
+    digitalReadValue(LEFT_BUTTON_8, true);
+    assertEqual(iface.CheckButtons(0, 0), -1);
+    iface.UpdateScreen(true);
+    digitalReadValue(LEFT_BUTTON_8, false);
+    digitalReadValue(RIGHT_BUTTON_8, true);
+    assertEqual(iface.CheckButtons(0, 0), 1);
+    iface.UpdateScreen(true);
+    digitalReadValue(RIGHT_BUTTON_8, false);
+    assertEqual(iface.CheckButtons(0, 0), 0);
+    iface.UpdateScreen(true);
+}
+
+// writeValue() picks a layout per magnitude: the heights run 0..100 over the
+// calibrated range, which reaches the one-, two- and three-digit layouts.
+test(InterfaceRooier, updateScreen_writeValue_everyWidth) {
+    resetAll();
+    ImplementRooier impl;
+    InterfaceRooier iface(&mockLcd, &impl, &mockTractor);
+    const int readings[3] = { 0, 500, 1000 };      // heights 0, 50, 100
+    for (int i = 0; i < 3; ++i) {
+        analogReadValue(HEIGHT_SENS_PIN_L_8, readings[i]);
+        analogReadValue(HEIGHT_SENS_PIN_R_8, readings[i]);
+        millisValue(25 * (i + 1));
+        impl.Update(0, 0);
+        iface.UpdateScreen(false);
+    }
+    assertEqual(impl.GetHeightL(), 100);
+}
+
+test(InterfaceRooier, joystick_leftAndRight_actLikeTheButtons) {
+    resetAll();
+    ImplementRooier impl;
+    InterfaceRooier iface(&mockLcd, &impl, &mockTractor);
+    digitalReadValue(JOY_LEFT_8, true);
+    assertEqual(iface.CheckButtons(0, 0), -1);
+    digitalReadValue(JOY_LEFT_8, false);
+    digitalReadValue(JOY_RIGHT_8, true);
+    assertEqual(iface.CheckButtons(0, 0), 1);
+    digitalReadValue(JOY_RIGHT_8, false);
+    assertEqual(iface.CheckButtons(0, 0), 0);
+}
+
+test(InterfaceRooier, checkButtons_rightHeld_withDelay_waitsForDebounce) {
+    resetAll();
+    ImplementRooier impl;
+    InterfaceRooier iface(&mockLcd, &impl, &mockTractor);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    digitalReadValue(RIGHT_BUTTON_8, true);
+    millisValue(10);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    millisValue(60);
+    assertEqual(iface.CheckButtons(0, 50), 1);
+}
+
+test(InterfaceRooier, checkButtons_bothHeld_withDelay_thenReleased_returnsZero) {
+    resetAll();
+    ImplementRooier impl;
+    InterfaceRooier iface(&mockLcd, &impl, &mockTractor);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    digitalReadValue(LEFT_BUTTON_8, true);
+    digitalReadValue(RIGHT_BUTTON_8, true);
+    millisValue(5);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    millisValue(50);
+    assertEqual(iface.CheckButtons(10, 0), 2);
+    digitalReadValue(LEFT_BUTTON_8, false);
+    digitalReadValue(RIGHT_BUTTON_8, false);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+}
