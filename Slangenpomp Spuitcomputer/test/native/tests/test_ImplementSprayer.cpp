@@ -215,3 +215,97 @@ test(ImplementSprayer, corruptEepromPwmData_fallsBackToDefaults) {
 
     assertEqual(fromCorrupt, fromReference);
 }
+
+// ---------------------------------------------------------------------------
+// EEPROM persistence and the paths a moving sprayer takes (NeptuneGPS_Triton#94):
+// the write/read round trip, the stored dose and its clamps, the actual-dose
+// and volume readouts, and setpoint flow/PWM with speed on the wheel.
+// CalibratePump() spins on millis() for a minute per point and stays out;
+// calculateAlarm() is deliberately not called from Update() (see there).
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, resetCalibration_erasedEeprom_reportsNoData) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    assertFalse(impl.ResetCalibration());
+    assertEqual(impl.GetFlowCalibration(), 940);
+    assertEqual(impl.GetDose(), 200);
+}
+
+test(ImplementSprayer, commitThenFreshInstance_roundTripsEveryField) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    impl.SetTeeth(7);
+    impl.SetPumps(2);
+    impl.SetWidth(30);
+    impl.SetKP(12); impl.SetKI(3); impl.SetKD(4);
+    impl.SetFlowCalibration(1234);
+    impl.CommitCalibration();                 // writes, then dumps to Serial
+    assertNotEqual((int)EEPROM.read(100), 255);
+
+    ImplementSprayer fresh(&mockTractor);
+    assertTrue(fresh.ResetCalibration());    // the default PWM table round-trips as a valid one
+    assertEqual((int)fresh.GetTeeth(), 7);
+    assertEqual((int)fresh.GetPumps(), 2);
+    assertEqual((int)fresh.GetWidth(), 30);
+    assertEqual((int)fresh.GetKP(), 12);
+    assertEqual((int)fresh.GetKI(), 3);
+    assertEqual((int)fresh.GetKD(), 4);
+    assertEqual(fresh.GetFlowCalibration(), 1234);
+}
+
+test(ImplementSprayer, storedDose_isReadAndClampedTo50to500) {
+    resetAll();
+    EEPROM.write(190, 0x01); EEPROM.write(191, 0x2C);   // 300
+    ImplementSprayer a(&mockTractor);
+    assertEqual(a.GetDose(), 300);
+    EEPROM.write(190, 0x02); EEPROM.write(191, 0xBC);   // 700 -> 500
+    ImplementSprayer b(&mockTractor);
+    assertEqual(b.GetDose(), 500);
+    EEPROM.write(190, 0x00); EEPROM.write(191, 10);     // 10 -> 50
+    ImplementSprayer c(&mockTractor);
+    assertEqual(c.GetDose(), 50);
+}
+
+test(ImplementSprayer, movingInAuto_producesABoundedPumpDutyAndReadouts) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    mockTractor.speed = 2.0f;                 // m/s
+    digitalReadValue(IMPLEMENT_SWITCH, true);
+    for (int s = 1; s <= 4; ++s) {
+        millisValue(1000UL * s);
+        impl.Update(0, 0);
+        // A flow pulse each cycle so the actual flow is not stuck at zero.
+        digitalReadValue(FLOW_SENS_PIN, (s % 2) == 1);
+        digitalReadValue(GEAR_SENS_PIN, (s % 2) == 1);
+        impl.Update(0, 0);
+    }
+    assertMoreOrEqual(analogWriteValue(OUTPUT_FET), 0);
+    assertLessOrEqual(analogWriteValue(OUTPUT_FET), 255);
+    assertTrue(impl.GetNeededFlow() > 0.0f);
+    (void)impl.GetActualDose();               // the moving branch of the readout
+    (void)impl.GetActualFlow();
+    (void)impl.GetFlag();
+    assertMoreOrEqual((long)impl.GetVolume(), 0L);
+    digitalReadValue(IMPLEMENT_SWITCH, false);
+    digitalReadValue(FLOW_SENS_PIN, false);
+    digitalReadValue(GEAR_SENS_PIN, false);
+    millisValue(0);
+}
+
+test(ImplementSprayer, movingInSim_takesTheSimulatedSpeedPath) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    mockTractor.speed = 1.5f;
+    digitalReadValue(IMPLEMENT_SWITCH, true);
+    millisValue(1000);
+    impl.Update(4, 0);
+    millisValue(2000);
+    impl.Update(4, 1);                        // a dose nudge while simulating
+    millisValue(3000);
+    impl.Update(4, -1);
+    assertMoreOrEqual(analogWriteValue(OUTPUT_FET), 0);
+    assertLessOrEqual(analogWriteValue(OUTPUT_FET), 255);
+    digitalReadValue(IMPLEMENT_SWITCH, false);
+    millisValue(0);
+}

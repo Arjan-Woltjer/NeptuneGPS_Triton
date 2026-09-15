@@ -176,3 +176,86 @@ test(InterfaceSprayer, update_simFlagForced_selectsSim) {
     iface.Update();
     assertEqual(iface.GetMode(), (byte)4);
 }
+
+// ---------------------------------------------------------------------------
+// UpdateScreen(rewrite) per mode and the remaining CheckButtons() branches
+// (NeptuneGPS_Triton#94). The LCD stub records nothing, so these pin the mode
+// and button state each screen is drawn for and prove the draw paths run.
+// ---------------------------------------------------------------------------
+
+test(InterfaceSprayer, updateScreen_rewrite_autoSimAndOff) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 0);
+    iface.UpdateScreen(true);
+    iface.UpdateScreen(false);
+
+    mockTractor.sim = true;
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 4);
+    iface.UpdateScreen(true);
+    mockTractor.sim = false;
+
+    digitalReadValue(MODE_PIN, false);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 2);
+    digitalReadValue(LEFT_BUTTON, true);
+    assertEqual(iface.CheckButtons(0, 0), -1);
+    iface.UpdateScreen(true);
+    digitalReadValue(LEFT_BUTTON, false);
+    digitalReadValue(RIGHT_BUTTON, true);
+    assertEqual(iface.CheckButtons(0, 0), 1);
+    iface.UpdateScreen(true);
+    digitalReadValue(RIGHT_BUTTON, false);
+    assertEqual(iface.CheckButtons(0, 0), 0);
+    iface.UpdateScreen(true);
+}
+
+// The dose and flow fields are rendered digit by digit with a layout per
+// width; a moving sprayer with a stored dose exercises the wider ones.
+test(InterfaceSprayer, updateScreen_movingWithStoredDose_rendersWiderFields) {
+    resetAll();
+    EEPROM.write(190, 0x01); EEPROM.write(191, 0xF4);   // dose 500
+    ImplementSprayer impl(&mockTractor);
+    InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
+    mockTractor.speed = 3.0f;
+    digitalReadValue(IMPLEMENT_SWITCH, true);
+    for (int s = 1; s <= 3; ++s) {
+        millisValue(1000UL * s);
+        iface.Update();
+        iface.UpdateScreen(true);
+    }
+    assertEqual(impl.GetDose(), 500);
+    digitalReadValue(IMPLEMENT_SWITCH, false);
+    millisValue(0);
+}
+
+test(InterfaceSprayer, checkButtons_rightHeld_withDelay_waitsForDebounce) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    digitalReadValue(RIGHT_BUTTON, true);
+    millisValue(10);
+    assertEqual(iface.CheckButtons(0, 50), 0);
+    millisValue(60);
+    assertEqual(iface.CheckButtons(0, 50), 1);
+}
+
+test(InterfaceSprayer, checkButtons_bothHeld_withDelay_thenReleased_returnsZero) {
+    resetAll();
+    ImplementSprayer impl(&mockTractor);
+    InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    digitalReadValue(LEFT_BUTTON, true);
+    digitalReadValue(RIGHT_BUTTON, true);
+    millisValue(5);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+    millisValue(50);
+    assertEqual(iface.CheckButtons(10, 0), 2);
+    digitalReadValue(LEFT_BUTTON, false);
+    digitalReadValue(RIGHT_BUTTON, false);
+    assertEqual(iface.CheckButtons(10, 0), 0);
+}

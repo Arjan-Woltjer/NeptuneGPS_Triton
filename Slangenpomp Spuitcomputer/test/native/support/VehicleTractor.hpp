@@ -30,4 +30,21 @@ class VehicleTractor {
     unsigned long GetSimTime() { return simTime; }
     bool  GetSim() { return sim; }
     unsigned long GetDistance() { return distance; }
+    // The calibration wizard (CalibrationSprayer, in the native build since
+    // NeptuneGPS_Triton#94) drives the tractor speed calibration, simulation
+    // and speed-constant settings; nothing here is asserted on, the wizard is
+    // never run.
+    float         simSpeedKmh = 0;
+    unsigned int  vconst = 0;
+    unsigned int  CalibrateSpeed(int) { return 0; }
+    bool          ResetCalibration() { return false; }
+    void          CommitCalibration() {}
+    void          ResetWheelspeedPulses() {}
+    void          EnableSim() { sim = true; }
+    void          DisableSim() { sim = false; }
+    float         GetSimSpeedKmh() { return simSpeedKmh; }
+    void          SetSimSpeedKmh(float value) { simSpeedKmh = value; }
+    void          SetSimTime(unsigned long value) { simTime = value; }
+    unsigned int  GetVconst() { return vconst; }
+    void          SetVconst(unsigned int value) { vconst = value; }
 };
