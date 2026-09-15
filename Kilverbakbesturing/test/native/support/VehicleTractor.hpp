@@ -14,4 +14,11 @@ class VehicleTractor {
     VehicleTractor() {}
 
     void Update(uint8_t) {}
+    // The calibration wizard (CalibrationScraper, in the native build since
+    // NeptuneGPS_Triton#91) runs the tractor speed calibration and commits the
+    // tractor block; nothing here is asserted on, the wizard is never run.
+    unsigned int CalibrateSpeed(int) { return 0; }
+    bool ResetCalibration() { return false; }
+    void CommitCalibration() {}
+    void ResetWheelspeedPulses() {}
 };

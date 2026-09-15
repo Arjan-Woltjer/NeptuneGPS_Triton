@@ -28,7 +28,7 @@ class Print {
     }
     size_t print(const char* s) { return write(s ? s : "(null)"); }
     size_t print(char c)        { return write((uint8_t)c); }
-    size_t print(bool b)        { return print(b ? "true" : "false"); }
+    size_t print(bool b)        { return print(b ? 1 : 0); }   // Arduino has no bool overload: it prints 1/0 via int
     size_t print(int n, int base = DEC)           { char b[33]; _fmt(b, (long)n, base);       return print(b); }
     size_t print(unsigned int n, int base = DEC)  { char b[33]; _fmtu(b, (unsigned long)n, base); return print(b); }
     size_t print(long n, int base = DEC)          { char b[33]; _fmt(b, n, base);              return print(b); }
