@@ -19,6 +19,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Standard headers first: the Arduino stub behind AUnit.h defines min/max as
+// macros, and GCC's <string> uses std::min/max with three arguments.
+#include <string>
+
 #include <AUnit.h>
 #include "ImplementPlanter.hpp"
 
@@ -302,5 +306,140 @@ test(ImplementPlanter, corruptEepromPositionData_fallsBackToDefaults) {
 test(ImplementPlanter, offset_defaultsToZero) {
     resetAll();
     ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    assertEqual(impl.GetOffset(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// EEPROM persistence (NeptuneGPS_Triton#90): the write/read round trip of
+// every stored field including the packed settings byte, the offset range
+// check, the serial dump, and the three valve configurations of Left/Right.
+// ---------------------------------------------------------------------------
+
+struct PlanterCaptureStream : public Stream {
+    std::string out;
+    size_t write(uint8_t c) override { out.push_back((char)c); return 1; }
+    bool has(const char* s) const { return out.find(s) != std::string::npos; }
+};
+
+test(ImplementPlanter, resetCalibration_erasedEeprom_reportsNoData) {
+    resetAll();
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    assertFalse(impl.ResetCalibration());
+    assertEqual(impl.GetOffset(), 0);
+    assertFalse(impl.GetGpsEnabled());
+}
+
+test(ImplementPlanter, commitThenFreshInstance_roundTripsEveryField) {
+    resetAll();
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    analogReadValue(POSITION_SENS_PIN_3, 150); impl.SetPositionCalibrationData(0);
+    analogReadValue(POSITION_SENS_PIN_3, 400); impl.SetPositionCalibrationData(1);
+    analogReadValue(POSITION_SENS_PIN_3, 650); impl.SetPositionCalibrationData(2);
+    analogReadValue(XTE_SENS_PIN_3, 100); impl.SetXteCalibrationData(0);
+    analogReadValue(XTE_SENS_PIN_3, 500); impl.SetXteCalibrationData(1);
+    analogReadValue(XTE_SENS_PIN_3, 900); impl.SetXteCalibrationData(2);
+    impl.SetKP(12); impl.SetKI(3); impl.SetKD(4);
+    impl.SetPwmMan(120); impl.SetPwmAuto(200);
+    impl.SetOffset(7);   // positive: see storedOffset_negative_isLostAcrossReboot below
+    impl.SetGpsEnabled(true);
+    impl.SetSensorEnabled(false);
+    impl.SetPwmEnabled(true);
+    impl.SetOnOffValve(false);
+    impl.SetInvertHydraulics(true);
+    impl.SetInvertPlantingelementSensor(true);
+    impl.CommitCalibration();
+    assertEqual((int)EEPROM.read(94), 0B00101011);   // gps | pwm | invertHyd | invertSensor
+
+    PlanterCaptureStream dbg;
+    ImplementPlanter fresh(&dbg, &mockTractor, &mockGuidance);
+    assertTrue(fresh.ResetCalibration());
+    assertEqual((int)fresh.GetKP(), 12);
+    assertEqual((int)fresh.GetKI(), 3);
+    assertEqual((int)fresh.GetKD(), 4);
+    assertEqual((int)fresh.GetPwmMan(), 120);
+    assertEqual((int)fresh.GetPwmAuto(), 200);
+    assertEqual(fresh.GetOffset(), 7);
+    assertTrue(fresh.GetGpsEnabled());
+    assertFalse(fresh.GetSensorEnabled());
+    assertTrue(fresh.GetPwmEnabled());
+    assertFalse(fresh.GetOnOffValve());
+    assertTrue(fresh.GetInvertHydraulics());
+    assertTrue(fresh.GetInvertPlantingelementSensor());
+
+    fresh.PrintCalibrationData();
+    assertTrue(dbg.has("Planter using following data:"));
+    assertTrue(dbg.has("Offset calibration data\n150, -6\n400, 0\n650, 6\n"));
+    assertTrue(dbg.has("XTE calibration data\n100, -10\n500, 0\n900, 10\n"));
+    // Each section is followed by a separator line, so match them one by one.
+    assertTrue(dbg.has("KP\n12\n"));
+    assertTrue(dbg.has("KI\n3\n"));
+    assertTrue(dbg.has("KD\n4\n"));
+    assertTrue(dbg.has("PWM auto\n200\n"));
+    assertTrue(dbg.has("PWM manual\n120\n"));
+    assertTrue(dbg.has("GPS Enabled\n1\n"));
+    assertTrue(dbg.has("XTE Sensor enabled\n0\n"));
+    assertTrue(dbg.has("PWM Enabled\n1\n"));
+    assertTrue(dbg.has("On/Off Valve\n0\n"));
+    assertTrue(dbg.has("Hydraulics Inverted\n1\n"));
+    assertTrue(dbg.has("Plantingelement Sensor Inverted\n1\n"));
+}
+
+test(ImplementPlanter, storedOffsetOutOfRange_fallsBackToZero) {
+    resetAll();
+    ImplementPlanter seed(nullptr, &mockTractor, &mockGuidance);
+    seed.SetOffset(5);
+    seed.CommitCalibration();
+    EEPROM.write(92, 0x00); EEPROM.write(93, 100);   // +100, beyond the +-20 window
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    assertEqual(impl.GetOffset(), 0);
+    EEPROM.write(92, 0x00); EEPROM.write(93, 20);    // +20, the edge, kept
+    ImplementPlanter edge(nullptr, &mockTractor, &mockGuidance);
+    assertEqual(edge.GetOffset(), 20);
+}
+
+// readCalibrationData() rebuilds the offset with word(), which is unsigned:
+// a stored -7 comes back as 65529, fails the +-20 window and is reset to 0.
+// So a negative offset never survives a reboot. Pinned as the current
+// behaviour, not the intended one; the fix is a firmware change tracked
+// as NeptuneGPS_Triton#100.
+test(ImplementPlanter, storedOffset_negative_isLostAcrossReboot) {
+    resetAll();
+    ImplementPlanter seed(nullptr, &mockTractor, &mockGuidance);
+    seed.SetOffset(-7);
+    seed.CommitCalibration();
+    assertEqual((int)EEPROM.read(92), 0xFF);
+    assertEqual((int)EEPROM.read(93), 0xF9);
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    assertEqual(impl.GetOffset(), 0);   // would be -7 once the sign is preserved
+}
+
+test(ImplementPlanter, printCalibrationData_onErasedEeprom_printsTheDefaults) {
+    resetAll();
+    PlanterCaptureStream dbg;
+    ImplementPlanter impl(&dbg, &mockTractor, &mockGuidance);
+    impl.PrintCalibrationData();
+    assertTrue(dbg.has("Offset calibration data\n201, -6\n428, 0\n687, 6\n"));
+    assertTrue(dbg.has("XTE calibration data\n201, -10\n428, 0\n687, 10\n"));
+    assertTrue(dbg.has("GPS Enabled\n0\n"));
+}
+
+// Left()/Right() select their outputs by valve configuration; the pin stubs
+// record nothing, so these pin that every configuration runs without a
+// fault and leaves the position logic untouched.
+test(ImplementPlanter, leftRight_everyValveConfiguration_runs) {
+    resetAll();
+    ImplementPlanter impl(nullptr, &mockTractor, &mockGuidance);
+    const bool onOff[3]  = { true,  true,  false };
+    const bool pwmEn[3]  = { true,  false, false };
+    for (int cfg = 0; cfg < 3; ++cfg) {
+        for (int inv = 0; inv < 2; ++inv) {
+            impl.SetOnOffValve(onOff[cfg]);
+            impl.SetPwmEnabled(pwmEn[cfg]);
+            impl.SetInvertHydraulics(inv == 1);
+            impl.Left(100);
+            impl.Right(100);
+            impl.Stop();
+        }
+    }
     assertEqual(impl.GetOffset(), 0);
 }

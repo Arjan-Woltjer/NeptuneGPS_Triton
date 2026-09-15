@@ -294,3 +294,28 @@ test(CanSerialParser, short_nmea2000_line_is_not_committed) {
     p.commitTo(&state);
     assertEqual(state.GetXte(), 123);
 }
+
+// 1CEBACAA (Trimble legacy XTE over the bridge) carries a float XTE only when
+// byte 0 is 0x02 and byte 5 is 0x07. With any other marker pair the frame is
+// a different Trimble message: the float is not read and the reset XTE of 0
+// is what gets committed, together with the layout's unconditional quality 4
+// (the TODO in the parser). Pinned so a later fix changes it on purpose.
+test(CanSerialParser, xte2_markerMatch_commitsFloatMetresAsHundredths) {
+    GuidanceSource state;
+    CanSerialParser p;
+    assertTrue(p.claimsSentenceType("1CEBACAA"));
+    p.parseTerm(1, "023F80000007FFFF");      // 0x02, 1.0f, 0x07
+    p.commitTo(&state);
+    assertEqual(state.GetXte(), 100);
+    assertEqual((int)state.GetQuality(), 4);
+}
+
+test(CanSerialParser, xte2_markerMismatch_doesNotReadTheFloat) {
+    GuidanceSource state;
+    state.SetXte(321);
+    CanSerialParser p;
+    assertTrue(p.claimsSentenceType("1CEBACAA"));
+    p.parseTerm(1, "013F80000006FFFF");      // markers 0x01 / 0x06
+    p.commitTo(&state);
+    assertEqual(state.GetXte(), 0);
+}

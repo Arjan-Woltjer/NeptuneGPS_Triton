@@ -58,7 +58,7 @@ Write-Host "=== Building RooierbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementRooier.cpp`" `"$lib\InterfaceRooier.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\RooierbesturingNativeTests.exe`" && `"$out\RooierbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementRooier.cpp`" `"$lib\InterfaceRooier.cpp`" `"$lib\CalibrationRooier.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\RooierbesturingNativeTests.exe`" && `"$out\RooierbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

@@ -325,3 +325,88 @@ test(InterfacePlough, update_belowMinSpeed_selectsHold) {
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
 }
+
+// ---------------------------------------------------------------------------
+// UpdateScreen(rewrite) and the remaining CheckButtons() branches
+// (NeptuneGPS_Triton#88). The LCD stub records nothing, so these pin the mode
+// and button state each screen is drawn for and prove the draw paths run.
+// ---------------------------------------------------------------------------
+
+test(InterfacePlough, updateScreen_rewrite_autoMode_bothPloughSides) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 0);
+    digitalReadValue(PLOUGHSIDE_PIN_2, false);
+    iface.UpdateScreen(true);
+    digitalReadValue(PLOUGHSIDE_PIN_2, true);
+    iface.UpdateScreen(true);
+    iface.UpdateScreen(false);
+    assertEqual((int)iface.GetMode(), 0);
+}
+
+test(InterfacePlough, updateScreen_rewrite_holdMode_slowThenStaleSpeed) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+    mockGuidance.SetSpeedKnots(0.1f);          // fresh VTG, below MinSpeed: "S!"
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 1);
+    iface.UpdateScreen(true);
+    millisValue(3000);                         // VTG stale as well: "G!"
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 1);
+    iface.UpdateScreen(true);
+}
+
+test(InterfacePlough, updateScreen_rewrite_manualMode_eachButtonState) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+    digitalReadValue(MODE_PIN_2, false);
+    iface.Update();
+    assertEqual((int)iface.GetMode(), 2);
+
+    digitalReadValue(LEFT_BUTTON_2, true);
+    assertEqual(iface.CheckButtons(0, 0), (short int)-1);
+    iface.UpdateScreen(true);
+    digitalReadValue(LEFT_BUTTON_2, false);
+    digitalReadValue(RIGHT_BUTTON_2, true);
+    assertEqual(iface.CheckButtons(0, 0), (short int)1);
+    iface.UpdateScreen(true);
+    digitalReadValue(RIGHT_BUTTON_2, false);
+    assertEqual(iface.CheckButtons(0, 0), (short int)0);
+    iface.UpdateScreen(true);
+    assertEqual(iface.GetButtons(), (short int)0);
+}
+
+test(InterfacePlough, checkButtons_rightHeld_withDelay_waitsForDebounce) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+    assertEqual(iface.CheckButtons(0, 50), (short int)0);   // seeds the timers
+    digitalReadValue(RIGHT_BUTTON_2, true);
+    millisValue(10);
+    assertEqual(iface.CheckButtons(0, 50), (short int)0);
+    millisValue(60);
+    assertEqual(iface.CheckButtons(0, 50), (short int)1);
+    assertEqual(iface.GetButtons(), (short int)1);
+}
+
+test(InterfacePlough, checkButtons_bothHeld_withDelay_thenReleased_returnsZero) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+    assertEqual(iface.CheckButtons(10, 0), (short int)0);
+    digitalReadValue(LEFT_BUTTON_2, true);
+    digitalReadValue(RIGHT_BUTTON_2, true);
+    millisValue(5);
+    assertEqual(iface.CheckButtons(10, 0), (short int)0);   // 40 ms not yet held
+    millisValue(50);
+    assertEqual(iface.CheckButtons(10, 0), (short int)2);
+    digitalReadValue(LEFT_BUTTON_2, false);
+    digitalReadValue(RIGHT_BUTTON_2, false);
+    assertEqual(iface.CheckButtons(10, 0), (short int)0);
+    assertEqual(iface.GetButtons(), (short int)0);
+}

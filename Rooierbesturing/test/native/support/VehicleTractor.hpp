@@ -17,4 +17,9 @@ class VehicleTractor {
     bool GetHitch() { return hitch; }
 
     bool hitch;
+    // The calibration wizard (CalibrationRooier, in the native build since
+    // NeptuneGPS_Triton#93) commits the tractor block; nothing here is asserted
+    // on, the wizard is never run.
+    bool ResetCalibration() { return false; }
+    void CommitCalibration() {}
 };

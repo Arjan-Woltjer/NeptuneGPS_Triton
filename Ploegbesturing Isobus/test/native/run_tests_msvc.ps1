@@ -66,7 +66,7 @@ Write-Host "=== Building PloegbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$lib\calibration\CalibrationPlough.cpp`" `"$lib\isobus\VTObjectPool.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
