@@ -184,3 +184,98 @@ test(ImplementScraper, adjust_manualMode_zeroDirection_stops) {
     assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
     assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
 }
+
+// ---------------------------------------------------------------------------
+// EEPROM persistence (NeptuneGPS_Triton#91): the implement block round trip,
+// the range checks, the reference points A/B and the distances they feed,
+// and what CommitCalibration()'s wipe takes with it.
+// ---------------------------------------------------------------------------
+
+// A fresh fix at the given point; GGA-stamped so Update() recomputes.
+static void fixAt(float lat, float lon, float altitudeM) {
+    mockGuidance.SetPosition(lat, lon);
+    mockGuidance.SetAltitude(altitudeM);
+    mockGuidance.NoteGgaFixReceived();
+}
+
+test(ImplementScraper, resetCalibration_erasedEeprom_reportsNoData) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    assertFalse(impl.ResetCalibration());
+    assertEqual(impl.GetError(), (byte)2);
+    assertEqual(impl.GetSlope(), (short int)0);
+}
+
+test(ImplementScraper, commitThenFreshInstance_roundTripsErrorAndSlope) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    impl.SetError(7);
+    impl.SetSlope(-12);
+    impl.CommitCalibration();
+
+    ImplementScraper fresh(&mockGuidance);
+    assertTrue(fresh.ResetCalibration());
+    assertEqual(fresh.GetError(), (byte)7);
+    assertEqual(fresh.GetSlope(), (short int)-12);   // readInt() is signed, unlike word()
+}
+
+test(ImplementScraper, outOfRangeStoredBytes_fallBackToDefaults) {
+    resetAll();
+    ImplementScraper seed(&mockGuidance);
+    seed.CommitCalibration();                 // marks the block present
+    EEPROM.write(142, 200);                   // error margin > 10
+    EEPROM.write(146, 0xF4); EEPROM.write(147, 0x01);   // slope 500, beyond +-99
+    ImplementScraper impl(&mockGuidance);
+    assertEqual(impl.GetError(), (byte)2);
+    assertEqual(impl.GetSlope(), (short int)0);
+}
+
+// CommitCalibration() wipes bytes 1..254 before writing the implement block
+// (130..147). That takes the receiver rate index at byte 10, the tractor
+// block and the reference points at 150..169 with it. Pinned as the current
+// behaviour so a change to it is deliberate; whether it is the intended one
+// is a question for the owner (see the PR).
+test(ImplementScraper, commitCalibration_wipesEverythingOutsideItsOwnBlock) {
+    resetAll();
+    EEPROM.write(10, 3);                      // CalibrationScraper's rate index
+    ImplementScraper impl(&mockGuidance);
+    fixAt(52.0f, 5.0f, 10.0f);
+    impl.SetRefA();
+    assertNotEqual((int)EEPROM.read(150), 255);
+    impl.CommitCalibration();
+    assertEqual((int)EEPROM.read(10), 255);
+    assertEqual((int)EEPROM.read(150), 255);
+    assertNotEqual((int)EEPROM.read(142), 255);   // its own block is back
+}
+
+test(ImplementScraper, referencePoints_persistAndFeedTheDistances) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    impl.CommitCalibration();                 // block present, so a reboot reads the refs
+    fixAt(52.0f, 5.0f, 10.0f);
+    impl.SetRefA();
+    fixAt(52.0009f, 5.0f, 12.0f);             // ~100 m north
+    impl.SetRefB();
+    assertNotEqual((int)EEPROM.read(150), 255);
+    assertNotEqual((int)EEPROM.read(160), 255);
+
+    // A fresh instance reads A and B back; a fix halfway along the line,
+    // 10 m east of it, lands mid-way with a 10 m cross-track distance (negative: east of a northbound line).
+    ImplementScraper fresh(&mockGuidance);
+    assertTrue(fresh.ResetCalibration());
+    millisValue(1);
+    fixAt(52.00045f, 5.000146f, 11.0f);
+    fresh.Update(0, 0);
+    assertMoreOrEqual(fresh.GetDistance(), 45);
+    assertLessOrEqual(fresh.GetDistance(), 55);
+    // East of a northbound A->B line reads negative in this convention.
+    assertMoreOrEqual(fresh.GetXTE(), -15);
+    assertLessOrEqual(fresh.GetXTE(), -5);
+}
+
+test(ImplementScraper, printCalibrationData_runs) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    impl.PrintCalibrationData();              // writes to Serial (stdout in the stub)
+    assertEqual(impl.GetError(), (byte)2);
+}
