@@ -87,7 +87,9 @@ static void rReset() {
     for (int i = 0; i < NUM_OUTPUTS; ++i) { rImpl.outputs[i].state = false; rImpl.outputs[i].pwm = false; rImpl.outputs[i].value = 0; rImpl.outputs[i].timer = 0; }
     rImpl.doseLHA = 0.0f; rImpl.doseLM = 0.0f;
     rImpl.actualLHA = ImplementSprayer::kActualDoseUndefined;
-    rImpl.doseDeviation = false;
+    rImpl.doseDeviation   = false;
+    rImpl.deviationAccumMs = 0;
+    rImpl.deviationPending = false;
     rImpl.doseCalibrationPoints[0] = { 50,  0 };
     rImpl.doseCalibrationPoints[1] = { 100, 2048 };
     rImpl.doseCalibrationPoints[2] = { 200, 4095 };
@@ -587,6 +589,18 @@ test(RemoteSprayer, vtgSentence_onThePort_drivesTheDose) {
     rIface.analogInputs[0].value = 2048;
     remote.HandleLine("TELEM N 1");
     sink.clear();
+
+    // Prime the rolling speed average with the same fix repeated at
+    // SPEED_AVG_SAMPLES distinct earlier timestamps: updateSpeed() only
+    // folds a sample in on a genuinely new VTG fix (real receiver
+    // behaviour -- see ImplementSprayer::updateSpeed()), so the single
+    // sentence fed below would otherwise only fill one of five slots.
+    for (unsigned long ms = 1000 - (SPEED_AVG_SAMPLES - 1); ms < 1000; ++ms) {
+        millisValue(ms);
+        rSerial.Feed("$GPVTG,213.4,T,,M,002.91,N,005.39,K*61\r\n");
+        rChannel.Update();
+        rImpl.Update();
+    }
 
     millisValue(1000);
     rSerial.Feed("$GPVTG,213.4,T,,M,002.91,N,005.39,K*61\r\n");   // 2.91 kt = 1.497 m/s

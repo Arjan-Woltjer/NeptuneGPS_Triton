@@ -45,6 +45,22 @@ static ImplementSprayer impl(nullptr, &mockGps, &iface, &cfg);
 // receiver cannot produce either.
 static void gpsSpeed(float speedMs) { mockGps.SetSpeedKnots(speedMs / GPS_MS_PER_KNOT); }
 
+// Fully converge the rolling speed average to speedMs, ending exactly at
+// atMs so a caller's own millis() arithmetic right after this call is
+// unaffected. updateSpeed() only folds a sample in once GuidanceSource's VTG
+// timestamp genuinely changes (real receiver behaviour -- see
+// ImplementSprayer::updateSpeed()), so SPEED_AVG_SAMPLES calls at the same
+// millis() would fold in one sample and recompute the same average
+// SPEED_AVG_SAMPLES times, not converge it: each of the SPEED_AVG_SAMPLES
+// fixes here lands one millisecond apart instead, each one a distinct fix.
+static void primeSpeed(float speedMs, unsigned long atMs) {
+    for (int i = SPEED_AVG_SAMPLES - 1; i >= 0; --i) {
+        millisValue(atMs - (unsigned long)i);
+        gpsSpeed(speedMs);
+        impl.Update();
+    }
+}
+
 static void resetAll() {
     millisValue(0);
     // Fresh source: no fix ever, speed 0. Quality 1 (plain GPS) so the tests
@@ -80,7 +96,9 @@ static void resetAll() {
     impl.numPwmCalibrationPoints = 3;
     iface.analogInputs[0].value = 0;
     impl.actualLHA     = ImplementSprayer::kActualDoseUndefined;
-    impl.doseDeviation = false;
+    impl.doseDeviation   = false;
+    impl.deviationAccumMs = 0;
+    impl.deviationPending = false;
     // A test that fails mid-way may leave calibration held; the next test
     // would then run with the output logic frozen and fail for the wrong reason.
     impl.ReleaseCalibration(CalibrationOwner::Serial);
@@ -362,11 +380,7 @@ test(ImplementSprayer, doseLM_from_doseLHA_and_speed) {
     // doseLM = 100 * 1.0 * 300 * 60 / 1000000 = 1.8 l/min
     resetAll();
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    // Update() SPEED_AVG_SAMPLES times so the rolling speed average fully
-    // converges to mockGps.speed instead of only weighting it 1/SPEED_AVG_SAMPLES.
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertNear(impl.doseLM, 1.8f, 0.01f);
 }
 
@@ -374,9 +388,7 @@ test(ImplementSprayer, doseLM_zero_when_stationary) {
     // speed=0 → doseLM=0 regardless of dose
     resetAll();
     iface.analogInputs[0].value = 4095;
-    millisValue(1000);
-    gpsSpeed(0.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(0.0f, 1000);
     assertNear(impl.doseLM, 0.0f, 0.001f);
 }
 
@@ -392,9 +404,7 @@ test(ImplementSprayer, endToEnd_analog1024_speed1_pwm1382) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 1024;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertNear(impl.doseLHA, 75.0f, 0.01f);
     assertNear(impl.doseLM, 1.35f, 0.01f);
     assertEqual(impl.outputs[2].value, (unsigned int)1382);
@@ -421,10 +431,7 @@ test(ImplementSprayer, pwm_enabled_lowerSegment_output1843) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertEqual(impl.outputs[2].value, (unsigned int)1843);
 }
 
@@ -435,10 +442,7 @@ test(ImplementSprayer, pwm_enabled_upperSegment_output3685) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 4095;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertEqual(impl.outputs[2].value, (unsigned int)3685);
 }
 
@@ -451,9 +455,7 @@ test(ImplementSprayer, staleGuidance_stopsPump) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertMore(impl.outputs[2].value, (unsigned int)0);
 
     // No further messages. GuidanceSource keeps the last speed forever, so
@@ -468,9 +470,7 @@ test(ImplementSprayer, guidanceJustWithinTimeout_keepsDosing) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
 
     millisValue(1000 + 2000);
     impl.Update();
@@ -505,9 +505,7 @@ test(ImplementSprayer, duplicateDoseCalibrationPoints_doNotProduceNaN) {
         impl.doseCalibrationPoints[i].dose        = 100;
     }
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
 
     // Self-comparison rather than isfinite(): <math.h> collides with Arduino.h's
     // min/max macros in this build, and NaN is the case that matters here.
@@ -522,9 +520,7 @@ test(ImplementSprayer, tooFewPwmCalibrationPoints_stopsPump) {
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertMore(impl.outputs[2].value, (unsigned int)0);
 
     impl.numPwmCalibrationPoints = 1;
@@ -741,9 +737,7 @@ test(ImplementSprayer, width_fromSettings_scalesDoseLM) {
     resetAll();
     cfg.SetWidthCm(600);
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertNear(impl.doseLM, 3.6f, 0.01f);
 }
 
@@ -753,9 +747,7 @@ test(ImplementSprayer, guidanceTimeout_fromSettings) {
     cfg.SetGuidanceTimeoutMs(500);
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
 
     millisValue(1500);
     impl.Update();
@@ -772,14 +764,15 @@ test(ImplementSprayer, minQualityRtk_plainGpsFix_stopsPump) {
     mockGps.SetQuality(1);
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertEqual(impl.outputs[2].value, (unsigned int)0);
 
-    // Fix improves to RTK fixed: dosing resumes on the same speed.
+    // Fix improves to RTK fixed: dosing resumes on the same speed. The
+    // rejected quality above drained the average the same way stale
+    // guidance does (guidanceStale() covers both), so it needs re-priming
+    // here rather than a bare Update() loop, same as after any stale spell.
     mockGps.SetQuality(4);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1010);
     assertMore(impl.outputs[2].value, (unsigned int)0);
 }
 
@@ -789,9 +782,7 @@ test(ImplementSprayer, minQualityAny_default_dosesWithoutFixQuality) {
     mockGps.SetQuality(0);
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 2048;
-    millisValue(1000);
-    gpsSpeed(1.0f);
-    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) impl.Update();
+    primeSpeed(1.0f, 1000);
     assertMore(impl.outputs[2].value, (unsigned int)0);
 }
 

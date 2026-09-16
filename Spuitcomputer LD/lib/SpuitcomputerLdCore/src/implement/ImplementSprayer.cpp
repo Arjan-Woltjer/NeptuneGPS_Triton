@@ -48,8 +48,8 @@ ImplementSprayer::ImplementSprayer(Stream* serialDebug, GuidanceSource* guidance
     serialDebug->println(S_DIVIDE);
 #endif
 
-    speedSum    = 0.0f;
     speedBufIdx = 0;
+    lastVtgSeen = 0;
     for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) speedBuf[i] = 0.0f;
 
     // outputs[] is already fully initialized by the in-class member initializer
@@ -141,16 +141,31 @@ void ImplementSprayer::updateSpeed() {
         for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) {
             speedBuf[i] = 0.0f;
         }
-        speedSum = 0.0f;
-        speed    = 0.0f;
+        lastVtgSeen = 0;
+        speed       = 0.0f;
         return;
     }
 
-    speedSum -= speedBuf[speedBufIdx];
-    speedBuf[speedBufIdx] = guidance->GetSpeedMs();
-    speedSum += speedBuf[speedBufIdx];
-    speedBufIdx = (speedBufIdx + 1) % SPEED_AVG_SAMPLES;
-    speed = speedSum / SPEED_AVG_SAMPLES;
+    // Fold in a new sample only once a genuinely new VTG fix has arrived.
+    // Update() runs free-running (main.cpp's loop() has no fixed timestep),
+    // so calling it several hundred times between a 1 Hz receiver's fixes
+    // used to shift the *same* speed into every slot long before the next
+    // fix showed up -- "5-sample average" was really 5 copies of whatever
+    // the last fix said, not 5 fixes spread over roughly a second.
+    const unsigned long fixAt = guidance->GetVtgTimestamp();
+    if (fixAt != lastVtgSeen) {
+        lastVtgSeen = fixAt;
+        speedBuf[speedBufIdx] = guidance->GetSpeedMs();
+        speedBufIdx = (speedBufIdx + 1) % SPEED_AVG_SAMPLES;
+    }
+
+    // Recomputed from the buffer every call rather than kept as a running
+    // sum: an incremental sum of repeated zeros drifted to a small non-zero
+    // (occasionally negative, printing as "-0.00" on the status line) as
+    // float rounding accumulated over millions of updates.
+    float sum = 0.0f;
+    for (int i = 0; i < SPEED_AVG_SAMPLES; ++i) sum += speedBuf[i];
+    speed = sum / SPEED_AVG_SAMPLES;
 }
 
 void ImplementSprayer::calculateDoseLHA() {
@@ -406,19 +421,37 @@ void ImplementSprayer::updateDeviation() {
     }
 
     const unsigned long now = millis();
+    unsigned long deltaMs = now - lastDeviationUpdateAt;
+    if (deltaMs > kDeviationHoldMs) deltaMs = kDeviationHoldMs;
+    lastDeviationUpdateAt = now;
+
     if (outside != deviationPending) {
-        deviationPending   = outside;
-        deviationChangedAt = now;
+        // The instant of the flip: credit nothing yet, so a clean single
+        // transition still needs a full kDeviationHoldMs after it, exactly
+        // like the previous design.
+        deviationPending = outside;
+        deltaMs = 0;
     }
-    if (outside != doseDeviation && now - deviationChangedAt >= kDeviationHoldMs) {
-        doseDeviation = outside;
+
+    if (outside) {
+        deviationAccumMs += deltaMs;
+        if (deviationAccumMs > kDeviationHoldMs) deviationAccumMs = kDeviationHoldMs;
+    } else {
+        deviationAccumMs = (deviationAccumMs > deltaMs) ? deviationAccumMs - deltaMs : 0;
     }
+
+    if (deviationAccumMs >= kDeviationHoldMs) {
+        doseDeviation = true;
+    } else if (deviationAccumMs == 0) {
+        doseDeviation = false;
+    }
+    // Between 0 and kDeviationHoldMs, doseDeviation keeps whatever it was.
+
     if (calibrationMode) {
         // The wizard owns the outputs; never sound over a calibration run,
         // and start the hold afresh once it hands the outputs back.
-        doseDeviation      = false;
-        deviationPending   = false;
-        deviationChangedAt = now;
+        doseDeviation    = false;
+        deviationAccumMs = 0;
     }
 
     // The flag itself is unconditional: the app alarm and the status line
