@@ -41,6 +41,7 @@ bool NmeaParser::claimsSentenceType(const char* header) {
     newCourse = 0;
     newXte = 0;
     newQuality = 0;
+    newSpeedValid = false;
     return true;
 }
 
@@ -59,7 +60,7 @@ void NmeaParser::parseTerm(byte termNumber, const char* term) {
             break;
         case VTG:
             if (termNumber == 1) newCourse = atof(term);
-            if (termNumber == 5) newSpeed = atof(term);
+            if (termNumber == 5 && term[0]) { newSpeed = atof(term); newSpeedValid = true; }
             break;
         case XTE:
             if (termNumber == 3) newXte = (int)(atof(term) * 100);
@@ -77,8 +78,14 @@ void NmeaParser::commitTo(GuidanceSource* state) {
             state->SetQuality(newQuality);
             break;
         case VTG:
-            state->SetCourseDeg(newCourse);
-            state->SetSpeedKnots(newSpeed);
+            // A blank speed field means the receiver has nothing to report
+            // (typically antenna loss), not a genuine zero -- committing it
+            // would stamp GuidanceSource's fix timestamp anyway and mask a
+            // real loss of signal from the guidance-timeout check.
+            if (newSpeedValid) {
+                state->SetCourseDeg(newCourse);
+                state->SetSpeedKnots(newSpeed);
+            }
             break;
         case XTE:
             state->SetXte(newXte);

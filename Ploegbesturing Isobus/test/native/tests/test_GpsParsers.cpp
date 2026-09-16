@@ -66,6 +66,27 @@ test(NmeaParser, vtg_course_speed) {
     assertTrue(near(state.GetSpeed(), 2.91f));
 }
 
+// $GPVTG,,T,,M,,N,,K,N*30 -- a receiver with the antenna disconnected keeps
+// sending VTG on schedule with every field blank rather than falling silent.
+// atof("") is 0, so without a guard this committed as a genuine "stopped"
+// reading and stamped a fresh fix, and a caller's guidance-timeout check
+// (which assumes a lost signal means the sentences stop arriving) never saw
+// anything stale. commitTo() must leave the previous course/speed/timestamp
+// alone when the speed field itself was never actually present.
+test(NmeaParser, vtg_blank_fields_commitsNothing) {
+    GuidanceSource state;
+    millisValue(1000);
+    state.SetSpeedKnots(2.91f);   // a real fix already on record at t=1000...
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPVTG"));
+    p.parseTerm(1, "");
+    p.parseTerm(5, "");
+    millisValue(3000);            // ...well before this blank sentence arrives
+    p.commitTo(&state);
+    assertTrue(near(state.GetSpeed(), 2.91f));                  // unchanged
+    assertEqual(state.GetVtgTimestamp(), (unsigned long)1000);  // not restamped
+}
+
 // $GPXTE,A,A,0.159523,L,N*67
 test(NmeaParser, xte) {
     GuidanceSource state;
