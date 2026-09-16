@@ -1,5 +1,5 @@
 /*
-  NmeaParser - standard NMEA sentence parser (GPGGA, GPVTG, GPXTE)
+  NmeaParser - standard NMEA sentence parser (GPGGA, GPVTG, GPXTE, GPTXT)
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -23,7 +23,7 @@
 namespace triton
 {
 
-// Handles standard NMEA sentences: GPGGA, GPVTG, GPXTE.
+// Handles standard NMEA sentences: GPGGA, GPVTG, GPXTE, GPTXT.
 class NmeaParser : public GpsParser {
 public:
     bool claimsSentenceType(const char* header) override;
@@ -31,7 +31,7 @@ public:
     void commitTo(GuidanceSource* state) override;
 
 private:
-    enum Type : byte { GGA, VTG, XTE, NONE } type = NONE;
+    enum Type : byte { GGA, VTG, XTE, TXT, NONE } type = NONE;
 
     float newTime = 0, newLat = 0, newLon = 0, newAlt = 0;
     float newSpeed = 0, newCourse = 0;
@@ -48,6 +48,16 @@ private:
     // commit entirely when it isn't, the same as a sentence that never
     // arrived at all.
     bool newSpeedValid = false;
+
+    // ATGM336H-specific: it sends "$GPTXT,01,01,01,ANTENNA OPEN|OK|SHORT"
+    // continuously, not just at boot, and it tracks the antenna's actual
+    // state far more reliably than the GGA/VTG fields do -- see
+    // GuidanceSource::SetAntennaOk(). newAntennaOk only means something
+    // when sawAntennaText is true; any other TXT message (version banners,
+    // and any other receiver's TXT sentences, which never match these
+    // exact strings) leaves GuidanceSource's antennaOk flag untouched.
+    bool newAntennaOk   = true;
+    bool sawAntennaText = false;
 };
 
 }  // namespace triton

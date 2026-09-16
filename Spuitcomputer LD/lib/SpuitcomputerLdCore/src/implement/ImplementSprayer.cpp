@@ -131,6 +131,15 @@ bool ImplementSprayer::guidanceStale() const {
     if ((millis() - lastFix) > config->Get().guidanceTimeoutMs) {
         return true;
     }
+    // NeptuneGPS_Triton#61 field test: with the antenna pulled, the ATGM336H
+    // kept reporting plausible-looking GGA/VTG fixes -- quality 1, a
+    // real-looking Doppler speed -- almost the whole time, so neither check
+    // above caught it. Its own antenna-supervisor message (NmeaParser ->
+    // GuidanceSource::SetAntennaOk()) tracked the actual antenna state
+    // reliably where the fix itself didn't.
+    if (!guidance->GetAntennaOk()) {
+        return true;
+    }
     return !config->GuidanceQualityOk(guidance->GetQuality());
 }
 

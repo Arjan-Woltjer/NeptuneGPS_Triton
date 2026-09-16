@@ -87,6 +87,53 @@ test(NmeaParser, vtg_blank_fields_commitsNothing) {
     assertEqual(state.GetVtgTimestamp(), (unsigned long)1000);  // not restamped
 }
 
+// $GPTXT,01,01,01,ANTENNA OPEN*25 -- the ATGM336H's antenna supervisor,
+// sent continuously (not just at boot). NeptuneGPS_Triton#61: this tracked
+// a real antenna disconnect far more reliably than GGA/VTG did in the field,
+// so guidanceStale() reads it through GuidanceSource::GetAntennaOk().
+test(NmeaParser, txt_antennaOpen_setsAntennaNotOk) {
+    GuidanceSource state;
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPTXT"));
+    p.parseTerm(1, "01");
+    p.parseTerm(2, "01");
+    p.parseTerm(3, "01");
+    p.parseTerm(4, "ANTENNA OPEN");
+    p.commitTo(&state);
+    assertFalse(state.GetAntennaOk());
+}
+
+test(NmeaParser, txt_antennaShort_setsAntennaNotOk) {
+    GuidanceSource state;
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPTXT"));
+    p.parseTerm(4, "ANTENNA SHORT");
+    p.commitTo(&state);
+    assertFalse(state.GetAntennaOk());
+}
+
+test(NmeaParser, txt_antennaOk_clearsAntennaNotOk) {
+    GuidanceSource state;
+    state.SetAntennaOk(false);   // a prior OPEN sentence already latched this
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GNTXT"));   // GN talker variant too
+    p.parseTerm(4, "ANTENNA OK");
+    p.commitTo(&state);
+    assertTrue(state.GetAntennaOk());
+}
+
+// An unrelated TXT message (version banner, anything another receiver might
+// send) must not touch the flag either way.
+test(NmeaParser, txt_unrelatedMessage_leavesAntennaFlagAlone) {
+    GuidanceSource state;
+    state.SetAntennaOk(false);
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPTXT"));
+    p.parseTerm(4, "SW=URANUS5,V5.3");
+    p.commitTo(&state);
+    assertFalse(state.GetAntennaOk());   // untouched, not reset to the default true
+}
+
 // $GPXTE,A,A,0.159523,L,N*67
 test(NmeaParser, xte) {
     GuidanceSource state;

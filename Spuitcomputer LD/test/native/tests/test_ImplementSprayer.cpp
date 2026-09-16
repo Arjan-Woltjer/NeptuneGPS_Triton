@@ -465,6 +465,30 @@ test(ImplementSprayer, staleGuidance_stopsPump) {
     assertEqual(impl.outputs[2].value, (unsigned int)0);
 }
 
+// NeptuneGPS_Triton#61 field test: the ATGM336H kept sending a fresh,
+// plausible-looking fix well within the timeout while the antenna was
+// actually disconnected -- neither the staleness check above nor the
+// quality gate below caught that. Its own antenna-supervisor sentence
+// (NmeaParser -> GuidanceSource::SetAntennaOk()) is what does.
+test(ImplementSprayer, antennaNotOk_stopsPumpDespiteFreshFix) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    primeSpeed(1.0f, 1000);
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+
+    // Antenna reported open; the fix itself keeps arriving on schedule.
+    mockGps.SetAntennaOk(false);
+    runUntil(1500, 1.0f);
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
+
+    // Antenna reported OK again: dosing resumes on the next fresh fix.
+    mockGps.SetAntennaOk(true);
+    primeSpeed(1.0f, 1600);
+    assertMore(impl.outputs[2].value, (unsigned int)0);
+}
+
 test(ImplementSprayer, guidanceJustWithinTimeout_keepsDosing) {
     // The boundary must not be so tight that ordinary message jitter trips it.
     resetAll();

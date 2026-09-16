@@ -65,6 +65,18 @@ public:
     inline void SetXte(int hundredthsM)         { xte = hundredthsM; lastXteFix = millis(); }
     inline void SetXte(int hundredthsM, byte q) { xte = hundredthsM; quality = q; lastXteFix = millis(); }
 
+    // Some receivers (e.g. the ATGM336H, via NmeaParser's TXT handling) can
+    // keep reporting a plausible-looking GGA/VTG fix -- non-zero quality, a
+    // real-looking Doppler speed -- for a while after the antenna is
+    // actually disconnected, especially indoors where a little coupling
+    // still gets through. Where a receiver's own status message is more
+    // trustworthy than its position/velocity output, this lets a caller
+    // (ImplementSprayer::guidanceStale()) fail closed on that instead.
+    // Defaults true (unknown = assume fine) so a receiver that never sends
+    // such a message -- i.e. everything but the ATGM336H today -- sees no
+    // behaviour change at all.
+    inline void SetAntennaOk(bool ok) { antennaOk = ok; }
+
     // ------------------------------------------------------------
     // Getters
     // ------------------------------------------------------------
@@ -81,6 +93,7 @@ public:
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
     inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
+    inline bool          GetAntennaOk()  { return antennaOk; }
 
     inline float  GetLatitude()  { return latitude; }
     inline float  GetLongitude() { return longitude; }
@@ -113,6 +126,7 @@ private:
     unsigned long lastGgaFix = 0;
     unsigned long lastVtgFix = 0;
     unsigned long lastXteFix = 0;
+    bool          antennaOk = true;
 };
 
 }  // namespace triton
