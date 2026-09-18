@@ -24,7 +24,7 @@
 #include "GuidanceSource.hpp"
 #include "VehicleTractor.hpp"
 
-#include "ConfigImplementPlanter.hpp"
+#include "../config/ConfigImplementPlanter.hpp"
 
 namespace triton
 {

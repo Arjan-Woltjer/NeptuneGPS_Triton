@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PloegbesturingCore\src"
+$calibration = "$root\lib\PloegbesturingCore\src\calibration"
+$implement = "$root\lib\PloegbesturingCore\src\implement"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource, NeptuneGPS_Triton#76
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PloegbesturingNativeTests.cpp"
@@ -59,7 +61,7 @@ Write-Host "=== Building PloegbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$lib\CalibrationPlough.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlough.cpp`" `"$lib\InterfacePlough.cpp`" `"$calibration\CalibrationPlough.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PloegbesturingNativeTests.exe`" && `"$out\PloegbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

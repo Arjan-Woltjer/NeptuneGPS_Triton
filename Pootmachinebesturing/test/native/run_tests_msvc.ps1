@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PootmachinebesturingCore\src"
+$calibration = "$root\lib\PootmachinebesturingCore\src\calibration"
+$implement = "$root\lib\PootmachinebesturingCore\src\implement"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource, NeptuneGPS_Triton#76
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PootmachinebesturingNativeTests.cpp"
@@ -59,7 +61,7 @@ Write-Host "=== Building PootmachinebesturingNativeTests ===" -ForegroundColor C
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementPlanter.cpp`" `"$lib\InterfacePlanter.cpp`" `"$lib\CalibrationPlanter.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PootmachinebesturingNativeTests.exe`" && `"$out\PootmachinebesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementPlanter.cpp`" `"$lib\InterfacePlanter.cpp`" `"$calibration\CalibrationPlanter.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\PootmachinebesturingNativeTests.exe`" && `"$out\PootmachinebesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

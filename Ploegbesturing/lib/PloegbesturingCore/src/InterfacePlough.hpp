@@ -22,9 +22,9 @@
 #include "VehicleTractor.hpp"
 #include "GuidanceSource.hpp"
 
-#include "ConfigInterfacePlough.hpp"
-#include "ImplementPlough.hpp"
-#include "LanguagePlough.hpp"
+#include "config/ConfigInterfacePlough.hpp"
+#include "implement/ImplementPlough.hpp"
+#include "config/LanguagePlough.hpp"
 
 namespace triton
 {

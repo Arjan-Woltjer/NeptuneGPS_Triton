@@ -22,9 +22,9 @@
 #include "VehicleTractor.hpp"
 #include "GuidanceSource.hpp"
 
-#include "ConfigInterfacePlanter.hpp"
-#include "ImplementPlanter.hpp"
-#include "LanguagePlanter.hpp"
+#include "config/ConfigInterfacePlanter.hpp"
+#include "implement/ImplementPlanter.hpp"
+#include "config/LanguagePlanter.hpp"
 
 namespace triton
 {

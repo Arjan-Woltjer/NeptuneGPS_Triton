@@ -19,11 +19,11 @@
 #pragma once
 
 #include "InterfaceI2CLCD.hpp"
-#include "ImplementScraper.hpp"
+#include "implement/ImplementScraper.hpp"
 #include "VehicleTractor.hpp"
 #include "GuidanceSource.hpp"
-#include "ConfigInterfaceScraper.hpp"
-#include "LanguageScraper.hpp"
+#include "config/ConfigInterfaceScraper.hpp"
+#include "config/LanguageScraper.hpp"
 
 namespace triton
 {

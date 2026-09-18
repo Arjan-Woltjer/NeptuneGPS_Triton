@@ -23,7 +23,7 @@
 
 #include "GuidanceSource.hpp"
 
-#include "ConfigImplementPlough.hpp"
+#include "../config/ConfigImplementPlough.hpp"
 
 namespace triton
 {

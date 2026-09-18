@@ -20,14 +20,14 @@
 #include <EEPROM.h>
 #include <ACAN_T4.h>
 
-#include "CalibrationPlough.hpp"
+#include "calibration/CalibrationPlough.hpp"
 #include "CanFrameGuidanceChannel.hpp"
 #include "GuidanceSource.hpp"
-#include "ImplementPlough.hpp"
+#include "implement/ImplementPlough.hpp"
 #include "InterfaceGuidance.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
-#include "LanguagePlough.hpp"
+#include "config/LanguagePlough.hpp"
 #include "SerialGuidanceChannel.hpp"
 #include "VehicleTractor.hpp"
 

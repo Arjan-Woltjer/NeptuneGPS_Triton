@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\KilverbakbesturingCore\src"
+$calibration = "$root\lib\KilverbakbesturingCore\src\calibration"
+$implement = "$root\lib\KilverbakbesturingCore\src\implement"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + DistanceBetween, NeptuneGPS_Triton#76
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\KilverbakbesturingNativeTests.cpp"
@@ -59,7 +61,7 @@ Write-Host "=== Building KilverbakbesturingNativeTests ===" -ForegroundColor Cya
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementScraper.cpp`" `"$lib\InterfaceScraper.cpp`" `"$lib\CalibrationScraper.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\KilverbakbesturingNativeTests.exe`" && `"$out\KilverbakbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementScraper.cpp`" `"$lib\InterfaceScraper.cpp`" `"$calibration\CalibrationScraper.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\KilverbakbesturingNativeTests.exe`" && `"$out\KilverbakbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 
