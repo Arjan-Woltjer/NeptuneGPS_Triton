@@ -8,7 +8,6 @@ $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PloegbesturingCore\src"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
-$config  = "$root\lib\PloegbesturingCore\src\config"
 $implement = "$root\lib\PloegbesturingCore\src\implement"
 # The real AgIsoStack, compiled for the host (NeptuneGPS_Triton#98). Its core
 # is portable C++17; only flex_can_t4_plugin.cpp is Teensy-bound and is

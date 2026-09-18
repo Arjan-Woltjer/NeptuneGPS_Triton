@@ -7,6 +7,10 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\SpuitcomputerLdCore\src"
+$calibration = "$root\lib\SpuitcomputerLdCore\src\calibration"
+$config = "$root\lib\SpuitcomputerLdCore\src\config"
+$implement = "$root\lib\SpuitcomputerLdCore\src\implement"
+$remote = "$root\lib\SpuitcomputerLdCore\src\remote"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\SpuitcomputerLdNativeTests.cpp"
@@ -59,7 +63,7 @@ Write-Host "=== Building SpuitcomputerLdNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$lib\ImplementSprayer.cpp`" `"$lib\ConfigSprayer.cpp`" `"$lib\RemoteSprayer.cpp`" `"$lib\CalibrationSprayer.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\SpuitcomputerLdNativeTests.exe`" && `"$out\SpuitcomputerLdNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\InterfaceSprayer.cpp`" `"$implement\ImplementSprayer.cpp`" `"$config\ConfigSprayer.cpp`" `"$remote\RemoteSprayer.cpp`" `"$calibration\CalibrationSprayer.cpp`" `"$guidance\NmeaParser.cpp`" `"$guidance\TrimbleParser.cpp`" `"$guidance\CanSerialParser.cpp`" `"$guidance\SerialGuidanceChannel.cpp`" `"$guidance\IsobusPgnDecode.cpp`" `"$guidance\CanFrameGuidanceChannel.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\SpuitcomputerLdNativeTests.exe`" && `"$out\SpuitcomputerLdNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

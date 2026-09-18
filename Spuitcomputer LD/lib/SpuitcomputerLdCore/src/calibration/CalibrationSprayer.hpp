@@ -26,7 +26,7 @@
 
 #include <Arduino.h>
 
-#include "ImplementSprayer.hpp"
+#include "../implement/ImplementSprayer.hpp"
 #include "SerialGuidanceChannel.hpp"
 
 namespace triton

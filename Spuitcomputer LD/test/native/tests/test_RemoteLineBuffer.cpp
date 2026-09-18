@@ -19,7 +19,7 @@
 */
 #include <AUnit.h>
 #include <string.h>
-#include "RemoteLineBuffer.hpp"
+#include "remote/RemoteLineBuffer.hpp"
 
 using namespace aunit;
 using namespace triton;

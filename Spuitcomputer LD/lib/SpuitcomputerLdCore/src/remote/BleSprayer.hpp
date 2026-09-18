@@ -23,8 +23,8 @@
 #include <Arduino.h>
 #include <NimBLEDevice.h>
 
-#include "ConfigSprayer.hpp"
-#include "ImplementSprayer.hpp"
+#include "../config/ConfigSprayer.hpp"
+#include "../implement/ImplementSprayer.hpp"
 #include "RemoteLineBuffer.hpp"
 #include "RemoteSprayer.hpp"
 

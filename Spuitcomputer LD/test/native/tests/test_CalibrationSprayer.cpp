@@ -23,9 +23,9 @@
 #include <string>
 
 #include <AUnit.h>
-#include "CalibrationSprayer.hpp"
-#include "ConfigSprayer.hpp"
-#include "ImplementSprayer.hpp"
+#include "calibration/CalibrationSprayer.hpp"
+#include "config/ConfigSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
 #include "SerialGuidanceChannel.hpp"
 
 using namespace aunit;
