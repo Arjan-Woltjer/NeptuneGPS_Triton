@@ -20,11 +20,11 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#include "BleSprayer.hpp"
-#include "CalibrationSprayer.hpp"
-#include "ConfigSprayer.hpp"
+#include "remote/BleSprayer.hpp"
+#include "calibration/CalibrationSprayer.hpp"
+#include "config/ConfigSprayer.hpp"
 #include "GuidanceSource.hpp"
-#include "ImplementSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceSprayer.hpp"
 #include "SerialGuidanceChannel.hpp"

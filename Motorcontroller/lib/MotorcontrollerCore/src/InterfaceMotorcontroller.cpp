@@ -22,7 +22,7 @@
 
 #include <FlashStorage.h>
 
-#include "ConfigMotorcontroller.hpp"
+#include "config/ConfigMotorcontroller.hpp"
 
 namespace triton
 {

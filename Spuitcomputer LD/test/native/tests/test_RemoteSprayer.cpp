@@ -24,9 +24,9 @@
 #include <vector>
 
 #include <AUnit.h>
-#include "ConfigSprayer.hpp"
-#include "ImplementSprayer.hpp"
-#include "RemoteSprayer.hpp"
+#include "config/ConfigSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
+#include "remote/RemoteSprayer.hpp"
 #include "SerialGuidanceChannel.hpp"
 
 using namespace aunit;

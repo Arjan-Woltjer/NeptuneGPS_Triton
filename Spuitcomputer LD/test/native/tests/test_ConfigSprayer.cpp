@@ -18,7 +18,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "ConfigSprayer.hpp"
+#include "config/ConfigSprayer.hpp"
 
 using namespace aunit;
 using namespace triton;

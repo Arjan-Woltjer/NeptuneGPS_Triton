@@ -18,8 +18,8 @@
 */
 #pragma once
 
-#include "ConfigSprayer.hpp"
-#include "ImplementSprayer.hpp"
+#include "../config/ConfigSprayer.hpp"
+#include "../implement/ImplementSprayer.hpp"
 #include "SerialGuidanceChannel.hpp"
 
 namespace triton

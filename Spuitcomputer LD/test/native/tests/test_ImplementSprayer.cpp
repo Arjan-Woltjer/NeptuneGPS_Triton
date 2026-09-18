@@ -18,8 +18,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "ConfigSprayer.hpp"
-#include "ImplementSprayer.hpp"
+#include "config/ConfigSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
 
 using namespace aunit;
 using namespace triton;

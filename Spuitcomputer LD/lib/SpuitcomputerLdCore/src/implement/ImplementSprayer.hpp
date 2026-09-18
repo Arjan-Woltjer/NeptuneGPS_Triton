@@ -20,8 +20,8 @@
 
 #include <Arduino.h>
 
-#include "ConfigSprayer.hpp"
-#include "InterfaceSprayer.hpp"
+#include "../config/ConfigSprayer.hpp"
+#include "../InterfaceSprayer.hpp"
 #include "GuidanceSource.hpp"
 
 namespace triton
