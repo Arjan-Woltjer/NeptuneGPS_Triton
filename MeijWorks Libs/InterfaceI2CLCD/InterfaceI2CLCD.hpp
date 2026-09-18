@@ -105,7 +105,7 @@ public:
     void Begin();
 
     // write() keeps its Arduino-standard lowercase name — virtual override of Print::write
-    size_t write(uint8_t value);
+    size_t write(uint8_t value) override;
 
     void Command(uint8_t value);
     void WriteDirect(uint8_t value);
