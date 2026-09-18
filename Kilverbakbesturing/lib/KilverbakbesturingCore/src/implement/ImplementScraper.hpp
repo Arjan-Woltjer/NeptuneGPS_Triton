@@ -24,7 +24,7 @@
 #include "GuidanceGeometry.hpp"
 #include "GuidanceSource.hpp"
 
-#include "ConfigImplementScraper.hpp"
+#include "../config/ConfigImplementScraper.hpp"
 
 namespace triton
 {

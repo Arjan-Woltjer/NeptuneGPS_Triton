@@ -24,7 +24,7 @@
 #include <string>
 
 #include <AUnit.h>
-#include "CalibrationScraper.hpp"
+#include "calibration/CalibrationScraper.hpp"
 
 using namespace aunit;
 using namespace triton;

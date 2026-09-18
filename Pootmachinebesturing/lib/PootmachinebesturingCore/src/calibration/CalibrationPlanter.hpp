@@ -1,5 +1,5 @@
 /*
-  CalibrationPlough - LCD/button calibration wizard for the MeijWorks plough interface
+  CalibrationPlanter - LCD/button calibration wizard for the MeijWorks planter interface
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -25,37 +25,35 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ImplementPlough.hpp"
+#include "../implement/ImplementPlanter.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfacePlough.hpp"
+#include "../InterfacePlanter.hpp"
 #include "GuidanceSource.hpp"
-#include "LanguagePlough.hpp"
+#include "../config/LanguagePlanter.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton
 {
 
-// Extracted from InterfacePlough::Calibrate() so the LCD/button-driven wizard --
+// Extracted from InterfacePlanter::Calibrate() so the LCD/button-driven wizard --
 // which can't run without real hardware -- stays out of the native test build,
-// matching CalibrationSprayer's role for Spuitcomputer LD. The caller (main.cpp) checks
-// InterfacePlough::GetButtons() after each InterfacePlough::Update() and invokes
-// Calibrate() itself; this class never triggers itself.
-class CalibrationPlough {
+// matching CalibrationPlough's role for Ploegbesturing. The caller (main.cpp)
+// checks InterfacePlanter::GetButtons() after each InterfacePlanter::Update()
+// and invokes Calibrate() itself; this class never triggers itself.
+class CalibrationPlanter {
 public:
-    CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                       VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface);
+    CalibrationPlanter(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlanter* implement,
+                        VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlanter* interface);
 
     void Calibrate();
 
-    // The two guidance values this board persists. GuidanceSource is a shared
+    // The one guidance value this board persists: the receiver rate index the
+    // boot autodetect (InterfaceGuidance) finds. GuidanceSource is a shared
     // data model with no storage of its own (NeptuneGPS_Triton#78), so this
-    // class owns their EEPROM bytes: the RTK quality the wizard sets, and the
-    // receiver rate index the boot autodetect (InterfaceGuidance) finds. Both
-    // sit where VehicleGps kept them, so a board coming from that firmware
-    // keeps its settings. Read at construction, written by the wizard's Save
-    // step and by main.cpp after a successful detect.
+    // class owns the byte, at the slot VehicleGps kept it. The planter checks
+    // the raw fix quality against 4 directly and has no RTK quality menu, so
+    // byte 11 is left alone.
     static constexpr int kEepromGpsBaudIndex = 10;
-    static constexpr int kEepromRtkQuality   = 11;
 
     byte GetGpsBaudIndex() const   { return gpsBaudIndex; }
     void SetGpsBaudIndex(byte idx) { gpsBaudIndex = idx % 8; }
@@ -64,16 +62,14 @@ public:
     void PrintCalibrationData();
 
 private:
-    Stream*          serialDebug;
-    InterfaceI2CLCD* lcd;
-    ImplementPlough* implement;
-    VehicleTractor*  tractor;
-    GuidanceSource*  guidance;
-    InterfacePlough* interface;
+    Stream*            serialDebug;
+    InterfaceI2CLCD*   lcd;
+    ImplementPlanter*  implement;
+    VehicleTractor*    tractor;
+    GuidanceSource*    guidance;
+    InterfacePlanter*  interface;
 
-    // 4800 x {1,2,3,4,6,8,12,24}; index 0 (4800, the common NMEA default)
-    // until a detect or a stored byte says otherwise.
-    byte gpsBaudIndex = 0;
+    byte gpsBaudIndex = 0;   // 4800 x {1,2,3,4,6,8,12,24}; 0 until stored or detected
 
     bool loadGuidanceCalibration();
 };

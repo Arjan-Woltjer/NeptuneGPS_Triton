@@ -25,7 +25,7 @@
 #include <string>
 
 #include <AUnit.h>
-#include "CalibrationPlough.hpp"
+#include "calibration/CalibrationPlough.hpp"
 
 using namespace aunit;
 using namespace triton;

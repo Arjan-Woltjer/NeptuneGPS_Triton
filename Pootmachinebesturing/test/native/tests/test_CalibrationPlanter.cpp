@@ -24,7 +24,7 @@
 #include <string>
 
 #include <AUnit.h>
-#include "CalibrationPlanter.hpp"
+#include "calibration/CalibrationPlanter.hpp"
 
 using namespace aunit;
 using namespace triton;

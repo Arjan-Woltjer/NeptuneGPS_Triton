@@ -20,14 +20,14 @@
 #include <EEPROM.h>
 #include <ACAN_T4.h>
 
-#include "CalibrationScraper.hpp"
+#include "calibration/CalibrationScraper.hpp"
 #include "CanFrameGuidanceChannel.hpp"
 #include "GuidanceSource.hpp"
-#include "ImplementScraper.hpp"
+#include "implement/ImplementScraper.hpp"
 #include "InterfaceGuidance.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceScraper.hpp"
-#include "LanguageScraper.hpp"
+#include "config/LanguageScraper.hpp"
 #include "SerialGuidanceChannel.hpp"
 #include "VehicleTractor.hpp"
 

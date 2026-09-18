@@ -25,11 +25,11 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ImplementScraper.hpp"
+#include "../implement/ImplementScraper.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfaceScraper.hpp"
+#include "../InterfaceScraper.hpp"
 #include "GuidanceSource.hpp"
-#include "LanguageScraper.hpp"
+#include "../config/LanguageScraper.hpp"
 #include "SerialGuidanceChannel.hpp"
 #include "VehicleTractor.hpp"
 
