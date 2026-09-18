@@ -29,7 +29,7 @@ this project uses.
 ## Known gaps
 
 - Rooierbesturing's legacy source was not a complete, working program the
-  way Ploegbesturing's/Pootmachinebesturing's/Slangenpomp Spuitcomputer's
+  way Ploegbesturing's/Pootmachinebesturing's/Spuitcomputer SP's
   were -- it was a patchwork of at least two incompatible drafts (a
   coherent class-based InterfaceRooier alongside an abandoned free-function
   updateMode() state machine), missing headers, wrong class names, and
@@ -47,7 +47,7 @@ this project uses.
 - GPS was dropped for this module (`#ifdef GPS` was undefined by default in
   the legacy source too, and no fragment demonstrated a working GPS
   integration for windrower height control) -- tractor-only, matching
-  Slangenpomp Spuitcomputer's precedent. Unlike Spuitcomputer, no sibling
+  Spuitcomputer SP's precedent. Unlike Spuitcomputer, no sibling
   module has a working GPS-fed version of *this* control scheme to point a
   future revival at, so no backlog item was added.
 - `CalibrationRooier` (the LCD/button calibration wizard) is `#ifdef

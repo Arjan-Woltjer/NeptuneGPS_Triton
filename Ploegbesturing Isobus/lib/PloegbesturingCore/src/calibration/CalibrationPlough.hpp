@@ -37,7 +37,7 @@ namespace triton
 
 // Extracted from InterfacePlough::Calibrate() so the LCD/button-driven wizard --
 // which can't run without real hardware -- stays out of the native test build,
-// matching CalibrationSprayer's role for Loofdoes. The caller (main.cpp) checks
+// matching CalibrationSprayer's role for Spuitcomputer LD. The caller (main.cpp) checks
 // InterfacePlough::GetButtons() after each InterfacePlough::Update() and invokes
 // Calibrate() itself; this class never triggers itself.
 class CalibrationPlough {

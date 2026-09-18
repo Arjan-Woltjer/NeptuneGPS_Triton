@@ -44,7 +44,7 @@ public:
     // valid sentence was fully decoded this call. Call every loop() iteration.
     bool Update();
 
-    // Reopen the receiver port at another rate without a reboot (the Loofdoes
+    // Reopen the receiver port at another rate without a reboot (the Spuitcomputer LD
     // companion app changes it at runtime, NeptuneGPS_Triton#68). A partial
     // sentence read at the old rate is discarded.
     void ApplyBaudrate(long baud);

@@ -86,7 +86,7 @@ class __FlashStringHelper {};
 // any test file via the *Value() setters below. Every test_*.cpp links into
 // one combined binary (see ../PloegbesturingNativeTests.cpp), so a test file
 // can no longer supply its own private definition of these without hitting a
-// duplicate-symbol link error -- matching Salacia's/Loofdoes' test/native/
+// duplicate-symbol link error -- matching Salacia's/Spuitcomputer LD's test/native/
 // support/Arduino.h. C++17 inline variables (one definition across every
 // translation unit that includes this header) avoid needing a separate
 // Arduino.cpp.
@@ -131,7 +131,7 @@ inline void analogReference(uint8_t) {}
 
 // analogWrite() records the duty value so tests can assert on it via
 // analogWriteValue() -- Narrower()/Wider()/Stop() (ImplementPlough) are only
-// observable through this side effect, unlike Loofdoes' PWM path which goes
+// observable through this side effect, unlike Spuitcomputer LD's PWM path which goes
 // through ledc_set_duty() (real hardware only) instead of analogWrite().
 inline void analogWrite(uint8_t pin, int value) {
     if (pin >= 64) return;

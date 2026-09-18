@@ -275,8 +275,8 @@ test(ImplementRooier, adjust_autoMode_longUnchangedDrive_latchesShutoff) {
     // AUnit's TestRunner reads this same mocked millis() clock for its own
     // run-duration bookkeeping -- leaving it advanced this far would bulk-
     // timeout every test that runs after this one. Reset before returning
-    // (same fix already applied in Pootmachinebesturing's/Slangenpomp
-    // Spuitcomputer's equivalent tests).
+    // (same fix already applied in Pootmachinebesturing's and
+    // Spuitcomputer SP's equivalent tests).
     millisValue(0);
 }
 

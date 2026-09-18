@@ -13,8 +13,8 @@ repository is a submodule.
 |---|---|---|
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and raw CAN frames (`CanFrameGuidanceChannel`). |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
-| `Loofdoes Spuitcomputer` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders, `InterfaceGuidance`, the LCD baudrate autodetect, and `GuidanceGeometry`'s `DistanceBetween()`), used by every GPS-consuming project: `Ploegbesturing Isobus`, `Ploegbesturing`, `Pootmachinebesturing`, `Kilverbakbesturing` and `Loofdoes Spuitcomputer`. `VehicleGps` and `InterfaceGps` have no consumer left and are kept only until their removal is decided. |
+| `Spuitcomputer LD` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
+| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleGps`, `VehicleTractor`, `InterfaceI2CLCD`, `InterfaceGps`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders, `InterfaceGuidance`, the LCD baudrate autodetect, and `GuidanceGeometry`'s `DistanceBetween()`), used by every GPS-consuming project: `Ploegbesturing Isobus`, `Ploegbesturing`, `Pootmachinebesturing`, `Kilverbakbesturing` and `Spuitcomputer LD`. `VehicleGps` and `InterfaceGps` have no consumer left and are kept only until their removal is decided. |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
 of `lib/PloegbesturingCore` — see
@@ -27,7 +27,7 @@ both.
 Requires [PlatformIO](https://platformio.org/) (`pip install platformio`).
 
 ```sh
-pio run -d "Loofdoes Spuitcomputer"  -e esp32dev
+pio run -d "Spuitcomputer LD"  -e esp32dev
 pio run -d "Ploegbesturing"          -e teensy41
 pio run -d "Ploegbesturing Isobus"   -e teensy41_isobus   # or -e teensy41_serial
 ```
@@ -42,7 +42,7 @@ builds one combined binary and is run directly — `pio test` ignores
 `test_framework = custom` and never picks up AUnit correctly, so use `pio run`:
 
 ```sh
-pio run -d "Loofdoes Spuitcomputer" -e native && "./Loofdoes Spuitcomputer/.pio/build/native/program"
+pio run -d "Spuitcomputer LD" -e native && "./Spuitcomputer LD/.pio/build/native/program"
 pio run -d "Ploegbesturing"         -e native && "./Ploegbesturing/.pio/build/native/program"
 pio run -d "Ploegbesturing Isobus"  -e native && "./Ploegbesturing Isobus/.pio/build/native/program"
 pio run -d "Pootmachinebesturing"   -e native && "./Pootmachinebesturing/.pio/build/native/program"
@@ -63,11 +63,11 @@ native build compiles the real `GuidanceSource`, sentence parsers,
 `test_CanFrameGuidanceChannel.cpp`, `test_GuidanceGeometry.cpp`). `VehicleGps`
 has no native coverage.
 
-`Loofdoes Spuitcomputer` links the same library files and proves its own parser
+`Spuitcomputer LD` links the same library files and proves its own parser
 set with one sentence each (`test_GuidanceChannelSprayer.cpp`: NMEA, Trimble,
 CAN-serial and an NMEA2000 bridge line); the exhaustive per-decoder coverage of
 `IsobusPgnDecode` and `CanFrameGuidanceChannel` stays with the Isobus project, so
-those two read low in a Loofdoes-only coverage report by design. Its serial
+those two read low in a Spuitcomputer LD-only coverage report by design. Its serial
 calibration wizard (`CalibrationSprayer`) is in the native build since #87;
 `BleSprayer` is not (NimBLE) and is verified on the bench checklist instead.
 
@@ -96,7 +96,7 @@ library (#78):
   that owns the calibration menu or config class decides where a value is
   stored and hands it back at boot (`CalibrationPlough` for `GuidanceSource`'s
   RTK quality, `CalibrationPlanter`/`CalibrationScraper` for the receiver rate
-  index, `ConfigSprayer` for Loofdoes' settings). `VehicleTractor` predates
+  index, `ConfigSprayer` for Spuitcomputer LD's settings). `VehicleTractor` predates
   this rule and still writes its own bytes; `VehicleGps` did too and no longer
   has a consumer.
 - **Teensy boards use the Arduino `EEPROM` API** (wear-levelled flash
@@ -104,7 +104,7 @@ library (#78):
   before it claims it in code.
 - **ESP32 boards use `Preferences` (NVS) only.** The ESP32 `EEPROM` library is a
   RAM shadow that needs `EEPROM.commit()`, which no project calls, so writes
-  through it never reach flash. Loofdoes keeps every setting in the
+  through it never reach flash. Spuitcomputer LD keeps every setting in the
   `sprayer_cfg` namespace and does not include `EEPROM.h`.
 
 EEPROM map (Teensy projects; one board never links two implement blocks, so
@@ -120,7 +120,7 @@ same-range rows for different boards do not collide):
 | 40 to 66 | `ImplementPlough` (both plough projects) | position/rotation calibration, offset, shares, correction |
 | 70 to 94 | `ImplementPlanter` | |
 | 100 to 181 | `ImplementKipper` | |
-| 100 to 191 | `Slangenpomp` `ImplementSprayer` | |
+| 100 to 191 | `Spuitcomputer SP` `ImplementSprayer` | |
 | 130 to 148 | `ImplementScraper` | |
 | 200 to 222 | `ImplementRooier` | |
 
