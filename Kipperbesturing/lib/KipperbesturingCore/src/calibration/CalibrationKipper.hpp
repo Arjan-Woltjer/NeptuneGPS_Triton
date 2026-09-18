@@ -25,10 +25,10 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ImplementKipper.hpp"
+#include "../implement/ImplementKipper.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfaceKipper.hpp"
-#include "LanguageKipper.hpp"
+#include "../InterfaceKipper.hpp"
+#include "../config/LanguageKipper.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton

@@ -26,10 +26,10 @@
 #pragma once
 
 #include "InterfaceI2CLCD.hpp"
-#include "ImplementRooier.hpp"
+#include "implement/ImplementRooier.hpp"
 #include "VehicleTractor.hpp"
-#include "ConfigInterfaceRooier.hpp"
-#include "LanguageRooier.hpp"
+#include "config/ConfigInterfaceRooier.hpp"
+#include "config/LanguageRooier.hpp"
 
 namespace triton
 {

@@ -19,10 +19,10 @@
 #pragma once
 
 #include "InterfaceI2CLCD.hpp"
-#include "ImplementKipper.hpp"
+#include "implement/ImplementKipper.hpp"
 #include "VehicleTractor.hpp"
-#include "ConfigInterfaceKipper.hpp"
-#include "LanguageKipper.hpp"
+#include "config/ConfigInterfaceKipper.hpp"
+#include "config/LanguageKipper.hpp"
 
 namespace triton
 {

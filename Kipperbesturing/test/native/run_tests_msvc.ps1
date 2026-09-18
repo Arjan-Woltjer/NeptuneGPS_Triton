@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\KipperbesturingCore\src"
+$calibration = "$root\lib\KipperbesturingCore\src\calibration"
+$implement = "$root\lib\KipperbesturingCore\src\implement"
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\KipperbesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -58,7 +60,7 @@ Write-Host "=== Building KipperbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementKipper.cpp`" `"$lib\InterfaceKipper.cpp`" `"$lib\CalibrationKipper.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\KipperbesturingNativeTests.exe`" && `"$out\KipperbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementKipper.cpp`" `"$lib\InterfaceKipper.cpp`" `"$calibration\CalibrationKipper.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\KipperbesturingNativeTests.exe`" && `"$out\KipperbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\RooierbesturingCore\src"
+$calibration = "$root\lib\RooierbesturingCore\src\calibration"
+$implement = "$root\lib\RooierbesturingCore\src\implement"
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\RooierbesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -58,7 +60,7 @@ Write-Host "=== Building RooierbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementRooier.cpp`" `"$lib\InterfaceRooier.cpp`" `"$lib\CalibrationRooier.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\RooierbesturingNativeTests.exe`" && `"$out\RooierbesturingNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementRooier.cpp`" `"$lib\InterfaceRooier.cpp`" `"$calibration\CalibrationRooier.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\RooierbesturingNativeTests.exe`" && `"$out\RooierbesturingNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

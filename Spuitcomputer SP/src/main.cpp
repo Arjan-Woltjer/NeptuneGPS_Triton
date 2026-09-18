@@ -19,11 +19,11 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#include "CalibrationSprayer.hpp"
-#include "ImplementSprayer.hpp"
+#include "calibration/CalibrationSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceSprayer.hpp"
-#include "LanguageSprayer.hpp"
+#include "config/LanguageSprayer.hpp"
 #include "VehicleTractor.hpp"
 
 // I2C

@@ -23,7 +23,7 @@
 
 #include "VehicleTractor.hpp"
 
-#include "ConfigImplementSprayer.hpp"
+#include "../config/ConfigImplementSprayer.hpp"
 
 namespace triton
 {

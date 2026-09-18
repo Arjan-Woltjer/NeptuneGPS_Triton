@@ -28,7 +28,7 @@
 
 #include "VehicleTractor.hpp"
 
-#include "ConfigImplementKipper.hpp"
+#include "../config/ConfigImplementKipper.hpp"
 
 namespace triton
 {

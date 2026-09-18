@@ -19,7 +19,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "CalibrationKipper.hpp"
+#include "calibration/CalibrationKipper.hpp"
 
 using namespace aunit;
 using namespace triton;

@@ -25,10 +25,10 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ImplementSprayer.hpp"
+#include "../implement/ImplementSprayer.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfaceSprayer.hpp"
-#include "LanguageSprayer.hpp"
+#include "../InterfaceSprayer.hpp"
+#include "../config/LanguageSprayer.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton

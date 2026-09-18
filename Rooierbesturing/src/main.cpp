@@ -19,11 +19,11 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#include "CalibrationRooier.hpp"
-#include "ImplementRooier.hpp"
+#include "calibration/CalibrationRooier.hpp"
+#include "implement/ImplementRooier.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceRooier.hpp"
-#include "LanguageRooier.hpp"
+#include "config/LanguageRooier.hpp"
 #include "VehicleTractor.hpp"
 
 // Serial ports
