@@ -77,7 +77,7 @@ void InterfaceRooier::Update() {
     // ================
     // GPS was dropped for this pass (see the Rooierbesturing distillation
     // plan) -- the legacy source's #ifdef GPS branch never had a working
-    // implementation to preserve, matching Slangenpomp Spuitcomputer's
+    // implementation to preserve, matching Spuitcomputer SP's
     // precedent.
     tractor->Update(mode);
 

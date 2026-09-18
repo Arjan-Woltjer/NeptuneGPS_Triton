@@ -47,7 +47,7 @@ $aunitSources = @(
 # test_*.cpp: they dispatch on argument count via
 # GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
 # (default) preprocessor expands wrong (see Ploegbesturing's/Salacia's/
-# Loofdoes' platformio.ini/test README for the same issue, hit there first).
+# Spuitcomputer LD's platformio.ini/test README for the same issue, hit there first).
 $commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
 
 # ---- combined native test binary --------------------------------------------

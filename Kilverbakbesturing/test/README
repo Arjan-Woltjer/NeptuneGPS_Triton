@@ -15,7 +15,7 @@
   Isobus' native build.
 - `native/KilverbakbesturingNativeTests.cpp` -- the single AUnit driver
   (`setup()`/`loop()`), matching Ploegbesturing's/Pootmachinebesturing's/
-  Slangenpomp Spuitcomputer's `*NativeTests.cpp` pattern. Every `test_*.cpp`
+  Spuitcomputer SP's `*NativeTests.cpp` pattern. Every `test_*.cpp`
   file only registers `test(...)` blocks; none of them define `setup()`/
   `loop()` themselves, so they all link into one combined binary instead of
   one binary per test file.
@@ -49,8 +49,8 @@ display name under the class it exercises, e.g.
   through `SetPositionCalibrationData()`, which reads a *live* `analogRead()`,
   and the whole sensored code path is `#ifndef NOSENS`-gated (dead on every
   board built today; this production unit has no position sensor at all,
-  matching the legacy source's `NOSENS` default). Same gap Slangenpomp
-  Spuitcomputer's PWM-calibration guard has, for the same reason.
+  matching the legacy source's `NOSENS` default). Same gap Spuitcomputer
+  SP's PWM-calibration guard has, for the same reason.
 - `InterfaceScraper::UpdateScreen()` (LCD rendering) compiles as part of
   `InterfaceScraper.cpp` (needed since `CheckButtons()`/`Update()`, which
   *are* tested, live in the same file) but its output isn't asserted on by

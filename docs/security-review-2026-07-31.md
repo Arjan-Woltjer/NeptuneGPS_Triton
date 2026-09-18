@@ -14,7 +14,7 @@ commit `bb71741`.
 |---|---|---|---|
 | `Ploegbesturing` | Teensy 4.1 | ~2,900 | 30 |
 | `Ploegbesturing Isobus` | Teensy 4.1 | ~4,600 | 44 |
-| `Loofdoes Spuitcomputer` | ESP32 | ~1,100 | 39 |
+| `Spuitcomputer LD` | ESP32 | ~1,100 | 39 |
 | `MeijWorks Libs` | shared | ~1,600 | 0 |
 | `OTA Framework` | ESP32 | ~500 | 0 |
 
@@ -125,7 +125,7 @@ This file is consumed by all three firmware projects. Convention §11 requires
 external input be validated and malformed packets fail closed. Fixed by **PR 5**.
 
 ### SEC-4 — Sprayer keeps dosing after GPS failure
-`Loofdoes Spuitcomputer/lib/LoofdoesCore/src/ImplementSprayer.cpp:95-101`
+`Spuitcomputer LD/lib/SpuitcomputerLdCore/src/ImplementSprayer.cpp:95-101`
 
 `updateSpeed()` is the only consumer of GPS data and applies no staleness or
 fix-quality gate:
@@ -154,7 +154,7 @@ The library already provides everything needed to detect this —
 staleness pattern. None of it is called from the sprayer. Fixed by **PR 6**.
 
 ### SEC-5 — `NaN` reaches the pump output unclamped
-`Loofdoes Spuitcomputer/lib/LoofdoesCore/src/ImplementSprayer.cpp:128-133, 151-185`
+`Spuitcomputer LD/lib/SpuitcomputerLdCore/src/ImplementSprayer.cpp:128-133, 151-185`
 
 `calculateDoseLHA()` divides without guarding the denominator:
 
@@ -219,7 +219,7 @@ Fixed by **PR 8**.
 
 ### ROB-1 — No watchdog in any firmware
 A repository-wide search for watchdog usage returns one hit, and it is a comment.
-The Teensy 4.1 WDT is never enabled or fed; Loofdoes never registers a task
+The Teensy 4.1 WDT is never enabled or fed; Spuitcomputer LD never registers a task
 watchdog. A hang anywhere leaves the last-commanded PWM latched on a hydraulic
 valve or a chemical pump with no recovery.
 
@@ -355,11 +355,11 @@ upload path bypasses self-test and rollback entirely. Fixed by **PR 4**.
 Two independent faults, either sufficient to fail the run:
 
 1. It builds `-e native_interface_sprayer` and `-e native_implement_sprayer`.
-   Neither environment exists — `Loofdoes Spuitcomputer/platformio.ini` declares
+   Neither environment exists — `Spuitcomputer LD/platformio.ini` declares
    only `esp32dev` and `native`. The split-per-class layout was collapsed into a
    single combined binary on 2026-07-30 and the workflow was never updated.
    `pio run -e <unknown>` exits non-zero.
-2. `run: "./Loofdoes Spuitcomputer/.pio/build/.../program"` — the double quotes
+2. `run: "./Spuitcomputer LD/.pio/build/.../program"` — the double quotes
    are consumed by the YAML parser, not the shell, so bash word-splits on the
    space in the directory name.
 
@@ -378,9 +378,9 @@ at build time, so switching to `pull_request_target` would turn any fork PR into
 remote code execution with repository secrets. Fixed by **PR 1**.
 
 ### TEST-1 — The untrusted-input parser is tested on no platform
-`Loofdoes Spuitcomputer/platformio.ini:69-72`
+`Spuitcomputer LD/platformio.ini:69-72`
 
-The native env lists `-I test/native/support` ahead of `-I lib/LoofdoesCore/src`,
+The native env lists `-I test/native/support` ahead of `-I lib/SpuitcomputerLdCore/src`,
 so `#include "VehicleGps.hpp"` resolves to a 12-line stub exposing only
 `float speed` and `GetSpeedMs()`. The real 492-line parser — the one attacker-
 reachable surface in the codebase, carrying SEC-3 — is compiled into no test
@@ -507,7 +507,7 @@ Recorded for completeness; not individually scheduled.
 - `InterfaceSprayer.cpp:60-88` — an input held from power-on, or shorted low by a
   chafed harness, reads as fully debounced on the first loop because the debounce
   timer is only refreshed while the pin is high.
-- `Loofdoes Spuitcomputer/src/main.cpp:100` — the LCD is written once with a
+- `Spuitcomputer LD/src/main.cpp:100` — the LCD is written once with a
   splash screen and never updated, so the operator has no display of dose, speed,
   GPS health or pump state during operation.
 - Five `new` allocations across the `main.cpp` files with no null check, on builds

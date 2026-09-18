@@ -52,7 +52,7 @@ $aunitSources = @(
 # AUnit's two-argument test(SuiteName, testName) macros used throughout
 # test_*.cpp: they dispatch on argument count via
 # GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
-# (default) preprocessor expands wrong (see Salacia's/Loofdoes' platformio.ini/
+# (default) preprocessor expands wrong (see Salacia's/Spuitcomputer LD's platformio.ini/
 # test README for the same issue, hit there first).
 # The only PloegbesturingCore -I needed is $lib itself -- every cross-file
 # include inside the library is a relative path (matching Salacia's

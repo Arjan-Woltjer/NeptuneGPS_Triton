@@ -41,7 +41,7 @@ namespace triton
 // message counters (IsobusGuidanceChannel::MessageCounters -- AgIsoStack
 // itself exposes no such counters), the guidance telemetry those messages
 // feed into GuidanceSource (XTE, speed, fix ages, quality), and the Task
-// Controller client's connection/DDI 513-514 state. Unlike Loofdoes'
+// Controller client's connection/DDI 513-514 state. Unlike Spuitcomputer LD's
 // CalibrationSprayer, this never writes calibration data and every menu
 // choice is a fixed single keypress, so input dispatches immediately -- no
 // line buffer/Enter needed.

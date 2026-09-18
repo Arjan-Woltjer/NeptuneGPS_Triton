@@ -13,8 +13,8 @@
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point).
 - `native/PloegbesturingNativeTests.cpp` -- the single AUnit driver (`setup()`/
-  `loop()`), matching Salacia's/Loofdoes' `SalaciaNativeTests.cpp`/
-  `LoofdoesNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
+  `loop()`), matching Salacia's/Spuitcomputer LD's `SalaciaNativeTests.cpp`/
+  `SpuitcomputerLdNativeTests.cpp` pattern. Every `test_*.cpp` file only registers
   `test(...)` blocks; none of them define `setup()`/`loop()` themselves, so
   they all link into one combined binary instead of one binary per test file.
 - `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
@@ -29,7 +29,7 @@ without one, use test\native\run_tests_msvc.ps1 instead, which builds and
 runs the same combined binary via MSVC directly. That script passes
 `/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
 `test(SuiteName, testName)` argument-count dispatch, which every test in
-this project uses (matching Salacia's/Loofdoes' convention: groups each
+this project uses (matching Salacia's/Spuitcomputer LD's convention: groups each
 test's display name under the class it exercises, e.g.
 `ImplementPlough_position_descendingCalibration_atPoint0`,
 `InterfacePlough_update_staleGgaFix_selectsHold`).
@@ -40,7 +40,7 @@ test's display name under the class it exercises, e.g.
   legacy `InterfacePlough::Calibrate()`) is `#ifdef ARDUINO`-guarded and
   deliberately excluded from `[env:native]`'s `build_src_filter` -- it drives
   real LCD/button hardware through a sequence of blocking `while(true)` menu
-  loops, the same shape of problem Loofdoes' `CalibrationSprayer` has, and
+  loops, the same shape of problem Spuitcomputer LD's `CalibrationSprayer` has, and
   which is excluded there for the same reason. No native coverage exists or
   is planned for it.
 - `InterfacePlough::UpdateScreen()` (LCD rendering) compiles as part of

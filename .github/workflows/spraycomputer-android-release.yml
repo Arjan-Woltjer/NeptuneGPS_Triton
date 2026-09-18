@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        working-directory: "Loofdoes Spuitcomputer/android"
+        working-directory: "Spuitcomputer LD/android"
     env:
       SPRAYCOMPUTER_VERSION_NAME: ${{ github.event.inputs.version_name || github.ref_name }}
     steps:
@@ -89,12 +89,12 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: spraycomputer-release-aab-${{ env.SPRAYCOMPUTER_VERSION_NAME }}
-          path: "Loofdoes Spuitcomputer/android/app/build/outputs/bundle/release/app-release.aab"
+          path: "Spuitcomputer LD/android/app/build/outputs/bundle/release/app-release.aab"
           if-no-files-found: error
 
       - name: Upload R8 mapping
         uses: actions/upload-artifact@v5
         with:
           name: spraycomputer-release-mapping-${{ env.SPRAYCOMPUTER_VERSION_NAME }}
-          path: "Loofdoes Spuitcomputer/android/app/build/outputs/mapping/release/mapping.txt"
+          path: "Spuitcomputer LD/android/app/build/outputs/mapping/release/mapping.txt"
           if-no-files-found: error

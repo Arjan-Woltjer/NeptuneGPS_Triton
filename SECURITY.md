@@ -21,10 +21,10 @@ Highest-value areas, roughly in order:
 
 - Firmware update paths — anything that lets unsigned or unverified firmware
   reach flash, or that exposes the update path to the network. No project here
-  ships one today; `Loofdoes Spuitcomputer` is due to gain OTA (issue #34), and
-  the reference sources it will be adapted from live at `Loofdoes Spuitcomputer/
+  ships one today; `Spuitcomputer LD` is due to gain OTA (issue #34), and
+  the reference sources it will be adapted from live at `Spuitcomputer LD/
   Documentation/reference/ota-framework/` (not compiled).
-- The Bluetooth link of `Loofdoes Spuitcomputer` (`BleSprayer`, `RemoteSprayer`):
+- The Bluetooth link of `Spuitcomputer LD` (`BleSprayer`, `RemoteSprayer`):
   anything that moves an output or persists a setting must only be accepted
   on the bonded, authenticated characteristic (passkey shown on the LCD);
   the open characteristic is limited to read-only commands and telemetry.

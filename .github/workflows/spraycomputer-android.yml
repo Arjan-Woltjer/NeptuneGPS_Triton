@@ -7,11 +7,11 @@ on:
   push:
     branches: [main]
     paths:
-      - "Loofdoes Spuitcomputer/android/**"
+      - "Spuitcomputer LD/android/**"
       - ".github/workflows/spraycomputer-android.yml"
   pull_request:
     paths:
-      - "Loofdoes Spuitcomputer/android/**"
+      - "Spuitcomputer LD/android/**"
       - ".github/workflows/spraycomputer-android.yml"
   workflow_dispatch:
 
@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        working-directory: "Loofdoes Spuitcomputer/android"
+        working-directory: "Spuitcomputer LD/android"
     steps:
       - uses: actions/checkout@v5
 
@@ -56,11 +56,11 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: spraycomputer-debug-apk
-          path: "Loofdoes Spuitcomputer/android/app/build/outputs/apk/debug/app-debug.apk"
+          path: "Spuitcomputer LD/android/app/build/outputs/apk/debug/app-debug.apk"
 
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v5
         with:
           name: spraycomputer-unit-test-report
-          path: "Loofdoes Spuitcomputer/android/app/build/reports/tests/testDebugUnitTest"
+          path: "Spuitcomputer LD/android/app/build/reports/tests/testDebugUnitTest"

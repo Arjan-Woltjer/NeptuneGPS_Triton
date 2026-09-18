@@ -71,7 +71,7 @@ private:
     byte            rtkQuality;
     bool            rawEcho;
 
-    // Last complete line as received, for a remote passthrough (Loofdoes
+    // Last complete line as received, for a remote passthrough (Spuitcomputer LD
     // companion app, NeptuneGPS_Triton#62). Printable characters only, so a
     // Trimble binary frame shows up as its printable remains, and capped at
     // the NMEA maximum. The sequence number lets a poller notice a new one.
@@ -144,7 +144,7 @@ public:
     void PrintCalibrationData();
 
     // Reopen the receiver port at another rate without a reboot (the
-    // Loofdoes companion app changes it at runtime, NeptuneGPS_Triton#62).
+    // Spuitcomputer LD companion app changes it at runtime, NeptuneGPS_Triton#62).
     void ApplyBaudrate(long baud);
 
 #ifndef GPS_NO_STATS

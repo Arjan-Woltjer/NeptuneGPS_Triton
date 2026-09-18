@@ -37,7 +37,7 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - 'Loofdoes Spuitcomputer'
+          - 'Spuitcomputer LD'
           - 'Ploegbesturing'
           - 'Ploegbesturing Isobus'
           - 'Pootmachinebesturing'
@@ -47,7 +47,7 @@ jobs:
           # cppcheck matrix until NeptuneGPS_Triton#86 (2026-09-15).
           - 'Kipperbesturing'
           - 'Rooierbesturing'
-          - 'Slangenpomp Spuitcomputer'
+          - 'Spuitcomputer SP'
     steps:
       # Motorcontroller/lib/SteeringActuator is a submodule of the private
       # Arjan-Woltjer/SteeringActuator repo -- the default GITHUB_TOKEN below only has
@@ -102,7 +102,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - project: 'Loofdoes Spuitcomputer'
+          - project: 'Spuitcomputer LD'
             env: esp32dev
           - project: 'Ploegbesturing'
             env: teensy41
@@ -120,7 +120,7 @@ jobs:
             env: teensy41
           - project: 'Rooierbesturing'
             env: teensy41
-          - project: 'Slangenpomp Spuitcomputer'
+          - project: 'Spuitcomputer SP'
             env: teensy41
     steps:
       # See the native-tests job above for why this is needed: Motorcontroller/lib/
@@ -179,12 +179,12 @@ jobs:
       fail-fast: false
       matrix:
         project:
-          - 'Loofdoes Spuitcomputer'
+          - 'Spuitcomputer LD'
           - 'Ploegbesturing'
           - 'Ploegbesturing Isobus'
           - 'Motorcontroller'
           - 'Pootmachinebesturing'
-          - 'Slangenpomp Spuitcomputer'
+          - 'Spuitcomputer SP'
           - 'Kilverbakbesturing'
           - 'Kipperbesturing'
           - 'Rooierbesturing'
