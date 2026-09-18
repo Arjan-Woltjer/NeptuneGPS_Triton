@@ -20,7 +20,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <AUnit.h>
-#include "ImplementSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
 
 using namespace aunit;
 using namespace triton;

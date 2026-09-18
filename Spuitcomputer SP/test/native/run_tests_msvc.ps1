@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\SpuitcomputerSpCore\src"
+$calibration = "$root\lib\SpuitcomputerSpCore\src\calibration"
+$implement = "$root\lib\SpuitcomputerSpCore\src\implement"
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\SpuitcomputerSpNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -58,7 +60,7 @@ Write-Host "=== Building SpuitcomputerSpNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$lib\ImplementSprayer.cpp`" `"$lib\InterfaceSprayer.cpp`" `"$lib\CalibrationSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\SpuitcomputerSpNativeTests.exe`" && `"$out\SpuitcomputerSpNativeTests.exe`""
+$cmd = "`"$vcvars`" $vcvarsArch && cl $commonFlags /Fo`"$out\\`" `"$implement\ImplementSprayer.cpp`" `"$lib\InterfaceSprayer.cpp`" `"$calibration\CalibrationSprayer.cpp`" $testSources `"$driver`" `"$stubs\native_main.cpp`" $aunitSources /Fe:`"$out\SpuitcomputerSpNativeTests.exe`" && `"$out\SpuitcomputerSpNativeTests.exe`""
 Write-Host "Running..." -ForegroundColor Cyan
 cmd /c $cmd
 

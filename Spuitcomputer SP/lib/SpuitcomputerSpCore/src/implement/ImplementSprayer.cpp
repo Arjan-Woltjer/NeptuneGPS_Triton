@@ -17,7 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ImplementSprayer.hpp"
-#include "LanguageSprayer.hpp"
+#include "../config/LanguageSprayer.hpp"
 
 namespace triton
 {

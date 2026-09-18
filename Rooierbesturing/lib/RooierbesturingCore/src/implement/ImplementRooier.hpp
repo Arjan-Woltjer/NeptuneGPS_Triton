@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ConfigImplementRooier.hpp"
+#include "../config/ConfigImplementRooier.hpp"
 
 namespace triton
 {

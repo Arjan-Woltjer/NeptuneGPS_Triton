@@ -21,9 +21,9 @@
 #include "InterfaceI2CLCD.hpp"
 #include "VehicleTractor.hpp"
 
-#include "ConfigInterfaceSprayer.hpp"
-#include "ImplementSprayer.hpp"
-#include "LanguageSprayer.hpp"
+#include "config/ConfigInterfaceSprayer.hpp"
+#include "implement/ImplementSprayer.hpp"
+#include "config/LanguageSprayer.hpp"
 
 namespace triton
 {

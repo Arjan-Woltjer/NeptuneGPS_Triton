@@ -19,11 +19,11 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
-#include "CalibrationKipper.hpp"
-#include "ImplementKipper.hpp"
+#include "calibration/CalibrationKipper.hpp"
+#include "implement/ImplementKipper.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceKipper.hpp"
-#include "LanguageKipper.hpp"
+#include "config/LanguageKipper.hpp"
 #include "VehicleTractor.hpp"
 
 // Serial ports

@@ -25,10 +25,10 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ImplementRooier.hpp"
+#include "../implement/ImplementRooier.hpp"
 #include "InterfaceI2CLCD.hpp"
-#include "InterfaceRooier.hpp"
-#include "LanguageRooier.hpp"
+#include "../InterfaceRooier.hpp"
+#include "../config/LanguageRooier.hpp"
 #include "VehicleTractor.hpp"
 
 namespace triton
