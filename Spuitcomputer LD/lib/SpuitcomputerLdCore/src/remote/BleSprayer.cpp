@@ -1,7 +1,6 @@
 /*
   BleSprayer - Bluetooth Low Energy link between the MeijWorks loofdoes and its companion app
   Copyright (C) 2011-2026 J.A. Woltjer.
-  All rights reserved.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published by
