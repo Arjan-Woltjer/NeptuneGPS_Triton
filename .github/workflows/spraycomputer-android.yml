@@ -52,6 +52,21 @@ jobs:
       - name: Build debug APK
         run: ./gradlew --no-daemon assembleDebug
 
+      # Nothing ran lint until now, which is how a WrongConstant error in
+      # SprayerBleClient sat there unnoticed (NeptuneGPS_Triton#145). Lint
+      # aborts on errors only; warnings stay visible in the report without
+      # failing the build.
+      - name: Lint
+        run: ./gradlew --no-daemon lintDebug
+
+      - name: Upload lint report
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: spraycomputer-lint-report
+          path: "Spuitcomputer LD/android/app/build/reports/lint-results-debug.html"
+          if-no-files-found: ignore
+
       - name: Upload APK
         uses: actions/upload-artifact@v5
         with:

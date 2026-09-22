@@ -180,8 +180,8 @@ fun ConsoleScreen(sprayer: SprayerState, onBack: () -> Unit) {
 private fun SwitchChip(
     label: String,
     checked: Boolean,
-    enabled: Boolean = true,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onChange: (Boolean) -> Unit,
 ) {
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
