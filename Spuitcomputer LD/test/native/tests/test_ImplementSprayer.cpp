@@ -2,7 +2,6 @@
   test_ImplementSprayer - Tests for ImplementSprayer: cascading output interlocks, dose (l/ha and
   l/min) calculation, and PWM calibration.
   Copyright (C) 2011-2026 J.A. Woltjer.
-  All rights reserved.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published by

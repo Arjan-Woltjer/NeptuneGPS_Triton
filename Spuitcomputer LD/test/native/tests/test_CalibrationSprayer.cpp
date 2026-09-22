@@ -3,7 +3,6 @@
   analog and PWM calibration flows, PWM point editing, telemetry toggles and
   the line editor, driven through a scripted Stream (NeptuneGPS_Triton#87).
   Copyright (C) 2011-2026 J.A. Woltjer.
-  All rights reserved.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published by

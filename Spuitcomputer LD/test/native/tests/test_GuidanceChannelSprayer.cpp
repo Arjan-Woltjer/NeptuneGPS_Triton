@@ -4,7 +4,6 @@
   the raw echo, a baudrate change mid-sentence, CAN-serial and NMEA2000 bridge
   lines, and the interface's button edge logging (NeptuneGPS_Triton#87).
   Copyright (C) 2011-2026 J.A. Woltjer.
-  All rights reserved.
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU Lesser General Public License as published by

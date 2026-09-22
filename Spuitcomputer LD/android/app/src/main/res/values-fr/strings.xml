@@ -248,4 +248,8 @@
 
     <string name="settings_developer">Mode développeur</string>
     <string name="settings_developer_sub">Affiche la console et les modifications d\'étalonnage brutes. À laisser désactivé au champ.</string>
+
+    <!-- Licence et mentions (#127) -->
+    <string name="settings_licence">Sous licence GNU Lesser General Public License, version 3 ou ultérieure. Le texte de la licence accompagne le code source sous le nom COPYING.LESSER.</string>
+    <string name="settings_notices">Construit avec Jetpack Compose, AndroidX et les coroutines Kotlin, chacun sous licence Apache 2.0.</string>
 </resources>

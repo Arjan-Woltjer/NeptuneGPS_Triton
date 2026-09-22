@@ -248,4 +248,8 @@
 
     <string name="settings_developer">Entwicklermodus</string>
     <string name="settings_developer_sub">Zeigt die Konsole und die direkten Kalibriereingriffe. Im Feldeinsatz ausgeschaltet lassen.</string>
+
+    <!-- Lizenz und Hinweise (#127) -->
+    <string name="settings_licence">Lizenziert unter der GNU Lesser General Public License, Version 3 oder später. Der Lizenztext liegt dem Quellcode als COPYING.LESSER bei.</string>
+    <string name="settings_notices">Erstellt mit Jetpack Compose, AndroidX und Kotlin-Coroutines, jeweils unter der Apache License 2.0.</string>
 </resources>
