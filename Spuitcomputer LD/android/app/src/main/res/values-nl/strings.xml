@@ -176,11 +176,7 @@
     <!-- Geavanceerd -->
     <string name="advanced_title">Geavanceerd</string>
     <string name="advanced_reread">Opnieuw uitlezen van de kast</string>
-    <string name="advanced_knob_calibration">Knopkalibratie</string>
-    <string name="advanced_pump_curve">Pompcurve</string>
     <string name="advanced_column_analog">Analoog</string>
-    <string name="advanced_column_dose">Dosering (l/ha)</string>
-    <string name="advanced_column_flow">Debiet (ml/min)</string>
     <string name="advanced_board_settings">Instellingen op de kast</string>
     <string name="advanced_width">Werkbreedte</string>
     <string name="advanced_guidance_timeout">Stuurtimeout</string>
@@ -189,7 +185,6 @@
     <string name="advanced_min_fix">Minimale fix om te doseren</string>
     <string name="advanced_protocol">Protocol</string>
     <string name="advanced_firmware">Firmware</string>
-    <string name="advanced_correct_flow">Debiet van een punt corrigeren</string>
 
     <!-- Instellingen -->
     <string name="settings_title">Instellingen</string>
@@ -259,4 +254,11 @@
     <string name="io_state_on">%1$s %2$s: aan</string>
     <string name="io_state_off">%1$s %2$s: uit</string>
     <string name="io_state_unknown">%1$s %2$s: niet gemeld</string>
+
+    <!-- Kalibratie gesplitst (#138) -->
+    <string name="menu_pump">Pompkalibratie</string>
+    <string name="menu_pump_sub">Alleen de pompcurve, maatbeker en een minuut per punt</string>
+    <string name="advanced_edit_dose">Potmeterpunten bewerken</string>
+    <string name="advanced_edit_pump">Pomppunten bewerken</string>
+    <string name="advanced_point_number">Punt %1$d</string>
 </resources>

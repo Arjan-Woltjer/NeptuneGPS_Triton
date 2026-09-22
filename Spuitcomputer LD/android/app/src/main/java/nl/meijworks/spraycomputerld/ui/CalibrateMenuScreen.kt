@@ -58,6 +58,7 @@ fun CalibrateMenuScreen(
     onBack: () -> Unit,
     onWizard: () -> Unit,
     onPotmeter: () -> Unit,
+    onPumpWizard: () -> Unit,
     onSprayer: () -> Unit,
     onGps: () -> Unit,
     onAdvanced: () -> Unit,
@@ -96,6 +97,17 @@ fun CalibrateMenuScreen(
                         stringResource(R.string.menu_potmeter_sub),
                         enabled = sprayer.connected,
                         onClick = onPotmeter,
+                    )
+                    HorizontalDivider()
+                    // The pump half on its own. WizardMode.PUMP_ONLY existed
+                    // and was titled, but nothing ever started it, so the pump
+                    // curve could only be redone by re-running the knob
+                    // positions too (NeptuneGPS_Triton#138).
+                    MenuEntry(
+                        stringResource(R.string.menu_pump),
+                        stringResource(R.string.menu_pump_sub),
+                        enabled = sprayer.connected,
+                        onClick = onPumpWizard,
                     )
                     HorizontalDivider()
                     MenuEntry(

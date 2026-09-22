@@ -59,16 +59,25 @@ import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
 import nl.meijworks.spraycomputerld.protocol.GpsSample
 import nl.meijworks.spraycomputerld.protocol.SprayerProtocol
+import nl.meijworks.spraycomputerld.protocol.WizardMath
 import nl.meijworks.spraycomputerld.service.SprayerController
 
 /**
- * What the board holds: the two calibration tables, the settings, and a
- * pump point's flow correction (serial menu option 4). The console has its
+ * What the board holds: the two calibration tables, both editable in place
+ * (NeptuneGPS_Triton#138), and the settings, read-only. The console has its
  * own screen (ConsoleScreen).
+ *
+ * The board's own limits, so a value it would refuse cannot be sent:
+ * RemoteSprayer::handleCal takes an analog value and a duty in 0..4095, a
+ * dose in 1..10000 l/ha and a flow in 0..4000 ml/min.
  */
+private const val PWM_MAX_DUTY = 4095
+private const val MAX_DOSE_LHA = 10000
+private const val MAX_FLOW_ML_MIN = 4000
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdvancedScreen(sprayer: SprayerState, developerMode: Boolean, onBack: () -> Unit) {
+fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -93,47 +102,126 @@ fun AdvancedScreen(sprayer: SprayerState, developerMode: Boolean, onBack: () -> 
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            TablesCard(sprayer, developerMode)
+            DosePointsCard(sprayer)
+            PwmPointsCard(sprayer)
             SettingsValuesCard(sprayer)
             Spacer(Modifier.height(24.dp))
         }
     }
 }
 
+/**
+ * The knob table, editable in place (NeptuneGPS_Triton#138). The wizard is
+ * the way these are normally produced; this is for correcting one afterwards
+ * without walking the whole procedure again.
+ */
 @Composable
-private fun TablesCard(sprayer: SprayerState, developerMode: Boolean) {
+private fun DosePointsCard(sprayer: SprayerState) {
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(stringResource(R.string.advanced_knob_calibration), style = MaterialTheme.typography.titleMedium)
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.advanced_edit_dose), style = MaterialTheme.typography.titleMedium)
             if (sprayer.dosePoints.isEmpty()) {
                 Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                TableHeader(
-                    stringResource(R.string.advanced_column_index),
-                    stringResource(R.string.advanced_column_analog),
-                    stringResource(R.string.advanced_column_dose),
-                )
                 sprayer.dosePoints.forEach { p ->
-                    TableRow("${p.index + 1}", "${p.analog}", "${p.doseLha}")
+                    PointEditor(
+                        title = stringResource(
+                            R.string.potmeter_point,
+                            p.index + 1,
+                            WizardMath.DOSE_LABELS.getOrNull(p.index)?.let { stringResource(it) }.orEmpty(),
+                        ),
+                        firstLabel = stringResource(R.string.advanced_column_analog),
+                        firstValue = p.analog,
+                        firstRange = 0..PWM_MAX_DUTY,
+                        secondLabel = stringResource(R.string.unit_lha),
+                        secondValue = p.doseLha,
+                        secondRange = 1..MAX_DOSE_LHA,
+                        enabled = sprayer.connected,
+                    ) { analog, dose -> SprayerController.editDosePoint(p.index, analog, dose) }
                 }
             }
-            Spacer(Modifier.height(8.dp))
-            Text(stringResource(R.string.advanced_pump_curve), style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+/** The pump curve, same shape. Replaces the old flow-only correction field. */
+@Composable
+private fun PwmPointsCard(sprayer: SprayerState) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.advanced_edit_pump), style = MaterialTheme.typography.titleMedium)
             if (sprayer.pwmPoints.isEmpty()) {
                 Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                TableHeader(
-                    stringResource(R.string.advanced_column_index),
-                    stringResource(R.string.advanced_column_pwm),
-                    stringResource(R.string.advanced_column_flow),
-                )
                 sprayer.pwmPoints.forEach { p ->
-                    TableRow("${p.index + 1}", "${p.pwm}", "${p.flowMlMin}")
+                    PointEditor(
+                        title = stringResource(R.string.advanced_point_number, p.index + 1),
+                        firstLabel = stringResource(R.string.advanced_column_pwm),
+                        firstValue = p.pwm,
+                        firstRange = 0..PWM_MAX_DUTY,
+                        secondLabel = stringResource(R.string.advanced_field_ml_min),
+                        secondValue = p.flowMlMin,
+                        secondRange = 0..MAX_FLOW_ML_MIN,
+                        enabled = sprayer.connected,
+                    ) { pwm, flow -> SprayerController.editPwmPoint(p.index, pwm, flow) }
                 }
-                // Reading the tables is fair game for an operator; writing a
-                // point's flow by hand, outside the wizard, is not.
-                if (developerMode) PwmPointEditor(sprayer)
             }
+        }
+    }
+}
+
+/**
+ * One calibration point: two numbers and a Save that commits just that point.
+ *
+ * Save is offered only for a value the board will accept, so a rejected edit
+ * is the exception rather than the way you find out the range. The fields
+ * re-seed from the board's own values, so a Save followed by the board's
+ * CAL GET leaves the row showing what was actually stored, not what was typed.
+ */
+@Composable
+private fun PointEditor(
+    title: String,
+    firstLabel: String,
+    firstValue: Int,
+    firstRange: IntRange,
+    secondLabel: String,
+    secondValue: Int,
+    secondRange: IntRange,
+    enabled: Boolean,
+    onSave: (Int, Int) -> Unit,
+) {
+    var firstText by rememberSaveable(firstValue) { mutableStateOf(firstValue.toString()) }
+    var secondText by rememberSaveable(secondValue) { mutableStateOf(secondValue.toString()) }
+    val first = firstText.toIntOrNull()
+    val second = secondText.toIntOrNull()
+    val valid = first in firstRange && second in secondRange
+    val changed = first != firstValue || second != secondValue
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, style = MaterialTheme.typography.labelLarge)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = firstText,
+                onValueChange = { firstText = it.filter { c -> c.isDigit() } },
+                label = { Text(firstLabel) },
+                singleLine = true,
+                isError = first !in firstRange,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f),
+            )
+            OutlinedTextField(
+                value = secondText,
+                onValueChange = { secondText = it.filter { c -> c.isDigit() } },
+                label = { Text(secondLabel) },
+                singleLine = true,
+                isError = second !in secondRange,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.weight(1f),
+            )
+            OutlinedButton(
+                onClick = { if (first != null && second != null) onSave(first, second) },
+                enabled = enabled && valid && changed,
+            ) { Text(stringResource(R.string.action_save)) }
         }
     }
 }
@@ -177,55 +265,5 @@ private fun SettingsValuesCard(sprayer: SprayerState) {
             }
             sprayer.firmwareVersion?.let { DetailRow(stringResource(R.string.advanced_firmware), it) }
         }
-    }
-}
-
-@Composable
-private fun PwmPointEditor(sprayer: SprayerState) {
-    var pointText by rememberSaveable { mutableStateOf("") }
-    var flowText by rememberSaveable { mutableStateOf("") }
-    val point = pointText.toIntOrNull()?.let { n -> sprayer.pwmPoints.firstOrNull { it.index == n - 1 } }
-    val flow = flowText.toIntOrNull()
-    Spacer(Modifier.height(4.dp))
-    Text(stringResource(R.string.advanced_correct_flow), style = MaterialTheme.typography.labelLarge)
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        OutlinedTextField(
-            value = pointText,
-            onValueChange = { pointText = it.filter { c -> c.isDigit() } },
-            label = { Text(stringResource(R.string.advanced_column_index)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.weight(0.6f),
-        )
-        OutlinedTextField(
-            value = flowText,
-            onValueChange = { flowText = it.filter { c -> c.isDigit() } },
-            label = { Text(stringResource(R.string.advanced_field_ml_min)) },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.weight(1f),
-        )
-        OutlinedButton(
-            onClick = { if (point != null && flow != null) SprayerController.editPwmPointFlow(point.index, flow) },
-            enabled = sprayer.connected && point != null && flow != null && flow in 1..4000,
-        ) { Text(stringResource(R.string.action_save)) }
-    }
-}
-
-@Composable
-private fun TableHeader(a: String, b: String, c: String) {
-    Row(Modifier.fillMaxWidth()) {
-        Text(a, Modifier.weight(0.5f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(b, Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(c, Modifier.weight(1.5f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun TableRow(a: String, b: String, c: String) {
-    Row(Modifier.fillMaxWidth()) {
-        Text(a, Modifier.weight(0.5f), fontWeight = FontWeight.Medium)
-        Text(b, Modifier.weight(1f))
-        Text(c, Modifier.weight(1.5f))
     }
 }

@@ -200,13 +200,8 @@
     <!-- Advanced -->
     <string name="advanced_title">Advanced</string>
     <string name="advanced_reread">Re-read from the board</string>
-    <string name="advanced_knob_calibration">Knob calibration</string>
-    <string name="advanced_pump_curve">Pump curve</string>
-    <string name="advanced_column_index" translatable="false">#</string>
     <string name="advanced_column_analog">Analog</string>
-    <string name="advanced_column_dose">Dose (l/ha)</string>
     <string name="advanced_column_pwm" translatable="false">PWM</string>
-    <string name="advanced_column_flow">Flow (ml/min)</string>
     <string name="advanced_board_settings">Board settings</string>
     <string name="advanced_width">Width</string>
     <string name="advanced_guidance_timeout">Guidance timeout</string>
@@ -216,7 +211,6 @@
     <string name="advanced_protocol">Protocol</string>
     <string name="advanced_protocol_value" translatable="false">v%1$s</string>
     <string name="advanced_firmware">Firmware</string>
-    <string name="advanced_correct_flow">Correct a point\'s flow</string>
     <string name="advanced_value_cm" translatable="false">%1$d cm</string>
     <string name="advanced_value_ms" translatable="false">%1$d ms</string>
     <string name="advanced_field_ml_min" translatable="false">ml/min</string>
@@ -290,4 +284,11 @@
     <string name="io_state_on">%1$s %2$s: on</string>
     <string name="io_state_off">%1$s %2$s: off</string>
     <string name="io_state_unknown">%1$s %2$s: not reported</string>
+
+    <!-- Calibration split (#138) -->
+    <string name="menu_pump">Pump calibration</string>
+    <string name="menu_pump_sub">The pump curve only, jug and a minute per point</string>
+    <string name="advanced_edit_dose">Edit potmeter points</string>
+    <string name="advanced_edit_pump">Edit pump points</string>
+    <string name="advanced_point_number">Point %1$d</string>
 </resources>
