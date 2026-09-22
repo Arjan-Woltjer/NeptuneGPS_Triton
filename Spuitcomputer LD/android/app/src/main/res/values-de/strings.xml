@@ -252,4 +252,9 @@
     <!-- Lizenz und Hinweise (#127) -->
     <string name="settings_licence">Lizenziert unter der GNU Lesser General Public License, Version 3 oder später. Der Lizenztext liegt dem Quellcode als COPYING.LESSER bei.</string>
     <string name="settings_notices">Erstellt mit Jetpack Compose, AndroidX und Kotlin-Coroutines, jeweils unter der Apache License 2.0.</string>
+
+    <!-- Ein- und Ausgänge (#125) -->
+    <string name="io_state_on">%1$s %2$s: ein</string>
+    <string name="io_state_off">%1$s %2$s: aus</string>
+    <string name="io_state_unknown">%1$s %2$s: nicht gemeldet</string>
 </resources>
