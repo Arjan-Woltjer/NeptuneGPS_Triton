@@ -91,7 +91,29 @@ bool SerialGuidanceChannel::Update() {
             // Bitbucket characters that are ignored but still counted in the checksum
             case 20:
             case 0:
+                sum += byte(c);
+                break;
+
+            // A space is an ordinary character inside an NMEA sentence: it
+            // counts toward the '*XX' checksum and belongs in the term. The
+            // ATGM336H's "$GPTXT,01,01,01,ANTENNA OPEN" is the first sentence
+            // handled here that contains one, and bitbucketing it broke that
+            // sentence twice over -- the space never reached parity, so the
+            // real checksum never matched and the sentence was dropped whole
+            // before commitTo(), and it never reached term[], so the text
+            // arrived as "ANTENNAOPEN". NeptuneGPS_Triton#61 case 7: the pump
+            // kept running through a real antenna pull because of this.
+            //
+            // Trimble frames deliberately keep the old behaviour. TrimbleParser
+            // uses this same parity as its own checksum (useParityAsChecksum()),
+            // and that decode is already proven on the rig, so widening the
+            // change to it would need its own hardware proof.
             case ' ':
+                if (activeParse && !activeParse->useParityAsChecksum()) {
+                    if (termOffset < sizeof(term) - 1)
+                        term[termOffset++] = c;
+                    if (!isChecksumTerm) parity ^= c;
+                }
                 sum += byte(c);
                 break;
 

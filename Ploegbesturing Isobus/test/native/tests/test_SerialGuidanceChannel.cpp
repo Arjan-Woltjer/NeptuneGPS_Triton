@@ -289,3 +289,73 @@ test(SerialGuidanceChannel, apply_baudrate_rejects_zero_and_negative) {
     ch.ApplyBaudrate(-4800);
     assertEqual(serial.begunBaud, (unsigned long)0);
 }
+
+// ---------------------------------------------------------------------------
+// GPTXT through the character loop -- NeptuneGPS_Triton#61 case 7
+// ---------------------------------------------------------------------------
+//
+// The ATGM336H's antenna supervisor is the first sentence handled here whose
+// text contains a space, and the tokenizer used to bitbucket ' ' outright.
+// That broke it twice over: the space never reached parity, so the sentence's
+// real checksum (*25) never matched the 0x05 the channel computed and the
+// whole sentence was dropped before commitTo(); and the space never reached
+// term[], so NmeaParser compared "ANTENNAOPEN" against "ANTENNA OPEN".
+//
+// The existing NmeaParser TXT tests call parseTerm(4, "ANTENNA OPEN")
+// directly, so they exercised neither half. On the #61 field log the pump ran
+// on through a real antenna pull, duty climbing, while the console showed
+// ANTENNA OPEN arriving on schedule.
+//
+// Trimble frames still bitbucket the space: TrimbleParser uses this same
+// parity as its own checksum (useParityAsChecksum()), and that decode is
+// already proven on the rig -- see the trimble_frame_* tests above, which
+// pin the behaviour this fix deliberately leaves alone.
+
+test(SerialGuidanceChannel, gptxt_antenna_open_survives_the_space_in_its_text) {
+    FakeGpsSerial serial;
+    GuidanceSource g;
+    SerialGuidanceChannel ch(nullptr, &serial, &g);
+
+    assertTrue(g.GetAntennaOk());   // default: assume the antenna is fine
+
+    serial.Feed("$GPTXT,01,01,01,ANTENNA OPEN*25\r\n");
+    assertTrue(ch.Update());        // checksum must verify, not just parse
+    assertFalse(g.GetAntennaOk());
+}
+
+test(SerialGuidanceChannel, gptxt_antenna_short_survives_the_space_in_its_text) {
+    FakeGpsSerial serial;
+    GuidanceSource g;
+    SerialGuidanceChannel ch(nullptr, &serial, &g);
+
+    serial.Feed("$GPTXT,01,01,01,ANTENNA SHORT*63\r\n");
+    assertTrue(ch.Update());
+    assertFalse(g.GetAntennaOk());
+}
+
+test(SerialGuidanceChannel, gptxt_antenna_ok_clears_the_flag_again) {
+    FakeGpsSerial serial;
+    GuidanceSource g;
+    SerialGuidanceChannel ch(nullptr, &serial, &g);
+
+    g.SetAntennaOk(false);          // a prior OPEN already latched this
+
+    serial.Feed("$GPTXT,01,01,01,ANTENNA OK*35\r\n");
+    assertTrue(ch.Update());
+    assertTrue(g.GetAntennaOk());
+}
+
+// A space inside the text must not be silently dropped from the term either:
+// an unrelated TXT banner still has to leave the flag alone rather than be
+// mangled into one of the antenna strings.
+test(SerialGuidanceChannel, gptxt_unrelated_banner_leaves_the_flag_alone) {
+    FakeGpsSerial serial;
+    GuidanceSource g;
+    SerialGuidanceChannel ch(nullptr, &serial, &g);
+
+    g.SetAntennaOk(false);
+
+    serial.Feed("$GPTXT,01,01,02,ANTENNA IS FINE*0C\r\n");
+    assertTrue(ch.Update());
+    assertFalse(g.GetAntennaOk());   // untouched, not reset to the default
+}
