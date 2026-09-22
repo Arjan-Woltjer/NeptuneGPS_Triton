@@ -28,6 +28,7 @@ import android.bluetooth.BluetoothGattCharacteristic
 import android.bluetooth.BluetoothGattDescriptor
 import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothProfile
+import android.bluetooth.BluetoothStatusCodes
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
@@ -197,8 +198,12 @@ class SprayerBleClient(private val context: Context, private val listener: Liste
                    else BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
         val ok = try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // The three-argument overload returns a BluetoothStatusCodes
+                // value, not a GATT status. The two happen to agree on 0 today,
+                // which is why this behaved correctly while comparing against
+                // the wrong scale (NeptuneGPS_Triton#145).
                 g.writeCharacteristic(c, bytes, type) ==
-                    BluetoothGatt.GATT_SUCCESS
+                    BluetoothStatusCodes.SUCCESS
             } else {
                 @Suppress("DEPRECATION")
                 run {
@@ -388,8 +393,10 @@ class SprayerBleClient(private val context: Context, private val listener: Liste
                     return@post
                 }
                 val ok = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    // Same BluetoothStatusCodes return as the characteristic
+                    // write above (NeptuneGPS_Triton#145).
                     g.writeDescriptor(cccd, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE) ==
-                        BluetoothGatt.GATT_SUCCESS
+                        BluetoothStatusCodes.SUCCESS
                 } else {
                     @Suppress("DEPRECATION")
                     run {
