@@ -256,4 +256,26 @@
 
     <!-- Permissions -->
     <string name="permission_bluetooth_needed">Bluetooth permission is needed to find the sprayer</string>
+
+    <!-- First-run flow (#123) -->
+    <string name="onboarding_title">Before you start</string>
+    <string name="onboarding_intro">The app talks to the sprayer over Bluetooth and has to keep doing so while you drive. Three permissions make that work.</string>
+    <string name="onboarding_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_bluetooth_body">To find the sprayer and stay connected to it. The app never uses Bluetooth to work out where you are.</string>
+    <string name="onboarding_notifications_title">Notifications</string>
+    <string name="onboarding_notifications_body">The link runs behind a notification, which is what keeps Android from killing it with the screen off, and the dose alarm reaches you through it.</string>
+    <string name="onboarding_battery_title">Battery optimisation</string>
+    <string name="onboarding_battery_body">Without an exemption Android may cut the link a few minutes after the screen goes dark, in the middle of a run.</string>
+    <string name="onboarding_grant">Allow Bluetooth and notifications</string>
+    <string name="onboarding_granted">Allowed</string>
+    <string name="onboarding_battery_exempt">Exclude from battery optimisation</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_skip">Skip for now</string>
+    <string name="settings_show_intro">Show the introduction again</string>
+    <string name="status_bluetooth_off_title">Bluetooth is off</string>
+    <string name="status_bluetooth_off_body">The app cannot find the sprayer until Bluetooth is on.</string>
+    <string name="status_bluetooth_turn_on">Turn Bluetooth on</string>
+    <string name="status_permission_blocked_title">Bluetooth permission refused</string>
+    <string name="status_permission_blocked_body">Android will not ask again. Allow it in the app\'s settings, then come back here.</string>
+    <string name="status_open_app_settings">Open app settings</string>
 </resources>

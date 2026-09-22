@@ -223,4 +223,26 @@
 
     <!-- Autorisations -->
     <string name="permission_bluetooth_needed">L\'autorisation Bluetooth est nécessaire pour trouver le pulvérisateur</string>
+
+    <!-- Premier démarrage (#123) -->
+    <string name="onboarding_title">Avant de commencer</string>
+    <string name="onboarding_intro">L\'application dialogue avec le pulvérisateur par Bluetooth et doit continuer pendant que vous roulez. Trois autorisations le permettent.</string>
+    <string name="onboarding_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_bluetooth_body">Pour trouver le pulvérisateur et rester connecté. L\'application ne se sert jamais du Bluetooth pour déterminer où vous êtes.</string>
+    <string name="onboarding_notifications_title">Notifications</string>
+    <string name="onboarding_notifications_body">La liaison s\'exécute derrière une notification, ce qui empêche Android de l\'interrompre écran éteint, et l\'alarme de dose vous parvient par ce biais.</string>
+    <string name="onboarding_battery_title">Optimisation de la batterie</string>
+    <string name="onboarding_battery_body">Sans exception, Android peut couper la liaison quelques minutes après l\'extinction de l\'écran, en plein passage.</string>
+    <string name="onboarding_grant">Autoriser le Bluetooth et les notifications</string>
+    <string name="onboarding_granted">Autorisé</string>
+    <string name="onboarding_battery_exempt">Exclure de l\'optimisation de la batterie</string>
+    <string name="onboarding_continue">Continuer</string>
+    <string name="onboarding_skip">Passer pour l\'instant</string>
+    <string name="settings_show_intro">Revoir l\'introduction</string>
+    <string name="status_bluetooth_off_title">Le Bluetooth est désactivé</string>
+    <string name="status_bluetooth_off_body">L\'application ne peut pas trouver le pulvérisateur tant que le Bluetooth est désactivé.</string>
+    <string name="status_bluetooth_turn_on">Activer le Bluetooth</string>
+    <string name="status_permission_blocked_title">Autorisation Bluetooth refusée</string>
+    <string name="status_permission_blocked_body">Android ne la redemandera pas. Autorisez-la dans les réglages de l\'application, puis revenez ici.</string>
+    <string name="status_open_app_settings">Ouvrir les réglages de l\'application</string>
 </resources>

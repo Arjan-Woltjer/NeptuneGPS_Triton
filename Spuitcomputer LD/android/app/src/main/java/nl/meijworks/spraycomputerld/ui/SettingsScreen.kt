@@ -47,6 +47,7 @@ fun SettingsScreen(
     onBack: () -> Unit,
     onBatteryOptimizations: () -> Unit,
     isIgnoringBatteryOptimizations: () -> Boolean,
+    onShowIntroduction: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -68,7 +69,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             AlarmCard(settings, serviceRunning)
-            OptionsCard(settings, onBatteryOptimizations, isIgnoringBatteryOptimizations)
+            OptionsCard(settings, onBatteryOptimizations, isIgnoringBatteryOptimizations, onShowIntroduction)
             AboutCard()
             Spacer(Modifier.height(24.dp))
         }
@@ -141,6 +142,7 @@ private fun OptionsCard(
     settings: SettingsState,
     onBatteryOptimizations: () -> Unit,
     isIgnoringBatteryOptimizations: () -> Boolean,
+    onShowIntroduction: () -> Unit,
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -163,6 +165,9 @@ private fun OptionsCard(
             if (!ignoring) {
                 OutlinedButton(onClick = onBatteryOptimizations) { Text(stringResource(R.string.settings_battery_button)) }
             }
+            HorizontalDivider()
+            Spacer(Modifier.height(4.dp))
+            OutlinedButton(onClick = onShowIntroduction) { Text(stringResource(R.string.settings_show_intro)) }
         }
     }
 }

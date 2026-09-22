@@ -225,4 +225,26 @@
 
     <!-- Rechten -->
     <string name="permission_bluetooth_needed">Bluetooth-toestemming is nodig om de spuit te vinden</string>
+
+    <!-- Eerste start (#123) -->
+    <string name="onboarding_title">Voordat je begint</string>
+    <string name="onboarding_intro">De app praat via Bluetooth met de spuit en moet dat tijdens het rijden blijven doen. Daar zijn drie rechten voor nodig.</string>
+    <string name="onboarding_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_bluetooth_body">Om de spuit te vinden en verbonden te blijven. De app gebruikt Bluetooth nooit om te bepalen waar je bent.</string>
+    <string name="onboarding_notifications_title">Meldingen</string>
+    <string name="onboarding_notifications_body">De verbinding draait achter een melding; dat is wat Android ervan weerhoudt hem met het scherm uit af te breken, en het doseringsalarm bereikt je erdoor.</string>
+    <string name="onboarding_battery_title">Batterijoptimalisatie</string>
+    <string name="onboarding_battery_body">Zonder uitzondering kan Android de verbinding een paar minuten nadat het scherm uitgaat afbreken, midden in een bespuiting.</string>
+    <string name="onboarding_grant">Bluetooth en meldingen toestaan</string>
+    <string name="onboarding_granted">Toegestaan</string>
+    <string name="onboarding_battery_exempt">Uitsluiten van batterijoptimalisatie</string>
+    <string name="onboarding_continue">Doorgaan</string>
+    <string name="onboarding_skip">Nu overslaan</string>
+    <string name="settings_show_intro">Introductie opnieuw tonen</string>
+    <string name="status_bluetooth_off_title">Bluetooth staat uit</string>
+    <string name="status_bluetooth_off_body">De app kan de spuit niet vinden zolang Bluetooth uit staat.</string>
+    <string name="status_bluetooth_turn_on">Bluetooth inschakelen</string>
+    <string name="status_permission_blocked_title">Bluetooth-toestemming geweigerd</string>
+    <string name="status_permission_blocked_body">Android vraagt het niet nog een keer. Sta het toe in de instellingen van de app en kom hier terug.</string>
+    <string name="status_open_app_settings">App-instellingen openen</string>
 </resources>

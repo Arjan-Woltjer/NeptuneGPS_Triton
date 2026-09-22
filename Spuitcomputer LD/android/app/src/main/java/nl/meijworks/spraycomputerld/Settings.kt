@@ -12,6 +12,8 @@ data class SettingsState(
     val volume: Float = 1.0f,
     val vibrate: Boolean = true,
     val keepScreenOn: Boolean = true,
+    /** False until the operator has been through the first-run explanation. */
+    val onboardingDone: Boolean = false,
 )
 
 /**
@@ -33,6 +35,7 @@ object Settings {
             volume = prefs.getFloat("volume", 1.0f),
             vibrate = prefs.getBoolean("vibrate", true),
             keepScreenOn = prefs.getBoolean("keepScreenOn", true),
+            onboardingDone = prefs.getBoolean("onboardingDone", false),
         )
     }
 
@@ -41,6 +44,7 @@ object Settings {
     fun setVolume(v: Float) = update(_state.value.copy(volume = v.coerceIn(0f, 1f))) { putFloat("volume", v.coerceIn(0f, 1f)) }
     fun setVibrate(v: Boolean) = update(_state.value.copy(vibrate = v)) { putBoolean("vibrate", v) }
     fun setKeepScreenOn(v: Boolean) = update(_state.value.copy(keepScreenOn = v)) { putBoolean("keepScreenOn", v) }
+    fun setOnboardingDone(v: Boolean) = update(_state.value.copy(onboardingDone = v)) { putBoolean("onboardingDone", v) }
 
     private inline fun update(newState: SettingsState, edit: SharedPreferences.Editor.() -> Unit) {
         _state.value = newState
