@@ -50,7 +50,7 @@ import nl.meijworks.spraycomputerld.service.SprayerController
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
+fun AdvancedScreen(sprayer: SprayerState, developerMode: Boolean, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -75,7 +75,7 @@ fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            TablesCard(sprayer)
+            TablesCard(sprayer, developerMode)
             SettingsValuesCard(sprayer)
             Spacer(Modifier.height(24.dp))
         }
@@ -83,7 +83,7 @@ fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
 }
 
 @Composable
-private fun TablesCard(sprayer: SprayerState) {
+private fun TablesCard(sprayer: SprayerState, developerMode: Boolean) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(stringResource(R.string.advanced_knob_calibration), style = MaterialTheme.typography.titleMedium)
@@ -112,7 +112,9 @@ private fun TablesCard(sprayer: SprayerState) {
                 sprayer.pwmPoints.forEach { p ->
                     TableRow("${p.index + 1}", "${p.pwm}", "${p.flowMlMin}")
                 }
-                PwmPointEditor(sprayer)
+                // Reading the tables is fair game for an operator; writing a
+                // point's flow by hand, outside the wizard, is not.
+                if (developerMode) PwmPointEditor(sprayer)
             }
         }
     }

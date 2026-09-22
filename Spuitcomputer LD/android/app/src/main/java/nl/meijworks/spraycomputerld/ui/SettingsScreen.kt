@@ -27,6 +27,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,6 +41,9 @@ import nl.meijworks.spraycomputerld.Settings
 import nl.meijworks.spraycomputerld.SettingsState
 import nl.meijworks.spraycomputerld.audio.AlarmSound
 import nl.meijworks.spraycomputerld.service.SprayerController
+
+/** Taps on the build row that turn developer mode on; the Android convention. */
+private const val DEVELOPER_TAPS = 7
 
 /** Phone-side settings: how the deviation alarm sounds, screen and battery. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,6 +77,7 @@ fun SettingsScreen(
         ) {
             AlarmCard(settings, serviceRunning)
             OptionsCard(settings, onBatteryOptimizations, isIgnoringBatteryOptimizations, onShowIntroduction)
+            if (settings.developerMode) DeveloperCard()
             AboutCard()
             Spacer(Modifier.height(24.dp))
         }
@@ -197,9 +205,30 @@ private fun SwitchRow(
     }
 }
 
-/** Which build this is, for a bug report: version name, code and commit. */
+/** Visible only once developer mode is on, so it can be switched off again. */
+@Composable
+private fun DeveloperCard() {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp)) {
+            SwitchRow(
+                stringResource(R.string.settings_developer),
+                stringResource(R.string.settings_developer_sub),
+                true,
+            ) { Settings.setDeveloperMode(it) }
+        }
+    }
+}
+
+/**
+ * Which build this is, for a bug report: version name, code and commit.
+ *
+ * Also the way in to developer mode, by the usual Android convention of
+ * repeated taps on the build row: an operator does not find it by accident,
+ * and nobody has to be talked through a hidden gesture they could trip over.
+ */
 @Composable
 private fun AboutCard() {
+    var taps by remember { mutableIntStateOf(0) }
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.settings_about), style = MaterialTheme.typography.titleMedium)
@@ -211,6 +240,13 @@ private fun AboutCard() {
                     BuildConfig.GIT_SHA,
                 ),
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.clickable {
+                    taps++
+                    if (taps >= DEVELOPER_TAPS) {
+                        taps = 0
+                        Settings.setDeveloperMode(true)
+                    }
+                },
             )
             Text(
                 stringResource(R.string.settings_about_blurb),

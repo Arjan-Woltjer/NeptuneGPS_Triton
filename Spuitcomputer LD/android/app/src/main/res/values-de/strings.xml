@@ -245,4 +245,7 @@
     <string name="status_permission_blocked_title">Bluetooth-Berechtigung verweigert</string>
     <string name="status_permission_blocked_body">Android fragt nicht noch einmal. Erlauben Sie sie in den Einstellungen der App und kommen Sie hierher zurück.</string>
     <string name="status_open_app_settings">App-Einstellungen öffnen</string>
+
+    <string name="settings_developer">Entwicklermodus</string>
+    <string name="settings_developer_sub">Zeigt die Konsole und die direkten Kalibriereingriffe. Im Feldeinsatz ausgeschaltet lassen.</string>
 </resources>

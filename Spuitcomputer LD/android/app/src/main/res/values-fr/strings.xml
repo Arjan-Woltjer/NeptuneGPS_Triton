@@ -245,4 +245,7 @@
     <string name="status_permission_blocked_title">Autorisation Bluetooth refusée</string>
     <string name="status_permission_blocked_body">Android ne la redemandera pas. Autorisez-la dans les réglages de l\'application, puis revenez ici.</string>
     <string name="status_open_app_settings">Ouvrir les réglages de l\'application</string>
+
+    <string name="settings_developer">Mode développeur</string>
+    <string name="settings_developer_sub">Affiche la console et les modifications d\'étalonnage brutes. À laisser désactivé au champ.</string>
 </resources>

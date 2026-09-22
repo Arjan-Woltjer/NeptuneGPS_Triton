@@ -14,6 +14,8 @@ data class SettingsState(
     val keepScreenOn: Boolean = true,
     /** False until the operator has been through the first-run explanation. */
     val onboardingDone: Boolean = false,
+    /** Reveals the console and the raw calibration edits. Off in the field. */
+    val developerMode: Boolean = false,
 )
 
 /**
@@ -36,6 +38,7 @@ object Settings {
             vibrate = prefs.getBoolean("vibrate", true),
             keepScreenOn = prefs.getBoolean("keepScreenOn", true),
             onboardingDone = prefs.getBoolean("onboardingDone", false),
+            developerMode = prefs.getBoolean("developerMode", false),
         )
     }
 
@@ -45,6 +48,7 @@ object Settings {
     fun setVibrate(v: Boolean) = update(_state.value.copy(vibrate = v)) { putBoolean("vibrate", v) }
     fun setKeepScreenOn(v: Boolean) = update(_state.value.copy(keepScreenOn = v)) { putBoolean("keepScreenOn", v) }
     fun setOnboardingDone(v: Boolean) = update(_state.value.copy(onboardingDone = v)) { putBoolean("onboardingDone", v) }
+    fun setDeveloperMode(v: Boolean) = update(_state.value.copy(developerMode = v)) { putBoolean("developerMode", v) }
 
     private inline fun update(newState: SettingsState, edit: SharedPreferences.Editor.() -> Unit) {
         _state.value = newState

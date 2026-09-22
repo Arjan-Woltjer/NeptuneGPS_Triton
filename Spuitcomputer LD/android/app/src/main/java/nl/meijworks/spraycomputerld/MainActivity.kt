@@ -155,6 +155,7 @@ class MainActivity : ComponentActivity() {
                     )
                     Screen.CALIBRATE -> CalibrateMenuScreen(
                         sprayer = sprayer,
+                        developerMode = settings.developerMode,
                         onBack = { screen = Screen.STATUS },
                         onWizard = { SprayerController.startWizard(WizardMode.FULL); screen = Screen.WIZARD },
                         onPotmeter = { screen = Screen.POTMETER },
@@ -182,6 +183,7 @@ class MainActivity : ComponentActivity() {
                     Screen.GPS -> GpsConfigScreen(sprayer = sprayer, onBack = { screen = Screen.CALIBRATE })
                     Screen.ADVANCED -> AdvancedScreen(
                         sprayer = sprayer,
+                        developerMode = settings.developerMode,
                         onBack = { screen = Screen.CALIBRATE },
                     )
                     Screen.SETTINGS -> SettingsScreen(

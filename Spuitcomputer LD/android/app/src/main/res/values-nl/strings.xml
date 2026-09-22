@@ -247,4 +247,7 @@
     <string name="status_permission_blocked_title">Bluetooth-toestemming geweigerd</string>
     <string name="status_permission_blocked_body">Android vraagt het niet nog een keer. Sta het toe in de instellingen van de app en kom hier terug.</string>
     <string name="status_open_app_settings">App-instellingen openen</string>
+
+    <string name="settings_developer">Ontwikkelaarsmodus</string>
+    <string name="settings_developer_sub">Toont de console en de ruwe kalibratiebewerkingen. Laat dit uit op het land.</string>
 </resources>
