@@ -71,7 +71,9 @@ and #21 needed.
 **Triton is NOT on the bus** -- the plough control's latest branch was not
 flashed for this outing, this was purely a JD-only capture. John Deere, van
 Os, same rig as sessions 8/9. Startup (address claims + both VT object pool
-uploads) followed by driving a line out and back, **autosteer engaged**.
+uploads) followed by driving a line out and back, called "autosteer engaged"
+at the rig -- but see the 2026-09-22 re-analysis note at the end of this
+entry: the bus only reports steering-ready for 43 s of it.
 
 **The driven segment, measured from the log** (log time 298-441 s): one pass
 of **37.4 m**, a turnaround, then **34.1 m** back, plus a final 14.5 m
@@ -112,12 +114,36 @@ this.
   to inspect the StarFire and tractor screens directly.
 
   As predicted going in, no tramline/XTE traffic (Triton was not on the bus
-  to request it). PGN `0xAD00` (Guidance System Command) is still absent
-  despite autosteer being engaged this run -- refines the
-  john-deere-bus-inventory note's earlier "absent, consistent with autosteer
-  disengaged" reading: on this rig 0xAD00 appears to simply never be
-  broadcast, regardless of autosteer state. `0xAC00` (guidance/curvature, from
-  `0xF0`) is present throughout at 9.9 Hz as before.
+  to request it). PGN `0xAD00` (Guidance System Command) is still absent.
+  `0xAC00` (guidance/curvature, from `0xF0`) is present throughout at 9.9 Hz
+  as before.
+
+  **Re-analysed 2026-09-22** (full write-up: "What the GPS module actually
+  says on the bus" in the Documentation repo's
+  `ISOBUS/research/john-deere-bus-inventory-2026-09-08.md`, tool
+  `ISOBUS/tools/gps_traffic_map.py`). Three corrections to the above:
+  - **"Autosteer engaged for the whole segment" is not what the bus says.**
+    `0xAC00` Steering System Readiness is 1 only from log t = 296.9 to
+    339.9 s (the edge at 296.9 coincides with putting the tractor in gear,
+    the one at 339.9 with NAV `0x2A`'s `0xFFFF` sub `0x77` byte 1 flipping
+    `0x14 -> 0x15`). Only 325-340 s drives dead straight (0.1 1/km); the
+    rest of the run wobbles at +-100..350 1/km. Whether that 15 s was the
+    engaged stretch or the engage happened at 339.6 s cannot be settled from
+    this log. Next JD run: note engage/disengage by wall clock.
+  - **The steering command is not on this bus at all**, so `0xAD00`'s absence
+    says nothing about JD's use of it: nothing reaches `0xF0` at a
+    steering-loop rate, NAV's only drive-time output is a 5 Hz status word
+    with zero correlation to the tractor's curvature, and only CANedge
+    channel 1 was connected. The loop runs on the vehicle bus; put channel 2
+    there next time.
+  - **The GPS module has no TC relationship whatsoever** -- zero `0xCB00`
+    to or from `0x1C`; it is a broadcast nav source (5 Hz ISO trio + ~36 Hz
+    of proprietary 65535) and a VT client, nothing else. None of its 65535
+    sub-IDs change rate or state at either readiness edge; every state change
+    in them is keyed to motion starting at t = 298-302 s.
+  - Bonus: the StarFire's 126992 System Time carries real UTC (2026-09-11
+    07:06 UTC at t = 220 s), so any log with it on the bus can be dated from
+    its contents despite the CANedge's dead RTC.
 
 #### Are the harvested pools correct, and where is the Working Set?
 
