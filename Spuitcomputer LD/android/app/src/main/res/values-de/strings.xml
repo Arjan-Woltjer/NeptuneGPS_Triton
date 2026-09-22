@@ -223,4 +223,26 @@
 
     <!-- Berechtigungen -->
     <string name="permission_bluetooth_needed">Die Bluetooth-Berechtigung wird benötigt, um die Spritze zu finden</string>
+
+    <!-- Erster Start (#123) -->
+    <string name="onboarding_title">Bevor es losgeht</string>
+    <string name="onboarding_intro">Die App spricht über Bluetooth mit der Spritze und muss das während der Fahrt beibehalten. Dafür sind drei Berechtigungen nötig.</string>
+    <string name="onboarding_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_bluetooth_body">Um die Spritze zu finden und verbunden zu bleiben. Die App nutzt Bluetooth nie, um Ihren Standort zu ermitteln.</string>
+    <string name="onboarding_notifications_title">Benachrichtigungen</string>
+    <string name="onboarding_notifications_body">Die Verbindung läuft hinter einer Benachrichtigung; genau das hindert Android daran, sie bei ausgeschaltetem Bildschirm zu beenden, und der Dosieralarm erreicht Sie darüber.</string>
+    <string name="onboarding_battery_title">Akku-Optimierung</string>
+    <string name="onboarding_battery_body">Ohne Ausnahme kann Android die Verbindung wenige Minuten nach dem Abschalten des Bildschirms trennen, mitten in der Ausbringung.</string>
+    <string name="onboarding_grant">Bluetooth und Benachrichtigungen zulassen</string>
+    <string name="onboarding_granted">Zugelassen</string>
+    <string name="onboarding_battery_exempt">Von der Akku-Optimierung ausnehmen</string>
+    <string name="onboarding_continue">Weiter</string>
+    <string name="onboarding_skip">Vorerst überspringen</string>
+    <string name="settings_show_intro">Einführung erneut anzeigen</string>
+    <string name="status_bluetooth_off_title">Bluetooth ist aus</string>
+    <string name="status_bluetooth_off_body">Die App kann die Spritze nicht finden, solange Bluetooth aus ist.</string>
+    <string name="status_bluetooth_turn_on">Bluetooth einschalten</string>
+    <string name="status_permission_blocked_title">Bluetooth-Berechtigung verweigert</string>
+    <string name="status_permission_blocked_body">Android fragt nicht noch einmal. Erlauben Sie sie in den Einstellungen der App und kommen Sie hierher zurück.</string>
+    <string name="status_open_app_settings">App-Einstellungen öffnen</string>
 </resources>

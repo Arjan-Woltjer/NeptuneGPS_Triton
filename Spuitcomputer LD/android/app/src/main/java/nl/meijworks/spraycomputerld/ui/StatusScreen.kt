@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -55,7 +56,7 @@ import nl.meijworks.spraycomputerld.protocol.CalibrationOwner
 import nl.meijworks.spraycomputerld.protocol.StatusSample
 import kotlinx.coroutines.delay
 
-enum class Screen { STATUS, CALIBRATE, WIZARD, POTMETER, SPRAYER, GPS, ADVANCED, CONSOLE, SETTINGS }
+enum class Screen { ONBOARDING, STATUS, CALIBRATE, WIZARD, POTMETER, SPRAYER, GPS, ADVANCED, CONSOLE, SETTINGS }
 
 /**
  * Home: speed, requested l/ha and actual l/ha large, the rest below, one
@@ -66,8 +67,12 @@ enum class Screen { STATUS, CALIBRATE, WIZARD, POTMETER, SPRAYER, GPS, ADVANCED,
 fun StatusScreen(
     sprayer: SprayerState,
     serviceRunning: Boolean,
+    bluetoothEnabled: Boolean,
+    permissionsBlocked: Boolean,
     onConnect: () -> Unit,
     onDisconnect: () -> Unit,
+    onEnableBluetooth: () -> Unit,
+    onOpenAppSettings: () -> Unit,
     onCalibrate: () -> Unit,
     onSettings: () -> Unit,
 ) {
@@ -100,6 +105,24 @@ fun StatusScreen(
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Two things that leave the app inert with no way forward
+            // unless the screen says so (NeptuneGPS_Triton#123).
+            if (!bluetoothEnabled) {
+                ProblemCard(
+                    title = stringResource(R.string.status_bluetooth_off_title),
+                    body = stringResource(R.string.status_bluetooth_off_body),
+                    action = stringResource(R.string.status_bluetooth_turn_on),
+                    onAction = onEnableBluetooth,
+                )
+            }
+            if (permissionsBlocked) {
+                ProblemCard(
+                    title = stringResource(R.string.status_permission_blocked_title),
+                    body = stringResource(R.string.status_permission_blocked_body),
+                    action = stringResource(R.string.status_open_app_settings),
+                    onAction = onOpenAppSettings,
+                )
+            }
             ConnectionCard(sprayer, serviceRunning, onConnect, onDisconnect)
             DoseTiles(sprayer.status, stale)
             DetailsCard(sprayer, now)
@@ -109,6 +132,29 @@ fun StatusScreen(
                 Text(stringResource(R.string.action_calibrate))
             }
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/** Something is in the way and the operator can fix it from here. */
+@Composable
+private fun ProblemCard(title: String, body: String, action: String, onAction: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Text(
+                body,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            Button(onClick = onAction) { Text(action) }
         }
     }
 }

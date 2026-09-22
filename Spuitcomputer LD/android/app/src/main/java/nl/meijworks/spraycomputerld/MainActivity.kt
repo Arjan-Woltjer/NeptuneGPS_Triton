@@ -1,7 +1,12 @@
 package nl.meijworks.spraycomputerld
 
 import android.Manifest
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
@@ -20,7 +25,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
@@ -36,6 +43,7 @@ import nl.meijworks.spraycomputerld.ui.AdvancedScreen
 import nl.meijworks.spraycomputerld.ui.CalibrateMenuScreen
 import nl.meijworks.spraycomputerld.ui.ConsoleScreen
 import nl.meijworks.spraycomputerld.ui.GpsConfigScreen
+import nl.meijworks.spraycomputerld.ui.OnboardingScreen
 import nl.meijworks.spraycomputerld.ui.PotmeterScreen
 import nl.meijworks.spraycomputerld.ui.SprayerConfigScreen
 import nl.meijworks.spraycomputerld.ui.WizardScreen
@@ -48,15 +56,38 @@ class MainActivity : ComponentActivity() {
 
     private var pendingStart = false
 
+    /** Android has stopped asking; only the app's settings page can fix it now. */
+    private var permissionsBlocked by mutableStateOf(false)
+
+    /** Bluetooth can be switched off from outside the app at any moment. */
+    private var bluetoothEnabled by mutableStateOf(true)
+
+    private val bluetoothStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == BluetoothAdapter.ACTION_STATE_CHANGED) refreshBluetoothState()
+        }
+    }
+
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
             if (SprayerBleClient.hasPermissions(this)) {
+                permissionsBlocked = false
                 if (pendingStart) SprayerService.start(this)
             } else {
-                Toast.makeText(this, R.string.permission_bluetooth_needed, Toast.LENGTH_LONG).show()
+                // A refusal Android will not re-ask about shows no rationale
+                // the next time round: that is the only signal it is final.
+                permissionsBlocked = SprayerBleClient.requiredPermissions().none {
+                    shouldShowRequestPermissionRationale(it)
+                }
+                if (!permissionsBlocked) {
+                    Toast.makeText(this, R.string.permission_bluetooth_needed, Toast.LENGTH_LONG).show()
+                }
             }
             pendingStart = false
         }
+
+    private val enableBluetoothLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { refreshBluetoothState() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,12 +107,24 @@ class MainActivity : ComponentActivity() {
             SprayComputerTheme {
                 val sprayer by SprayerController.state.collectAsStateWithLifecycle()
                 val settings by Settings.state.collectAsStateWithLifecycle()
-                var screen by rememberSaveable { mutableStateOf(Screen.STATUS) }
+                // First run lands on the explanation, not on a screen whose
+                // only button fires a permission dialog out of nowhere.
+                var screen by rememberSaveable {
+                    mutableStateOf(if (Settings.state.value.onboardingDone) Screen.STATUS else Screen.ONBOARDING)
+                }
+                var batteryExempt by remember { mutableStateOf(isIgnoringBatteryOptimizations()) }
+                val permissionsGranted = SprayerBleClient.hasPermissions(this) && !permissionsBlocked
+
+                // Both can be changed from outside the app while it is open.
+                LaunchedEffect(screen) {
+                    batteryExempt = isIgnoringBatteryOptimizations()
+                    refreshBluetoothState()
+                }
                 val serviceRunning = SprayerController.isRunning || sprayer.connection != ConnectionState.OFF
 
                 // Where Back goes; the wizard needs its explicit cancel so the board
                 // gets calibration back, so Back inside it cancels too.
-                BackHandler(enabled = screen != Screen.STATUS) {
+                BackHandler(enabled = screen != Screen.STATUS && screen != Screen.ONBOARDING) {
                     screen = when (screen) {
                         Screen.WIZARD -> { SprayerController.cancelWizard(); Screen.CALIBRATE }
                         Screen.POTMETER, Screen.SPRAYER, Screen.GPS, Screen.ADVANCED, Screen.CONSOLE -> Screen.CALIBRATE
@@ -90,11 +133,23 @@ class MainActivity : ComponentActivity() {
                 }
 
                 when (screen) {
+                    Screen.ONBOARDING -> OnboardingScreen(
+                        permissionsGranted = permissionsGranted,
+                        batteryExempt = batteryExempt,
+                        onGrantPermissions = { requestPermissions(startService = false) },
+                        onBatteryOptimizations = ::requestIgnoreBatteryOptimizations,
+                        onContinue = { Settings.setOnboardingDone(true); screen = Screen.STATUS },
+                        onSkip = { Settings.setOnboardingDone(true); screen = Screen.STATUS },
+                    )
                     Screen.STATUS -> StatusScreen(
                         sprayer = sprayer,
                         serviceRunning = serviceRunning,
+                        bluetoothEnabled = bluetoothEnabled,
+                        permissionsBlocked = permissionsBlocked,
                         onConnect = ::connect,
                         onDisconnect = { SprayerService.stop(this) },
+                        onEnableBluetooth = ::requestEnableBluetooth,
+                        onOpenAppSettings = ::openAppSettings,
                         onCalibrate = { screen = Screen.CALIBRATE },
                         onSettings = { screen = Screen.SETTINGS },
                     )
@@ -135,13 +190,16 @@ class MainActivity : ComponentActivity() {
                         onBack = { screen = Screen.STATUS },
                         onBatteryOptimizations = ::requestIgnoreBatteryOptimizations,
                         isIgnoringBatteryOptimizations = ::isIgnoringBatteryOptimizations,
+                        onShowIntroduction = { screen = Screen.ONBOARDING },
                     )
                 }
             }
         }
     }
 
-    private fun connect() {
+    private fun connect() = requestPermissions(startService = true)
+
+    private fun requestPermissions(startService: Boolean) {
         val missing = mutableListOf<String>()
         missing += SprayerBleClient.requiredPermissions().filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
@@ -153,11 +211,66 @@ class MainActivity : ComponentActivity() {
             missing += Manifest.permission.POST_NOTIFICATIONS
         }
         if (missing.isEmpty()) {
-            SprayerService.start(this)
+            permissionsBlocked = false
+            if (startService) SprayerService.start(this)
         } else {
-            pendingStart = true
+            pendingStart = startService
             permissionLauncher.launch(missing.toTypedArray())
         }
+    }
+
+    // ---------------------------------------------------------- Bluetooth
+
+    private fun refreshBluetoothState() {
+        val adapter = (getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager)?.adapter
+        // No adapter at all: not something the operator can turn on, so do not
+        // nag about it. `uses-feature` already keeps the app off such a device.
+        bluetoothEnabled = adapter == null || adapter.isEnabled
+    }
+
+    private fun requestEnableBluetooth() {
+        // ACTION_REQUEST_ENABLE throws without BLUETOOTH_CONNECT on 12+, so
+        // settle the permission first and let the operator tap again.
+        if (!SprayerBleClient.hasPermissions(this)) {
+            requestPermissions(startService = false)
+            return
+        }
+        try {
+            enableBluetoothLauncher.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
+        } catch (e: Exception) {
+            startActivity(Intent(AndroidSettings.ACTION_BLUETOOTH_SETTINGS))
+        }
+    }
+
+    private fun openAppSettings() {
+        startActivity(
+            Intent(AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.parse("package:$packageName"))
+        )
+    }
+
+    override fun onStart() {
+        super.onStart()
+        refreshBluetoothState()
+        ContextCompat.registerReceiver(
+            this,
+            bluetoothStateReceiver,
+            IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
+
+    override fun onStop() {
+        super.onStop()
+        runCatching { unregisterReceiver(bluetoothStateReceiver) }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Coming back from the system settings page: re-check rather than
+        // leave a stale "refused" card on screen.
+        refreshBluetoothState()
+        if (permissionsBlocked && SprayerBleClient.hasPermissions(this)) permissionsBlocked = false
     }
 
     private fun isIgnoringBatteryOptimizations(): Boolean {
