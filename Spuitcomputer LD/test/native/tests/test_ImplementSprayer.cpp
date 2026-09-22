@@ -738,6 +738,29 @@ test(ImplementSprayer, deviation_fivePercentBoundary) {
     assertTrue(impl.doseDeviation);
 }
 
+// NeptuneGPS_Triton#61 case 5: releasing any of the three switches drops the
+// pump output through the interlock, and the alarm has to go with it on the
+// same pass. On the field log the outputs cut instantly but OUT4 kept sounding
+// for about a second afterwards, because a cleared deviation still had to
+// decay through kDeviationHoldMs. The hold is there to stop the boundary
+// chattering while spraying, not to trail a beep onto the headland.
+test(ImplementSprayer, deviation_switchReleased_out4StopsOnTheSamePass) {
+    resetAll();
+    startSpraying(2.0f, 4095);               // saturated -> deviation
+    runUntil(3000, 2.0f);
+    assertTrue(impl.doseDeviation);
+    assertTrue(impl.outputs[2].state);
+    assertTrue(impl.outputs[3].state);
+
+    iface.buttons[0].state = false;          // mixer released
+    gpsSpeed(2.0f);
+    impl.Update();                           // same pass, no time advanced
+
+    assertFalse(impl.outputs[2].state);      // interlock dropped the pump
+    assertFalse(impl.doseDeviation);         // and the flag went with it
+    assertFalse(impl.outputs[3].state);      // so the buzzer is already quiet
+}
+
 test(ImplementSprayer, deviation_clearedInCalibrationMode) {
     resetAll();
     startSpraying(2.0f, 4095);

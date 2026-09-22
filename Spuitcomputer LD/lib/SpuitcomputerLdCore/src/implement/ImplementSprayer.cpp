@@ -456,6 +456,17 @@ void ImplementSprayer::updateDeviation() {
     }
     // Between 0 and kDeviationHoldMs, doseDeviation keeps whatever it was.
 
+    if (!outputs[2].state) {
+        // The pump output is off -- the operator released one of the three
+        // switches, or the interlock dropped them. Clear on the same pass
+        // instead of decaying through the hold: the hold exists to stop the
+        // boundary chattering while spraying, and letting it run here trails
+        // the buzzer about a second onto the headland (NeptuneGPS_Triton#61
+        // case 5, seen on the field log).
+        doseDeviation    = false;
+        deviationAccumMs = 0;
+    }
+
     if (calibrationMode) {
         // The wizard owns the outputs; never sound over a calibration run,
         // and start the hold afresh once it hands the outputs back.
