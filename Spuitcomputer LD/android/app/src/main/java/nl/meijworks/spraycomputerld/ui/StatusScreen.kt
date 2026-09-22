@@ -460,10 +460,21 @@ private fun IoIndicator(on: Boolean?, group: String, channel: String) {
     }
 }
 
+/**
+ * Label left, value right. The value is the unweighted child, so Row measures
+ * it first at the width it wants and the label takes what is left and wraps
+ * into it (NeptuneGPS_Triton#126). With both sides unweighted, as this was, a
+ * long label ate the row and pushed the value off the screen - which German
+ * and French labels do at phone width.
+ */
 @Composable
 fun DetailRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.Medium)
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontWeight = FontWeight.Medium, textAlign = TextAlign.End)
     }
 }
