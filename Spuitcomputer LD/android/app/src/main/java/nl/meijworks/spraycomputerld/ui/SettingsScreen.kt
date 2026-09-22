@@ -1,3 +1,21 @@
+/*
+  SprayComputer LD - Android companion app for the haulm sprayer computer
+  Copyright (C) 2026 J.A. Woltjer.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 package nl.meijworks.spraycomputerld.ui
 
 import androidx.compose.foundation.clickable
@@ -250,6 +268,16 @@ private fun AboutCard() {
             )
             Text(
                 stringResource(R.string.settings_about_blurb),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(stringResource(R.string.settings_licence), style = MaterialTheme.typography.bodySmall)
+            // Compose, AndroidX and the coroutines library are all Apache-2.0.
+            // Listed rather than reproduced: the app ships no third-party
+            // source, and the full texts live with the projects themselves.
+            Text(
+                stringResource(R.string.settings_notices),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

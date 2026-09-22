@@ -250,4 +250,8 @@
 
     <string name="settings_developer">Ontwikkelaarsmodus</string>
     <string name="settings_developer_sub">Toont de console en de ruwe kalibratiebewerkingen. Laat dit uit op het land.</string>
+
+    <!-- Licentie en vermeldingen (#127) -->
+    <string name="settings_licence">Gelicentieerd onder de GNU Lesser General Public License, versie 3 of later. De licentietekst zit bij de broncode als COPYING.LESSER.</string>
+    <string name="settings_notices">Gebouwd met Jetpack Compose, AndroidX en Kotlin-coroutines, elk onder de Apache License 2.0.</string>
 </resources>

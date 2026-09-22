@@ -281,4 +281,8 @@
 
     <string name="settings_developer">Developer mode</string>
     <string name="settings_developer_sub">Shows the console and the raw calibration edits. Leave this off in the field.</string>
+
+    <!-- Licence and notices (#127) -->
+    <string name="settings_licence">Licensed under the GNU Lesser General Public License, version 3 or later. The licence text ships with the source as COPYING.LESSER.</string>
+    <string name="settings_notices">Built with Jetpack Compose, AndroidX and Kotlin coroutines, each under the Apache License 2.0.</string>
 </resources>
