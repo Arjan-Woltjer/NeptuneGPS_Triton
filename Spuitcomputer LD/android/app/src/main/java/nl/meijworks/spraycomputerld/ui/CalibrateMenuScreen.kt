@@ -34,6 +34,7 @@ import nl.meijworks.spraycomputerld.service.SprayerController
 @Composable
 fun CalibrateMenuScreen(
     sprayer: SprayerState,
+    developerMode: Boolean,
     onBack: () -> Unit,
     onWizard: () -> Unit,
     onPotmeter: () -> Unit,
@@ -97,13 +98,18 @@ fun CalibrateMenuScreen(
                     HorizontalDivider()
                     HorizontalDivider()
                     BuzzerRow(sprayer)
-                    HorizontalDivider()
-                    MenuEntry(
-                        stringResource(R.string.menu_console),
-                        stringResource(R.string.menu_console_sub),
-                        enabled = sprayer.connected,
-                        onClick = onConsole,
-                    )
+                    // Console writes arbitrary protocol lines to the board;
+                    // an operator who types PWM RUN by accident is driving the
+                    // pump from a text field (NeptuneGPS_Triton#124).
+                    if (developerMode) {
+                        HorizontalDivider()
+                        MenuEntry(
+                            stringResource(R.string.menu_console),
+                            stringResource(R.string.menu_console_sub),
+                            enabled = sprayer.connected,
+                            onClick = onConsole,
+                        )
+                    }
                 }
             }
             Text(
