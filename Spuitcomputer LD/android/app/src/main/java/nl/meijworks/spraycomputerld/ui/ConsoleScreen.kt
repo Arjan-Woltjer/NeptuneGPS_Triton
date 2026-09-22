@@ -121,8 +121,17 @@ fun ConsoleScreen(sprayer: SprayerState, onBack: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                SwitchChip("Status and GPS lines", showTelemetry) { SprayerController.setShowTelemetry(it) }
-                SwitchChip("GPS raw sentences", nmea, enabled = sprayer.connected) { SprayerController.setNmea(it) }
+                SwitchChip(
+                    "Status and GPS lines",
+                    showTelemetry,
+                    modifier = Modifier.weight(1f),
+                ) { SprayerController.setShowTelemetry(it) }
+                SwitchChip(
+                    "GPS raw sentences",
+                    nmea,
+                    enabled = sprayer.connected,
+                    modifier = Modifier.weight(1f),
+                ) { SprayerController.setNmea(it) }
             }
             HorizontalDivider()
 
@@ -168,10 +177,18 @@ fun ConsoleScreen(sprayer: SprayerState, onBack: () -> Unit) {
 }
 
 @Composable
-private fun SwitchChip(label: String, checked: Boolean, enabled: Boolean = true, onChange: (Boolean) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+private fun SwitchChip(
+    label: String,
+    checked: Boolean,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    onChange: (Boolean) -> Unit,
+) {
+    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         Switch(checked = checked, onCheckedChange = onChange, enabled = enabled)
         Spacer(Modifier.width(6.dp))
-        Text(label, style = MaterialTheme.typography.bodySmall)
+        // Weighted so the label wraps rather than pushing its neighbour off
+        // a phone-width screen.
+        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
     }
 }

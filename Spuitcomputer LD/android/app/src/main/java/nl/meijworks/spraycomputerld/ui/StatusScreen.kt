@@ -377,6 +377,15 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
  * to a sizeable slice of operators. The shape carries the state on its own
  * now, and the colour only reinforces it.
  */
+/**
+ * Share of the I/O row given to its "Inputs"/"Outputs" label, the rest split
+ * equally between the four channels. Tuned against the widest words in any
+ * supported language at phone width: "Ausgange" in the label column and
+ * "Vernevelaar" in a channel heading. Too small and the label breaks a
+ * letter onto a second line; too large and the channel heading does.
+ */
+private const val IO_LABEL_WEIGHT = 1.25f
+
 @Composable
 private fun IoMatrix(s: StatusSample?) {
     val labels = listOf(
@@ -390,7 +399,7 @@ private fun IoMatrix(s: StatusSample?) {
         ?: s?.let { listOf(it.mixer, it.vernevelaar, it.pump, it.deviation) }
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth()) {
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(IO_LABEL_WEIGHT))
             labels.forEach { l ->
                 Text(
                     l,
@@ -406,10 +415,22 @@ private fun IoMatrix(s: StatusSample?) {
     }
 }
 
+/**
+ * Found on a tablet at phone width (NeptuneGPS_Triton#126): with the label
+ * column on the same weight as each of the four channels it got a fifth of
+ * the row, and German broke "Eingange" across two lines with a single letter
+ * orphaned on the second. The dots need almost none of their column, so the
+ * label gets the larger share and a tighter style.
+ */
 @Composable
 private fun IoRow(label: String, channels: List<String>, states: List<Boolean>?) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            label,
+            Modifier.weight(IO_LABEL_WEIGHT),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
         for (i in 0 until 4) {
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) {
                 IoIndicator(
@@ -460,10 +481,21 @@ private fun IoIndicator(on: Boolean?, group: String, channel: String) {
     }
 }
 
+/**
+ * Label left, value right. The value is the unweighted child, so Row measures
+ * it first at the width it wants and the label takes what is left and wraps
+ * into it (NeptuneGPS_Triton#126). With both sides unweighted, as this was, a
+ * long label ate the row and pushed the value off the screen - which German
+ * and French labels do at phone width.
+ */
 @Composable
 fun DetailRow(label: String, value: String) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(label, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, fontWeight = FontWeight.Medium)
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(value, fontWeight = FontWeight.Medium, textAlign = TextAlign.End)
     }
 }
