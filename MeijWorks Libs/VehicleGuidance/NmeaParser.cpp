@@ -1,5 +1,5 @@
 /*
-  NmeaParser - standard NMEA sentence parser (GPGGA, GPVTG, GPXTE)
+  NmeaParser - standard NMEA sentence parser (GPGGA, GPVTG, GPXTE, GPTXT)
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -30,6 +30,8 @@ bool NmeaParser::claimsSentenceType(const char* header) {
     else if (strcmp(header, "GNVTG") == 0) { type = VTG; }
     else if (strcmp(header, "GPXTE") == 0) { type = XTE; }
     else if (strcmp(header, "GNXTE") == 0) { type = XTE; }
+    else if (strcmp(header, "GPTXT") == 0) { type = TXT; }
+    else if (strcmp(header, "GNTXT") == 0) { type = TXT; }
     else { return false; }
 
     // Reset temporaries at sentence start
@@ -41,6 +43,8 @@ bool NmeaParser::claimsSentenceType(const char* header) {
     newCourse = 0;
     newXte = 0;
     newQuality = 0;
+    newSpeedValid = false;
+    sawAntennaText = false;
     return true;
 }
 
@@ -59,10 +63,26 @@ void NmeaParser::parseTerm(byte termNumber, const char* term) {
             break;
         case VTG:
             if (termNumber == 1) newCourse = atof(term);
-            if (termNumber == 5) newSpeed = atof(term);
+            if (termNumber == 5 && term[0]) { newSpeed = atof(term); newSpeedValid = true; }
             break;
         case XTE:
             if (termNumber == 3) newXte = (int)(atof(term) * 100);
+            break;
+        case TXT:
+            // $GPTXT,msgTotal,msgNum,severity,text -- text is term 4. Only
+            // the exact strings the ATGM336H uses for its antenna
+            // supervisor are acted on; a version banner or any other text
+            // (or another receiver's TXT sentence entirely) leaves
+            // sawAntennaText false and commitTo() below touches nothing.
+            if (termNumber == 4) {
+                if (strcmp(term, "ANTENNA OPEN") == 0 || strcmp(term, "ANTENNA SHORT") == 0) {
+                    newAntennaOk = false;
+                    sawAntennaText = true;
+                } else if (strcmp(term, "ANTENNA OK") == 0) {
+                    newAntennaOk = true;
+                    sawAntennaText = true;
+                }
+            }
             break;
         case NONE: break;
     }
@@ -77,11 +97,20 @@ void NmeaParser::commitTo(GuidanceSource* state) {
             state->SetQuality(newQuality);
             break;
         case VTG:
-            state->SetCourseDeg(newCourse);
-            state->SetSpeedKnots(newSpeed);
+            // A blank speed field means the receiver has nothing to report
+            // (typically antenna loss), not a genuine zero -- committing it
+            // would stamp GuidanceSource's fix timestamp anyway and mask a
+            // real loss of signal from the guidance-timeout check.
+            if (newSpeedValid) {
+                state->SetCourseDeg(newCourse);
+                state->SetSpeedKnots(newSpeed);
+            }
             break;
         case XTE:
             state->SetXte(newXte);
+            break;
+        case TXT:
+            if (sawAntennaText) state->SetAntennaOk(newAntennaOk);
             break;
         case NONE: break;
     }

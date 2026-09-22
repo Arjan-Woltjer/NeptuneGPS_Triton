@@ -85,8 +85,12 @@ private:
 
     float speed;
     float speedBuf[SPEED_AVG_SAMPLES];
-    float speedSum;
     int   speedBufIdx;
+    // The VTG timestamp last folded into speedBuf. Update() runs free-running
+    // (no fixed timestep), so a receiver's fix arrives far less often than
+    // this is called; without this guard the "5-sample average" was actually
+    // 5 copies of whatever the last fix was, resampled hundreds of times.
+    unsigned long lastVtgSeen;
     float width;
 
     void updateInputs();
@@ -116,9 +120,12 @@ private:
     unsigned long runDurationMs = 0;
     void serviceCalibrationRun();
 
-    // Deviation flag with a hold in both directions; drives OUT4.
-    bool          deviationPending   = false;
-    unsigned long deviationChangedAt = 0;
+    // Last call's timestamp for updateDeviation()'s time-in-state
+    // accumulator (deviationAccumMs, declared with doseDeviation below).
+    // Not reset alongside it: the elapsed-time computation clamps its own
+    // delta to at most kDeviationHoldMs, so a stale value left over from
+    // whatever this object was doing before self-corrects in one call.
+    unsigned long lastDeviationUpdateAt = 0;
     void updateDeviation();
 
 public:
@@ -141,11 +148,36 @@ public:
     // Below this the machine counts as standing still: a receiver with a fix
     // reports a few tenths of a km/h of creep while parked, which would
     // otherwise read as "too slow to dose" and sound the deviation alarm
-    // (NeptuneGPS_Triton#74). Same 0.5 m/s GuidanceSource::MinSpeed() uses.
-    static constexpr float         kStandstillSpeedMs = 0.5f;
+    // (NeptuneGPS_Triton#74).
+    //
+    // Lowered from the shared 0.5 m/s GuidanceSource::MinSpeed() default
+    // (#61 field test asked for 0.3) to widen the speed band the pump can
+    // actually dose in with a low-flow calibration. Not taken all the way to
+    // 0.3: the same field test's parked stretch logged GPS creep up to
+    // 0.28 m/s on this receiver, which would leave only 0.02 m/s of margin
+    // and risk reopening #74. 0.35 keeps clearance over that measurement;
+    // revisit if a quieter receiver or averaging change lowers the creep.
+    static constexpr float         kStandstillSpeedMs = 0.35f;
     static constexpr float         kDoseTolerance   = 0.05f;
     static constexpr unsigned long kDeviationHoldMs = 1000;
     bool doseDeviation = false;
+
+    // updateDeviation()'s time-in-state accumulator, clamped to
+    // [0, kDeviationHoldMs]: counts up while the raw (un-held) condition
+    // holds and down while it doesn't, and doseDeviation follows once it
+    // saturates in either direction. A single last-flip timestamp (the
+    // previous design) got reset to zero by one noisy sample right at the
+    // tolerance boundary, so a deviation that held on balance but chattered
+    // under kDeviationHoldMs could delay the alarm indefinitely -- exactly
+    // the fluctuation the hold exists to absorb. deviationPending tracks
+    // the condition's last observed value purely to detect the instant it
+    // changes; that tick contributes nothing to either direction (the
+    // preceding interval was spent in the old state), which keeps a single
+    // clean transition timed identically to the previous design.
+    // Exposed for testing: resetting doseDeviation alone does not reset
+    // these, and a test fixture shared across scenarios needs to.
+    unsigned long deviationAccumMs = 0;
+    bool          deviationPending = false;
 
     // Set while the serial wizard (CalibrationSprayer, a friend) drives the
     // outputs directly; also exposed so tests can cover that hand-over.
