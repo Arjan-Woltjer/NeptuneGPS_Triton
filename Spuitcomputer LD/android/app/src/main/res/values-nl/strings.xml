@@ -35,7 +35,7 @@
     <string name="tile_speed">Snelheid</string>
     <string name="tile_requested">Gevraagd</string>
     <string name="tile_actual">Werkelijk</string>
-    <string name="status_deviation">Dosering buiten 5 %% van de gevraagde: pas de snelheid aan</string>
+    <string name="status_deviation" formatted="false">Dosering buiten 5 % van de gevraagde: pas de snelheid aan</string>
     <string name="status_stale">Even geen status van de kast…</string>
     <string name="action_calibrate">Kalibreren</string>
     <string name="details_title">Details</string>
@@ -47,7 +47,7 @@
     <string name="calibration_held_by_serial">in gebruik door de seriële wizard</string>
     <string name="detail_pump_run">Pomploop</string>
     <string name="value_seconds_remaining">nog %1$d s</string>
-    <string name="detail_gps">Gps</string>
+    <string name="detail_gps">GPS</string>
     <string name="detail_fix_age">Leeftijd fix</string>
     <string name="detail_no_fix_yet">nog geen fix</string>
     <string name="detail_position">Positie</string>
@@ -68,13 +68,13 @@
     <string name="menu_potmeter_sub">Alleen de drie knopstanden</string>
     <string name="menu_sprayer">Spuit</string>
     <string name="menu_sprayer_sub">Werkbreedte en stuurtimeout</string>
-    <string name="menu_gps">Gps-instellingen</string>
+    <string name="menu_gps">GPS-instellingen</string>
     <string name="menu_gps_sub">Baudrate en minimale fixkwaliteit</string>
     <string name="menu_advanced">Geavanceerd</string>
     <string name="menu_advanced_sub">Kalibratietabellen, instellingen, correctie van een pomppunt</string>
     <string name="menu_console_sub">Ruwe protocolregels, gps-zinnen, voor de werkbank</string>
     <string name="buzzer_title">Zoemer op de kast</string>
-    <string name="buzzer_sub">Klinkt zolang de dosering buiten 5 %% van de gevraagde ligt. Het alarm op de telefoon staat daar los van (Instellingen).</string>
+    <string name="buzzer_sub" formatted="false">Klinkt zolang de dosering buiten 5 % van de gevraagde ligt. Het alarm op de telefoon staat daar los van (Instellingen).</string>
     <string name="calibrate_hint_connected">De wizard volgt dezelfde stappen als het seriële menu op de kast.</string>
     <string name="calibrate_hint_disconnected">Maak eerst verbinding met de spuit.</string>
 
@@ -162,8 +162,8 @@
     <string name="setting_on_board_now">Nu op de kast: %1$s</string>
     <string name="setting_not_read_yet">nog niet uitgelezen</string>
 
-    <!-- Gps-instellingen -->
-    <string name="gps_title">Gps-instellingen</string>
+    <!-- GPS-instellingen -->
+    <string name="gps_title">GPS-instellingen</string>
     <string name="gps_live">Actueel</string>
     <string name="gps_fix">Fix</string>
     <string name="gps_speed">Snelheid</string>
@@ -184,7 +184,7 @@
     <string name="advanced_board_settings">Instellingen op de kast</string>
     <string name="advanced_width">Werkbreedte</string>
     <string name="advanced_guidance_timeout">Stuurtimeout</string>
-    <string name="advanced_gps_baudrate">Gps-baudrate</string>
+    <string name="advanced_gps_baudrate">GPS-baudrate</string>
     <string name="advanced_baud_index">index %1$d</string>
     <string name="advanced_min_fix">Minimale fix om te doseren</string>
     <string name="advanced_protocol">Protocol</string>
@@ -195,7 +195,7 @@
     <string name="settings_title">Instellingen</string>
     <string name="settings_alarm_card">Doseringsalarm</string>
     <string name="settings_alarm_switch">Alarm laten klinken</string>
-    <string name="settings_alarm_switch_sub">Zolang de kast meldt dat de dosering buiten 5 %% van de gevraagde ligt. De zoemer op de kast klinkt sowieso.</string>
+    <string name="settings_alarm_switch_sub" formatted="false">Zolang de kast meldt dat de dosering buiten 5 % van de gevraagde ligt. De zoemer op de kast klinkt sowieso.</string>
     <string name="settings_preview">%1$s beluisteren</string>
     <string name="settings_connect_to_preview">Maak eerst verbinding om geluiden te beluisteren.</string>
     <string name="settings_volume">Volume</string>

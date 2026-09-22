@@ -33,7 +33,7 @@
     <string name="tile_speed">Vitesse</string>
     <string name="tile_requested">Consigne</string>
     <string name="tile_actual">Réel</string>
-    <string name="status_deviation">Dose à plus de 5 %% de la consigne : ajustez la vitesse</string>
+    <string name="status_deviation" formatted="false">Dose à plus de 5 % de la consigne : ajustez la vitesse</string>
     <string name="status_stale">Plus d\'état du boîtier pour le moment…</string>
     <string name="action_calibrate">Étalonner</string>
     <string name="details_title">Détails</string>
@@ -72,7 +72,7 @@
     <string name="menu_advanced_sub">Tables d\'étalonnage, réglages, correction d\'un point de pompe</string>
     <string name="menu_console_sub">Lignes de protocole brutes, trames GPS, pour l\'atelier</string>
     <string name="buzzer_title">Avertisseur sur le boîtier</string>
-    <string name="buzzer_sub">Sonne tant que la dose s\'écarte de plus de 5 %% de la consigne. L\'alarme du téléphone est indépendante (Réglages).</string>
+    <string name="buzzer_sub" formatted="false">Sonne tant que la dose s\'écarte de plus de 5 % de la consigne. L\'alarme du téléphone est indépendante (Réglages).</string>
     <string name="calibrate_hint_connected">L\'assistant suit les mêmes étapes que le menu série du boîtier.</string>
     <string name="calibrate_hint_disconnected">Connectez-vous d\'abord au pulvérisateur.</string>
 
@@ -193,7 +193,7 @@
     <string name="settings_title">Réglages</string>
     <string name="settings_alarm_card">Alarme de dose</string>
     <string name="settings_alarm_switch">Faire sonner l\'alarme</string>
-    <string name="settings_alarm_switch_sub">Tant que le boîtier signale une dose à plus de 5 %% de la consigne. L\'avertisseur du boîtier sonne de toute façon.</string>
+    <string name="settings_alarm_switch_sub" formatted="false">Tant que le boîtier signale une dose à plus de 5 % de la consigne. L\'avertisseur du boîtier sonne de toute façon.</string>
     <string name="settings_preview">Écouter %1$s</string>
     <string name="settings_connect_to_preview">Connectez-vous d\'abord pour écouter les sons.</string>
     <string name="settings_volume">Volume</string>

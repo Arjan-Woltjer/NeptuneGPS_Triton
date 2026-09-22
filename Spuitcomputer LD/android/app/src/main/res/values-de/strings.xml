@@ -33,7 +33,7 @@
     <string name="tile_speed">Geschwindigkeit</string>
     <string name="tile_requested">Soll</string>
     <string name="tile_actual">Ist</string>
-    <string name="status_deviation">Aufwandmenge mehr als 5 %% vom Soll entfernt: Geschwindigkeit anpassen</string>
+    <string name="status_deviation" formatted="false">Aufwandmenge mehr als 5 % vom Soll entfernt: Geschwindigkeit anpassen</string>
     <string name="status_stale">Kurzzeitig kein Status vom Rechner…</string>
     <string name="action_calibrate">Kalibrieren</string>
     <string name="details_title">Details</string>
@@ -72,7 +72,7 @@
     <string name="menu_advanced_sub">Kalibriertabellen, Einstellungen, Korrektur eines Pumpenpunkts</string>
     <string name="menu_console_sub">Rohe Protokollzeilen, GPS-Sätze, für die Werkbank</string>
     <string name="buzzer_title">Summer am Rechner</string>
-    <string name="buzzer_sub">Ertönt, solange die Aufwandmenge mehr als 5 %% vom Soll abweicht. Der Alarm auf dem Telefon ist davon getrennt (Einstellungen).</string>
+    <string name="buzzer_sub" formatted="false">Ertönt, solange die Aufwandmenge mehr als 5 % vom Soll abweicht. Der Alarm auf dem Telefon ist davon getrennt (Einstellungen).</string>
     <string name="calibrate_hint_connected">Der Assistent folgt denselben Schritten wie das serielle Menü am Rechner.</string>
     <string name="calibrate_hint_disconnected">Zuerst mit der Spritze verbinden.</string>
 
@@ -193,7 +193,7 @@
     <string name="settings_title">Einstellungen</string>
     <string name="settings_alarm_card">Dosieralarm</string>
     <string name="settings_alarm_switch">Alarm ertönen lassen</string>
-    <string name="settings_alarm_switch_sub">Solange der Rechner meldet, dass die Aufwandmenge mehr als 5 %% vom Soll abweicht. Der Summer am Rechner ertönt in jedem Fall.</string>
+    <string name="settings_alarm_switch_sub" formatted="false">Solange der Rechner meldet, dass die Aufwandmenge mehr als 5 % vom Soll abweicht. Der Summer am Rechner ertönt in jedem Fall.</string>
     <string name="settings_preview">%1$s anhören</string>
     <string name="settings_connect_to_preview">Zuerst verbinden, um Töne anzuhören.</string>
     <string name="settings_volume">Lautstärke</string>

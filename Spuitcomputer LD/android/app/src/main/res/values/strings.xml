@@ -45,7 +45,7 @@
     <string name="tile_speed">Speed</string>
     <string name="tile_requested">Requested</string>
     <string name="tile_actual">Actual</string>
-    <string name="status_deviation">Dose outside 5 %% of requested: adjust speed</string>
+    <string name="status_deviation" formatted="false">Dose outside 5 % of requested: adjust speed</string>
     <string name="status_stale">No status from the board for a moment…</string>
     <string name="action_calibrate">Calibrate</string>
     <string name="details_title">Details</string>
@@ -93,7 +93,7 @@
     <string name="menu_console" translatable="false">Console</string>
     <string name="menu_console_sub">Raw protocol lines, GPS sentences, for the bench</string>
     <string name="buzzer_title">Buzzer on the board</string>
-    <string name="buzzer_sub">Sounds while the dose is outside 5 %% of requested. The phone alarm is separate (Settings).</string>
+    <string name="buzzer_sub" formatted="false">Sounds while the dose is outside 5 % of requested. The phone alarm is separate (Settings).</string>
     <string name="calibrate_hint_connected">The wizard follows the same steps as the serial menu on the board.</string>
     <string name="calibrate_hint_disconnected">Connect to the sprayer first.</string>
 
@@ -225,7 +225,7 @@
     <string name="settings_title">Settings</string>
     <string name="settings_alarm_card">Dose alarm</string>
     <string name="settings_alarm_switch">Sound the alarm</string>
-    <string name="settings_alarm_switch_sub">While the board reports the dose outside 5 %% of requested. The board\'s own buzzer sounds regardless.</string>
+    <string name="settings_alarm_switch_sub" formatted="false">While the board reports the dose outside 5 % of requested. The board\'s own buzzer sounds regardless.</string>
     <string name="settings_preview">Preview %1$s</string>
     <string name="settings_connect_to_preview">Connect first to preview sounds.</string>
     <string name="settings_volume">Volume</string>
