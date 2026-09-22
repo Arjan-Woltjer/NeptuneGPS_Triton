@@ -20,6 +20,7 @@ package nl.meijworks.spraycomputerld.ui
 
 import android.os.SystemClock
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -361,10 +366,16 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
 }
 
 /**
- * Switches (inputs) and outputs side by side, one column per channel, a
- * green dot for on and a red one for off, straight from the board's status
- * line. A protocol 1 board sends no bits; the outputs then fall back to the
- * three states the old line carries and the inputs show as unknown.
+ * Switches (inputs) and outputs side by side, one column per channel,
+ * straight from the board's status line. A protocol 1 board sends no bits;
+ * the outputs then fall back to the three states the old line carries and
+ * the inputs show as unknown.
+ *
+ * On is a green circle, off a red downward triangle (NeptuneGPS_Triton#125).
+ * These were two dots differing only in hue, which is the one pairing
+ * red-green colour blindness cannot separate: on and off looked identical
+ * to a sizeable slice of operators. The shape carries the state on its own
+ * now, and the colour only reinforces it.
  */
 @Composable
 private fun IoMatrix(s: StatusSample?) {
@@ -390,30 +401,61 @@ private fun IoMatrix(s: StatusSample?) {
                 )
             }
         }
-        IoRow(stringResource(R.string.io_inputs), inputs)
-        IoRow(stringResource(R.string.io_outputs), outputs)
+        IoRow(stringResource(R.string.io_inputs), labels, inputs)
+        IoRow(stringResource(R.string.io_outputs), labels, outputs)
     }
 }
 
 @Composable
-private fun IoRow(label: String, states: List<Boolean>?) {
+private fun IoRow(label: String, channels: List<String>, states: List<Boolean>?) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
         for (i in 0 until 4) {
-            val on = states?.getOrNull(i)
-            val colour = when (on) {
-                true -> Color(0xFF16A34A)
-                false -> Color(0xFFDC2626)
-                null -> MaterialTheme.colorScheme.outlineVariant
-            }
             Row(Modifier.weight(1f), horizontalArrangement = Arrangement.Center) {
-                Spacer(
-                    Modifier
-                        .size(18.dp)
-                        .clip(CircleShape)
-                        .background(colour),
+                IoIndicator(
+                    on = states?.getOrNull(i),
+                    group = label,
+                    channel = channels.getOrElse(i) { "" },
                 )
             }
+        }
+    }
+}
+
+/** Filled circle on, downward triangle off, hollow ring when the board has not said. */
+@Composable
+private fun IoIndicator(on: Boolean?, group: String, channel: String) {
+    val colour = when (on) {
+        true -> Color(0xFF16A34A)
+        false -> Color(0xFFDC2626)
+        null -> MaterialTheme.colorScheme.outlineVariant
+    }
+    val description = when (on) {
+        true -> stringResource(R.string.io_state_on, group, channel)
+        false -> stringResource(R.string.io_state_off, group, channel)
+        null -> stringResource(R.string.io_state_unknown, group, channel)
+    }
+    Canvas(
+        Modifier
+            .size(18.dp)
+            .semantics { contentDescription = description }
+    ) {
+        when (on) {
+            true -> drawCircle(colour)
+            false -> drawPath(
+                Path().apply {
+                    moveTo(0f, size.height * 0.18f)
+                    lineTo(size.width, size.height * 0.18f)
+                    lineTo(size.width / 2f, size.height * 0.94f)
+                    close()
+                },
+                colour,
+            )
+            null -> drawCircle(
+                colour,
+                radius = size.minDimension / 2f - 1.dp.toPx(),
+                style = Stroke(width = 2.dp.toPx()),
+            )
         }
     }
 }
