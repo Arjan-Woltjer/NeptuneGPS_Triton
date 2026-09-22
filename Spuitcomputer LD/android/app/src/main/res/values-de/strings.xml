@@ -174,11 +174,7 @@
     <!-- Erweitert -->
     <string name="advanced_title">Erweitert</string>
     <string name="advanced_reread">Erneut vom Rechner auslesen</string>
-    <string name="advanced_knob_calibration">Knopfkalibrierung</string>
-    <string name="advanced_pump_curve">Pumpenkennlinie</string>
     <string name="advanced_column_analog">Analog</string>
-    <string name="advanced_column_dose">Aufwandmenge (l/ha)</string>
-    <string name="advanced_column_flow">Durchfluss (ml/min)</string>
     <string name="advanced_board_settings">Einstellungen am Rechner</string>
     <string name="advanced_width">Arbeitsbreite</string>
     <string name="advanced_guidance_timeout">Lenk-Timeout</string>
@@ -187,7 +183,6 @@
     <string name="advanced_min_fix">Mindest-Fix zum Dosieren</string>
     <string name="advanced_protocol">Protokoll</string>
     <string name="advanced_firmware">Firmware</string>
-    <string name="advanced_correct_flow">Durchfluss eines Punkts korrigieren</string>
 
     <!-- Einstellungen -->
     <string name="settings_title">Einstellungen</string>
@@ -257,4 +252,11 @@
     <string name="io_state_on">%1$s %2$s: ein</string>
     <string name="io_state_off">%1$s %2$s: aus</string>
     <string name="io_state_unknown">%1$s %2$s: nicht gemeldet</string>
+
+    <!-- Kalibrierung aufgeteilt (#138) -->
+    <string name="menu_pump">Pumpenkalibrierung</string>
+    <string name="menu_pump_sub">Nur die Pumpenkennlinie, Messbecher und eine Minute je Punkt</string>
+    <string name="advanced_edit_dose">Potentiometerpunkte bearbeiten</string>
+    <string name="advanced_edit_pump">Pumpenpunkte bearbeiten</string>
+    <string name="advanced_point_number">Punkt %1$d</string>
 </resources>

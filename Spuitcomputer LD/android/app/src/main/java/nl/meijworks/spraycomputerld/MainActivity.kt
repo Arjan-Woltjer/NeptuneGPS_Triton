@@ -177,6 +177,7 @@ class MainActivity : ComponentActivity() {
                         onBack = { screen = Screen.STATUS },
                         onWizard = { SprayerController.startWizard(WizardMode.FULL); screen = Screen.WIZARD },
                         onPotmeter = { screen = Screen.POTMETER },
+                        onPumpWizard = { SprayerController.startWizard(WizardMode.PUMP_ONLY); screen = Screen.WIZARD },
                         onSprayer = { screen = Screen.SPRAYER },
                         onGps = { screen = Screen.GPS },
                         onAdvanced = { screen = Screen.ADVANCED },
@@ -201,7 +202,6 @@ class MainActivity : ComponentActivity() {
                     Screen.GPS -> GpsConfigScreen(sprayer = sprayer, onBack = { screen = Screen.CALIBRATE })
                     Screen.ADVANCED -> AdvancedScreen(
                         sprayer = sprayer,
-                        developerMode = settings.developerMode,
                         onBack = { screen = Screen.CALIBRATE },
                     )
                     Screen.SETTINGS -> SettingsScreen(

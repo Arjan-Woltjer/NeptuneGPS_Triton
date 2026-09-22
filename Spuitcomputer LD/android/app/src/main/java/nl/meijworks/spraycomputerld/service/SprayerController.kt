@@ -64,8 +64,9 @@ object SprayerController {
     // Board settings (ConfigSprayer): validated on the board, re-read after.
     fun setConfig(key: String, value: Long) = service?.setConfig(key, value)
 
-    // Pump curve point edit (serial menu option 4).
-    fun editPwmPointFlow(index: Int, flowMlMin: Int) = service?.editPwmPointFlow(index, flowMlMin)
+    // Direct edits of the two calibration tables (NeptuneGPS_Triton#138).
+    fun editPwmPoint(index: Int, pwm: Int, flowMlMin: Int) = service?.editPwmPoint(index, pwm, flowMlMin)
+    fun editDosePoint(index: Int, analog: Int, doseLha: Int) = service?.editDosePoint(index, analog, doseLha)
 
     // Calibration wizard, driven by the screens, executed in the service.
     fun startWizard(mode: WizardMode, singleIndex: Int = 0) = service?.wizard?.start(mode, singleIndex)

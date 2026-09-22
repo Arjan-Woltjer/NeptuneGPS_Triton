@@ -174,11 +174,7 @@
     <!-- Avancé -->
     <string name="advanced_title">Avancé</string>
     <string name="advanced_reread">Relire depuis le boîtier</string>
-    <string name="advanced_knob_calibration">Étalonnage de la molette</string>
-    <string name="advanced_pump_curve">Courbe de pompe</string>
     <string name="advanced_column_analog">Analogique</string>
-    <string name="advanced_column_dose">Dose (l/ha)</string>
-    <string name="advanced_column_flow">Débit (ml/min)</string>
     <string name="advanced_board_settings">Réglages du boîtier</string>
     <string name="advanced_width">Largeur</string>
     <string name="advanced_guidance_timeout">Délai de guidage</string>
@@ -187,7 +183,6 @@
     <string name="advanced_min_fix">Point minimal pour doser</string>
     <string name="advanced_protocol">Protocole</string>
     <string name="advanced_firmware">Micrologiciel</string>
-    <string name="advanced_correct_flow">Corriger le débit d\'un point</string>
 
     <!-- Réglages -->
     <string name="settings_title">Réglages</string>
@@ -257,4 +252,11 @@
     <string name="io_state_on">%1$s %2$s : activé</string>
     <string name="io_state_off">%1$s %2$s : désactivé</string>
     <string name="io_state_unknown">%1$s %2$s : non signalé</string>
+
+    <!-- Étalonnage séparé (#138) -->
+    <string name="menu_pump">Étalonnage de la pompe</string>
+    <string name="menu_pump_sub">La courbe de pompe seule, un récipient et une minute par point</string>
+    <string name="advanced_edit_dose">Modifier les points du potentiomètre</string>
+    <string name="advanced_edit_pump">Modifier les points de pompe</string>
+    <string name="advanced_point_number">Point %1$d</string>
 </resources>

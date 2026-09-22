@@ -163,11 +163,25 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     }
 
     /** Serial menu option 4: change one pump point's measured flow. */
-    fun editPwmPointFlow(index: Int, flowMlMin: Int) {
-        val point = SprayerController.state.value.pwmPoints.firstOrNull { it.index == index } ?: return
+    fun editPwmPoint(index: Int, pwm: Int, flowMlMin: Int) =
+        editPoint(SprayerProtocol.cmdCalPwm(index, pwm, flowMlMin))
+
+    fun editDosePoint(index: Int, analog: Int, doseLha: Int) =
+        editPoint(SprayerProtocol.cmdCalDose(index, analog, doseLha))
+
+    /**
+     * Stage one calibration point and commit it (NeptuneGPS_Triton#138).
+     *
+     * CAL MODE 1 stages from the live tables, so the single edit below is the
+     * only difference from what the board already holds, and CAL SAVE
+     * re-validates the whole staged set and refuses it entire. A rejected
+     * edit therefore cannot leave a half-written table behind. The mode is
+     * released whatever happened, or the serial wizard stays locked out.
+     */
+    private fun editPoint(stageCommand: String) {
         lifecycleScope.launch {
             var r = command(SprayerProtocol.cmdCalMode(true))
-            if (r == Reply.Ok) r = command(SprayerProtocol.cmdCalPwm(index, point.pwm, flowMlMin))
+            if (r == Reply.Ok) r = command(stageCommand)
             if (r == Reply.Ok) r = command(SprayerProtocol.CMD_CAL_SAVE)
             command(SprayerProtocol.cmdCalMode(false))
             if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_saved)) }
