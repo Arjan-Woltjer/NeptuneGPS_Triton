@@ -100,6 +100,18 @@ android {
     }
 }
 
+// StringResourcesTest reads src/main/res straight off disk, because what it
+// checks is the files themselves. Gradle does not otherwise count them as a
+// test input -- editing a translation changes no class and no resource id --
+// so the task stayed UP-TO-DATE and the guard never ran on exactly the change
+// it exists to catch. Verified: without this, reintroducing "5 %%" and
+// deleting a German key left the build green (NeptuneGPS_Triton#142).
+tasks.withType<Test>().configureEach {
+    inputs.dir("src/main/res")
+        .withPropertyName("stringResources")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.09.00")
     implementation(composeBom)
