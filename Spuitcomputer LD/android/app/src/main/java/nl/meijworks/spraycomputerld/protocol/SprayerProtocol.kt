@@ -1,9 +1,14 @@
 package nl.meijworks.spraycomputerld.protocol
 
+import nl.meijworks.spraycomputerld.R
+import nl.meijworks.spraycomputerld.UiText
+import nl.meijworks.spraycomputerld.uiText
+
 /**
  * The line protocol the Spuitcomputer LD board speaks over BLE (see RemoteSprayer.hpp
- * in the firmware, NeptuneGPS_Triton#47). Pure Kotlin so it can be unit-tested
- * without Android.
+ * in the firmware, NeptuneGPS_Triton#47). Parsing is plain Kotlin so it can be
+ * unit-tested without a device; the only Android it touches is the resource id
+ * of a fix-quality name.
  *
  * Board -> app lines:
  *   V:<fw>,<proto>
@@ -62,19 +67,20 @@ enum class CalibrationOwner { NONE, SERIAL, APP;
 
 /** One `G:` line. `fixAgeMs` is null until the board has seen a position fix. */
 data class GpsSample(val quality: Int, val latitude: Double, val longitude: Double, val fixAgeMs: Long?) {
-    val qualityLabel: String get() = qualityLabel(quality)
+    val qualityText: UiText get() = qualityText(quality)
 
     /** The parser reports 999999.9 until the first position; anything outside the globe is "none". */
     val hasPosition: Boolean get() = latitude in -90.0..90.0 && longitude in -180.0..180.0
 
     companion object {
-        fun qualityLabel(q: Int): String = when (q) {
-            0 -> "No fix"
-            1 -> "GPS"
-            2 -> "DGPS"
-            4 -> "RTK fixed"
-            5 -> "RTK float"
-            else -> "Quality $q"
+        /** The quality the receiver reports, named for the operator. */
+        fun qualityText(q: Int): UiText = when (q) {
+            0 -> uiText(R.string.gps_quality_none)
+            1 -> uiText(R.string.gps_quality_gps)
+            2 -> uiText(R.string.gps_quality_dgps)
+            4 -> uiText(R.string.gps_quality_rtk_fixed)
+            5 -> uiText(R.string.gps_quality_rtk_float)
+            else -> uiText(R.string.gps_quality_other, q)
         }
     }
 }

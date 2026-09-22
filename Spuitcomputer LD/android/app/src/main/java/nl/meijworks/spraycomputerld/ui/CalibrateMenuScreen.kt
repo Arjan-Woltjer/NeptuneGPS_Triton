@@ -22,7 +22,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
 import nl.meijworks.spraycomputerld.protocol.SprayerProtocol
 import nl.meijworks.spraycomputerld.service.SprayerController
@@ -43,10 +45,10 @@ fun CalibrateMenuScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Calibrate") },
+                title = { Text(stringResource(R.string.calibrate_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -58,17 +60,37 @@ fun CalibrateMenuScreen(
         ) {
             Card(Modifier.fillMaxWidth()) {
                 Column {
-                    MenuEntry("Wizard", "Full calibration: knob positions, then the pump curve", enabled = sprayer.connected, onClick = onWizard)
-                    HorizontalDivider()
-                    MenuEntry("Potmeter calibration", "The three knob positions only", enabled = sprayer.connected, onClick = onPotmeter)
-                    HorizontalDivider()
-                    MenuEntry("Sprayer", "Width and guidance timeout", enabled = sprayer.connected, onClick = onSprayer)
-                    HorizontalDivider()
-                    MenuEntry("GPS config", "Baudrate and minimum fix quality", enabled = sprayer.connected, onClick = onGps)
+                    MenuEntry(
+                        stringResource(R.string.menu_wizard),
+                        stringResource(R.string.menu_wizard_sub),
+                        enabled = sprayer.connected,
+                        onClick = onWizard,
+                    )
                     HorizontalDivider()
                     MenuEntry(
-                        "Advanced",
-                        "Calibration tables, settings, pump point correction",
+                        stringResource(R.string.menu_potmeter),
+                        stringResource(R.string.menu_potmeter_sub),
+                        enabled = sprayer.connected,
+                        onClick = onPotmeter,
+                    )
+                    HorizontalDivider()
+                    MenuEntry(
+                        stringResource(R.string.menu_sprayer),
+                        stringResource(R.string.menu_sprayer_sub),
+                        enabled = sprayer.connected,
+                        onClick = onSprayer,
+                    )
+                    HorizontalDivider()
+                    MenuEntry(
+                        stringResource(R.string.menu_gps),
+                        stringResource(R.string.menu_gps_sub),
+                        enabled = sprayer.connected,
+                        onClick = onGps,
+                    )
+                    HorizontalDivider()
+                    MenuEntry(
+                        stringResource(R.string.menu_advanced),
+                        stringResource(R.string.menu_advanced_sub),
                         enabled = sprayer.connected,
                         onClick = onAdvanced,
                     )
@@ -77,16 +99,16 @@ fun CalibrateMenuScreen(
                     BuzzerRow(sprayer)
                     HorizontalDivider()
                     MenuEntry(
-                        "Console",
-                        "Raw protocol lines, GPS sentences, for the bench",
+                        stringResource(R.string.menu_console),
+                        stringResource(R.string.menu_console_sub),
                         enabled = sprayer.connected,
                         onClick = onConsole,
                     )
                 }
             }
             Text(
-                if (sprayer.connected) "The wizard follows the same steps as the serial menu on the board."
-                else "Connect to the sprayer first.",
+                if (sprayer.connected) stringResource(R.string.calibrate_hint_connected)
+                else stringResource(R.string.calibrate_hint_disconnected),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -111,9 +133,13 @@ private fun BuzzerRow(sprayer: SprayerState) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
-            Text("Buzzer on the board", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha))
             Text(
-                "Sounds while the dose is outside 5 % of requested. The phone alarm is separate (Settings).",
+                stringResource(R.string.buzzer_title),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = alpha),
+            )
+            Text(
+                stringResource(R.string.buzzer_sub),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha),
             )

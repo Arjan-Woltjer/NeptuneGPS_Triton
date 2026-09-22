@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notifications du service de premier plan -->
+    <string name="notification_channel_name">Liaison avec le pulvérisateur</string>
+    <string name="notification_channel_description">Maintient la liaison avec le pulvérisateur pendant que l\'écran est éteint</string>
+    <string name="notification_disconnected">Recherche du pulvérisateur…</string>
+    <string name="notification_connected_no_status">Connecté</string>
+    <string name="notification_connected">Consigne %1$.0f l/ha, réel %2$s l/ha</string>
+    <string name="notification_stop">Arrêter</string>
+
+    <!-- Boutons et unités communs -->
+    <string name="action_back">Retour</string>
+    <string name="action_settings">Réglages</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_close">Fermer</string>
+    <string name="action_done">Terminé</string>
+    <string name="action_save">Enregistrer</string>
+    <string name="action_redo">Refaire</string>
+    <string name="action_save_to_board">Enregistrer sur le boîtier</string>
+    <string name="value_not_read_yet">Pas encore lu</string>
+    <string name="unit_of_4095">sur 4095</string>
+
+    <!-- Écran d\'état -->
+    <string name="connection_connected">Connecté</string>
+    <string name="connection_connecting">Connexion</string>
+    <string name="connection_scanning">Recherche</string>
+    <string name="connection_off">Non connecté</string>
+    <string name="connection_pairing">Appairage : ouvrez la notification Bluetooth et saisissez le code affiché sur le pulvérisateur</string>
+    <string name="connection_firmware">micrologiciel %1$s</string>
+    <string name="connection_tap_connect">Touchez Connecter pour trouver le pulvérisateur</string>
+    <string name="action_connect">Connecter</string>
+    <string name="action_disconnect">Déconnecter</string>
+    <string name="tile_speed">Vitesse</string>
+    <string name="tile_requested">Consigne</string>
+    <string name="tile_actual">Réel</string>
+    <string name="status_deviation" formatted="false">Dose à plus de 5 % de la consigne : ajustez la vitesse</string>
+    <string name="status_stale">Plus d\'état du boîtier pour le moment…</string>
+    <string name="action_calibrate">Étalonner</string>
+    <string name="details_title">Détails</string>
+    <string name="detail_flow">Débit</string>
+    <string name="detail_knob">Molette</string>
+    <string name="detail_pump_pwm">PWM pompe</string>
+    <string name="detail_calibration">Étalonnage</string>
+    <string name="calibration_held_by_app">occupé par cette application</string>
+    <string name="calibration_held_by_serial">occupé par l\'assistant série</string>
+    <string name="detail_pump_run">Cycle de pompe</string>
+    <string name="value_seconds_remaining">%1$d s restantes</string>
+    <string name="detail_gps">GPS</string>
+    <string name="detail_fix_age">Âge du point</string>
+    <string name="detail_no_fix_yet">pas encore de point</string>
+    <string name="detail_position">Position</string>
+    <string name="io_inputs">Entrées</string>
+    <string name="io_outputs">Sorties</string>
+
+    <!-- Qualité du point GPS -->
+    <string name="gps_quality_none">Pas de point</string>
+    <string name="gps_quality_other">Qualité %1$d</string>
+    <string name="gps_quality_any">Toutes</string>
+    <string name="gps_quality_any_lowercase">toutes</string>
+
+    <!-- Menu d\'étalonnage -->
+    <string name="calibrate_title">Étalonner</string>
+    <string name="menu_wizard">Assistant</string>
+    <string name="menu_wizard_sub">Étalonnage complet : positions de molette, puis la courbe de pompe</string>
+    <string name="menu_potmeter">Étalonnage du potentiomètre</string>
+    <string name="menu_potmeter_sub">Les trois positions de molette seulement</string>
+    <string name="menu_sprayer">Pulvérisateur</string>
+    <string name="menu_sprayer_sub">Largeur de travail et délai de guidage</string>
+    <string name="menu_gps">Réglages GPS</string>
+    <string name="menu_gps_sub">Débit en bauds et qualité de point minimale</string>
+    <string name="menu_advanced">Avancé</string>
+    <string name="menu_advanced_sub">Tables d\'étalonnage, réglages, correction d\'un point de pompe</string>
+    <string name="menu_console_sub">Lignes de protocole brutes, trames GPS, pour l\'atelier</string>
+    <string name="buzzer_title">Avertisseur sur le boîtier</string>
+    <string name="buzzer_sub" formatted="false">Sonne tant que la dose s\'écarte de plus de 5 % de la consigne. L\'alarme du téléphone est indépendante (Réglages).</string>
+    <string name="calibrate_hint_connected">L\'assistant suit les mêmes étapes que le menu série du boîtier.</string>
+    <string name="calibrate_hint_disconnected">Connectez-vous d\'abord au pulvérisateur.</string>
+
+    <!-- Assistant d\'étalonnage -->
+    <string name="wizard_title_full">Assistant d\'étalonnage</string>
+    <string name="wizard_title_dose">Étalonnage du potentiomètre</string>
+    <string name="wizard_title_pump">Étalonnage de la pompe</string>
+    <string name="wizard_starting">Démarrage…</string>
+    <string name="wizard_taking_calibration">Prise de l\'étalonnage sur le boîtier…</string>
+    <string name="wizard_saving">Enregistrement sur le boîtier…</string>
+    <string name="wizard_pairing">Appairage avec le pulvérisateur : ouvrez la notification Bluetooth et saisissez le code affiché.</string>
+    <string name="wizard_link_lost">Liaison perdue</string>
+    <string name="wizard_dose_label_minimum">MINIMUM</string>
+    <string name="wizard_dose_label_middle">MILIEU</string>
+    <string name="wizard_dose_label_maximum">MAXIMUM</string>
+    <string name="wizard_knob_position_single">Position de molette %1$d</string>
+    <string name="wizard_knob_position_of">Position de molette %1$d sur %2$d</string>
+    <string name="wizard_set_knob">Mettez la molette sur la position %1$s, puis validez.</string>
+    <string name="wizard_knob_reading">Valeur de la molette</string>
+    <string name="wizard_capture">Valider</string>
+    <string name="wizard_dose_for_position">Dose pour la position %1$s</string>
+    <string name="wizard_knob_captured">Valeur de molette validée : %1$d</string>
+    <string name="wizard_dose_field">Dose (l/ha)</string>
+    <string name="wizard_save_point">Enregistrer le point %1$d</string>
+    <string name="wizard_find_start">Trouver le point de démarrage de la pompe</string>
+    <string name="wizard_find_start_hint">Montez lentement jusqu\'à ce que la pompe commence tout juste à débiter, puis validez.</string>
+    <string name="wizard_pump_duty">Commande de pompe</string>
+    <string name="wizard_board_reports_duty">Le boîtier indique une commande de pompe de %1$s</string>
+    <string name="wizard_capture_flowing">La pompe débite : valider</string>
+    <string name="wizard_point_of">Point %1$d sur %2$d</string>
+    <string name="wizard_point_running">Point %1$d sur %2$d : en cours</string>
+    <string name="wizard_point_volume">Point %1$d sur %2$d : volume</string>
+    <string name="wizard_jug_hint">Placez le récipient gradué. La pompe tourne exactement une minute à cette commande ; le boîtier chronomètre et s\'arrête tout seul.</string>
+    <string name="wizard_start_run">Lancer la minute</string>
+    <string name="wizard_remaining">Restant</string>
+    <string name="wizard_screen_may_sleep">L\'écran peut s\'éteindre ; la minute continue sur le boîtier.</string>
+    <string name="wizard_stop_redo">Arrêter et refaire ce point</string>
+    <string name="wizard_run_complete">Minute terminée à la commande %1$d. Saisissez le volume recueilli.</string>
+    <string name="wizard_volume_field">Volume (ml)</string>
+    <string name="wizard_save_and_next">Enregistrer et point suivant</string>
+    <string name="wizard_save_and_finish">Enregistrer et terminer</string>
+    <string name="wizard_saved_on_board">Enregistré sur le boîtier</string>
+    <string name="wizard_knob_positions">Positions de molette</string>
+    <string name="wizard_pump_curve">Courbe de pompe</string>
+    <string name="wizard_dose_summary">  %1$d : analogique %2$d, %3$d l/ha</string>
+    <string name="wizard_pwm_summary">  %1$d : commande %2$d, %3$d ml/min</string>
+    <string name="wizard_not_completed">Étalonnage non terminé</string>
+    <string name="wizard_nothing_changed">Rien n\'a été modifié sur le boîtier au-delà de ce qui était déjà enregistré.</string>
+
+    <!-- Messages du service et de l\'assistant -->
+    <string name="msg_saved">Enregistré</string>
+    <string name="msg_connected">Connecté</string>
+    <string name="msg_link_off">Liaison Bluetooth coupée</string>
+    <string name="msg_searching">Recherche du pulvérisateur…</string>
+    <string name="msg_connecting">Connexion…</string>
+    <string name="msg_board_busy">Le boîtier est occupé : l\'assistant série détient l\'étalonnage</string>
+    <string name="msg_board_refused">Le boîtier refuse : %1$s</string>
+    <string name="msg_pairing">Ouvrez la notification d\'appairage Bluetooth et saisissez le code affiché sur le pulvérisateur</string>
+    <string name="msg_cannot_start">Démarrage impossible : %1$s</string>
+    <string name="msg_wizard_busy_serial">L\'assistant série du boîtier détient l\'étalonnage. Terminez-le d\'abord là-bas.</string>
+    <string name="msg_wizard_busy_serial_short">L\'assistant série du boîtier détient l\'étalonnage</string>
+    <string name="msg_wizard_no_reading">Pas encore de valeur du boîtier</string>
+    <string name="msg_wizard_positive_number">Saisissez un nombre entier positif</string>
+    <string name="msg_wizard_slide_up">Montez jusqu\'à ce que la pompe débite vraiment avant de valider</string>
+    <string name="msg_wizard_run_stopped">Minute arrêtée, relancez-la</string>
+    <string name="msg_wizard_volume_range">Saisissez un nombre entier entre 1 et %1$d</string>
+    <string name="msg_wizard_point_refused">Le boîtier refuse un point de pompe</string>
+    <string name="msg_wizard_link_lost">Liaison perdue ; le boîtier a arrêté la pompe et conservé son ancien étalonnage</string>
+
+    <!-- Écran potentiomètre -->
+    <string name="potmeter_title">Étalonnage du potentiomètre</string>
+    <string name="potmeter_current">Positions de molette actuelles</string>
+    <string name="potmeter_live_reading">Valeur de molette en direct : %1$s sur 4095</string>
+    <string name="potmeter_point">%1$d. %2$s</string>
+    <string name="potmeter_point_values">analogique %1$d, %2$d l/ha</string>
+    <string name="potmeter_redo_all">Refaire les trois positions</string>
+    <string name="potmeter_hint">Chaque position est relevée sur la molette de la machine, puis reçoit sa valeur en l/ha. Enregistré sur le boîtier seulement à la fin ; annuler conserve les valeurs actuelles.</string>
+
+    <!-- Réglages du pulvérisateur -->
+    <string name="sprayer_title">Pulvérisateur</string>
+    <string name="sprayer_width">Largeur de travail</string>
+    <string name="sprayer_width_hint">Entre 50 et 5000. Sert à convertir les l/ha en débit de pompe à la vitesse actuelle.</string>
+    <string name="sprayer_guidance">Délai de guidage</string>
+    <string name="sprayer_guidance_hint">Entre 500 et 10000. Sans message de vitesse pendant ce délai, la pompe s\'arrête.</string>
+    <string name="setting_on_board_now">Sur le boîtier actuellement : %1$s</string>
+    <string name="setting_not_read_yet">pas encore lu</string>
+
+    <!-- Réglages GPS -->
+    <string name="gps_title">Réglages GPS</string>
+    <string name="gps_live">En direct</string>
+    <string name="gps_fix">Point</string>
+    <string name="gps_speed">Vitesse</string>
+    <string name="gps_min_quality">Point minimal pour doser</string>
+    <string name="gps_min_quality_hint">En dessous, la pompe s\'arrête, comme sans vitesse. RTK fixed n\'accepte qu\'une solution fixed, pas float.</string>
+    <string name="gps_any_sub">Comportement actuel : doser avec ce qui arrive</string>
+    <string name="gps_baudrate">Débit en bauds du récepteur</string>
+    <string name="gps_baudrate_hint">Appliqué immédiatement ; le port rouvre au nouveau débit.</string>
+
+    <!-- Avancé -->
+    <string name="advanced_title">Avancé</string>
+    <string name="advanced_reread">Relire depuis le boîtier</string>
+    <string name="advanced_knob_calibration">Étalonnage de la molette</string>
+    <string name="advanced_pump_curve">Courbe de pompe</string>
+    <string name="advanced_column_analog">Analogique</string>
+    <string name="advanced_column_dose">Dose (l/ha)</string>
+    <string name="advanced_column_flow">Débit (ml/min)</string>
+    <string name="advanced_board_settings">Réglages du boîtier</string>
+    <string name="advanced_width">Largeur</string>
+    <string name="advanced_guidance_timeout">Délai de guidage</string>
+    <string name="advanced_gps_baudrate">Débit en bauds GPS</string>
+    <string name="advanced_baud_index">index %1$d</string>
+    <string name="advanced_min_fix">Point minimal pour doser</string>
+    <string name="advanced_protocol">Protocole</string>
+    <string name="advanced_firmware">Micrologiciel</string>
+    <string name="advanced_correct_flow">Corriger le débit d\'un point</string>
+
+    <!-- Réglages -->
+    <string name="settings_title">Réglages</string>
+    <string name="settings_alarm_card">Alarme de dose</string>
+    <string name="settings_alarm_switch">Faire sonner l\'alarme</string>
+    <string name="settings_alarm_switch_sub" formatted="false">Tant que le boîtier signale une dose à plus de 5 % de la consigne. L\'avertisseur du boîtier sonne de toute façon.</string>
+    <string name="settings_preview">Écouter %1$s</string>
+    <string name="settings_connect_to_preview">Connectez-vous d\'abord pour écouter les sons.</string>
+    <string name="settings_volume">Volume</string>
+    <string name="settings_phone_card">Téléphone</string>
+    <string name="settings_vibrate">Vibrer au déclenchement de l\'alarme</string>
+    <string name="settings_keep_screen_on">Garder l\'écran allumé</string>
+    <string name="settings_keep_screen_on_sub">Désactivé : l\'écran peut s\'éteindre, la liaison et l\'alarme continuent</string>
+    <string name="settings_battery_ok">L\'optimisation de la batterie est désactivée pour cette application, parfait.</string>
+    <string name="settings_battery_hint">Pour une liaison fiable écran éteint, excluez cette application de l\'optimisation de la batterie.</string>
+    <string name="settings_battery_button">Désactiver l\'optimisation de la batterie</string>
+    <string name="settings_about">À propos</string>
+    <string name="settings_about_blurb">Application compagnon du calculateur de pulvérisation de défanage MeijWorks.</string>
+
+    <!-- Sons d\'alarme -->
+    <string name="sound_buzzer">Avertisseur</string>
+    <string name="sound_buzzer_desc">Avertisseur continu et dur</string>
+    <string name="sound_wrong">Mauvaise réponse</string>
+    <string name="sound_wrong_desc">Bourdonnement grave à deux tons \"errr\"</string>
+    <string name="sound_siren">Sirène</string>
+    <string name="sound_siren_desc">Sirène montante et descendante</string>
+    <string name="sound_beeps">Bip bip</string>
+    <string name="sound_beeps_desc">Bips aigus rapides</string>
+    <string name="sound_klaxon">Klaxon</string>
+    <string name="sound_klaxon_desc">Klaxon grinçant</string>
+    <string name="sound_system">Alarme du téléphone</string>
+    <string name="sound_system_desc">La sonnerie d\'alarme définie sur ce téléphone</string>
+
+    <!-- Autorisations -->
+    <string name="permission_bluetooth_needed">L\'autorisation Bluetooth est nécessaire pour trouver le pulvérisateur</string>
+</resources>

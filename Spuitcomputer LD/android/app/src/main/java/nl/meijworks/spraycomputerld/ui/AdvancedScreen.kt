@@ -32,9 +32,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
 import nl.meijworks.spraycomputerld.protocol.GpsSample
 import nl.meijworks.spraycomputerld.protocol.SprayerProtocol
@@ -51,15 +54,15 @@ fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Advanced") },
+                title = { Text(stringResource(R.string.advanced_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { SprayerController.refresh() }, enabled = sprayer.connected) {
-                        Icon(Icons.Filled.Refresh, contentDescription = "Re-read from the board")
+                        Icon(Icons.Filled.Refresh, contentDescription = stringResource(R.string.advanced_reread))
                     }
                 },
             )
@@ -83,21 +86,29 @@ fun AdvancedScreen(sprayer: SprayerState, onBack: () -> Unit) {
 private fun TablesCard(sprayer: SprayerState) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Knob calibration", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.advanced_knob_calibration), style = MaterialTheme.typography.titleMedium)
             if (sprayer.dosePoints.isEmpty()) {
-                Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                TableHeader("#", "Analog", "Dose (l/ha)")
+                TableHeader(
+                    stringResource(R.string.advanced_column_index),
+                    stringResource(R.string.advanced_column_analog),
+                    stringResource(R.string.advanced_column_dose),
+                )
                 sprayer.dosePoints.forEach { p ->
                     TableRow("${p.index + 1}", "${p.analog}", "${p.doseLha}")
                 }
             }
             Spacer(Modifier.height(8.dp))
-            Text("Pump curve", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.advanced_pump_curve), style = MaterialTheme.typography.titleMedium)
             if (sprayer.pwmPoints.isEmpty()) {
-                Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                TableHeader("#", "PWM", "Flow (ml/min)")
+                TableHeader(
+                    stringResource(R.string.advanced_column_index),
+                    stringResource(R.string.advanced_column_pwm),
+                    stringResource(R.string.advanced_column_flow),
+                )
                 sprayer.pwmPoints.forEach { p ->
                     TableRow("${p.index + 1}", "${p.pwm}", "${p.flowMlMin}")
                 }
@@ -112,27 +123,39 @@ private fun SettingsValuesCard(sprayer: SprayerState) {
     val c = sprayer.config
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Board settings", style = MaterialTheme.typography.titleMedium)
+            val context = LocalContext.current
+            val none = stringResource(R.string.value_none)
+            Text(stringResource(R.string.advanced_board_settings), style = MaterialTheme.typography.titleMedium)
             if (c.isEmpty()) {
-                Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                DetailRow("Width", c[SprayerProtocol.KEY_WIDTH_CM]?.let { "$it cm" } ?: "–")
-                DetailRow("Guidance timeout", c[SprayerProtocol.KEY_GUIDANCE_MS]?.let { "$it ms" } ?: "–")
                 DetailRow(
-                    "GPS baudrate",
-                    c[SprayerProtocol.KEY_GPS_BAUD]?.let { idx ->
-                        SprayerProtocol.BAUD_RATES.getOrNull(idx.toInt())?.toString() ?: "index $idx"
-                    } ?: "–",
+                    stringResource(R.string.advanced_width),
+                    c[SprayerProtocol.KEY_WIDTH_CM]?.let { stringResource(R.string.advanced_value_cm, it) } ?: none,
                 )
                 DetailRow(
-                    "Minimum fix to dose",
+                    stringResource(R.string.advanced_guidance_timeout),
+                    c[SprayerProtocol.KEY_GUIDANCE_MS]?.let { stringResource(R.string.advanced_value_ms, it) } ?: none,
+                )
+                DetailRow(
+                    stringResource(R.string.advanced_gps_baudrate),
+                    c[SprayerProtocol.KEY_GPS_BAUD]?.let { idx ->
+                        SprayerProtocol.BAUD_RATES.getOrNull(idx.toInt())?.toString()
+                            ?: stringResource(R.string.advanced_baud_index, idx)
+                    } ?: none,
+                )
+                DetailRow(
+                    stringResource(R.string.advanced_min_fix),
                     c[SprayerProtocol.KEY_GPS_MIN_QUALITY]?.let { q ->
-                        if (q == 0L) "any" else GpsSample.qualityLabel(q.toInt())
-                    } ?: "–",
+                        if (q == 0L) stringResource(R.string.gps_quality_any_lowercase)
+                        else GpsSample.qualityText(q.toInt()).resolve(context)
+                    } ?: none,
                 )
             }
-            sprayer.protocolVersion?.let { DetailRow("Protocol", "v$it") }
-            sprayer.firmwareVersion?.let { DetailRow("Firmware", it) }
+            sprayer.protocolVersion?.let {
+                DetailRow(stringResource(R.string.advanced_protocol), stringResource(R.string.advanced_protocol_value, it))
+            }
+            sprayer.firmwareVersion?.let { DetailRow(stringResource(R.string.advanced_firmware), it) }
         }
     }
 }
@@ -144,12 +167,12 @@ private fun PwmPointEditor(sprayer: SprayerState) {
     val point = pointText.toIntOrNull()?.let { n -> sprayer.pwmPoints.firstOrNull { it.index == n - 1 } }
     val flow = flowText.toIntOrNull()
     Spacer(Modifier.height(4.dp))
-    Text("Correct a point's flow", style = MaterialTheme.typography.labelLarge)
+    Text(stringResource(R.string.advanced_correct_flow), style = MaterialTheme.typography.labelLarge)
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(
             value = pointText,
             onValueChange = { pointText = it.filter { c -> c.isDigit() } },
-            label = { Text("#") },
+            label = { Text(stringResource(R.string.advanced_column_index)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(0.6f),
@@ -157,7 +180,7 @@ private fun PwmPointEditor(sprayer: SprayerState) {
         OutlinedTextField(
             value = flowText,
             onValueChange = { flowText = it.filter { c -> c.isDigit() } },
-            label = { Text("ml/min") },
+            label = { Text(stringResource(R.string.advanced_field_ml_min)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.weight(1f),
@@ -165,7 +188,7 @@ private fun PwmPointEditor(sprayer: SprayerState) {
         OutlinedButton(
             onClick = { if (point != null && flow != null) SprayerController.editPwmPointFlow(point.index, flow) },
             enabled = sprayer.connected && point != null && flow != null && flow in 1..4000,
-        ) { Text("Save") }
+        ) { Text(stringResource(R.string.action_save)) }
     }
 }
 

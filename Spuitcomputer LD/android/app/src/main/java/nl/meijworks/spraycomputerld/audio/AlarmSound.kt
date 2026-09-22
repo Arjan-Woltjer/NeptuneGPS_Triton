@@ -1,5 +1,8 @@
 package nl.meijworks.spraycomputerld.audio
 
+import androidx.annotation.StringRes
+import nl.meijworks.spraycomputerld.R
+
 import kotlin.math.PI
 import kotlin.math.exp
 import kotlin.math.sin
@@ -10,13 +13,17 @@ const val SAMPLE_RATE = 44_100
  * The selectable alarm sounds. All except SYSTEM_ALARM are synthesised on the
  * fly so the app ships without audio assets and every sound loops cleanly.
  */
-enum class AlarmSound(val id: String, val label: String, val description: String) {
-    BUZZER("buzzer", "Buzzer", "Harsh continuous buzzer"),
-    WRONG("wrong", "Wrong answer", "Low two-tone \"errr\" buzz"),
-    SIREN("siren", "Siren", "Rising and falling siren"),
-    BEEPS("beeps", "Beep beep", "Fast high-pitched beeps"),
-    KLAXON("klaxon", "Klaxon", "Rattling horn"),
-    SYSTEM_ALARM("system", "Phone alarm", "The alarm tone set on this phone");
+enum class AlarmSound(
+    val id: String,
+    @StringRes val labelRes: Int,
+    @StringRes val descriptionRes: Int,
+) {
+    BUZZER("buzzer", R.string.sound_buzzer, R.string.sound_buzzer_desc),
+    WRONG("wrong", R.string.sound_wrong, R.string.sound_wrong_desc),
+    SIREN("siren", R.string.sound_siren, R.string.sound_siren_desc),
+    BEEPS("beeps", R.string.sound_beeps, R.string.sound_beeps_desc),
+    KLAXON("klaxon", R.string.sound_klaxon, R.string.sound_klaxon_desc),
+    SYSTEM_ALARM("system", R.string.sound_system, R.string.sound_system_desc);
 
     val isSynthesized: Boolean get() = this != SYSTEM_ALARM
 
