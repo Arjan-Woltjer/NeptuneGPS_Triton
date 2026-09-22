@@ -1,5 +1,9 @@
 package nl.meijworks.spraycomputerld.service
 
+import androidx.annotation.StringRes
+import nl.meijworks.spraycomputerld.R
+import nl.meijworks.spraycomputerld.UiText
+import nl.meijworks.spraycomputerld.uiText
 import nl.meijworks.spraycomputerld.protocol.DosePoint
 import nl.meijworks.spraycomputerld.protocol.PwmPoint
 import nl.meijworks.spraycomputerld.protocol.SprayerProtocol
@@ -42,9 +46,11 @@ data class WizardState(
     val pwmCaptured: List<PwmPoint> = emptyList(),
     val secondsRemaining: Int? = null,
     val busy: Boolean = false,          // a command is in flight; buttons disabled
-    val message: String? = null,        // last error or hint
+    val message: UiText? = null,        // last error or hint
 ) {
-    val doseLabel: String get() = WizardMath.DOSE_LABELS.getOrElse(doseIndex) { "" }
+    /** Resource id of the knob position being calibrated, drawn by the screen. */
+    @get:StringRes
+    val doseLabel: Int get() = WizardMath.DOSE_LABELS.getOrElse(doseIndex) { WizardMath.DOSE_LABELS[0] }
     val currentPwmDuty: Int get() = pwmSteps.getOrElse(pwmIndex) { 0 }
 }
 
@@ -85,8 +91,8 @@ class CalibrationWizard(
                 Reply.Ok -> set {
                     it.copy(step = if (mode == WizardMode.PUMP_ONLY) WizardStep.PUMP_FIND else WizardStep.DOSE_CAPTURE)
                 }
-                Reply.Busy -> fail("The serial wizard on the board holds calibration. Finish it there first.")
-                is Reply.Error -> fail("Board refused: ${r.reason}")
+                Reply.Busy -> fail(uiText(R.string.msg_wizard_busy_serial))
+                is Reply.Error -> fail(uiText(R.string.msg_board_refused, r.reason))
             }
         }
     }
@@ -95,7 +101,7 @@ class CalibrationWizard(
     fun captureDose(rawNow: Int?) {
         val s = state ?: return
         if (s.step != WizardStep.DOSE_CAPTURE || s.busy) return
-        if (rawNow == null) { set { it.copy(message = "No reading from the board yet") }; return }
+        if (rawNow == null) { set { it.copy(message = uiText(R.string.msg_wizard_no_reading)) }; return }
         set { it.copy(capturedAnalog = rawNow, step = WizardStep.DOSE_ENTER, message = null) }
     }
 
@@ -104,7 +110,7 @@ class CalibrationWizard(
         val s = state ?: return
         if (s.step != WizardStep.DOSE_ENTER || s.busy) return
         val analog = s.capturedAnalog ?: return
-        if (doseLha <= 0) { set { it.copy(message = "Enter a positive whole number") }; return }
+        if (doseLha <= 0) { set { it.copy(message = uiText(R.string.msg_wizard_positive_number)) }; return }
         perform {
             when (val r = command(SprayerProtocol.cmdCalDose(s.doseIndex, analog, doseLha))) {
                 Reply.Ok -> {
@@ -160,7 +166,7 @@ class CalibrationWizard(
         // the five runs happened at duty 0 and the pump did nothing. The pump
         // cannot be "just flowing" at zero duty.
         if (start < WizardMath.MIN_START_DUTY) {
-            set { it.copy(message = "Slide up until the pump actually starts flowing before capturing") }
+            set { it.copy(message = uiText(R.string.msg_wizard_slide_up)) }
             return
         }
         perform {
@@ -207,7 +213,13 @@ class CalibrationWizard(
         if (s.step != WizardStep.PUMP_RUNNING) return
         perform {
             command(SprayerProtocol.CMD_PWM_STOP)
-            set { it.copy(step = WizardStep.PUMP_STEP_READY, secondsRemaining = null, message = "Run stopped, start it again") }
+            set {
+                it.copy(
+                    step = WizardStep.PUMP_STEP_READY,
+                    secondsRemaining = null,
+                    message = uiText(R.string.msg_wizard_run_stopped),
+                )
+            }
         }
     }
 
@@ -216,7 +228,7 @@ class CalibrationWizard(
         val s = state ?: return
         if (s.step != WizardStep.PUMP_ENTER || s.busy) return
         if (ml < 1 || ml > WizardMath.MAX_FLOW_ML_MIN) {
-            set { it.copy(message = "Enter a whole number between 1 and ${WizardMath.MAX_FLOW_ML_MIN}") }
+            set { it.copy(message = uiText(R.string.msg_wizard_volume_range, WizardMath.MAX_FLOW_ML_MIN)) }
             return
         }
         val captured = s.pwmCaptured + PwmPoint(s.pwmIndex, s.currentPwmDuty, ml)
@@ -232,7 +244,7 @@ class CalibrationWizard(
                 if (!ok) break
                 ok = command(SprayerProtocol.cmdCalPwm(p.index, p.pwm, p.flowMlMin)) == Reply.Ok
             }
-            if (!ok) { fail("Board refused a pump point"); return@perform }
+            if (!ok) { fail(uiText(R.string.msg_wizard_point_refused)); return@perform }
             if (save()) finish()
         }
     }
@@ -262,7 +274,14 @@ class CalibrationWizard(
         cancelJob()
         findJob?.cancel()
         if (state != null && state?.step != WizardStep.DONE) {
-            set { it.copy(step = WizardStep.FAILED, busy = false, secondsRemaining = null, message = "Link lost; the board stopped the pump and kept its old calibration") }
+            set {
+                it.copy(
+                    step = WizardStep.FAILED,
+                    busy = false,
+                    secondsRemaining = null,
+                    message = uiText(R.string.msg_wizard_link_lost),
+                )
+            }
         }
     }
 
@@ -284,14 +303,14 @@ class CalibrationWizard(
         set { it.copy(step = WizardStep.DONE, busy = false, message = null) }
     }
 
-    private fun fail(message: String) {
+    private fun fail(message: UiText) {
         set { it.copy(step = WizardStep.FAILED, busy = false, secondsRemaining = null, message = message) }
         scope.launch { command(SprayerProtocol.cmdCalMode(false)) }
     }
 
     private fun failFromReply(r: Reply) = when (r) {
-        Reply.Busy -> fail("The serial wizard on the board holds calibration")
-        is Reply.Error -> fail("Board refused: ${r.reason}")
+        Reply.Busy -> fail(uiText(R.string.msg_wizard_busy_serial_short))
+        is Reply.Error -> fail(uiText(R.string.msg_board_refused, r.reason))
         Reply.Ok -> Unit
     }
 

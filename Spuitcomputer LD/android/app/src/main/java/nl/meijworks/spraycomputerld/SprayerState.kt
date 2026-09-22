@@ -27,7 +27,7 @@ data class SprayerState(
     val wizard: WizardState? = null,            // the calibration in progress, if any
     val alarmActive: Boolean = false,
     val pairing: Boolean = false,               // Android is asking for the board's code
-    val lastMessage: String = "",
+    val lastMessage: UiText? = null,
     val log: List<String> = emptyList(),        // last lines in both directions, for the bench
 ) {
     val connected: Boolean get() = connection == ConnectionState.CONNECTED

@@ -24,9 +24,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
-import nl.meijworks.spraycomputerld.protocol.GpsSample
+import nl.meijworks.spraycomputerld.isRes
+import nl.meijworks.spraycomputerld.textOrEmpty
 import nl.meijworks.spraycomputerld.protocol.SprayerProtocol
 import nl.meijworks.spraycomputerld.service.SprayerController
 
@@ -43,10 +47,10 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("GPS config") },
+                title = { Text(stringResource(R.string.gps_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -61,38 +65,53 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
         ) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text("Live", style = MaterialTheme.typography.titleMedium)
-                    DetailRow("Fix", g?.qualityLabel ?: "–")
+                    val context = LocalContext.current
+                    val none = stringResource(R.string.value_none)
+                    Text(stringResource(R.string.gps_live), style = MaterialTheme.typography.titleMedium)
+                    DetailRow(stringResource(R.string.gps_fix), g?.qualityText?.resolve(context) ?: none)
                     DetailRow(
-                        "Fix age",
+                        stringResource(R.string.detail_fix_age),
                         when {
-                            g == null -> "–"
-                            g.fixAgeMs == null -> "no fix yet"
-                            else -> "%.1f s".format(g.fixAgeMs / 1000.0)
+                            g == null -> none
+                            g.fixAgeMs == null -> stringResource(R.string.detail_no_fix_yet)
+                            else -> stringResource(R.string.value_seconds, g.fixAgeMs / 1000.0)
                         },
                     )
-                    DetailRow("Speed", sprayer.status?.let { "%.1f km/h".format(it.speedKmh) } ?: "–")
-                    DetailRow("Position", g?.takeIf { it.hasPosition }?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
+                    DetailRow(
+                        stringResource(R.string.gps_speed),
+                        sprayer.status?.let { stringResource(R.string.value_speed_kmh, it.speedKmh) } ?: none,
+                    )
+                    DetailRow(
+                        stringResource(R.string.detail_position),
+                        g?.takeIf { it.hasPosition }?.let { stringResource(R.string.value_position, it.latitude, it.longitude) } ?: none,
+                    )
                 }
             }
 
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(vertical = 8.dp)) {
                     Text(
-                        "Minimum fix to dose",
+                        stringResource(R.string.gps_min_quality),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                     Text(
-                        "Below this the pump stops, like it does without a speed. RTK fixed accepts only a fixed solution, not float.",
+                        stringResource(R.string.gps_min_quality_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
-                    listOf(0L to "Any", 1L to "GPS", 2L to "DGPS", 4L to "RTK fixed").forEach { (q, label) ->
+                    val anySub = stringResource(R.string.gps_any_sub)
+                    val qualities = listOf(
+                        0L to stringResource(R.string.gps_quality_any),
+                        1L to stringResource(R.string.gps_quality_gps),
+                        2L to stringResource(R.string.gps_quality_dgps),
+                        4L to stringResource(R.string.gps_quality_rtk_fixed),
+                    )
+                    qualities.forEach { (q, label) ->
                         ChoiceRow(
                             label = label,
-                            sub = if (q == 0L) "Today's behaviour: dose on whatever arrives" else null,
+                            sub = if (q == 0L) anySub else null,
                             selected = minQuality == q,
                             enabled = sprayer.connected && minQuality != null,
                         ) { SprayerController.setConfig(SprayerProtocol.KEY_GPS_MIN_QUALITY, q) }
@@ -103,12 +122,12 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(vertical = 8.dp)) {
                     Text(
-                        "Receiver baudrate",
+                        stringResource(R.string.gps_baudrate),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                     Text(
-                        "Applied at once; the port reopens at the new rate.",
+                        stringResource(R.string.gps_baudrate_hint),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp),
@@ -123,8 +142,8 @@ fun GpsConfigScreen(sprayer: SprayerState, onBack: () -> Unit) {
                     }
                 }
             }
-            if (sprayer.lastMessage.startsWith("Board refused")) {
-                Text(sprayer.lastMessage, color = MaterialTheme.colorScheme.error)
+            if (sprayer.lastMessage.isRes(R.string.msg_board_refused)) {
+                Text(sprayer.lastMessage.textOrEmpty(), color = MaterialTheme.colorScheme.error)
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -148,5 +167,3 @@ private fun ChoiceRow(label: String, sub: String?, selected: Boolean, enabled: B
     }
 }
 
-@Suppress("unused")
-private fun qualityName(q: Long) = GpsSample.qualityLabel(q.toInt())

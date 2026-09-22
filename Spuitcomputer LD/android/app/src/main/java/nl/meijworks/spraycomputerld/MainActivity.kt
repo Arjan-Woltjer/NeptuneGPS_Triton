@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -52,7 +53,7 @@ class MainActivity : ComponentActivity() {
             if (SprayerBleClient.hasPermissions(this)) {
                 if (pendingStart) SprayerService.start(this)
             } else {
-                Toast.makeText(this, "Bluetooth permission is needed to find the sprayer", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, R.string.permission_bluetooth_needed, Toast.LENGTH_LONG).show()
             }
             pendingStart = false
         }
@@ -111,9 +112,9 @@ class MainActivity : ComponentActivity() {
                     Screen.WIZARD -> WizardScreen(
                         sprayer = sprayer,
                         title = when (sprayer.wizard?.mode) {
-                            WizardMode.DOSE_ONLY, WizardMode.DOSE_SINGLE -> "Potmeter calibration"
-                            WizardMode.PUMP_ONLY -> "Pump calibration"
-                            else -> "Calibration wizard"
+                            WizardMode.DOSE_ONLY, WizardMode.DOSE_SINGLE -> stringResource(R.string.wizard_title_dose)
+                            WizardMode.PUMP_ONLY -> stringResource(R.string.wizard_title_pump)
+                            else -> stringResource(R.string.wizard_title_full)
                         },
                         onClose = { screen = Screen.CALIBRATE },
                     )

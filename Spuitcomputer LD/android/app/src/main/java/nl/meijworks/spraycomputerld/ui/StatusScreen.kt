@@ -41,12 +41,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import nl.meijworks.spraycomputerld.ConnectionState
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
+import nl.meijworks.spraycomputerld.textOrEmpty
 import nl.meijworks.spraycomputerld.protocol.CalibrationOwner
 import nl.meijworks.spraycomputerld.protocol.StatusSample
 import kotlinx.coroutines.delay
@@ -80,10 +84,10 @@ fun StatusScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("SprayComputer LD") },
+                title = { Text(stringResource(R.string.status_title)) },
                 actions = {
                     IconButton(onClick = onSettings) {
-                        Icon(Icons.Filled.Settings, contentDescription = "Settings")
+                        Icon(Icons.Filled.Settings, contentDescription = stringResource(R.string.action_settings))
                     }
                 },
             )
@@ -102,7 +106,7 @@ fun StatusScreen(
             Button(onClick = onCalibrate, modifier = Modifier.fillMaxWidth(), enabled = sprayer.connected) {
                 Icon(Icons.Filled.Tune, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Calibrate")
+                Text(stringResource(R.string.action_calibrate))
             }
             Spacer(Modifier.height(24.dp))
         }
@@ -140,26 +144,31 @@ private fun ConnectionCard(
         Column(Modifier.weight(1f)) {
             Text(
                 text = when (sprayer.connection) {
-                    ConnectionState.CONNECTED -> "Connected"
-                    ConnectionState.CONNECTING -> "Connecting"
-                    ConnectionState.SCANNING -> "Searching"
-                    ConnectionState.OFF -> "Not connected"
+                    ConnectionState.CONNECTED -> stringResource(R.string.connection_connected)
+                    ConnectionState.CONNECTING -> stringResource(R.string.connection_connecting)
+                    ConnectionState.SCANNING -> stringResource(R.string.connection_scanning)
+                    ConnectionState.OFF -> stringResource(R.string.connection_off)
                 },
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = fg,
             )
-            val sub = if (sprayer.pairing) "Pairing: open the Bluetooth notification and enter the code from the sprayer's display" else buildString {
+            // Hoisted: buildString's lambda is no place for a resource lookup.
+            val pairingHint = stringResource(R.string.connection_pairing)
+            val firmwareLabel = sprayer.firmwareVersion?.let { stringResource(R.string.connection_firmware, it) }
+            val message = sprayer.lastMessage.textOrEmpty()
+            val tapConnect = stringResource(R.string.connection_tap_connect)
+            val sub = if (sprayer.pairing) pairingHint else buildString {
                 sprayer.deviceName?.let { append(it) }
-                sprayer.firmwareVersion?.let { if (isNotEmpty()) append(" · "); append("firmware $it") }
-                if (isEmpty()) append(sprayer.lastMessage.ifEmpty { "Tap Connect to find the sprayer" })
+                firmwareLabel?.let { if (isNotEmpty()) append(" · "); append(it) }
+                if (isEmpty()) append(message.ifEmpty { tapConnect })
             }
             Text(sub, color = fg.copy(alpha = 0.85f), style = MaterialTheme.typography.bodySmall)
         }
         if (serviceRunning) {
-            OutlinedButton(onClick = onDisconnect) { Text("Disconnect", color = fg) }
+            OutlinedButton(onClick = onDisconnect) { Text(stringResource(R.string.action_disconnect), color = fg) }
         } else {
-            Button(onClick = onConnect) { Text("Connect") }
+            Button(onClick = onConnect) { Text(stringResource(R.string.action_connect)) }
         }
     }
 }
@@ -170,29 +179,31 @@ private fun ConnectionCard(
 private fun DoseTiles(status: StatusSample?, stale: Boolean) {
     val deviation = status?.deviation == true && !stale
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        val none = stringResource(R.string.value_none)
+        val lha = stringResource(R.string.unit_lha)
         Tile(
-            label = "Speed",
-            value = status?.let { "%.1f".format(it.speedKmh) } ?: "–",
-            unit = "km/h",
+            label = stringResource(R.string.tile_speed),
+            value = status?.let { "%.1f".format(it.speedKmh) } ?: none,
+            unit = stringResource(R.string.unit_kmh),
             dim = stale,
         )
         Tile(
-            label = "Requested",
-            value = status?.let { "%.0f".format(it.requestedLha) } ?: "–",
-            unit = "l/ha",
+            label = stringResource(R.string.tile_requested),
+            value = status?.let { "%.0f".format(it.requestedLha) } ?: none,
+            unit = lha,
             dim = stale,
         )
         Tile(
-            label = "Actual",
-            value = status?.actualLha?.let { "%.0f".format(it) } ?: "–",
-            unit = "l/ha",
+            label = stringResource(R.string.tile_actual),
+            value = status?.actualLha?.let { "%.0f".format(it) } ?: none,
+            unit = lha,
             dim = stale,
             alert = deviation,
         )
     }
     if (deviation) {
         Text(
-            "Dose outside 5 % of requested: adjust speed",
+            stringResource(R.string.status_deviation),
             color = MaterialTheme.colorScheme.error,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.fillMaxWidth(),
@@ -200,7 +211,7 @@ private fun DoseTiles(status: StatusSample?, stale: Boolean) {
         )
     } else if (stale && status != null) {
         Text(
-            "No status from the board for a moment…",
+            stringResource(R.string.status_stale),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.fillMaxWidth(),
@@ -243,32 +254,40 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
     val g = sprayer.gps
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text("Details", style = MaterialTheme.typography.titleMedium)
-            DetailRow("Flow", s?.let { "%.0f ml/min".format(it.flowMlMin) } ?: "–")
-            DetailRow("Knob", s?.let { "${it.raw} / 4095" } ?: "–")
-            DetailRow("Pump PWM", s?.let { "${it.pumpPwm} / 4095" } ?: "–")
+            val context = LocalContext.current
+            val none = stringResource(R.string.value_none)
+            Text(stringResource(R.string.details_title), style = MaterialTheme.typography.titleMedium)
+            DetailRow(stringResource(R.string.detail_flow), s?.let { stringResource(R.string.value_ml_min, it.flowMlMin) } ?: none)
+            DetailRow(stringResource(R.string.detail_knob), s?.let { stringResource(R.string.value_of_4095, it.raw) } ?: none)
+            DetailRow(stringResource(R.string.detail_pump_pwm), s?.let { stringResource(R.string.value_of_4095, it.pumpPwm) } ?: none)
             IoMatrix(s)
             if (s != null && s.calibrationOwner != CalibrationOwner.NONE) {
                 DetailRow(
-                    "Calibration",
-                    if (s.calibrationOwner == CalibrationOwner.APP) "held by this app" else "held by the serial wizard",
+                    stringResource(R.string.detail_calibration),
+                    if (s.calibrationOwner == CalibrationOwner.APP) stringResource(R.string.calibration_held_by_app)
+                    else stringResource(R.string.calibration_held_by_serial),
                 )
             }
-            sprayer.runSecondsRemaining?.let { DetailRow("Pump run", "$it s remaining") }
+            sprayer.runSecondsRemaining?.let {
+                DetailRow(stringResource(R.string.detail_pump_run), stringResource(R.string.value_seconds_remaining, it))
+            }
             HorizontalDivider()
-            DetailRow("GPS", g?.qualityLabel ?: "–")
+            DetailRow(stringResource(R.string.detail_gps), g?.qualityText?.resolve(context) ?: none)
             DetailRow(
-                "Fix age",
+                stringResource(R.string.detail_fix_age),
                 when {
-                    g == null -> "–"
-                    g.fixAgeMs == null -> "no fix yet"
-                    else -> "%.1f s".format(g.fixAgeMs / 1000.0)
+                    g == null -> none
+                    g.fixAgeMs == null -> stringResource(R.string.detail_no_fix_yet)
+                    else -> stringResource(R.string.value_seconds, g.fixAgeMs / 1000.0)
                 },
             )
-            DetailRow("Position", g?.takeIf { it.hasPosition }?.let { "%.6f, %.6f".format(it.latitude, it.longitude) } ?: "–")
+            DetailRow(
+                stringResource(R.string.detail_position),
+                g?.takeIf { it.hasPosition }?.let { stringResource(R.string.value_position, it.latitude, it.longitude) } ?: none,
+            )
             if (!sprayer.connected) {
                 Text(
-                    sprayer.lastMessage,
+                    sprayer.lastMessage.textOrEmpty(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -285,7 +304,12 @@ private fun DetailsCard(sprayer: SprayerState, now: Long) {
  */
 @Composable
 private fun IoMatrix(s: StatusSample?) {
-    val labels = listOf("Mixer", "Vernevelaar", "Pomp", "Aux")
+    val labels = listOf(
+        stringResource(R.string.io_channel_mixer),
+        stringResource(R.string.io_channel_vernevelaar),
+        stringResource(R.string.io_channel_pomp),
+        stringResource(R.string.io_channel_aux),
+    )
     val inputs = s?.inputs?.takeIf { it.size == 4 }
     val outputs = s?.outputs?.takeIf { it.size == 4 }
         ?: s?.let { listOf(it.mixer, it.vernevelaar, it.pump, it.deviation) }
@@ -302,8 +326,8 @@ private fun IoMatrix(s: StatusSample?) {
                 )
             }
         }
-        IoRow("Inputs", inputs)
-        IoRow("Outputs", outputs)
+        IoRow(stringResource(R.string.io_inputs), inputs)
+        IoRow(stringResource(R.string.io_outputs), outputs)
     }
 }
 

@@ -1,11 +1,259 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">MeijWorks SprayComputer LD</string>
+    <string name="app_name" translatable="false">MeijWorks SprayComputer LD</string>
+
+    <!-- Foreground service notification -->
     <string name="notification_channel_name">Sprayer link</string>
     <string name="notification_channel_description">Keeps the connection to the sprayer alive while the screen is off</string>
-    <string name="notification_title">SprayComputer LD</string>
+    <string name="notification_title" translatable="false">SprayComputer LD</string>
     <string name="notification_disconnected">Searching for the sprayer…</string>
     <string name="notification_connected_no_status">Connected</string>
     <string name="notification_connected">Requested %1$.0f l/ha, actual %2$s l/ha</string>
     <string name="notification_stop">Stop</string>
+
+    <!-- Shared actions and units -->
+    <string name="action_back">Back</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_done">Done</string>
+    <string name="action_save">Save</string>
+    <string name="action_redo">Redo</string>
+    <string name="action_save_to_board">Save to board</string>
+    <string name="value_none" translatable="false">–</string>
+    <string name="value_not_read_yet">Not read yet</string>
+    <string name="unit_kmh" translatable="false">km/h</string>
+    <string name="unit_lha" translatable="false">l/ha</string>
+    <string name="unit_of_4095">of 4095</string>
+    <string name="value_of_4095" translatable="false">%1$d / 4095</string>
+    <string name="value_ml_min" translatable="false">%1$.0f ml/min</string>
+    <string name="value_seconds" translatable="false">%1$.1f s</string>
+    <string name="value_speed_kmh" translatable="false">%1$.1f km/h</string>
+    <string name="value_position" translatable="false">%1$.6f, %2$.6f</string>
+
+    <!-- Status screen -->
+    <string name="status_title" translatable="false">SprayComputer LD</string>
+    <string name="connection_connected">Connected</string>
+    <string name="connection_connecting">Connecting</string>
+    <string name="connection_scanning">Searching</string>
+    <string name="connection_off">Not connected</string>
+    <string name="connection_pairing">Pairing: open the Bluetooth notification and enter the code from the sprayer\'s display</string>
+    <string name="connection_firmware">firmware %1$s</string>
+    <string name="connection_tap_connect">Tap Connect to find the sprayer</string>
+    <string name="action_connect">Connect</string>
+    <string name="action_disconnect">Disconnect</string>
+    <string name="tile_speed">Speed</string>
+    <string name="tile_requested">Requested</string>
+    <string name="tile_actual">Actual</string>
+    <string name="status_deviation">Dose outside 5 %% of requested: adjust speed</string>
+    <string name="status_stale">No status from the board for a moment…</string>
+    <string name="action_calibrate">Calibrate</string>
+    <string name="details_title">Details</string>
+    <string name="detail_flow">Flow</string>
+    <string name="detail_knob">Knob</string>
+    <string name="detail_pump_pwm">Pump PWM</string>
+    <string name="detail_calibration">Calibration</string>
+    <string name="calibration_held_by_app">held by this app</string>
+    <string name="calibration_held_by_serial">held by the serial wizard</string>
+    <string name="detail_pump_run">Pump run</string>
+    <string name="value_seconds_remaining">%1$d s remaining</string>
+    <string name="detail_gps">GPS</string>
+    <string name="detail_fix_age">Fix age</string>
+    <string name="detail_no_fix_yet">no fix yet</string>
+    <string name="detail_position">Position</string>
+    <string name="io_inputs">Inputs</string>
+    <string name="io_outputs">Outputs</string>
+    <string name="io_channel_mixer" translatable="false">Mixer</string>
+    <string name="io_channel_vernevelaar" translatable="false">Vernevelaar</string>
+    <string name="io_channel_pomp" translatable="false">Pomp</string>
+    <string name="io_channel_aux" translatable="false">Aux</string>
+
+    <!-- GPS fix quality -->
+    <string name="gps_quality_none">No fix</string>
+    <string name="gps_quality_gps" translatable="false">GPS</string>
+    <string name="gps_quality_dgps" translatable="false">DGPS</string>
+    <string name="gps_quality_rtk_fixed" translatable="false">RTK fixed</string>
+    <string name="gps_quality_rtk_float" translatable="false">RTK float</string>
+    <string name="gps_quality_other">Quality %1$d</string>
+    <string name="gps_quality_any">Any</string>
+    <string name="gps_quality_any_lowercase">any</string>
+
+    <!-- Calibrate menu -->
+    <string name="calibrate_title">Calibrate</string>
+    <string name="menu_wizard">Wizard</string>
+    <string name="menu_wizard_sub">Full calibration: knob positions, then the pump curve</string>
+    <string name="menu_potmeter">Potmeter calibration</string>
+    <string name="menu_potmeter_sub">The three knob positions only</string>
+    <string name="menu_sprayer">Sprayer</string>
+    <string name="menu_sprayer_sub">Width and guidance timeout</string>
+    <string name="menu_gps">GPS config</string>
+    <string name="menu_gps_sub">Baudrate and minimum fix quality</string>
+    <string name="menu_advanced">Advanced</string>
+    <string name="menu_advanced_sub">Calibration tables, settings, pump point correction</string>
+    <string name="menu_console" translatable="false">Console</string>
+    <string name="menu_console_sub">Raw protocol lines, GPS sentences, for the bench</string>
+    <string name="buzzer_title">Buzzer on the board</string>
+    <string name="buzzer_sub">Sounds while the dose is outside 5 %% of requested. The phone alarm is separate (Settings).</string>
+    <string name="calibrate_hint_connected">The wizard follows the same steps as the serial menu on the board.</string>
+    <string name="calibrate_hint_disconnected">Connect to the sprayer first.</string>
+
+    <!-- Calibration wizard -->
+    <string name="wizard_title_full">Calibration wizard</string>
+    <string name="wizard_title_dose">Potmeter calibration</string>
+    <string name="wizard_title_pump">Pump calibration</string>
+    <string name="wizard_starting">Starting…</string>
+    <string name="wizard_taking_calibration">Taking calibration on the board…</string>
+    <string name="wizard_saving">Saving on the board…</string>
+    <string name="wizard_pairing">Pairing with the sprayer: open the Bluetooth notification and enter the code shown on its display.</string>
+    <string name="wizard_link_lost">Link lost</string>
+    <string name="wizard_dose_label_minimum">MINIMUM</string>
+    <string name="wizard_dose_label_middle">MIDDLE</string>
+    <string name="wizard_dose_label_maximum">MAXIMUM</string>
+    <string name="wizard_knob_position_single">Knob position %1$d</string>
+    <string name="wizard_knob_position_of">Knob position %1$d of %2$d</string>
+    <string name="wizard_set_knob">Set the knob to the %1$s position, then capture.</string>
+    <string name="wizard_knob_reading">Knob reading</string>
+    <string name="wizard_capture">Capture</string>
+    <string name="wizard_dose_for_position">Dose for the %1$s position</string>
+    <string name="wizard_knob_captured">Knob reading captured: %1$d</string>
+    <string name="wizard_dose_field">Dose (l/ha)</string>
+    <string name="wizard_save_point">Save point %1$d</string>
+    <string name="wizard_find_start">Find the pump\'s start point</string>
+    <string name="wizard_find_start_hint">Slide up slowly until the pump just starts flowing, then capture.</string>
+    <string name="wizard_pump_duty">Pump duty</string>
+    <string name="wizard_board_reports_duty">Board reports pump duty %1$s</string>
+    <string name="wizard_capture_flowing">Pump is flowing: capture</string>
+    <string name="wizard_point_of">Point %1$d of %2$d</string>
+    <string name="wizard_point_running">Point %1$d of %2$d: running</string>
+    <string name="wizard_point_volume">Point %1$d of %2$d: volume</string>
+    <string name="wizard_jug_hint">Put the measuring jug in place. The pump runs for exactly one minute at this duty; the board times it and stops on its own.</string>
+    <string name="wizard_start_run">Start 1-minute run</string>
+    <string name="wizard_remaining">Remaining</string>
+    <string name="unit_seconds_short" translatable="false">s</string>
+    <string name="wizard_screen_may_sleep">The screen may go dark; the run continues on the board.</string>
+    <string name="wizard_stop_redo">Stop and redo this point</string>
+    <string name="wizard_run_complete">Run complete at duty %1$d. Enter the volume collected in the minute.</string>
+    <string name="wizard_volume_field">Volume (ml)</string>
+    <string name="wizard_save_and_next">Save and next point</string>
+    <string name="wizard_save_and_finish">Save and finish</string>
+    <string name="wizard_saved_on_board">Saved on the board</string>
+    <string name="wizard_knob_positions">Knob positions</string>
+    <string name="wizard_pump_curve">Pump curve</string>
+    <string name="wizard_dose_summary">  %1$d: analog %2$d, %3$d l/ha</string>
+    <string name="wizard_pwm_summary">  %1$d: duty %2$d, %3$d ml/min</string>
+    <string name="wizard_not_completed">Calibration not completed</string>
+    <string name="wizard_nothing_changed">Nothing was changed on the board beyond what was already saved.</string>
+
+    <!-- Messages published by the service and the wizard -->
+    <string name="msg_saved">Saved</string>
+    <string name="msg_connected">Connected</string>
+    <string name="msg_link_off">Bluetooth link off</string>
+    <string name="msg_searching">Searching for the sprayer…</string>
+    <string name="msg_connecting">Connecting…</string>
+    <string name="msg_board_busy">Board is busy: the serial wizard holds calibration</string>
+    <string name="msg_board_refused">Board refused: %1$s</string>
+    <string name="msg_pairing">Open the Bluetooth pairing notification and enter the code shown on the sprayer\'s display</string>
+    <string name="msg_cannot_start">Cannot start: %1$s</string>
+    <string name="msg_wizard_busy_serial">The serial wizard on the board holds calibration. Finish it there first.</string>
+    <string name="msg_wizard_busy_serial_short">The serial wizard on the board holds calibration</string>
+    <string name="msg_wizard_no_reading">No reading from the board yet</string>
+    <string name="msg_wizard_positive_number">Enter a positive whole number</string>
+    <string name="msg_wizard_slide_up">Slide up until the pump actually starts flowing before capturing</string>
+    <string name="msg_wizard_run_stopped">Run stopped, start it again</string>
+    <string name="msg_wizard_volume_range">Enter a whole number between 1 and %1$d</string>
+    <string name="msg_wizard_point_refused">Board refused a pump point</string>
+    <string name="msg_wizard_link_lost">Link lost; the board stopped the pump and kept its old calibration</string>
+
+    <!-- Potmeter screen -->
+    <string name="potmeter_title">Potmeter calibration</string>
+    <string name="potmeter_current">Current knob positions</string>
+    <string name="potmeter_live_reading">Live knob reading: %1$s of 4095</string>
+    <string name="potmeter_point">%1$d. %2$s</string>
+    <string name="potmeter_point_values">analog %1$d, %2$d l/ha</string>
+    <string name="potmeter_redo_all">Redo all three positions</string>
+    <string name="potmeter_hint">Each position is captured from the knob on the machine, then given its l/ha. Saved on the board only at the end; cancelling keeps the current values.</string>
+
+    <!-- Sprayer config -->
+    <string name="sprayer_title">Sprayer</string>
+    <string name="sprayer_width">Working width</string>
+    <string name="unit_cm" translatable="false">cm</string>
+    <string name="sprayer_width_hint">Between 50 and 5000. Used to turn l/ha into a pump flow at the current speed.</string>
+    <string name="sprayer_guidance">Guidance timeout</string>
+    <string name="unit_ms" translatable="false">ms</string>
+    <string name="sprayer_guidance_hint">Between 500 and 10000. Without a speed message for this long the pump stops.</string>
+    <string name="setting_on_board_now">On the board now: %1$s</string>
+    <string name="setting_not_read_yet">not read yet</string>
+    <string name="setting_value_with_unit" translatable="false">%1$d %2$s</string>
+    <string name="setting_field_label" translatable="false">%1$s (%2$s)</string>
+
+    <!-- GPS config -->
+    <string name="gps_title">GPS config</string>
+    <string name="gps_live">Live</string>
+    <string name="gps_fix">Fix</string>
+    <string name="gps_speed">Speed</string>
+    <string name="gps_min_quality">Minimum fix to dose</string>
+    <string name="gps_min_quality_hint">Below this the pump stops, like it does without a speed. RTK fixed accepts only a fixed solution, not float.</string>
+    <string name="gps_any_sub">Today\'s behaviour: dose on whatever arrives</string>
+    <string name="gps_baudrate">Receiver baudrate</string>
+    <string name="gps_baudrate_hint">Applied at once; the port reopens at the new rate.</string>
+
+    <!-- Advanced -->
+    <string name="advanced_title">Advanced</string>
+    <string name="advanced_reread">Re-read from the board</string>
+    <string name="advanced_knob_calibration">Knob calibration</string>
+    <string name="advanced_pump_curve">Pump curve</string>
+    <string name="advanced_column_index" translatable="false">#</string>
+    <string name="advanced_column_analog">Analog</string>
+    <string name="advanced_column_dose">Dose (l/ha)</string>
+    <string name="advanced_column_pwm" translatable="false">PWM</string>
+    <string name="advanced_column_flow">Flow (ml/min)</string>
+    <string name="advanced_board_settings">Board settings</string>
+    <string name="advanced_width">Width</string>
+    <string name="advanced_guidance_timeout">Guidance timeout</string>
+    <string name="advanced_gps_baudrate">GPS baudrate</string>
+    <string name="advanced_baud_index">index %1$d</string>
+    <string name="advanced_min_fix">Minimum fix to dose</string>
+    <string name="advanced_protocol">Protocol</string>
+    <string name="advanced_protocol_value" translatable="false">v%1$s</string>
+    <string name="advanced_firmware">Firmware</string>
+    <string name="advanced_correct_flow">Correct a point\'s flow</string>
+    <string name="advanced_value_cm" translatable="false">%1$d cm</string>
+    <string name="advanced_value_ms" translatable="false">%1$d ms</string>
+    <string name="advanced_field_ml_min" translatable="false">ml/min</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_alarm_card">Dose alarm</string>
+    <string name="settings_alarm_switch">Sound the alarm</string>
+    <string name="settings_alarm_switch_sub">While the board reports the dose outside 5 %% of requested. The board\'s own buzzer sounds regardless.</string>
+    <string name="settings_preview">Preview %1$s</string>
+    <string name="settings_connect_to_preview">Connect first to preview sounds.</string>
+    <string name="settings_volume">Volume</string>
+    <string name="settings_phone_card">Phone</string>
+    <string name="settings_vibrate">Vibrate when the alarm starts</string>
+    <string name="settings_keep_screen_on">Keep screen on</string>
+    <string name="settings_keep_screen_on_sub">Off: the screen may sleep, the link and the alarm keep working</string>
+    <string name="settings_battery_ok">Battery optimisation is off for this app, good.</string>
+    <string name="settings_battery_hint">For a reliable link with the screen off, exclude this app from battery optimisation.</string>
+    <string name="settings_battery_button">Disable battery optimisation</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_build" translatable="false">MeijWorks SprayComputer LD %1$s (%2$d), commit %3$s</string>
+    <string name="settings_about_blurb">Companion app for the MeijWorks haulm sprayer computer.</string>
+
+    <!-- Alarm sounds -->
+    <string name="sound_buzzer">Buzzer</string>
+    <string name="sound_buzzer_desc">Harsh continuous buzzer</string>
+    <string name="sound_wrong">Wrong answer</string>
+    <string name="sound_wrong_desc">Low two-tone \"errr\" buzz</string>
+    <string name="sound_siren">Siren</string>
+    <string name="sound_siren_desc">Rising and falling siren</string>
+    <string name="sound_beeps">Beep beep</string>
+    <string name="sound_beeps_desc">Fast high-pitched beeps</string>
+    <string name="sound_klaxon">Klaxon</string>
+    <string name="sound_klaxon_desc">Rattling horn</string>
+    <string name="sound_system">Phone alarm</string>
+    <string name="sound_system_desc">The alarm tone set on this phone</string>
+
+    <!-- Permissions -->
+    <string name="permission_bluetooth_needed">Bluetooth permission is needed to find the sprayer</string>
 </resources>

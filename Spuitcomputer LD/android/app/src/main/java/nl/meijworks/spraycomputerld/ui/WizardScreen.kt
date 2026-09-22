@@ -34,12 +34,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
+import nl.meijworks.spraycomputerld.text
 import nl.meijworks.spraycomputerld.protocol.WizardMath
 import nl.meijworks.spraycomputerld.service.SprayerController
 import nl.meijworks.spraycomputerld.service.WizardMode
@@ -61,7 +64,7 @@ fun WizardScreen(sprayer: SprayerState, title: String, onClose: () -> Unit) {
                 title = { Text(title) },
                 navigationIcon = {
                     IconButton(onClick = { SprayerController.cancelWizard(); onClose() }) {
-                        Icon(Icons.Filled.Close, contentDescription = "Cancel")
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.action_cancel))
                     }
                 },
             )
@@ -75,30 +78,39 @@ fun WizardScreen(sprayer: SprayerState, title: String, onClose: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             if (w == null) {
-                Text("Starting…")
+                Text(stringResource(R.string.wizard_starting))
             } else {
                 Progress(w)
                 when (w.step) {
-                    WizardStep.STARTING -> Waiting("Taking calibration on the board…")
+                    WizardStep.STARTING -> Waiting(stringResource(R.string.wizard_taking_calibration))
                     WizardStep.DOSE_CAPTURE -> DoseCapture(w, sprayer)
                     WizardStep.DOSE_ENTER -> DoseEnter(w)
                     WizardStep.PUMP_FIND -> PumpFind(w, sprayer)
                     WizardStep.PUMP_STEP_READY -> PumpStepReady(w)
                     WizardStep.PUMP_RUNNING -> PumpRunning(w)
                     WizardStep.PUMP_ENTER -> PumpEnter(w)
-                    WizardStep.SAVING -> Waiting("Saving on the board…")
+                    WizardStep.SAVING -> Waiting(stringResource(R.string.wizard_saving))
                     WizardStep.DONE -> Done(w, onClose)
                     WizardStep.FAILED -> Failed(w, onClose)
                 }
                 if (sprayer.pairing) {
-                    Text("Pairing with the sprayer: open the Bluetooth notification and enter the code shown on its display.", color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                    Text(
+                        stringResource(R.string.wizard_pairing),
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                    )
                 }
                 w.message?.let {
-                    Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                    Text(
+                        it.text(),
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                    )
                 }
                 if (!sprayer.connected && w.step != WizardStep.FAILED && w.step != WizardStep.DONE) {
-                    Text("Link lost", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.wizard_link_lost), color = MaterialTheme.colorScheme.error)
                 }
             }
             Spacer(Modifier.height(24.dp))
@@ -137,16 +149,20 @@ private fun Waiting(text: String) {
 private fun DoseCapture(w: WizardState, sprayer: SprayerState) {
     val raw = sprayer.status?.raw
     StepCard(
-        title = if (w.mode == WizardMode.DOSE_SINGLE) "Knob position ${w.doseIndex + 1}"
-        else "Knob position ${w.doseIndex + 1} of ${WizardMath.DOSE_POINTS}",
+        title = if (w.mode == WizardMode.DOSE_SINGLE) stringResource(R.string.wizard_knob_position_single, w.doseIndex + 1)
+        else stringResource(R.string.wizard_knob_position_of, w.doseIndex + 1, WizardMath.DOSE_POINTS),
     ) {
-        Text("Set the knob to the ${w.doseLabel} position, then capture.")
-        BigValue(label = "Knob reading", value = raw?.toString() ?: "–", unit = "of 4095")
+        Text(stringResource(R.string.wizard_set_knob, stringResource(w.doseLabel)))
+        BigValue(
+            label = stringResource(R.string.wizard_knob_reading),
+            value = raw?.toString() ?: stringResource(R.string.value_none),
+            unit = stringResource(R.string.unit_of_4095),
+        )
         Button(
             onClick = { SprayerController.wizardCaptureDose(raw) },
             enabled = !w.busy && raw != null,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Capture") }
+        ) { Text(stringResource(R.string.wizard_capture)) }
     }
 }
 
@@ -154,12 +170,12 @@ private fun DoseCapture(w: WizardState, sprayer: SprayerState) {
 private fun DoseEnter(w: WizardState) {
     var text by rememberSaveable(w.doseIndex) { mutableStateOf("") }
     val value = text.toIntOrNull()
-    StepCard(title = "Dose for the ${w.doseLabel} position") {
-        Text("Knob reading captured: ${w.capturedAnalog}")
+    StepCard(title = stringResource(R.string.wizard_dose_for_position, stringResource(w.doseLabel))) {
+        Text(stringResource(R.string.wizard_knob_captured, w.capturedAnalog ?: 0))
         OutlinedTextField(
             value = text,
             onValueChange = { text = it.filter { c -> c.isDigit() } },
-            label = { Text("Dose (l/ha)") },
+            label = { Text(stringResource(R.string.wizard_dose_field)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
@@ -168,7 +184,7 @@ private fun DoseEnter(w: WizardState) {
             onClick = { value?.let { SprayerController.wizardEnterDose(it) } },
             enabled = !w.busy && value != null && value > 0,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Save point ${w.doseIndex + 1}") }
+        ) { Text(stringResource(R.string.wizard_save_point, w.doseIndex + 1)) }
     }
 }
 
@@ -176,9 +192,13 @@ private fun DoseEnter(w: WizardState) {
 
 @Composable
 private fun PumpFind(w: WizardState, sprayer: SprayerState) {
-    StepCard(title = "Find the pump's start point") {
-        Text("Slide up slowly until the pump just starts flowing, then capture.")
-        BigValue(label = "Pump duty", value = w.findDuty.toString(), unit = "of 4095")
+    StepCard(title = stringResource(R.string.wizard_find_start)) {
+        Text(stringResource(R.string.wizard_find_start_hint))
+        BigValue(
+            label = stringResource(R.string.wizard_pump_duty),
+            value = w.findDuty.toString(),
+            unit = stringResource(R.string.unit_of_4095),
+        )
         Slider(
             value = w.findDuty.toFloat(),
             onValueChange = { SprayerController.wizardSetFindDuty(it.toInt()) },
@@ -186,7 +206,7 @@ private fun PumpFind(w: WizardState, sprayer: SprayerState) {
             enabled = !w.busy,
         )
         Text(
-            "Board reports pump duty ${sprayer.status?.pumpPwm ?: "–"}",
+            stringResource(R.string.wizard_board_reports_duty, sprayer.status?.pumpPwm?.toString() ?: stringResource(R.string.value_none)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -194,38 +214,46 @@ private fun PumpFind(w: WizardState, sprayer: SprayerState) {
             onClick = { SprayerController.wizardCaptureStart() },
             enabled = !w.busy && w.findDuty >= WizardMath.MIN_START_DUTY,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Pump is flowing: capture") }
+        ) { Text(stringResource(R.string.wizard_capture_flowing)) }
     }
 }
 
 @Composable
 private fun PumpStepReady(w: WizardState) {
-    StepCard(title = "Point ${w.pwmIndex + 1} of ${w.pwmSteps.size}") {
-        Text("Put the measuring jug in place. The pump runs for exactly one minute at this duty; the board times it and stops on its own.")
-        BigValue(label = "Pump duty", value = w.currentPwmDuty.toString(), unit = "of 4095")
+    StepCard(title = stringResource(R.string.wizard_point_of, w.pwmIndex + 1, w.pwmSteps.size)) {
+        Text(stringResource(R.string.wizard_jug_hint))
+        BigValue(
+            label = stringResource(R.string.wizard_pump_duty),
+            value = w.currentPwmDuty.toString(),
+            unit = stringResource(R.string.unit_of_4095),
+        )
         Button(
             onClick = { SprayerController.wizardStartRun() },
             enabled = !w.busy,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("Start 1-minute run") }
+        ) { Text(stringResource(R.string.wizard_start_run)) }
     }
 }
 
 @Composable
 private fun PumpRunning(w: WizardState) {
-    StepCard(title = "Point ${w.pwmIndex + 1} of ${w.pwmSteps.size}: running") {
-        BigValue(label = "Remaining", value = (w.secondsRemaining ?: 0).toString(), unit = "s")
+    StepCard(title = stringResource(R.string.wizard_point_running, w.pwmIndex + 1, w.pwmSteps.size)) {
+        BigValue(
+            label = stringResource(R.string.wizard_remaining),
+            value = (w.secondsRemaining ?: 0).toString(),
+            unit = stringResource(R.string.unit_seconds_short),
+        )
         LinearProgressIndicator(
             progress = { 1f - (w.secondsRemaining ?: 0).toFloat() / WizardMath.RUN_SECONDS },
             modifier = Modifier.fillMaxWidth(),
         )
         Text(
-            "The screen may go dark; the run continues on the board.",
+            stringResource(R.string.wizard_screen_may_sleep),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         OutlinedButton(onClick = { SprayerController.wizardStopRun() }, modifier = Modifier.fillMaxWidth()) {
-            Text("Stop and redo this point")
+            Text(stringResource(R.string.wizard_stop_redo))
         }
     }
 }
@@ -234,12 +262,12 @@ private fun PumpRunning(w: WizardState) {
 private fun PumpEnter(w: WizardState) {
     var text by rememberSaveable(w.pwmIndex) { mutableStateOf("") }
     val value = text.toIntOrNull()
-    StepCard(title = "Point ${w.pwmIndex + 1} of ${w.pwmSteps.size}: volume") {
-        Text("Run complete at duty ${w.currentPwmDuty}. Enter the volume collected in the minute.")
+    StepCard(title = stringResource(R.string.wizard_point_volume, w.pwmIndex + 1, w.pwmSteps.size)) {
+        Text(stringResource(R.string.wizard_run_complete, w.currentPwmDuty))
         OutlinedTextField(
             value = text,
             onValueChange = { text = it.filter { c -> c.isDigit() } },
-            label = { Text("Volume (ml)") },
+            label = { Text(stringResource(R.string.wizard_volume_field)) },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
@@ -248,7 +276,12 @@ private fun PumpEnter(w: WizardState) {
             onClick = { value?.let { SprayerController.wizardEnterVolume(it) } },
             enabled = !w.busy && value != null && value in 1..WizardMath.MAX_FLOW_ML_MIN,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text(if (w.pwmIndex + 1 < w.pwmSteps.size) "Save and next point" else "Save and finish") }
+        ) {
+        Text(
+            if (w.pwmIndex + 1 < w.pwmSteps.size) stringResource(R.string.wizard_save_and_next)
+            else stringResource(R.string.wizard_save_and_finish)
+        )
+    }
     }
 }
 
@@ -256,24 +289,32 @@ private fun PumpEnter(w: WizardState) {
 
 @Composable
 private fun Done(w: WizardState, onClose: () -> Unit) {
-    StepCard(title = "Saved on the board") {
+    StepCard(title = stringResource(R.string.wizard_saved_on_board)) {
         if (w.doseCaptured.isNotEmpty()) {
-            Text("Knob positions", fontWeight = FontWeight.SemiBold)
-            w.doseCaptured.forEach { Text("  ${it.index + 1}: analog ${it.analog}, ${it.doseLha} l/ha") }
+            Text(stringResource(R.string.wizard_knob_positions), fontWeight = FontWeight.SemiBold)
+            w.doseCaptured.forEach {
+                Text(stringResource(R.string.wizard_dose_summary, it.index + 1, it.analog, it.doseLha))
+            }
         }
         if (w.pwmCaptured.isNotEmpty()) {
-            Text("Pump curve", fontWeight = FontWeight.SemiBold)
-            w.pwmCaptured.forEach { Text("  ${it.index + 1}: duty ${it.pwm}, ${it.flowMlMin} ml/min") }
+            Text(stringResource(R.string.wizard_pump_curve), fontWeight = FontWeight.SemiBold)
+            w.pwmCaptured.forEach {
+                Text(stringResource(R.string.wizard_pwm_summary, it.index + 1, it.pwm, it.flowMlMin))
+            }
         }
-        Button(onClick = { SprayerController.clearWizard(); onClose() }, modifier = Modifier.fillMaxWidth()) { Text("Done") }
+        Button(onClick = { SprayerController.clearWizard(); onClose() }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.action_done))
+        }
     }
 }
 
 @Composable
 private fun Failed(w: WizardState, onClose: () -> Unit) {
-    StepCard(title = "Calibration not completed") {
-        Text("Nothing was changed on the board beyond what was already saved.")
-        Button(onClick = { SprayerController.clearWizard(); onClose() }, modifier = Modifier.fillMaxWidth()) { Text("Close") }
+    StepCard(title = stringResource(R.string.wizard_not_completed)) {
+        Text(stringResource(R.string.wizard_nothing_changed))
+        Button(onClick = { SprayerController.clearWizard(); onClose() }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.action_close))
+        }
     }
 }
 

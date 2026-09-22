@@ -1,5 +1,7 @@
 package nl.meijworks.spraycomputerld.protocol
 
+import nl.meijworks.spraycomputerld.R
+import nl.meijworks.spraycomputerld.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -72,7 +74,7 @@ class SprayerProtocolTest {
         assertEquals(52.5, g.latitude, 1e-9)
         assertEquals(6.25, g.longitude, 1e-9)
         assertEquals(600L, g.fixAgeMs)
-        assertEquals("RTK fixed", g.qualityLabel)
+        assertEquals(UiText.Res(R.string.gps_quality_rtk_fixed), g.qualityText)
 
         val none = (SprayerProtocol.parse("G:1,0.000000,0.000000,-1") as BoardMessage.Gps).sample
         assertNull(none.fixAgeMs)
@@ -81,7 +83,7 @@ class SprayerProtocolTest {
         val sentinel = (SprayerProtocol.parse("G:0,999999.875000,999999.875000,-1") as BoardMessage.Gps).sample
         assertFalse(sentinel.hasPosition)
         assertTrue(g.hasPosition)
-        assertEquals("GPS", none.qualityLabel)
+        assertEquals(UiText.Res(R.string.gps_quality_gps), none.qualityText)
     }
 
     @Test

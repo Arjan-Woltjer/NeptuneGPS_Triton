@@ -23,6 +23,8 @@ import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.Settings
 import nl.meijworks.spraycomputerld.SettingsState
 import nl.meijworks.spraycomputerld.SprayerState
+import nl.meijworks.spraycomputerld.UiText
+import nl.meijworks.spraycomputerld.uiText
 import nl.meijworks.spraycomputerld.audio.AlarmPlayer
 import nl.meijworks.spraycomputerld.audio.AlarmSound
 import nl.meijworks.spraycomputerld.ble.SprayerBleClient
@@ -137,7 +139,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     fun setConfig(key: String, value: Long) {
         lifecycleScope.launch {
             val r = command(SprayerProtocol.cmdCfgSet(key, value))
-            if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = "Saved") }
+            if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_saved)) }
             command(SprayerProtocol.CMD_CFG_GET)
         }
     }
@@ -150,7 +152,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
             if (r == Reply.Ok) r = command(SprayerProtocol.cmdCalPwm(index, point.pwm, flowMlMin))
             if (r == Reply.Ok) r = command(SprayerProtocol.CMD_CAL_SAVE)
             command(SprayerProtocol.cmdCalMode(false))
-            if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = "Saved") }
+            if (r == Reply.Ok) SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_saved)) }
             command(SprayerProtocol.CMD_CAL_GET)
         }
     }
@@ -203,10 +205,10 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
                 gps = if (state == ConnectionState.CONNECTED) it.gps else null,
                 runSecondsRemaining = null,
                 lastMessage = when (state) {
-                    ConnectionState.OFF -> "Bluetooth link off"
-                    ConnectionState.SCANNING -> "Searching for the sprayer…"
-                    ConnectionState.CONNECTING -> "Connecting…"
-                    ConnectionState.CONNECTED -> "Connected"
+                    ConnectionState.OFF -> uiText(R.string.msg_link_off)
+                    ConnectionState.SCANNING -> uiText(R.string.msg_searching)
+                    ConnectionState.CONNECTING -> uiText(R.string.msg_connecting)
+                    ConnectionState.CONNECTED -> uiText(R.string.msg_connected)
                 },
             )
         }
@@ -257,12 +259,12 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
             }
             BoardMessage.Busy -> {
                 pendingDose.clear(); pendingPwm.clear()
-                SprayerController.publish { it.copy(lastMessage = "Board is busy: the serial wizard holds calibration") }
+                SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_board_busy)) }
                 pendingReplies.poll()?.complete(Reply.Busy)
             }
             is BoardMessage.Error -> {
                 pendingDose.clear(); pendingPwm.clear()
-                SprayerController.publish { it.copy(lastMessage = "Board refused: ${m.reason}") }
+                SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_board_refused, m.reason)) }
                 pendingReplies.poll()?.complete(Reply.Error(m.reason))
             }
             is BoardMessage.Nmea -> Unit   // already in the log; nothing else to do
@@ -271,12 +273,16 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     }
 
     override fun onError(message: String) {
-        SprayerController.publish { it.copy(lastMessage = message) }
+        // Straight from the BLE stack; not ours to translate.
+        SprayerController.publish { it.copy(lastMessage = UiText.Raw(message)) }
     }
 
     override fun onPairing(active: Boolean) {
         SprayerController.publish {
-            it.copy(pairing = active, lastMessage = if (active) "Open the Bluetooth pairing notification and enter the code shown on the sprayer's display" else it.lastMessage)
+            it.copy(
+                pairing = active,
+                lastMessage = if (active) uiText(R.string.msg_pairing) else it.lastMessage,
+            )
         }
     }
 
@@ -293,7 +299,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
             player.stop()
         }
         SprayerController.publish {
-            it.copy(status = s, statusAt = now, alarmActive = alarmLooping, lastMessage = "Connected")
+            it.copy(status = s, statusAt = now, alarmActive = alarmLooping, lastMessage = uiText(R.string.msg_connected))
         }
     }
 
@@ -342,7 +348,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         } catch (e: Exception) {
             // Typically a missing BLUETOOTH_CONNECT permission on Android 14.
             Log.e(TAG, "startForeground failed", e)
-            SprayerController.publish { it.copy(lastMessage = "Cannot start: ${e.message}") }
+            SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_cannot_start, e.message.orEmpty())) }
             false
         }
     }

@@ -22,8 +22,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
 import nl.meijworks.spraycomputerld.protocol.WizardMath
 import nl.meijworks.spraycomputerld.service.SprayerController
@@ -39,10 +41,10 @@ fun PotmeterScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Potmeter calibration") },
+                title = { Text(stringResource(R.string.potmeter_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -54,24 +56,31 @@ fun PotmeterScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () 
         ) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Current knob positions", style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(R.string.potmeter_current), style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "Live knob reading: ${sprayer.status?.raw ?: "–"} of 4095",
+                        stringResource(
+                            R.string.potmeter_live_reading,
+                            sprayer.status?.raw?.toString() ?: stringResource(R.string.value_none),
+                        ),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (sprayer.dosePoints.isEmpty()) {
-                        Text("Not read yet", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     sprayer.dosePoints.forEach { p ->
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(
-                                    "${p.index + 1}. ${WizardMath.DOSE_LABELS.getOrElse(p.index) { "" }}",
+                                    stringResource(
+                                        R.string.potmeter_point,
+                                        p.index + 1,
+                                        WizardMath.DOSE_LABELS.getOrNull(p.index)?.let { stringResource(it) }.orEmpty(),
+                                    ),
                                     fontWeight = FontWeight.Medium,
                                 )
                                 Text(
-                                    "analog ${p.analog}, ${p.doseLha} l/ha",
+                                    stringResource(R.string.potmeter_point_values, p.analog, p.doseLha),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -82,7 +91,7 @@ fun PotmeterScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () 
                                     onStartWizard()
                                 },
                                 enabled = sprayer.connected,
-                            ) { Text("Redo") }
+                            ) { Text(stringResource(R.string.action_redo)) }
                         }
                     }
                 }
@@ -94,10 +103,9 @@ fun PotmeterScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () 
                 },
                 enabled = sprayer.connected,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text("Redo all three positions") }
+            ) { Text(stringResource(R.string.potmeter_redo_all)) }
             Text(
-                "Each position is captured from the knob on the machine, then given its l/ha. " +
-                    "Saved on the board only at the end; cancelling keeps the current values.",
+                stringResource(R.string.potmeter_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

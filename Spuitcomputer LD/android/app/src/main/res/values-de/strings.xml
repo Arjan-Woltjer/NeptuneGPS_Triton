@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Meldungen des Vordergrunddienstes -->
+    <string name="notification_channel_name">Verbindung zur Spritze</string>
+    <string name="notification_channel_description">Hält die Verbindung zur Spritze aufrecht, während der Bildschirm aus ist</string>
+    <string name="notification_disconnected">Spritze wird gesucht…</string>
+    <string name="notification_connected_no_status">Verbunden</string>
+    <string name="notification_connected">Soll %1$.0f l/ha, ist %2$s l/ha</string>
+    <string name="notification_stop">Stopp</string>
+
+    <!-- Allgemeine Schaltflächen und Einheiten -->
+    <string name="action_back">Zurück</string>
+    <string name="action_settings">Einstellungen</string>
+    <string name="action_cancel">Abbrechen</string>
+    <string name="action_close">Schließen</string>
+    <string name="action_done">Fertig</string>
+    <string name="action_save">Speichern</string>
+    <string name="action_redo">Wiederholen</string>
+    <string name="action_save_to_board">Auf dem Rechner speichern</string>
+    <string name="value_not_read_yet">Noch nicht ausgelesen</string>
+    <string name="unit_of_4095">von 4095</string>
+
+    <!-- Statusbildschirm -->
+    <string name="connection_connected">Verbunden</string>
+    <string name="connection_connecting">Verbinden</string>
+    <string name="connection_scanning">Suchen</string>
+    <string name="connection_off">Nicht verbunden</string>
+    <string name="connection_pairing">Koppeln: Bluetooth-Benachrichtigung öffnen und den Code vom Display der Spritze eingeben</string>
+    <string name="connection_firmware">Firmware %1$s</string>
+    <string name="connection_tap_connect">Auf Verbinden tippen, um die Spritze zu suchen</string>
+    <string name="action_connect">Verbinden</string>
+    <string name="action_disconnect">Trennen</string>
+    <string name="tile_speed">Geschwindigkeit</string>
+    <string name="tile_requested">Soll</string>
+    <string name="tile_actual">Ist</string>
+    <string name="status_deviation">Aufwandmenge mehr als 5 %% vom Soll entfernt: Geschwindigkeit anpassen</string>
+    <string name="status_stale">Kurzzeitig kein Status vom Rechner…</string>
+    <string name="action_calibrate">Kalibrieren</string>
+    <string name="details_title">Details</string>
+    <string name="detail_flow">Durchfluss</string>
+    <string name="detail_knob">Drehknopf</string>
+    <string name="detail_pump_pwm">Pumpen-PWM</string>
+    <string name="detail_calibration">Kalibrierung</string>
+    <string name="calibration_held_by_app">von dieser App belegt</string>
+    <string name="calibration_held_by_serial">vom seriellen Assistenten belegt</string>
+    <string name="detail_pump_run">Pumpenlauf</string>
+    <string name="value_seconds_remaining">noch %1$d s</string>
+    <string name="detail_gps">GPS</string>
+    <string name="detail_fix_age">Alter des Fix</string>
+    <string name="detail_no_fix_yet">noch kein Fix</string>
+    <string name="detail_position">Position</string>
+    <string name="io_inputs">Eingänge</string>
+    <string name="io_outputs">Ausgänge</string>
+
+    <!-- GPS-Fixqualität -->
+    <string name="gps_quality_none">Kein Fix</string>
+    <string name="gps_quality_other">Qualität %1$d</string>
+    <string name="gps_quality_any">Alle</string>
+    <string name="gps_quality_any_lowercase">alle</string>
+
+    <!-- Kalibriermenü -->
+    <string name="calibrate_title">Kalibrieren</string>
+    <string name="menu_wizard">Assistent</string>
+    <string name="menu_wizard_sub">Vollständige Kalibrierung: Knopfstellungen, danach die Pumpenkennlinie</string>
+    <string name="menu_potmeter">Potentiometer-Kalibrierung</string>
+    <string name="menu_potmeter_sub">Nur die drei Knopfstellungen</string>
+    <string name="menu_sprayer">Spritze</string>
+    <string name="menu_sprayer_sub">Arbeitsbreite und Lenk-Timeout</string>
+    <string name="menu_gps">GPS-Einstellungen</string>
+    <string name="menu_gps_sub">Baudrate und minimale Fixqualität</string>
+    <string name="menu_advanced">Erweitert</string>
+    <string name="menu_advanced_sub">Kalibriertabellen, Einstellungen, Korrektur eines Pumpenpunkts</string>
+    <string name="menu_console_sub">Rohe Protokollzeilen, GPS-Sätze, für die Werkbank</string>
+    <string name="buzzer_title">Summer am Rechner</string>
+    <string name="buzzer_sub">Ertönt, solange die Aufwandmenge mehr als 5 %% vom Soll abweicht. Der Alarm auf dem Telefon ist davon getrennt (Einstellungen).</string>
+    <string name="calibrate_hint_connected">Der Assistent folgt denselben Schritten wie das serielle Menü am Rechner.</string>
+    <string name="calibrate_hint_disconnected">Zuerst mit der Spritze verbinden.</string>
+
+    <!-- Kalibrierassistent -->
+    <string name="wizard_title_full">Kalibrierassistent</string>
+    <string name="wizard_title_dose">Potentiometer-Kalibrierung</string>
+    <string name="wizard_title_pump">Pumpenkalibrierung</string>
+    <string name="wizard_starting">Wird gestartet…</string>
+    <string name="wizard_taking_calibration">Kalibrierung am Rechner wird übernommen…</string>
+    <string name="wizard_saving">Wird am Rechner gespeichert…</string>
+    <string name="wizard_pairing">Koppeln mit der Spritze: Bluetooth-Benachrichtigung öffnen und den Code vom Display eingeben.</string>
+    <string name="wizard_link_lost">Verbindung verloren</string>
+    <string name="wizard_dose_label_minimum">MINIMUM</string>
+    <string name="wizard_dose_label_middle">MITTE</string>
+    <string name="wizard_dose_label_maximum">MAXIMUM</string>
+    <string name="wizard_knob_position_single">Knopfstellung %1$d</string>
+    <string name="wizard_knob_position_of">Knopfstellung %1$d von %2$d</string>
+    <string name="wizard_set_knob">Den Knopf auf die Stellung %1$s drehen und den Wert übernehmen.</string>
+    <string name="wizard_knob_reading">Knopfwert</string>
+    <string name="wizard_capture">Übernehmen</string>
+    <string name="wizard_dose_for_position">Aufwandmenge für die Stellung %1$s</string>
+    <string name="wizard_knob_captured">Knopfwert übernommen: %1$d</string>
+    <string name="wizard_dose_field">Aufwandmenge (l/ha)</string>
+    <string name="wizard_save_point">Punkt %1$d speichern</string>
+    <string name="wizard_find_start">Startpunkt der Pumpe suchen</string>
+    <string name="wizard_find_start_hint">Langsam hochschieben, bis die Pumpe gerade zu fördern beginnt, dann übernehmen.</string>
+    <string name="wizard_pump_duty">Pumpenansteuerung</string>
+    <string name="wizard_board_reports_duty">Der Rechner meldet Pumpenansteuerung %1$s</string>
+    <string name="wizard_capture_flowing">Pumpe fördert: übernehmen</string>
+    <string name="wizard_point_of">Punkt %1$d von %2$d</string>
+    <string name="wizard_point_running">Punkt %1$d von %2$d: läuft</string>
+    <string name="wizard_point_volume">Punkt %1$d von %2$d: Menge</string>
+    <string name="wizard_jug_hint">Den Messbecher bereitstellen. Die Pumpe läuft genau eine Minute mit dieser Ansteuerung; der Rechner misst die Zeit und stoppt von selbst.</string>
+    <string name="wizard_start_run">Minute starten</string>
+    <string name="wizard_remaining">Verbleibend</string>
+    <string name="wizard_screen_may_sleep">Der Bildschirm darf dunkel werden; die Minute läuft am Rechner weiter.</string>
+    <string name="wizard_stop_redo">Stoppen und diesen Punkt wiederholen</string>
+    <string name="wizard_run_complete">Minute bei Ansteuerung %1$d beendet. Die aufgefangene Menge eingeben.</string>
+    <string name="wizard_volume_field">Menge (ml)</string>
+    <string name="wizard_save_and_next">Speichern und nächster Punkt</string>
+    <string name="wizard_save_and_finish">Speichern und abschließen</string>
+    <string name="wizard_saved_on_board">Am Rechner gespeichert</string>
+    <string name="wizard_knob_positions">Knopfstellungen</string>
+    <string name="wizard_pump_curve">Pumpenkennlinie</string>
+    <string name="wizard_dose_summary">  %1$d: analog %2$d, %3$d l/ha</string>
+    <string name="wizard_pwm_summary">  %1$d: Ansteuerung %2$d, %3$d ml/min</string>
+    <string name="wizard_not_completed">Kalibrierung nicht abgeschlossen</string>
+    <string name="wizard_nothing_changed">Am Rechner wurde nichts geändert außer dem, was bereits gespeichert war.</string>
+
+    <!-- Meldungen des Dienstes und des Assistenten -->
+    <string name="msg_saved">Gespeichert</string>
+    <string name="msg_connected">Verbunden</string>
+    <string name="msg_link_off">Bluetooth-Verbindung aus</string>
+    <string name="msg_searching">Spritze wird gesucht…</string>
+    <string name="msg_connecting">Verbinden…</string>
+    <string name="msg_board_busy">Der Rechner ist belegt: der serielle Assistent hat die Kalibrierung</string>
+    <string name="msg_board_refused">Der Rechner lehnt ab: %1$s</string>
+    <string name="msg_pairing">Die Bluetooth-Kopplungsbenachrichtigung öffnen und den Code vom Display der Spritze eingeben</string>
+    <string name="msg_cannot_start">Start fehlgeschlagen: %1$s</string>
+    <string name="msg_wizard_busy_serial">Der serielle Assistent am Rechner hat die Kalibrierung. Beenden Sie ihn zuerst dort.</string>
+    <string name="msg_wizard_busy_serial_short">Der serielle Assistent am Rechner hat die Kalibrierung</string>
+    <string name="msg_wizard_no_reading">Noch kein Wert vom Rechner</string>
+    <string name="msg_wizard_positive_number">Eine positive ganze Zahl eingeben</string>
+    <string name="msg_wizard_slide_up">Hochschieben, bis die Pumpe wirklich fördert, erst dann übernehmen</string>
+    <string name="msg_wizard_run_stopped">Minute gestoppt, erneut starten</string>
+    <string name="msg_wizard_volume_range">Eine ganze Zahl zwischen 1 und %1$d eingeben</string>
+    <string name="msg_wizard_point_refused">Der Rechner lehnt einen Pumpenpunkt ab</string>
+    <string name="msg_wizard_link_lost">Verbindung verloren; der Rechner hat die Pumpe gestoppt und die alte Kalibrierung behalten</string>
+
+    <!-- Potentiometer-Bildschirm -->
+    <string name="potmeter_title">Potentiometer-Kalibrierung</string>
+    <string name="potmeter_current">Aktuelle Knopfstellungen</string>
+    <string name="potmeter_live_reading">Aktueller Knopfwert: %1$s von 4095</string>
+    <string name="potmeter_point">%1$d. %2$s</string>
+    <string name="potmeter_point_values">analog %1$d, %2$d l/ha</string>
+    <string name="potmeter_redo_all">Alle drei Stellungen wiederholen</string>
+    <string name="potmeter_hint">Jede Stellung wird vom Knopf an der Maschine übernommen und bekommt danach ihre l/ha. Erst am Ende am Rechner gespeichert; ein Abbruch lässt die aktuellen Werte stehen.</string>
+
+    <!-- Spritzeneinstellungen -->
+    <string name="sprayer_title">Spritze</string>
+    <string name="sprayer_width">Arbeitsbreite</string>
+    <string name="sprayer_width_hint">Zwischen 50 und 5000. Rechnet l/ha bei der aktuellen Geschwindigkeit in einen Pumpendurchfluss um.</string>
+    <string name="sprayer_guidance">Lenk-Timeout</string>
+    <string name="sprayer_guidance_hint">Zwischen 500 und 10000. Bleibt eine Geschwindigkeitsmeldung so lange aus, stoppt die Pumpe.</string>
+    <string name="setting_on_board_now">Jetzt am Rechner: %1$s</string>
+    <string name="setting_not_read_yet">noch nicht ausgelesen</string>
+
+    <!-- GPS-Einstellungen -->
+    <string name="gps_title">GPS-Einstellungen</string>
+    <string name="gps_live">Aktuell</string>
+    <string name="gps_fix">Fix</string>
+    <string name="gps_speed">Geschwindigkeit</string>
+    <string name="gps_min_quality">Mindest-Fix zum Dosieren</string>
+    <string name="gps_min_quality_hint">Darunter stoppt die Pumpe, genau wie ohne Geschwindigkeit. RTK fixed akzeptiert nur eine Fixed-Lösung, keine Float-Lösung.</string>
+    <string name="gps_any_sub">Bisheriges Verhalten: dosieren mit allem, was hereinkommt</string>
+    <string name="gps_baudrate">Baudrate des Empfängers</string>
+    <string name="gps_baudrate_hint">Wird sofort übernommen; der Port öffnet mit der neuen Rate.</string>
+
+    <!-- Erweitert -->
+    <string name="advanced_title">Erweitert</string>
+    <string name="advanced_reread">Erneut vom Rechner auslesen</string>
+    <string name="advanced_knob_calibration">Knopfkalibrierung</string>
+    <string name="advanced_pump_curve">Pumpenkennlinie</string>
+    <string name="advanced_column_analog">Analog</string>
+    <string name="advanced_column_dose">Aufwandmenge (l/ha)</string>
+    <string name="advanced_column_flow">Durchfluss (ml/min)</string>
+    <string name="advanced_board_settings">Einstellungen am Rechner</string>
+    <string name="advanced_width">Arbeitsbreite</string>
+    <string name="advanced_guidance_timeout">Lenk-Timeout</string>
+    <string name="advanced_gps_baudrate">GPS-Baudrate</string>
+    <string name="advanced_baud_index">Index %1$d</string>
+    <string name="advanced_min_fix">Mindest-Fix zum Dosieren</string>
+    <string name="advanced_protocol">Protokoll</string>
+    <string name="advanced_firmware">Firmware</string>
+    <string name="advanced_correct_flow">Durchfluss eines Punkts korrigieren</string>
+
+    <!-- Einstellungen -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_alarm_card">Dosieralarm</string>
+    <string name="settings_alarm_switch">Alarm ertönen lassen</string>
+    <string name="settings_alarm_switch_sub">Solange der Rechner meldet, dass die Aufwandmenge mehr als 5 %% vom Soll abweicht. Der Summer am Rechner ertönt in jedem Fall.</string>
+    <string name="settings_preview">%1$s anhören</string>
+    <string name="settings_connect_to_preview">Zuerst verbinden, um Töne anzuhören.</string>
+    <string name="settings_volume">Lautstärke</string>
+    <string name="settings_phone_card">Telefon</string>
+    <string name="settings_vibrate">Vibrieren, wenn der Alarm beginnt</string>
+    <string name="settings_keep_screen_on">Bildschirm anlassen</string>
+    <string name="settings_keep_screen_on_sub">Aus: der Bildschirm darf einschlafen, Verbindung und Alarm laufen weiter</string>
+    <string name="settings_battery_ok">Die Akku-Optimierung ist für diese App aus, gut so.</string>
+    <string name="settings_battery_hint">Für eine zuverlässige Verbindung bei ausgeschaltetem Bildschirm diese App von der Akku-Optimierung ausnehmen.</string>
+    <string name="settings_battery_button">Akku-Optimierung deaktivieren</string>
+    <string name="settings_about">Über</string>
+    <string name="settings_about_blurb">Begleit-App für den MeijWorks Krautabtötungs-Spritzcomputer.</string>
+
+    <!-- Alarmtöne -->
+    <string name="sound_buzzer">Summer</string>
+    <string name="sound_buzzer_desc">Harter Dauersummer</string>
+    <string name="sound_wrong">Falsche Antwort</string>
+    <string name="sound_wrong_desc">Tiefes zweitöniges \"errr\"-Summen</string>
+    <string name="sound_siren">Sirene</string>
+    <string name="sound_siren_desc">An- und abschwellende Sirene</string>
+    <string name="sound_beeps">Piep piep</string>
+    <string name="sound_beeps_desc">Schnelle hohe Pieptöne</string>
+    <string name="sound_klaxon">Hupe</string>
+    <string name="sound_klaxon_desc">Ratternde Hupe</string>
+    <string name="sound_system">Telefonalarm</string>
+    <string name="sound_system_desc">Der auf diesem Telefon eingestellte Alarmton</string>
+
+    <!-- Berechtigungen -->
+    <string name="permission_bluetooth_needed">Die Bluetooth-Berechtigung wird benötigt, um die Spritze zu finden</string>
+</resources>

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- app_name is a product name and stays untranslated. -->
+
+    <!-- Meldingen van de achtergronddienst -->
+    <string name="notification_channel_name">Verbinding met de spuit</string>
+    <string name="notification_channel_description">Houdt de verbinding met de spuit in stand terwijl het scherm uit staat</string>
+    <string name="notification_disconnected">Zoeken naar de spuit…</string>
+    <string name="notification_connected_no_status">Verbonden</string>
+    <string name="notification_connected">Gevraagd %1$.0f l/ha, werkelijk %2$s l/ha</string>
+    <string name="notification_stop">Stoppen</string>
+
+    <!-- Algemene knoppen en eenheden -->
+    <string name="action_back">Terug</string>
+    <string name="action_settings">Instellingen</string>
+    <string name="action_cancel">Annuleren</string>
+    <string name="action_close">Sluiten</string>
+    <string name="action_done">Klaar</string>
+    <string name="action_save">Opslaan</string>
+    <string name="action_redo">Opnieuw</string>
+    <string name="action_save_to_board">Opslaan op de kast</string>
+    <string name="value_not_read_yet">Nog niet uitgelezen</string>
+    <string name="unit_of_4095">van 4095</string>
+
+    <!-- Statusscherm -->
+    <string name="connection_connected">Verbonden</string>
+    <string name="connection_connecting">Verbinden</string>
+    <string name="connection_scanning">Zoeken</string>
+    <string name="connection_off">Niet verbonden</string>
+    <string name="connection_pairing">Koppelen: open de Bluetooth-melding en voer de code van het display van de spuit in</string>
+    <string name="connection_firmware">firmware %1$s</string>
+    <string name="connection_tap_connect">Tik op Verbinden om de spuit te zoeken</string>
+    <string name="action_connect">Verbinden</string>
+    <string name="action_disconnect">Verbreken</string>
+    <string name="tile_speed">Snelheid</string>
+    <string name="tile_requested">Gevraagd</string>
+    <string name="tile_actual">Werkelijk</string>
+    <string name="status_deviation">Dosering buiten 5 %% van de gevraagde: pas de snelheid aan</string>
+    <string name="status_stale">Even geen status van de kast…</string>
+    <string name="action_calibrate">Kalibreren</string>
+    <string name="details_title">Details</string>
+    <string name="detail_flow">Debiet</string>
+    <string name="detail_knob">Knop</string>
+    <string name="detail_pump_pwm">Pomp-PWM</string>
+    <string name="detail_calibration">Kalibratie</string>
+    <string name="calibration_held_by_app">in gebruik door deze app</string>
+    <string name="calibration_held_by_serial">in gebruik door de seriële wizard</string>
+    <string name="detail_pump_run">Pomploop</string>
+    <string name="value_seconds_remaining">nog %1$d s</string>
+    <string name="detail_gps">Gps</string>
+    <string name="detail_fix_age">Leeftijd fix</string>
+    <string name="detail_no_fix_yet">nog geen fix</string>
+    <string name="detail_position">Positie</string>
+    <string name="io_inputs">Ingangen</string>
+    <string name="io_outputs">Uitgangen</string>
+
+    <!-- Gps-fixkwaliteit -->
+    <string name="gps_quality_none">Geen fix</string>
+    <string name="gps_quality_other">Kwaliteit %1$d</string>
+    <string name="gps_quality_any">Alle</string>
+    <string name="gps_quality_any_lowercase">alle</string>
+
+    <!-- Kalibratiemenu -->
+    <string name="calibrate_title">Kalibreren</string>
+    <string name="menu_wizard">Wizard</string>
+    <string name="menu_wizard_sub">Volledige kalibratie: knopstanden, daarna de pompcurve</string>
+    <string name="menu_potmeter">Potmeterkalibratie</string>
+    <string name="menu_potmeter_sub">Alleen de drie knopstanden</string>
+    <string name="menu_sprayer">Spuit</string>
+    <string name="menu_sprayer_sub">Werkbreedte en stuurtimeout</string>
+    <string name="menu_gps">Gps-instellingen</string>
+    <string name="menu_gps_sub">Baudrate en minimale fixkwaliteit</string>
+    <string name="menu_advanced">Geavanceerd</string>
+    <string name="menu_advanced_sub">Kalibratietabellen, instellingen, correctie van een pomppunt</string>
+    <string name="menu_console_sub">Ruwe protocolregels, gps-zinnen, voor de werkbank</string>
+    <string name="buzzer_title">Zoemer op de kast</string>
+    <string name="buzzer_sub">Klinkt zolang de dosering buiten 5 %% van de gevraagde ligt. Het alarm op de telefoon staat daar los van (Instellingen).</string>
+    <string name="calibrate_hint_connected">De wizard volgt dezelfde stappen als het seriële menu op de kast.</string>
+    <string name="calibrate_hint_disconnected">Maak eerst verbinding met de spuit.</string>
+
+    <!-- Kalibratiewizard -->
+    <string name="wizard_title_full">Kalibratiewizard</string>
+    <string name="wizard_title_dose">Potmeterkalibratie</string>
+    <string name="wizard_title_pump">Pompkalibratie</string>
+    <string name="wizard_starting">Starten…</string>
+    <string name="wizard_taking_calibration">Kalibratie op de kast overnemen…</string>
+    <string name="wizard_saving">Opslaan op de kast…</string>
+    <string name="wizard_pairing">Koppelen met de spuit: open de Bluetooth-melding en voer de code van het display in.</string>
+    <string name="wizard_link_lost">Verbinding verbroken</string>
+    <string name="wizard_dose_label_minimum">MINIMUM</string>
+    <string name="wizard_dose_label_middle">MIDDEN</string>
+    <string name="wizard_dose_label_maximum">MAXIMUM</string>
+    <string name="wizard_knob_position_single">Knopstand %1$d</string>
+    <string name="wizard_knob_position_of">Knopstand %1$d van %2$d</string>
+    <string name="wizard_set_knob">Zet de knop op de stand %1$s en leg de waarde vast.</string>
+    <string name="wizard_knob_reading">Knopwaarde</string>
+    <string name="wizard_capture">Vastleggen</string>
+    <string name="wizard_dose_for_position">Dosering voor de stand %1$s</string>
+    <string name="wizard_knob_captured">Knopwaarde vastgelegd: %1$d</string>
+    <string name="wizard_dose_field">Dosering (l/ha)</string>
+    <string name="wizard_save_point">Punt %1$d opslaan</string>
+    <string name="wizard_find_start">Startpunt van de pomp zoeken</string>
+    <string name="wizard_find_start_hint">Schuif langzaam omhoog tot de pomp net gaat lopen en leg dat vast.</string>
+    <string name="wizard_pump_duty">Pompsturing</string>
+    <string name="wizard_board_reports_duty">De kast meldt pompsturing %1$s</string>
+    <string name="wizard_capture_flowing">Pomp loopt: vastleggen</string>
+    <string name="wizard_point_of">Punt %1$d van %2$d</string>
+    <string name="wizard_point_running">Punt %1$d van %2$d: loopt</string>
+    <string name="wizard_point_volume">Punt %1$d van %2$d: hoeveelheid</string>
+    <string name="wizard_jug_hint">Zet de maatbeker klaar. De pomp loopt precies één minuut op deze sturing; de kast klokt dat zelf en stopt vanzelf.</string>
+    <string name="wizard_start_run">Minuut starten</string>
+    <string name="wizard_remaining">Resterend</string>
+    <string name="wizard_screen_may_sleep">Het scherm mag uitgaan; de minuut loopt door op de kast.</string>
+    <string name="wizard_stop_redo">Stoppen en dit punt overdoen</string>
+    <string name="wizard_run_complete">Minuut klaar bij sturing %1$d. Voer de opgevangen hoeveelheid in.</string>
+    <string name="wizard_volume_field">Hoeveelheid (ml)</string>
+    <string name="wizard_save_and_next">Opslaan en volgend punt</string>
+    <string name="wizard_save_and_finish">Opslaan en afronden</string>
+    <string name="wizard_saved_on_board">Opgeslagen op de kast</string>
+    <string name="wizard_knob_positions">Knopstanden</string>
+    <string name="wizard_pump_curve">Pompcurve</string>
+    <string name="wizard_dose_summary">  %1$d: analoog %2$d, %3$d l/ha</string>
+    <string name="wizard_pwm_summary">  %1$d: sturing %2$d, %3$d ml/min</string>
+    <string name="wizard_not_completed">Kalibratie niet afgerond</string>
+    <string name="wizard_nothing_changed">Er is niets op de kast gewijzigd buiten wat al was opgeslagen.</string>
+
+    <!-- Meldingen van de dienst en de wizard -->
+    <string name="msg_saved">Opgeslagen</string>
+    <string name="msg_connected">Verbonden</string>
+    <string name="msg_link_off">Bluetooth-verbinding uit</string>
+    <string name="msg_searching">Zoeken naar de spuit…</string>
+    <string name="msg_connecting">Verbinden…</string>
+    <string name="msg_board_busy">De kast is bezig: de seriële wizard heeft de kalibratie</string>
+    <string name="msg_board_refused">De kast weigert: %1$s</string>
+    <string name="msg_pairing">Open de Bluetooth-koppelmelding en voer de code van het display van de spuit in</string>
+    <string name="msg_cannot_start">Starten mislukt: %1$s</string>
+    <string name="msg_wizard_busy_serial">De seriële wizard op de kast heeft de kalibratie. Rond die daar eerst af.</string>
+    <string name="msg_wizard_busy_serial_short">De seriële wizard op de kast heeft de kalibratie</string>
+    <string name="msg_wizard_no_reading">Nog geen waarde van de kast</string>
+    <string name="msg_wizard_positive_number">Voer een positief heel getal in</string>
+    <string name="msg_wizard_slide_up">Schuif omhoog tot de pomp echt gaat lopen voordat je vastlegt</string>
+    <string name="msg_wizard_run_stopped">Minuut gestopt, start opnieuw</string>
+    <string name="msg_wizard_volume_range">Voer een heel getal tussen 1 en %1$d in</string>
+    <string name="msg_wizard_point_refused">De kast weigert een pomppunt</string>
+    <string name="msg_wizard_link_lost">Verbinding verbroken; de kast heeft de pomp gestopt en de oude kalibratie behouden</string>
+
+    <!-- Potmeterscherm -->
+    <string name="potmeter_title">Potmeterkalibratie</string>
+    <string name="potmeter_current">Huidige knopstanden</string>
+    <string name="potmeter_live_reading">Actuele knopwaarde: %1$s van 4095</string>
+    <string name="potmeter_point">%1$d. %2$s</string>
+    <string name="potmeter_point_values">analoog %1$d, %2$d l/ha</string>
+    <string name="potmeter_redo_all">Alle drie de standen overdoen</string>
+    <string name="potmeter_hint">Elke stand wordt van de knop op de machine overgenomen en krijgt daarna zijn l/ha. Pas aan het eind op de kast opgeslagen; annuleren laat de huidige waarden staan.</string>
+
+    <!-- Spuitinstellingen -->
+    <string name="sprayer_title">Spuit</string>
+    <string name="sprayer_width">Werkbreedte</string>
+    <string name="sprayer_width_hint">Tussen 50 en 5000. Rekent l/ha om naar een pompdebiet bij de huidige snelheid.</string>
+    <string name="sprayer_guidance">Stuurtimeout</string>
+    <string name="sprayer_guidance_hint">Tussen 500 en 10000. Blijft een snelheidsbericht zo lang uit, dan stopt de pomp.</string>
+    <string name="setting_on_board_now">Nu op de kast: %1$s</string>
+    <string name="setting_not_read_yet">nog niet uitgelezen</string>
+
+    <!-- Gps-instellingen -->
+    <string name="gps_title">Gps-instellingen</string>
+    <string name="gps_live">Actueel</string>
+    <string name="gps_fix">Fix</string>
+    <string name="gps_speed">Snelheid</string>
+    <string name="gps_min_quality">Minimale fix om te doseren</string>
+    <string name="gps_min_quality_hint">Daaronder stopt de pomp, net als zonder snelheid. RTK fixed accepteert alleen een fixed oplossing, geen float.</string>
+    <string name="gps_any_sub">Huidig gedrag: doseren op wat er binnenkomt</string>
+    <string name="gps_baudrate">Baudrate van de ontvanger</string>
+    <string name="gps_baudrate_hint">Wordt meteen toegepast; de poort gaat op de nieuwe snelheid open.</string>
+
+    <!-- Geavanceerd -->
+    <string name="advanced_title">Geavanceerd</string>
+    <string name="advanced_reread">Opnieuw uitlezen van de kast</string>
+    <string name="advanced_knob_calibration">Knopkalibratie</string>
+    <string name="advanced_pump_curve">Pompcurve</string>
+    <string name="advanced_column_analog">Analoog</string>
+    <string name="advanced_column_dose">Dosering (l/ha)</string>
+    <string name="advanced_column_flow">Debiet (ml/min)</string>
+    <string name="advanced_board_settings">Instellingen op de kast</string>
+    <string name="advanced_width">Werkbreedte</string>
+    <string name="advanced_guidance_timeout">Stuurtimeout</string>
+    <string name="advanced_gps_baudrate">Gps-baudrate</string>
+    <string name="advanced_baud_index">index %1$d</string>
+    <string name="advanced_min_fix">Minimale fix om te doseren</string>
+    <string name="advanced_protocol">Protocol</string>
+    <string name="advanced_firmware">Firmware</string>
+    <string name="advanced_correct_flow">Debiet van een punt corrigeren</string>
+
+    <!-- Instellingen -->
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_alarm_card">Doseringsalarm</string>
+    <string name="settings_alarm_switch">Alarm laten klinken</string>
+    <string name="settings_alarm_switch_sub">Zolang de kast meldt dat de dosering buiten 5 %% van de gevraagde ligt. De zoemer op de kast klinkt sowieso.</string>
+    <string name="settings_preview">%1$s beluisteren</string>
+    <string name="settings_connect_to_preview">Maak eerst verbinding om geluiden te beluisteren.</string>
+    <string name="settings_volume">Volume</string>
+    <string name="settings_phone_card">Telefoon</string>
+    <string name="settings_vibrate">Trillen als het alarm begint</string>
+    <string name="settings_keep_screen_on">Scherm aan houden</string>
+    <string name="settings_keep_screen_on_sub">Uit: het scherm mag in slaap vallen, de verbinding en het alarm blijven werken</string>
+    <string name="settings_battery_ok">Batterijoptimalisatie staat uit voor deze app, goed zo.</string>
+    <string name="settings_battery_hint">Sluit deze app uit van batterijoptimalisatie voor een betrouwbare verbinding met het scherm uit.</string>
+    <string name="settings_battery_button">Batterijoptimalisatie uitschakelen</string>
+    <string name="settings_about">Over</string>
+    <string name="settings_about_blurb">Begeleidende app voor de MeijWorks loofdoodspuitcomputer.</string>
+
+    <!-- Alarmgeluiden -->
+    <string name="sound_buzzer">Zoemer</string>
+    <string name="sound_buzzer_desc">Harde doorlopende zoemer</string>
+    <string name="sound_wrong">Fout antwoord</string>
+    <string name="sound_wrong_desc">Lage tweetonige \"errr\"-zoem</string>
+    <string name="sound_siren">Sirene</string>
+    <string name="sound_siren_desc">Op- en aflopende sirene</string>
+    <string name="sound_beeps">Piep piep</string>
+    <string name="sound_beeps_desc">Snelle hoge piepjes</string>
+    <string name="sound_klaxon">Claxon</string>
+    <string name="sound_klaxon_desc">Ratelende hoorn</string>
+    <string name="sound_system">Telefoonalarm</string>
+    <string name="sound_system_desc">De alarmtoon die op deze telefoon is ingesteld</string>
+
+    <!-- Rechten -->
+    <string name="permission_bluetooth_needed">Bluetooth-toestemming is nodig om de spuit te vinden</string>
+</resources>

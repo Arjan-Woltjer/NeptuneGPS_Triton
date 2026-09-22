@@ -29,8 +29,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import nl.meijworks.spraycomputerld.BuildConfig
+import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.Settings
 import nl.meijworks.spraycomputerld.SettingsState
 import nl.meijworks.spraycomputerld.audio.AlarmSound
@@ -49,10 +51,10 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Settings") },
+                title = { Text(stringResource(R.string.settings_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -78,13 +80,13 @@ private fun AlarmCard(settings: SettingsState, serviceRunning: Boolean) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 8.dp)) {
             Text(
-                "Dose alarm",
+                stringResource(R.string.settings_alarm_card),
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             )
             SwitchRow(
-                "Sound the alarm",
-                "While the board reports the dose outside 5 % of requested. The board's own buzzer sounds regardless.",
+                stringResource(R.string.settings_alarm_switch),
+                stringResource(R.string.settings_alarm_switch_sub),
                 settings.alarmEnabled,
                 Modifier.padding(horizontal = 16.dp),
             ) { Settings.setAlarmEnabled(it) }
@@ -99,28 +101,31 @@ private fun AlarmCard(settings: SettingsState, serviceRunning: Boolean) {
                 ) {
                     RadioButton(selected = settings.sound == sound, onClick = { Settings.setSound(sound) })
                     Column(Modifier.weight(1f)) {
-                        Text(sound.label, style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(sound.labelRes), style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            sound.description,
+                            stringResource(sound.descriptionRes),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                     IconButton(onClick = { SprayerController.previewSound(sound) }, enabled = serviceRunning) {
-                        Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Preview ${sound.label}")
+                        Icon(
+                            Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = stringResource(R.string.settings_preview, stringResource(sound.labelRes)),
+                        )
                     }
                 }
             }
             if (!serviceRunning) {
                 Text(
-                    "Connect first to preview sounds.",
+                    stringResource(R.string.settings_connect_to_preview),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
             Column(Modifier.padding(horizontal = 16.dp)) {
-                Text("Volume", style = MaterialTheme.typography.labelLarge)
+                Text(stringResource(R.string.settings_volume), style = MaterialTheme.typography.labelLarge)
                 Slider(
                     value = settings.volume,
                     onValueChange = { Settings.setVolume(it) },
@@ -139,24 +144,24 @@ private fun OptionsCard(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Phone", style = MaterialTheme.typography.titleMedium)
-            SwitchRow("Vibrate when the alarm starts", null, settings.vibrate) { Settings.setVibrate(it) }
+            Text(stringResource(R.string.settings_phone_card), style = MaterialTheme.typography.titleMedium)
+            SwitchRow(stringResource(R.string.settings_vibrate), null, settings.vibrate) { Settings.setVibrate(it) }
             SwitchRow(
-                "Keep screen on",
-                "Off: the screen may sleep, the link and the alarm keep working",
+                stringResource(R.string.settings_keep_screen_on),
+                stringResource(R.string.settings_keep_screen_on_sub),
                 settings.keepScreenOn,
             ) { Settings.setKeepScreenOn(it) }
             HorizontalDivider()
             Spacer(Modifier.height(4.dp))
             val ignoring = isIgnoringBatteryOptimizations()
             Text(
-                if (ignoring) "Battery optimisation is off for this app, good."
-                else "For a reliable link with the screen off, exclude this app from battery optimisation.",
+                if (ignoring) stringResource(R.string.settings_battery_ok)
+                else stringResource(R.string.settings_battery_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             if (!ignoring) {
-                OutlinedButton(onClick = onBatteryOptimizations) { Text("Disable battery optimisation") }
+                OutlinedButton(onClick = onBatteryOptimizations) { Text(stringResource(R.string.settings_battery_button)) }
             }
         }
     }
@@ -192,13 +197,18 @@ private fun SwitchRow(
 private fun AboutCard() {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("About", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.settings_about), style = MaterialTheme.typography.titleMedium)
             Text(
-                "MeijWorks SprayComputer LD ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}), commit ${BuildConfig.GIT_SHA}",
+                stringResource(
+                    R.string.settings_about_build,
+                    BuildConfig.VERSION_NAME,
+                    BuildConfig.VERSION_CODE,
+                    BuildConfig.GIT_SHA,
+                ),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Text(
-                "Companion app for the MeijWorks haulm sprayer computer.",
+                stringResource(R.string.settings_about_blurb),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
