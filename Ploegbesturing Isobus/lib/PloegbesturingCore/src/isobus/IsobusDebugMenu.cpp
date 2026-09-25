@@ -176,6 +176,45 @@ void IsobusDebugMenu::printFullDump() {
     if (claimed) serialDebug->print(controlFunction->get_address(), HEX);
     serialDebug->println();
 
+    {
+        // The CAN controller's own error state (#149): the live error counters,
+        // the worst they reached, and every entry into error-passive or bus-off.
+        const CanErrorMonitor& ce = guidanceChannel->GetCanErrors();
+        serialDebug->print("CAN controller: ");
+        if (ce.GetSamples() == 0) {
+            serialDebug->println("not sampled on this build");
+        } else {
+            serialDebug->print(CanErrorMonitor::StateName(ce.GetState()));
+            serialDebug->print("  TX err ");
+            serialDebug->print(ce.GetTxErrors());
+            serialDebug->print(" (peak ");
+            serialDebug->print(ce.GetPeakTxErrors());
+            serialDebug->print(")  RX err ");
+            serialDebug->print(ce.GetRxErrors());
+            serialDebug->print(" (peak ");
+            serialDebug->print(ce.GetPeakRxErrors());
+            serialDebug->println(")");
+            serialDebug->print("  error-passive entries: ");
+            serialDebug->print(ce.GetErrorPassiveEntries());
+            serialDebug->print("  bus-off entries: ");
+            serialDebug->print(ce.GetBusOffEntries());
+            serialDebug->print("  longest episode: ");
+            serialDebug->print(ce.GetLongestEpisodeMs());
+            serialDebug->print(" ms");
+            if (ce.GetState() != CanFaultState::ErrorActive) {
+                // Still in it -- the longest only counts finished episodes.
+                serialDebug->print("  (current: ");
+                serialDebug->print(ce.GetCurrentEpisodeMs(millis()));
+                serialDebug->print(" ms)");
+            }
+            serialDebug->println();
+            if (ce.GetBusOffEntries() > 0) {
+                serialDebug->print("  last bus-off ");
+                serialDebug->print(millis() - ce.GetLastBusOffMs());
+                serialDebug->println(" ms ago");
+            }
+        }
+    }
     serialDebug->print("Bus load (ch0): ");
     serialDebug->print(busload, 1);
     serialDebug->println(" %");

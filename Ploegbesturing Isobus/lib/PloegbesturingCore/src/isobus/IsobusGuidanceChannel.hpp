@@ -49,6 +49,7 @@
 #pragma pop_macro("min")
 
 #include "../implement/ImplementPlough.hpp"
+#include "CanErrorMonitor.hpp"
 #include "GuidanceSource.hpp"
 
 namespace triton
@@ -68,7 +69,13 @@ public:
     // SerialGuidanceChannel takes a HardwareSerial* instead of picking its own
     // port -- which physical CAN peripheral/pins to use is a board-specific
     // choice that belongs at the call site (see main.cpp), not hardcoded here.
-    IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement);
+    //
+    // canChannel is the same channel number the FlexCANT4Plugin was built with
+    // (0, 1, 2 = FLEXCAN1, 2, 3). It is only used to read that controller's
+    // error registers for the debug dump (#149); the default, 0xFF, reads
+    // nothing -- as the native tests, which have no FlexCAN, construct it.
+    IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement,
+                          std::uint8_t canChannel = 0xFF);
 
     // Brings up the CAN hardware plugin, claims a NAME/address (blocks until
     // claim completes -- a one-time startup cost per ISO 11783's >=250ms
@@ -167,7 +174,11 @@ public:
                                      unsigned long ggaMs, unsigned long vtgMs, unsigned long xteMs);
 
     inline MessageCounters GetMessageCounters() const { return counters; }
-    inline void            ResetMessageCounters()      { counters = MessageCounters(); }
+    inline void            ResetMessageCounters()      { counters = MessageCounters(); canErrors.Reset(); }
+
+    // The CAN controller's error state, sampled every Update() (#149). Always
+    // "no samples" on a build without the i.MX RT1062 FlexCAN.
+    inline const CanErrorMonitor& GetCanErrors() const { return canErrors; }
 
 private:
     // The native suite drives the eight PGN callbacks below directly, with a
@@ -186,6 +197,16 @@ private:
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;
 
     MessageCounters counters;
+
+    // FlexCAN error-state watch (#149). Sampled only once Begin() has started
+    // the CAN interface: FlexCAN_T4::begin() is what switches the controller's
+    // clock on, and reading an unclocked peripheral's registers can hard-fault
+    // the i.MX RT1062.
+    CanErrorMonitor canErrors;
+    std::uint8_t    canChannel;
+    bool            canStarted = false;
+    void SampleCanErrors();
+    void PrintCanState(const char* label);
 
     // Position/speed/XTE PGN requests are retried every kPgnRetryIntervalMs
     // (see Update()) until each family has produced at least one message --
