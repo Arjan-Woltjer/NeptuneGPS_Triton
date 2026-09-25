@@ -276,6 +276,12 @@ struct XteResult {
     // Populated on the same terms as rawWord/rawByte1: length guard passed
     // and the source address is one we recognise, independent of `valid`.
     byte     rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    // true once rawWord, rawByte1 and rawPayload above were filled -- only for a
+    // sender the decoder recognises. A caller keeping "the last capture" must
+    // update it only then: PGN 0xFFFF carries every manufacturer's proprietary
+    // traffic, and copying the empty placeholder for everyone else is what
+    // showed as an all-zero payload in the debug dump (NeptuneGPS_Triton#153).
+    bool     rawCaptured = false;
 };
 
 struct AisoResult {

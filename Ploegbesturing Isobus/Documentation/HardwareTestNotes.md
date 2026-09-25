@@ -1926,10 +1926,13 @@ middle past either limit instead of stopping (#152).
 
 - **No NMEA2000 guidance PGNs at all** (129025/26/27/29/283). The 129029 receive path is still
   unexercised on any rig; quality came from the legacy `0x2A` decoder.
-- **Diagnostic trap:** the dump's `PGN 65535 XTE JD legacy` line covers every 65535 sender
-  (~104 frames/s from `0x1C`, `0x2A`, `0xF0`), not the XTE carrier; its payload is usually `0xF0`'s
-  zeros (#153). It briefly looked like an XTE failure during the drop analysis. The XTE itself was
-  unaffected.
+- **Diagnostic trap:** the dump's `PGN 65535 XTE JD legacy` line covered every 65535 sender
+  (~104 frames/s from `0x1C`, `0x2A`, `0xF0`), not the XTE carrier. Its all-zero payload was **not
+  anyone's data**: the decoder only captures bytes from `0x2A` (and `0x80`, for #20), and for every
+  other sender the callback copied an empty placeholder over the last real capture. No sender on the
+  bus ever sent an all-zero 65535 payload in the whole capture. It briefly looked like an XTE failure
+  during the drop analysis; the XTE itself was unaffected. Fixed in #153: the line is split into all
+  senders, the XTE carrier, and the last real capture.
 
 ### Open after session 11
 

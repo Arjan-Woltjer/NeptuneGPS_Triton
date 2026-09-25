@@ -195,25 +195,41 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(counters.lastSpeedLegacySourceAddress, HEX);
     serialDebug->print(" raw=0x");
     serialDebug->println(counters.lastSpeedLegacyRaw, HEX);
-    serialDebug->print("  PGN 65535  XTE JD legacy:     ");
+    // PGN 0xFFFF is every manufacturer's proprietary traffic, so its total
+    // says nothing about the XTE -- ~104 frames/s on the John Deere rig, most
+    // of it from 0x1C and 0xF0. The carrier line is the one that does (#153).
+    serialDebug->print("  PGN 65535  all senders:       ");
     serialDebug->print(counters.xteJohnDeereLegacy);
     serialDebug->print("   last SA=0x");
-    serialDebug->print(counters.lastXteJohnDeereLegacySourceAddress, HEX);
-    serialDebug->print(" word=0x");
-    serialDebug->print(counters.lastXteJohnDeereLegacyRawWord, HEX);
-    serialDebug->print(" byte1=0x");
-    serialDebug->println(counters.lastXteJohnDeereLegacyRawByte1, HEX);
-    // All 8 bytes -- the word/byte1 fields above are the John Deere layout's
-    // fields specifically, which is exactly the assumption GitHub issue #20
-    // is trying to replace for Ag Leader. Deriving that layout needs the
-    // whole payload, so print it whole.
-    serialDebug->print("             full payload:     ");
-    GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
-    serialDebug->print("  (");
-    serialDebug->print(counters.xteJohnDeereLegacy > 0
-                           ? (millis() - counters.lastXteJohnDeereLegacyPayloadMs)
-                           : 0);
-    serialDebug->println(" ms ago)");
+    serialDebug->println(counters.lastXteJohnDeereLegacySourceAddress, HEX);
+    serialDebug->print("  PGN 65535  XTE carrier 0x2A:  ");
+    serialDebug->print(counters.xteJohnDeereCarrier);
+    if (counters.xteJohnDeereCarrier > 0) {
+        serialDebug->print("   (");
+        serialDebug->print(millis() - counters.lastXteJohnDeereCarrierMs);
+        serialDebug->println(" ms ago)");
+    } else {
+        serialDebug->println("   (none decoded)");
+    }
+    // The last frame from a sender the decoder recognises -- 0x2A, or 0x80 for
+    // #20's Ag Leader layout work -- all 8 bytes. word/byte1 are the John Deere
+    // layout's fields specifically, which is exactly the assumption #20 is
+    // trying to replace for Ag Leader, so the payload is printed whole too.
+    if (counters.lastXteJohnDeereLegacyPayloadSourceAddress != 0xFF) {
+        serialDebug->print("             raw SA=0x");
+        serialDebug->print(counters.lastXteJohnDeereLegacyPayloadSourceAddress, HEX);
+        serialDebug->print(" word=0x");
+        serialDebug->print(counters.lastXteJohnDeereLegacyRawWord, HEX);
+        serialDebug->print(" byte1=0x");
+        serialDebug->print(counters.lastXteJohnDeereLegacyRawByte1, HEX);
+        serialDebug->print(" payload ");
+        GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
+        serialDebug->print("  (");
+        serialDebug->print(millis() - counters.lastXteJohnDeereLegacyPayloadMs);
+        serialDebug->println(" ms ago)");
+    } else {
+        serialDebug->println("             raw: nothing from 0x2A or 0x80 yet");
+    }
     serialDebug->print("  PGN 60160  XTE Trimble legacy:");
     serialDebug->print(counters.xteTrimbleLegacy);
     serialDebug->print("   last SA=0x");

@@ -332,6 +332,7 @@ test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_acceptedZeroXte) {
     assertTrue(r.hasQuality);
     assertEqual(r.xteHundredthsMeter, 0);
     assertEqual((int)r.quality, 4);
+    assertTrue(r.rawCaptured);
 }
 
 // Ag Leader/Raven is diagnostics-only: nothing is committed to guidance, but
@@ -350,6 +351,7 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderRavenAddress_diagnosticsOnlyNot
     assertFalse(r.hasQuality);
     // ...but the diagnostics are still populated.
     assertTrue(r.lengthOk);
+    assertTrue(r.rawCaptured);
     assertEqual((int)r.rawWord, 0x7D40);
     assertEqual((int)r.rawByte1, 0x10);
     // The whole payload is captured too, not just the three John Deere
@@ -366,6 +368,10 @@ test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_capturesNoPayload) {
     uint8_t d[8] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88 };
     auto r = DecodeLegacyXteJohnDeere(0x2B, d, 8);
     assertFalse(r.valid);
+    assertTrue(r.lengthOk);
+    // ...and says so, so a caller keeping the last capture leaves it alone
+    // rather than overwriting it with this empty one (#153).
+    assertFalse(r.rawCaptured);
     for (int i = 0; i < 8; i++) {
         assertEqual((int)r.rawPayload[i], 0);
     }
@@ -413,6 +419,7 @@ test(IsobusPgnDecode, legacyXteJohnDeere_wrongLength_invalid) {
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 7);
     assertFalse(r.lengthOk);
     assertFalse(r.valid);
+    assertFalse(r.rawCaptured);
 }
 
 // --- The message selector (data[0]) -- GitHub issue #30 --------------------
