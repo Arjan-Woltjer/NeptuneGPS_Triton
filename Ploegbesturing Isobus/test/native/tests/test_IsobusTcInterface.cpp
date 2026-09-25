@@ -412,8 +412,10 @@ test(IsobusTcInterface, widthReport_countsAChange_butNotTheStartingValue) {
     IsobusTcInterfaceTestAccess::ReportWidth(Fixture());
     assertEqual(Fixture().GetWidthChangeCount(), (unsigned long)0);  // nothing moved
 
-    // One Wider press through the plough's own path. The mocked clock stays
-    // under AUnit's 10 s test timeout (it runs on the same clock).
+    // Ten steps up through the plough's own path (+1 is the Narrower key's
+    // slot; which way that moves the plough is checked on the rig, see
+    // SESSION_12_TEST_BRIEF.md 2.2). The mocked clock stays under AUnit's
+    // 10 s test timeout (it runs on the same clock).
     const short int before = tcImplement->GetOffset();
     millisValue(5000);
     tcImplement->Update(0, 10);
