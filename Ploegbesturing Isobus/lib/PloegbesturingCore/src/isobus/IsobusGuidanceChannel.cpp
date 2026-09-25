@@ -403,6 +403,12 @@ void IsobusGuidanceChannel::OnGnssPositionData(const CANMessage& msg, void* cont
     // IsRtkQuality() tests for.
     if (result.hasQuality) {
         self->guidance->SetQuality(result.method);
+    } else {
+        // Method 0xF, "not available", is no RTK statement. Leaving the stored
+        // quality alone would let an old 4 stand while this same frame keeps
+        // the fix age fresh, holding the plough in AUTO on a claim nothing
+        // confirms any more. Fail safe instead: not-RTK (owner's decision, #98).
+        self->guidance->SetQuality(0);
     }
 }
 

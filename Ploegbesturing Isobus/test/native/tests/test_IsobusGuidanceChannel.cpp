@@ -455,6 +455,21 @@ test(IsobusGuidanceChannel, gnssPositionData_lostFix_dropsRtkQuality) {
     assertFalse(gcGuidance.IsRtkQuality());
 }
 
+// "Not available" (method 0xF) is no RTK statement, so it must not leave an old
+// quality 4 standing while this same frame keeps the fix age fresh -- that
+// could hold the plough in AUTO on a claim nothing confirms any more. Owner's
+// decision on #98: treat it as not-RTK.
+test(IsobusGuidanceChannel, gnssPositionData_methodNotAvailable_isNotRtk) {
+    Reset();
+    gcGuidance.SetQuality(4);
+    assertTrue(gcGuidance.IsRtkQuality());
+    Deliver(IsobusGuidanceChannelTestAccess::GnssPositionData(), 0x1C, GnssFrame(0xF0));
+    assertFalse(gcGuidance.IsRtkQuality());
+    assertEqual((int)gcGuidance.GetQuality(), 0);
+    // The diagnostic still says what the receiver actually sent.
+    assertEqual((int)Channel().GetMessageCounters().lastGnssMethod, 0x0F);
+}
+
 // Same split as every other position path: an implausible coordinate must not
 // cost the fix, because the fix age drives the HOLD interlock. Latitude here
 // is 95 degrees.
