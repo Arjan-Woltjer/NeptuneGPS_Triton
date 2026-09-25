@@ -19,39 +19,11 @@
 */
 #include "CanFrameGuidanceChannel.hpp"
 
+#include "GuidanceCommit.hpp"
 #include "IsobusPgnDecode.hpp"
 
 namespace triton
 {
-
-namespace {
-
-// The same commit rules IsobusGuidanceChannel's On*() callbacks apply,
-// without that class's per-PGN diagnostic counters.
-bool GApply(const PositionResult& r, GuidanceSource* g) {
-    if (!r.fixPresent) return false;
-    // The fix-age timer drives the plough's HOLD interlock and must keep its
-    // meaning even when the coordinates fail the plausibility check.
-    g->NoteGgaFixReceived();
-    if (r.hasCoordinates) g->SetPosition(r.latitude, r.longitude);
-    return true;
-}
-
-bool GApply(const SpeedResult& r, GuidanceSource* g) {
-    if (r.valid)       g->SetSpeedKnots(r.speedKnots);
-    if (r.hasCourse)   g->SetCourseDeg(r.courseDeg);
-    if (r.hasAltitude) g->SetAltitude(r.altitudeMeters);
-    return r.valid || r.hasCourse || r.hasAltitude;
-}
-
-bool GApply(const XteResult& r, GuidanceSource* g) {
-    if (!r.valid) return false;
-    if (r.hasQuality) g->SetXte(r.xteHundredthsMeter, r.quality);
-    else              g->SetXte(r.xteHundredthsMeter);
-    return true;
-}
-
-}  // namespace
 
 bool CanFrameGuidanceChannel::Update(uint32_t id, const uint8_t* data, uint8_t length) {
     return Decode(id, data, length, guidance);

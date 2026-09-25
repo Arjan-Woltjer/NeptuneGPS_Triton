@@ -32,9 +32,10 @@ namespace triton
 // scraper) hands every received extended frame to Update(), and the
 // guidance messages among them are committed to a GuidanceSource. The same
 // IsobusPgnDecode functions the ISOBUS build's PGN callbacks use do the
-// byte math, so both paths agree on every layout, sentinel and plausibility
-// check: the standard NMEA2000 position/speed/XTE PGNs and the legacy
-// JD/Trimble/CNH proprietary ones.
+// byte math, and the same GuidanceCommit rules decide what is committed, so
+// both paths agree on every layout, sentinel, plausibility check and commit:
+// the standard NMEA2000 position/speed/XTE PGNs and the legacy JD/Trimble/CNH
+// proprietary ones.
 //
 // Compared with VehicleGps this path is stricter in two places, both
 // deliberate: the John Deere XTE on PGN 0xFFFF must come from source

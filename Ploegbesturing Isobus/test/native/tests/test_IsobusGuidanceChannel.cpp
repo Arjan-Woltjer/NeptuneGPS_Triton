@@ -202,6 +202,35 @@ test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedCommitsNothing) {
 // Legacy proprietary
 // ---------------------------------------------------------------------------
 
+// PGN 65267: latitude and longitude are *unsigned* 32-bit, 1e-7 degree, offset
+// -210 degrees. The frame is 52.0 N, 5.0 E. Before #98 phase 3 this path had no
+// test at all through the ISOBUS channel.
+test(IsobusGuidanceChannel, legacyPosition_commitsFixAndCoordinates) {
+    Reset();
+    millisValue(1234);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyPosition(), 0x1C,
+            { 0x00, 0x07, 0x2A, 0x9C, 0x80, 0x65, 0x26, 0x80 });
+    assertEqual(gcGuidance.GetGgaTimestamp(), (unsigned long)1234);
+    assertNear(gcGuidance.GetLatitude(), 52.0f, 1e-4f);
+    assertNear(gcGuidance.GetLongitude(), 5.0f, 1e-4f);
+    assertEqual(Channel().GetMessageCounters().positionLegacy, (uint32_t)1);
+    millisValue(0);
+}
+
+// Same split as the NMEA2000 position, and for the same reason: an
+// implausible coordinate must still count as a fix, because the fix age
+// drives the plough's HOLD interlock. Raw 0 decodes to -210 degrees.
+test(IsobusGuidanceChannel, legacyPosition_implausibleCoordinatesStillCountAsAFix) {
+    Reset();
+    millisValue(1234);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyPosition(), 0x1C,
+            { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+    assertEqual(gcGuidance.GetGgaTimestamp(), (unsigned long)1234);
+    assertNear(gcGuidance.GetLatitude(), 0.0f, 1e-6f);   // untouched
+    assertNear(gcGuidance.GetLongitude(), 0.0f, 1e-6f);
+    millisValue(0);
+}
+
 test(IsobusGuidanceChannel, legacySpeed_skipsNotAvailableFieldsAndKeepsTheRest) {
     Reset();
     // Course 0x2D00/128 = 90 degrees, speed 0xFFFF not available, altitude
@@ -262,12 +291,72 @@ test(IsobusGuidanceChannel, johnDeereXte_shortFrameIsCountedAndNothingElse) {
     assertEqual(Channel().GetMessageCounters().lastXteJohnDeereLegacyPayloadMs, (uint32_t)0);
 }
 
+// The tests above use frames that decode to 0 cm, which cannot tell
+// "committed 0" from "committed nothing", and none reads the quality back.
+// This is a real session-8 frame (the #20 closing analysis): raw word
+// 0x7D16 = 32022 -> +11 cm, and byte 1 = 0x15, whose high nibble 1 means RTK
+// quality 4.
+test(IsobusGuidanceChannel, johnDeereXte_commitsValueAndRtkQuality) {
+    Reset();
+    millisValue(1234);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF });
+    assertEqual(gcGuidance.GetXte(), 11);
+    assertEqual((int)gcGuidance.GetQuality(), 4);
+    assertEqual(gcGuidance.GetXteTimestamp(), (unsigned long)1234);
+    millisValue(0);
+}
+
+// The other sign from the same session (raw 0x7CD6 = 31958 -> -21 cm), with
+// byte 1's high nibble changed to 0 so the quality branch reads 0. Quality is
+// primed to 4 first, so the assert proves it is written, not merely left.
+test(IsobusGuidanceChannel, johnDeereXte_commitsNegativeValueAndNonRtkQuality) {
+    Reset();
+    gcGuidance.SetXte(0, 4);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x77, 0x05, 0x10, 0xD6, 0x7C, 0x59, 0x89, 0xFF });
+    assertEqual(gcGuidance.GetXte(), -21);
+    assertEqual((int)gcGuidance.GetQuality(), 0);
+}
+
 test(IsobusGuidanceChannel, trimbleXte_recordsItsSourceAddress) {
     Reset();
     Deliver(IsobusGuidanceChannelTestAccess::LegacyXteTrimble(), 0xAA,
             { 0x02, 0x00, 0x00, 0x80, 0x3F, 0x07, 0x00, 0x00 });
     assertEqual(Channel().GetMessageCounters().xteTrimbleLegacy, (uint32_t)1);
     assertEqual((int)Channel().GetMessageCounters().lastXteTrimbleLegacySourceAddress, 0xAA);
+}
+
+// Bytes 1-4 are a big-endian IEEE float in metres. The frame above has them
+// as 00 00 80 3F, a denormal -- 0 cm -- so it pins nothing about the commit.
+// 0x3E800000 is exactly 0.25 m and 0xBF000000 exactly -0.5 m, so the x100
+// truncation cannot blur either.
+test(IsobusGuidanceChannel, trimbleXte_commitsValueWithRtkQuality) {
+    Reset();
+    millisValue(1234);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteTrimble(), 0xAA,
+            { 0x02, 0x3E, 0x80, 0x00, 0x00, 0x07, 0x00, 0x00 });
+    assertEqual(gcGuidance.GetXte(), 25);
+    assertEqual((int)gcGuidance.GetQuality(), 4);
+    assertEqual(gcGuidance.GetXteTimestamp(), (unsigned long)1234);
+
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteTrimble(), 0xAA,
+            { 0x02, 0xBF, 0x00, 0x00, 0x00, 0x07, 0x00, 0x00 });
+    assertEqual(gcGuidance.GetXte(), -50);
+    millisValue(0);
+}
+
+// Only selector 2 with byte 5 = 7, and only from 0xAA, is cross-track error.
+test(IsobusGuidanceChannel, trimbleXte_wrongSelectorOrSenderCommitsNothing) {
+    Reset();
+    gcGuidance.SetXte(42, 4);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteTrimble(), 0xAA,
+            { 0x02, 0x3E, 0x80, 0x00, 0x00, 0x06, 0x00, 0x00 });   // byte 5 != 7
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteTrimble(), 0x1C,
+            { 0x02, 0x3E, 0x80, 0x00, 0x00, 0x07, 0x00, 0x00 });   // not 0xAA
+    assertEqual(gcGuidance.GetXte(), 42);
+    assertEqual((int)gcGuidance.GetQuality(), 4);
+    assertEqual(Channel().GetMessageCounters().xteTrimbleLegacy, (uint32_t)2);
 }
 
 // ---------------------------------------------------------------------------

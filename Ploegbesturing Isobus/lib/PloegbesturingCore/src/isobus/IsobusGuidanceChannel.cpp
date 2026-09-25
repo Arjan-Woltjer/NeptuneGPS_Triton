@@ -37,6 +37,7 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+#include "GuidanceCommit.hpp"
 #include "IsobusPgnDecode.hpp"
 
 using namespace isobus;
@@ -219,41 +220,29 @@ void IsobusGuidanceChannel::RequestGuidancePgns() {
 }
 
 // ------------------------------------------------------------------
-// Byte-level decode for every PGN below now lives in IsobusPgnDecode.cpp,
-// native-testable in isolation (see test_IsobusPgnDecode.cpp) -- these
-// callbacks just extract data/length/source-address from the real
-// isobus::CANMessage, call the matching Decode*(), and apply the result.
+// Byte-level decode for every PGN below lives in IsobusPgnDecode.cpp and
+// the commit rules in GuidanceCommit.hpp, both shared with
+// CanFrameGuidanceChannel and both native-testable in isolation. These
+// callbacks count, keep their diagnostics, extract data/length/source
+// address from the real isobus::CANMessage, call the matching Decode*(), and
+// hand the result to GApply() -- so this build and a directly attached bus
+// commit identically, and a rule changes in one place (#98 phase 3).
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::OnPositionNmea2000(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
     self->counters.positionNmea2000++;
 
     const auto& d = msg.get_data();
-    auto result = DecodePositionNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    // NoteGgaFixReceived() stays gated on fixPresent alone, unchanged: it
-    // drives the staleness watchdog InterfacePlough gates plough control on,
-    // so an implausible coordinate must never cost us a fix. SetPosition()
-    // stamps the same timestamp, so publishing coordinates cannot shorten or
-    // extend the fix age either way.
-    if (result.fixPresent) {
-        self->guidance->NoteGgaFixReceived();
-        if (result.hasCoordinates) {
-            self->guidance->SetPosition(result.latitude, result.longitude);
-        }
-    }
+    GApply(DecodePositionNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
 }
 
 void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
     self->counters.speedNmea2000++;
 
+    // COG travels in the same frame as SOG and was once read past (#37).
     const auto& d = msg.get_data();
-    auto result = DecodeSpeedNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    // COG travels in the same frame as SOG and was previously read past
-    // (GitHub issue #37). Each field is committed on its own flag: an
-    // unavailable speed must not cost us a good course.
-    if (result.hasCourse) self->guidance->SetCourseDeg(result.courseDeg);
-    if (result.valid) self->guidance->SetSpeedKnots(result.speedKnots);
+    GApply(DecodeSpeedNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
 }
 
 void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) {
@@ -261,8 +250,7 @@ void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) 
     self->counters.xteNmea2000++;
 
     const auto& d = msg.get_data();
-    auto result = DecodeXteNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    if (result.valid) self->guidance->SetXte(result.xteHundredthsMeter);
+    GApply(DecodeXteNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
 }
 
 void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* context) {
@@ -270,14 +258,7 @@ void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* contex
     self->counters.positionLegacy++;
 
     const auto& d = msg.get_data();
-    auto result = DecodeLegacyPosition(d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    // Same split as OnPositionNmea2000 above, and for the same reason.
-    if (result.fixPresent) {
-        self->guidance->NoteGgaFixReceived();
-        if (result.hasCoordinates) {
-            self->guidance->SetPosition(result.latitude, result.longitude);
-        }
-    }
+    GApply(DecodeLegacyPosition(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
 }
 
 void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) {
@@ -297,13 +278,10 @@ void IsobusGuidanceChannel::OnLegacySpeed(const CANMessage& msg, void* context) 
 
     auto result = DecodeLegacySpeed(d.data(), static_cast<uint8_t>(msg.get_data_length()));
     self->counters.lastSpeedLegacyRaw = result.rawValue;
-    if (result.valid) self->guidance->SetSpeedKnots(result.speedKnots);
     // This PGN is course + speed + altitude. Only speed used to be committed,
     // so GetCourse()/GetAltitude() read a permanent 0.0 on the ISOBUS build
-    // while the values sat decoded on the bus (GitHub issue #37). Each field
-    // has its own sentinel and so its own flag.
-    if (result.hasCourse)   self->guidance->SetCourseDeg(result.courseDeg);
-    if (result.hasAltitude) self->guidance->SetAltitude(result.altitudeMeters);
+    // while the values sat decoded on the bus (#37).
+    GApply(result, self->guidance);
 }
 
 void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* context) {
@@ -344,8 +322,7 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
         self->counters.lastXteJohnDeereLegacyPayloadMs = millis();
     }
 
-    if (!result.valid) return;
-    self->guidance->SetXte(result.xteHundredthsMeter, result.quality);
+    GApply(result, self->guidance);
 }
 
 // The standard ISO 11783-7 guidance channel, broadcast at 10 Hz by the tractor
@@ -441,8 +418,7 @@ void IsobusGuidanceChannel::OnLegacyXteTrimble(const CANMessage& msg, void* cont
     self->counters.lastXteTrimbleLegacySourceAddress = sourceAddress;
 
     const auto& d = msg.get_data();
-    auto result = DecodeLegacyXteTrimble(sourceAddress, d.data(), static_cast<uint8_t>(msg.get_data_length()));
-    if (result.valid) self->guidance->SetXte(result.xteHundredthsMeter, result.quality);
+    GApply(DecodeLegacyXteTrimble(sourceAddress, d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
 }
 
 void IsobusGuidanceChannel::OnAllImplementStop(const CANMessage& msg, void* context) {
