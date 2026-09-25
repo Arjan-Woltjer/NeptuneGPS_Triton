@@ -92,3 +92,19 @@ test(CanErrorMonitor, reset_clearsEverything) {
     assertEqual(m.GetBusOffEntries(), (uint32_t)0);
     assertEqual(m.GetSamples(), (uint32_t)0);
 }
+
+// While an episode is still going on, "longest episode" only counts finished
+// ones -- so the dump also needs the current one's age. On the bench, a board
+// alone on its bus sat error-passive indefinitely while reporting "longest
+// episode: 0 ms" (2026-09-25). That is exactly the #149 case to see.
+test(CanErrorMonitor, currentEpisode_isTheTimeAwayFromActiveSoFar) {
+    CanErrorMonitor m;
+    m.Sample(0x0000, 0x00, 0);
+    assertEqual(m.GetCurrentEpisodeMs(500), (unsigned long)0);       // active: no episode
+    m.Sample(0x0080, 0x10, 1000);                                     // passive from t = 1 s
+    assertEqual(m.GetCurrentEpisodeMs(4000), (unsigned long)3000);
+    assertEqual(m.GetLongestEpisodeMs(), (unsigned long)0);           // not finished yet
+    m.Sample(0x0000, 0x00, 4500);                                     // back to active
+    assertEqual(m.GetCurrentEpisodeMs(5000), (unsigned long)0);
+    assertEqual(m.GetLongestEpisodeMs(), (unsigned long)3500);
+}

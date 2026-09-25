@@ -91,6 +91,11 @@ public:
     unsigned long GetLastErrorPassiveMs() const { return lastErrorPassiveMs; }
     unsigned long GetLastBusOffMs() const     { return lastBusOffMs; }
     unsigned long GetLongestEpisodeMs() const { return longestEpisodeMs; }
+    // How long the controller has been away from error-active so far; 0 when
+    // it is error-active. GetLongestEpisodeMs() only counts finished episodes.
+    unsigned long GetCurrentEpisodeMs(unsigned long nowMs) const {
+        return (state == CanFaultState::ErrorActive) ? 0 : nowMs - episodeStartMs;
+    }
     uint32_t      GetSamples() const          { return samples; }
 
     static const char* StateName(CanFaultState s) {

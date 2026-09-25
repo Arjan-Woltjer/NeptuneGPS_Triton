@@ -200,7 +200,14 @@ void IsobusDebugMenu::printFullDump() {
             serialDebug->print(ce.GetBusOffEntries());
             serialDebug->print("  longest episode: ");
             serialDebug->print(ce.GetLongestEpisodeMs());
-            serialDebug->println(" ms");
+            serialDebug->print(" ms");
+            if (ce.GetState() != CanFaultState::ErrorActive) {
+                // Still in it -- the longest only counts finished episodes.
+                serialDebug->print("  (current: ");
+                serialDebug->print(ce.GetCurrentEpisodeMs(millis()));
+                serialDebug->print(" ms)");
+            }
+            serialDebug->println();
             if (ce.GetBusOffEntries() > 0) {
                 serialDebug->print("  last bus-off ");
                 serialDebug->print(millis() - ce.GetLastBusOffMs());

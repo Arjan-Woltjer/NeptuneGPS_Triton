@@ -206,6 +206,7 @@ private:
     std::uint8_t    canChannel;
     bool            canStarted = false;
     void SampleCanErrors();
+    void PrintCanState(const char* label);
 
     // Position/speed/XTE PGN requests are retried every kPgnRetryIntervalMs
     // (see Update()) until each family has produced at least one message --

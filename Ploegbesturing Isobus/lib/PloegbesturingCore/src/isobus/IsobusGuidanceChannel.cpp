@@ -68,6 +68,12 @@ void IsobusGuidanceChannel::Begin() {
     CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
     CANHardwareInterface::start();
     canStarted = true;   // the plugin's open() has run FlexCAN_T4::begin() -- see SampleCanErrors()
+    // A baseline before we transmit anything, so an episode that starts during
+    // the address claim below is timed from when it really began, not from the
+    // first Update() after setup() -- a board alone on its bus goes
+    // error-passive within milliseconds of its first frame (bench, 2026-09-25).
+    SampleCanErrors();
+    PrintCanState("CAN controller at start: ");
 
     CANHardwareInterface::update();
 
@@ -145,11 +151,14 @@ void IsobusGuidanceChannel::Begin() {
     // J1939 address claim takes at least 250 ms; block until our address is
     // confirmed before sending PGN requests so the source address is valid
     // in the outgoing frame. One-time startup cost, not called from loop().
-    while (!controlFunction->get_address_valid())
+    while (!controlFunction->get_address_valid()) {
         CANHardwareInterface::update();
+        SampleCanErrors();
+    }
 
     serialDebug->print("address claimed: 0x");
     serialDebug->println(controlFunction->get_address(), HEX);
+    PrintCanState("CAN controller after the claim: ");
 
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000,   OnPositionNmea2000,   this);
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnSpeedNmea2000,      OnSpeedNmea2000,      this);
@@ -227,6 +236,18 @@ bool IsobusGuidanceChannel::NeedsGuidanceRequest(unsigned long nowMs, unsigned l
 // while loop() kept running (#149); this is what tells the next occurrence
 // apart: error-passive, bus-off, or neither.
 // ------------------------------------------------------------------
+// One line for the boot log: the controller's state and error counts. Nothing
+// on builds that don't sample (no FlexCAN).
+void IsobusGuidanceChannel::PrintCanState(const char* label) {
+    if (canErrors.GetSamples() == 0) return;
+    serialDebug->print(label);
+    serialDebug->print(CanErrorMonitor::StateName(canErrors.GetState()));
+    serialDebug->print(", TX err ");
+    serialDebug->print(canErrors.GetTxErrors());
+    serialDebug->print(", RX err ");
+    serialDebug->println(canErrors.GetRxErrors());
+}
+
 void IsobusGuidanceChannel::SampleCanErrors() {
 #if defined(__IMXRT1062__)
     // Only once the controller is clocked -- see the member's comment.
