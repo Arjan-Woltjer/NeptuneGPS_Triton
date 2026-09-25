@@ -37,6 +37,9 @@ static constexpr short int kAdcMaxCount = 1023;
 // readCalibrationData() when what was stored cannot be used.
 static constexpr short int kDefaultPositionCalibration[3] = { 600, 461, 308 };
 
+// The max correction the owner sets in practice, in cm (#163).
+static constexpr int kDefaultMaxCorrection = 20;
+
 class ImplementPlough {
 private:
     //-------------
@@ -177,6 +180,26 @@ public:
 
     inline short int GetMaxCorrection() {
         return maxCorrection;
+    }
+
+    // Max correction's valid range in cm follows the share count: 2.5 to
+    // 10 cm per share (#163). A half-centimetre minimum rounds up.
+    static inline int LowestMaxCorrection(int shares) {
+        return (shares * 5 + 1) / 2;
+    }
+
+    static inline int HighestMaxCorrection(int shares) {
+        return shares * 10;
+    }
+
+    // 20 cm, pulled to the nearest end of the range where 20 is outside it
+    // (1 or 9 shares).
+    static inline int DefaultMaxCorrection(int shares) {
+        const int lowest  = LowestMaxCorrection(shares);
+        const int highest = HighestMaxCorrection(shares);
+        if (kDefaultMaxCorrection < lowest)  return lowest;
+        if (kDefaultMaxCorrection > highest) return highest;
+        return kDefaultMaxCorrection;
     }
 
 #ifdef PID_KP
