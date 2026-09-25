@@ -478,6 +478,227 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
     assertFalse(r.valid);
 }
 
+// --- DecodeGnssPositionData (PGN 129029) and DecodePositionDeltaNmea2000 ---
+// Added so a Raven rig is covered -- it publishes this set per a setting on
+// its own VT screen. **Neither PGN has ever been seen on a real bus here**, so
+// unlike the rest of this file these fixtures are constructed from the NMEA
+// 2000 v1.301 Appendix B field list rather than captured. Treat a green test
+// here as "matches the spec as we read it", not as "verified against
+// hardware".
+//
+// 129029 matters more than its position fields suggest: field 8, "Method,
+// GNSS", is the only GNSS quality indicator on any bus captured so far.
+
+// A full frame at the Groningen test site, RTK fixed.
+test(IsobusPgnDecode, gnssPositionData_rtkFixed_decodesPositionAltitudeAndQuality) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertTrue(r.lengthOk);
+    assertTrue(r.hasCoordinates);
+    assertTrue(near(r.latitude, 53.426036f, 1e-4f));
+    assertTrue(near(r.longitude, 6.7205691f, 1e-4f));
+    assertTrue(r.hasAltitude);
+    assertTrue(near(r.altitudeMeters, 4.25f, 0.01f));
+    assertTrue(r.hasQuality);
+    assertEqual((int)r.method, 4);          // RTK fixed -- what IsRtkQuality() wants
+    assertEqual((int)r.numberOfSvs, 18);
+    assertTrue(r.hasHdop);
+    assertTrue(near(r.hdop, 0.85f, 0.01f));
+}
+
+// Losing the fix must reach GuidanceSource, not be swallowed as "unknown".
+// Method 0 is a statement, and it is exactly the case the RTK interlock exists
+// for -- treating it as no-information would leave a stale quality of 4 in
+// place while the receiver says it has nothing.
+test(IsobusPgnDecode, gnssPositionData_noFix_stillReportsQuality) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertTrue(r.hasQuality);
+    assertEqual((int)r.method, 0);
+}
+
+// 0x0F is the not-available code for a 4-bit field, and is the one value that
+// genuinely carries no information.
+test(IsobusPgnDecode, gnssPositionData_methodNotAvailable_noQuality) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertFalse(r.hasQuality);
+}
+
+// Fast packet reassembly can hand us a short buffer if a sequence is
+// incomplete. Reading a quality out of that would be worse than reading none.
+test(IsobusPgnDecode, gnssPositionData_shortFrame_rejected) {
+    uint8_t d[42] = { 0 };
+    auto r = DecodeGnssPositionData(d, 42);
+    assertFalse(r.lengthOk);
+    assertFalse(r.hasQuality);
+    assertFalse(r.hasCoordinates);
+}
+
+// The 1e-16 deg scaling is the trap: 53 degrees is ~5.3e17, far past a float's
+// mantissa, so scaling straight to float loses the value. This pins that the
+// reduction happens in integer arithmetic first.
+test(IsobusPgnDecode, gnssPositionData_latitudePrecision_survivesScaling) {
+    uint8_t d[43] = { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07, 0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+    auto r = DecodeGnssPositionData(d, 43);
+    assertTrue(r.latitude > 53.42f);
+    assertTrue(r.latitude < 53.43f);
+}
+
+// 129027: signed 24-bit deltas, which must sign-extend. A southward/westward
+// delta read as unsigned would come out as a ~46 degree jump.
+test(IsobusPgnDecode, positionDelta_negativeDeltas_signExtend) {
+    // -1000 in both fields = 0xFFFC18 little-endian.
+    uint8_t d[8] = { 0x05, 0x02, 0x18, 0xFC, 0xFF, 0x18, 0xFC, 0xFF };
+    auto r = DecodePositionDeltaNmea2000(d, 8);
+    assertTrue(r.lengthOk);
+    assertEqual((int)r.sid, 5);
+    assertTrue(near(r.timeDeltaSeconds, 0.01f, 0.001f));
+    assertTrue(r.latitudeDeltaDeg < 0.0f);
+    assertTrue(r.longitudeDeltaDeg < 0.0f);
+}
+
+test(IsobusPgnDecode, positionDelta_shortFrame_rejected) {
+    uint8_t d[7] = { 0 };
+    assertFalse(DecodePositionDeltaNmea2000(d, 7).lengthOk);
+}
+
+// --- DecodeGuidanceMachineInfo (PGN 44032) --------------------------------
+// The standard ISO 11783-7 guidance channel. Layout verified against the CSS
+// Electronics ISOBUS DBC v2.4, not inferred. Payloads below are real frames
+// from the 2026-09-09 captures.
+
+// John Deere, card session 26: steering free but not ready, which is the state
+// it sat in for 4215 of 4433 frames.
+test(IsobusPgnDecode, guidanceMachineInfo_johnDeere_notLockedOutNotReady) {
+    uint8_t d[8] = { 0xA5, 0x7D, 0x10, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertTrue(r.lengthOk);
+    assertTrue(r.hasCurvature);
+    assertTrue(near(r.curvaturePerKm, 9.25f, 0.01f));
+    assertEqual((int)r.mechanicalLockout, 0);   // not locked out
+    assertEqual((int)r.steeringReadiness, 0);   // not ready
+}
+
+// The same tractor with readiness set -- 218 frames of the same session. Only
+// two bits differ from the case above, which is exactly the kind of change a
+// hand-rolled bit layout gets wrong.
+test(IsobusPgnDecode, guidanceMachineInfo_johnDeere_steeringReady) {
+    uint8_t d[8] = { 0xA5, 0x7D, 0x14, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertEqual((int)r.mechanicalLockout, 0);
+    assertEqual((int)r.steeringReadiness, 1);   // ready
+}
+
+// The CNH tractor under the Ag Leader kit, card session 28: mechanically
+// locked out for all 8420 frames. This is the message that explains why
+// nothing guidance-related could happen on that rig, and no other message on
+// that bus said it.
+test(IsobusPgnDecode, guidanceMachineInfo_cnh_reportsMechanicalLockout) {
+    uint8_t d[8] = { 0x00, 0x7D, 0x3D, 0xE0, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertEqual((int)r.mechanicalLockout, 1);   // LOCKED OUT
+    assertEqual((int)r.steeringReadiness, 3);   // not available
+    assertEqual((int)r.limitStatus, 7);
+}
+
+test(IsobusPgnDecode, guidanceMachineInfo_curvatureSentinel_noCurvature) {
+    uint8_t d[8] = { 0xFF, 0xFF, 0x10, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.hasCurvature);
+    // The status bits must still decode -- an unavailable curvature says
+    // nothing about whether the steering system is locked out.
+    assertEqual((int)r.mechanicalLockout, 0);
+}
+
+// Straight-ahead is raw 32128, not raw 0: the field is offset by -8032 km^-1.
+test(IsobusPgnDecode, guidanceMachineInfo_zeroCurvature_isOffsetNotZeroRaw) {
+    uint8_t d[8] = { 0x80, 0x7D, 0x10, 0x20, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeGuidanceMachineInfo(d, 8);
+    assertTrue(near(r.curvaturePerKm, 0.0f, 0.01f));
+}
+
+// A short frame must read as "not available" everywhere rather than as a
+// confident "not locked out, ready", which is what zero-initialising would
+// have given.
+test(IsobusPgnDecode, guidanceMachineInfo_shortFrame_readsAsNotAvailable) {
+    uint8_t d[7] = { 0 };
+    auto r = DecodeGuidanceMachineInfo(d, 7);
+    assertFalse(r.lengthOk);
+    assertEqual((int)r.mechanicalLockout, 3);
+    assertEqual((int)r.steeringReadiness, 3);
+    assertEqual((int)r.remoteEngageSwitch, 3);
+}
+
+// --- ClassifyProcessDataCommand -- GitHub issue #21 ------------------------
+// These exist because session 9's TC counters answered "did the Task
+// Controller ask us anything?" wrongly in both directions at once, from inside
+// a CAN callback where no test could reach them. The classification is pure
+// now, so it can be pinned.
+
+// The exact frame the John Deere TC sent us on 2026-09-09, from card session
+// 26: a change threshold on DDI 515. Nothing in the firmware could see this at
+// the time -- AgIsoStack consumes measurement commands internally and never
+// routes them to the value-command callback, so the counter read 0 while this
+// was on the wire.
+test(IsobusPgnDecode, processData_realMeasurementCommand_classifiedAsMeasurement) {
+    uint8_t d[8] = { 0x28, 0x00, 0x03, 0x02, 0x00, 0x00, 0x00, 0x00 };
+    assertTrue(ClassifyProcessDataCommand(d[0]) == ProcessDataKind::Measurement);
+    assertEqual((int)ProcessDataDdi(d), 515);
+}
+
+// All five measurement commands must land in the same bucket -- gating on only
+// the change threshold would reproduce the original blind spot for the other
+// four.
+test(IsobusPgnDecode, processData_allMeasurementCommands_classifiedAsMeasurement) {
+    for (uint8_t cmd = 4; cmd <= 8; cmd++) {
+        assertTrue(ClassifyProcessDataCommand(cmd) == ProcessDataKind::Measurement);
+    }
+}
+
+test(IsobusPgnDecode, processData_requestAndSetValue_areDistinct) {
+    assertTrue(ClassifyProcessDataCommand(0x02) == ProcessDataKind::RequestValue);
+    assertTrue(ClassifyProcessDataCommand(0x03) == ProcessDataKind::SetValue);
+    // Set value and acknowledge. Needs version 4 on both ends, so it is not
+    // expected against the version-3 TCs seen so far, but it must count as a
+    // set rather than falling into Other and reading as silence.
+    assertTrue(ClassifyProcessDataCommand(0x0A) == ProcessDataKind::SetValue);
+}
+
+// The high nibble is an element number for these commands, and must not change
+// the classification. Real frames carry it non-zero.
+test(IsobusPgnDecode, processData_elementBitsInHighNibble_ignored) {
+    assertTrue(ClassifyProcessDataCommand(0x28) == ProcessDataKind::Measurement);
+    assertTrue(ClassifyProcessDataCommand(0xF2) == ProcessDataKind::RequestValue);
+    assertTrue(ClassifyProcessDataCommand(0x73) == ProcessDataKind::SetValue);
+}
+
+// Device Descriptor is the trap: there the high nibble is a SUB-command, not
+// element bits, so bytes 2-3 are not a DDI. It gets its own kind so a caller
+// knows not to read one out. 0x61 is the real object-pool transfer frame from
+// session 28; 0x71 and 0x91 are the transfer and activate responses.
+test(IsobusPgnDecode, processData_deviceDescriptorSubcommands_allClassifiedAsDeviceDescriptor) {
+    for (uint8_t sub = 0; sub <= 13; sub++) {
+        uint8_t byte0 = static_cast<uint8_t>((sub << 4) | 1);
+        assertTrue(ClassifyProcessDataCommand(byte0) == ProcessDataKind::DeviceDescriptor);
+    }
+}
+
+// The TC status broadcast goes to the global address at ~1 Hz. It is by far
+// the most common frame on this PGN and must not be mistaken for the TC
+// addressing us.
+test(IsobusPgnDecode, processData_statusAndWorkingSet_notMistakenForTraffic) {
+    assertTrue(ClassifyProcessDataCommand(0xFE) == ProcessDataKind::TaskControllerStatus);
+    assertTrue(ClassifyProcessDataCommand(0xFF) == ProcessDataKind::WorkingSetTask);
+    assertTrue(ClassifyProcessDataCommand(0x00) == ProcessDataKind::TechnicalCapabilities);
+}
+
+test(IsobusPgnDecode, processData_ddiIsLittleEndian) {
+    uint8_t d[8] = { 0x02, 0x00, 0x02, 0x02, 0, 0, 0, 0 };
+    assertEqual((int)ProcessDataDdi(d), 514);
+}
+
 // --- DecodeLegacyXteTrimble ------------------------------------------------------
 
 test(IsobusPgnDecode, legacyXteTrimble_validFrame_decodesFloatXte) {

@@ -1700,9 +1700,61 @@ before trusting any per-terminal VT observation here.
 
 - ~~Confirm the measurement-command inference from the CANedge log~~ --
   **done 2026-09-09**, confirmed on DDI 515; see above.
-- **Fix both TC counters**: count value commands and measurement commands
-  separately, and count real bus requests separately from AgIsoStack's internal
-  polling.
+- ~~Fix both TC counters~~ -- **done 2026-09-09 evening.** The fix counts PGN
+  0xCB00 messages *addressed to us* straight off the wire, through a raw
+  network-manager callback registered alongside the TC client rather than
+  through it. That independence is the point: the old numbers were computed
+  downstream of the very code whose behaviour they were meant to report, which
+  is the same shape as session 5's `vtstat` mistake. The classification itself
+  is now a pure function in `IsobusPgnDecode` so it can be tested; 7 tests pin
+  it, including the real DDI 515 frame.
+
+  Replayed over the two captures, the new readout would have shown at a glance
+  what took an evening of log analysis to establish:
+
+  | | John Deere (s26) | Ag Leader (s28) |
+  |---|---|---|
+  | Requests for our values | **1** | 0 |
+  | Measurement commands | **1** -- DDI 515, type 8 | **0** |
+  | Set-value commands | 0 | 0 |
+  | Other, addressed to us | 5 (the DDOP handshake) | 18 (handshake x3) |
+
+  **And it exposes a brand difference that was previously invisible: the Ag
+  Leader TC accepts and activates our pool, then never addresses us again.**
+  Zero requests, zero measurement commands, zero set-values in 842 s. The John
+  Deere engages; the Ag Leader does not. Any theory about the missing DDI 506
+  has to account for both behaviours, and they are not the same behaviour.
+- **PGN 44032 is now read, and it answered a question the rest of the bus did
+  not.** The standard ISO 11783-7 guidance channel is broadcast at 10 Hz by the
+  tractor ECU on both rigs, with no Task Controller session, no DDOP and no
+  handshake -- and we were reading none of it. Decoding it gives:
+
+  | | John Deere (s26) | Ag Leader / CNH (s28) |
+  |---|---|---|
+  | Mechanical system lockout | not locked out | **LOCKED OUT**, all 8420 frames |
+  | Steering readiness | not ready (4215) / **READY** (218) | not available |
+  | Limit status | 1 | 7 |
+
+  **The CNH tractor's steering system was mechanically locked out for the whole
+  session.** That is why nothing guidance-related could happen on that rig, and
+  nothing else on the bus said so. It also means the Ag Leader session cannot
+  be read as evidence about the terminal's willingness to do anything --
+  the tractor underneath it was not going to steer regardless.
+
+  Read strictly as diagnostics: the message carries *curvature*, not
+  cross-track error, so nothing from it reaches the control path. Layout from
+  the CSS Electronics ISOBUS DBC v2.4 rather than inferred; six tests pin it
+  against real frames from both rigs.
+
+- **Our ISOBUS identity, now explicit and tracked in #45.** Read off the wire:
+  manufacturer **1407 = Open-Agriculture** (AgIsoStack's own non-commercial
+  code; no MeijWorks entry exists in the AEF registry), and identity number
+  **1** on every unit ever built, so two Ploegbesturing units on one bus would
+  present byte-identical NAMEs and fight over one terminal-side pool cache
+  entry. Neither is changed yet, deliberately -- the NAME feeds that caching,
+  and altering it mid-#21 would invalidate every terminal's stored pool and add
+  a variable, which is the confound the stale MW03 label already produced once.
+
 - **Wider/Narrower**: the presses arrive (9 logged this session) and are
   consumed through `ConsumeWiderPress()` into `InterfacePlough::Update()`, so
   the wiring is intact, but no effect was visible on the Ag Leader.

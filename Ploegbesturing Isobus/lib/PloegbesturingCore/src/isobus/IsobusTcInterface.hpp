@@ -125,6 +125,33 @@ public:
     inline unsigned long GetLastValueCommandMs() const   { return lastValueCommandMs; }
     inline unsigned long GetValueRequestCount() const   { return valueRequestCount; }
 
+    // --- Counted off the wire, not through AgIsoStack (GitHub issue #21) ---
+    //
+    // Session 9 showed the two callback-based counters above cannot answer
+    // "did the Task Controller ask us anything?", and answered it wrongly in
+    // both directions at once: `valueCommandCount` read 0 while the John Deere
+    // TC was actively commanding us, because AgIsoStack consumes measurement
+    // commands internally and never routes them to the value-command callback;
+    // and `valueRequestCount` read ~20 000/s, because AgIsoStack re-polls its
+    // own measurement lists on every update() through the same callback. A
+    // real Process Data exchange looked like another null result.
+    //
+    // These count PGN 0xCB00 messages addressed to us, straight off the bus,
+    // so they are independent of the stack that was hiding the traffic. That
+    // independence is the point: the session-5 `vtstat` mistake and this one
+    // share a shape, which is trusting a number computed downstream of the
+    // thing being diagnosed.
+    inline unsigned long GetBusRequestValueCount() const   { return busRequestValueCount; }
+    inline unsigned long GetBusSetValueCount() const       { return busSetValueCount; }
+    inline unsigned long GetBusMeasurementCount() const    { return busMeasurementCount; }
+    inline std::uint16_t GetLastBusMeasurementDdi() const  { return lastBusMeasurementDdi; }
+    inline unsigned long GetLastBusMeasurementMs() const   { return lastBusMeasurementMs; }
+    inline std::uint8_t  GetLastBusMeasurementType() const { return lastBusMeasurementType; }
+    // Anything addressed to us that is none of the above -- so a TC doing
+    // something we have not thought of still shows up as a non-zero number
+    // rather than as silence.
+    inline unsigned long GetBusOtherProcessDataCount() const { return busOtherProcessDataCount; }
+
     // Tramline Control probe result (GitHub issue #21). DDI 513/514 are
     // optional members of the AEF Tramline Control DDI set, so a TC only has
     // reason to send them to an implement that declared the feature. The DDOP
@@ -254,6 +281,22 @@ private:
     std::uint16_t   lastValueCommandDdi  = 0xFFFF;  // 0xFFFF = none received yet
     unsigned long   lastValueCommandMs   = 0;
     unsigned long   valueRequestCount    = 0;
+
+    // Wire-level Process Data tallies. See the accessors above for why these
+    // exist alongside the callback counters rather than replacing them: the
+    // callback numbers still describe what reached our handlers, which is
+    // worth knowing separately from what arrived on the bus.
+    unsigned long   busRequestValueCount     = 0;   // command 2
+    unsigned long   busSetValueCount         = 0;   // commands 3 and 10
+    unsigned long   busMeasurementCount      = 0;   // commands 4-8
+    unsigned long   busOtherProcessDataCount = 0;
+    std::uint16_t   lastBusMeasurementDdi    = 0xFFFF;
+    unsigned long   lastBusMeasurementMs     = 0;
+    std::uint8_t    lastBusMeasurementType   = 0xFF;
+
+    // Raw PGN 0xCB00 observer -- registered alongside the TC client, and
+    // deliberately independent of it.
+    static void OnProcessDataFrame(const isobus::CANMessage& message, void* parentPointer);
 
     // See HasTramlineSetpoint() above. Latched, never cleared -- a probe
     // result that arrived once is the finding, even if nothing follows it.

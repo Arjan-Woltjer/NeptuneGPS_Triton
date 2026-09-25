@@ -239,6 +239,66 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->print(guidance->GetQuality());
     serialDebug->print("   RTK quality=");
     serialDebug->print(guidance->GetRtkQuality());
+    // PGN 129029 -- the only message on any bus captured so far that carries a
+    // GNSS quality indicator. On a rig without a John Deere (0x2A) or Trimble
+    // (0xAA) legacy XTE sender, this is the sole route to a non-zero quality,
+    // and therefore the sole route to IsRtkQuality() ever being true.
+    {
+        static const char* kMethod[6] = { "0 no GNSS", "1 GNSS", "2 DGNSS",
+                                          "3 precise", "4 RTK FIXED", "5 RTK float" };
+        const auto& c = counters;
+        serialDebug->print("  PGN 129029 GNSS position: ");
+        if (c.gnssPositionData == 0) {
+            serialDebug->println("(none received)");
+        } else {
+            serialDebug->print(c.gnssPositionData);
+            serialDebug->print(" msgs, method=");
+            if (c.lastGnssMethod < 6) serialDebug->print(kMethod[c.lastGnssMethod]);
+            else                      serialDebug->print(c.lastGnssMethod);
+            serialDebug->print("  SVs=");
+            serialDebug->print(c.lastGnssSvCount);
+            if (c.lastGnssHasHdop) {
+                serialDebug->print("  HDOP=");
+                serialDebug->print(c.lastGnssHdop, 2);
+            }
+            serialDebug->print("  last ");
+            serialDebug->print(millis() - c.lastGnssPositionMs);
+            serialDebug->println(" ms ago");
+        }
+        serialDebug->print("  PGN 129027 position deltas: ");
+        serialDebug->println(c.positionDeltaNmea2000);
+    }
+    // PGN 44032 -- the standard ISO 11783-7 guidance channel. Diagnostics
+    // only: it carries curvature, not cross-track error. Its worth is the
+    // status fields, which say why guidance is or is not happening. Session
+    // 9's CNH tractor reported LOCKED OUT for all 8420 frames and no other
+    // message on that bus said so.
+    {
+        static const char* kState[4] = { "no/not-ready", "YES/READY", "error", "n/a" };
+        const auto& c = counters;
+        serialDebug->print("  Guidance machine info (PGN 44032): ");
+        if (c.guidanceMachineInfo == 0) {
+            serialDebug->println("(none received)");
+        } else {
+            serialDebug->print(c.guidanceMachineInfo);
+            serialDebug->print(" msgs, last ");
+            serialDebug->print(millis() - c.lastGuidanceMachineInfoMs);
+            serialDebug->println(" ms ago");
+            serialDebug->print("    lockout=");
+            serialDebug->print(kState[c.lastGuidanceMechanicalLockout & 0x03]);
+            serialDebug->print("  steeringReady=");
+            serialDebug->print(kState[c.lastGuidanceSteeringReadiness & 0x03]);
+            serialDebug->print("  remoteEngage=");
+            serialDebug->print(kState[c.lastGuidanceRemoteEngage & 0x03]);
+            serialDebug->print("  curvature=");
+            if (c.lastGuidanceHasCurvature) {
+                serialDebug->print(c.lastGuidanceCurvaturePerKm, 2);
+                serialDebug->println(" 1/km");
+            } else {
+                serialDebug->println("n/a");
+            }
+        }
+    }
     serialDebug->print("  IsRtkQuality=");
     serialDebug->println(guidance->IsRtkQuality() ? "Y" : "N");
     serialDebug->print("  GGA fix age:  ");
@@ -318,7 +378,11 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print(", last ");
         serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
         serialDebug->println(" ms ago");
-        serialDebug->print("  Value commands (any DDI): ");
+        // --- What reached our handlers, via AgIsoStack -------------------
+        // Labelled as such deliberately. Session 9 read "Value commands: 0"
+        // as "the TC never commanded us" when the TC was commanding us at
+        // that moment; the number was not wrong, the label was.
+        serialDebug->print("  [via stack] Value cmds to handler: ");
         serialDebug->print(tcInterface->GetValueCommandCount());
         serialDebug->print("  last DDI=");
         if (tcInterface->GetValueCommandCount() > 0) {
@@ -329,8 +393,30 @@ void IsobusDebugMenu::printFullDump() {
         } else {
             serialDebug->println("(none)");
         }
-        serialDebug->print("  Value requests (any DDI): ");
-        serialDebug->println(tcInterface->GetValueRequestCount());
+        serialDebug->print("  [via stack] Value req callbacks:  ");
+        serialDebug->print(tcInterface->GetValueRequestCount());
+        serialDebug->println("   (mostly AgIsoStack's own re-polling -- NOT bus traffic)");
+
+        // --- What is actually on the wire, addressed to us ----------------
+        serialDebug->print("  [on bus] Requests for our values: ");
+        serialDebug->println(tcInterface->GetBusRequestValueCount());
+        serialDebug->print("  [on bus] Set-value commands:      ");
+        serialDebug->println(tcInterface->GetBusSetValueCount());
+        serialDebug->print("  [on bus] Measurement commands:    ");
+        serialDebug->print(tcInterface->GetBusMeasurementCount());
+        if (tcInterface->GetBusMeasurementCount() > 0) {
+            serialDebug->print("  last DDI=");
+            serialDebug->print(tcInterface->GetLastBusMeasurementDdi());
+            serialDebug->print(" type=");
+            serialDebug->print(tcInterface->GetLastBusMeasurementType());
+            serialDebug->print(" (");
+            serialDebug->print(millis() - tcInterface->GetLastBusMeasurementMs());
+            serialDebug->println(" ms ago)");
+        } else {
+            serialDebug->println("  (none)");
+        }
+        serialDebug->print("  [on bus] Other, addressed to us:  ");
+        serialDebug->println(tcInterface->GetBusOtherProcessDataCount());
         // Partner address/validity: the thing that silently went false in
         // both #17 and #19 and was readable nowhere at the time.
         serialDebug->print("  Partner: addr=0x");
