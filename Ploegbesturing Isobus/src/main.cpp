@@ -122,11 +122,13 @@ void setup() {
     // -- see MeijWorks Hardware/Triton/MeijWorks besturing 0.1/Design documents/
     // teensy41-application-note.md. Constructed here, next to gSerialGps below,
     // so a future board revision only needs this one line changed.
-    auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(2);
+    constexpr std::uint8_t kIsobusCanChannel = 2;   // FLEXCAN3
+    auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(kIsobusCanChannel);
 
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
     // until claimed), PGN callback registration, initial PGN requests.
-    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, gImplement);
+    // The channel again, so the dump can read that controller's error state (#149).
+    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, gImplement, kIsobusCanChannel);
     gGuidanceChannel->Begin();
 
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());

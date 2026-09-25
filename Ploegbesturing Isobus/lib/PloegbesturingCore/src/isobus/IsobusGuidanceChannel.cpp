@@ -51,11 +51,13 @@ namespace triton
 IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, 
                                              std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, 
                                              GuidanceSource* guidance,
-                                             ImplementPlough* implement)
+                                             ImplementPlough* implement,
+                                             std::uint8_t canChannel)
                                            : serialDebug(serialDebug),
                                              guidance(guidance),
                                              implement(implement),
-                                             canPlugin(canPlugin) {
+                                             canPlugin(canPlugin),
+                                             canChannel(canChannel) {
 }
 
 // ------------------------------------------------------------------
@@ -65,6 +67,7 @@ void IsobusGuidanceChannel::Begin() {
     CANHardwareInterface::set_number_of_can_channels(1);
     CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
     CANHardwareInterface::start();
+    canStarted = true;   // the plugin's open() has run FlexCAN_T4::begin() -- see SampleCanErrors()
 
     CANHardwareInterface::update();
 
@@ -182,6 +185,7 @@ void IsobusGuidanceChannel::Begin() {
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::Update() {
     CANHardwareInterface::update();
+    SampleCanErrors();
 
     // Legacy GPS units aren't always listening the moment Begin()'s one-shot
     // request goes out (their own power-on race), some only broadcast once
@@ -213,6 +217,28 @@ bool IsobusGuidanceChannel::NeedsGuidanceRequest(unsigned long nowMs, unsigned l
     // 0 is GuidanceSource's "never received".
     auto stale = [nowMs](unsigned long t) { return t == 0 || nowMs - t > kPgnRetryIntervalMs; };
     return stale(ggaMs) || stale(vtgMs) || stale(xteMs);
+}
+
+// ------------------------------------------------------------------
+// Reads the FlexCAN controller's error counters (ECR) and fault state
+// (ESR1[FLTCONF]) into canErrors -- two register reads per loop, no side
+// effects (ESR1's latched flags are write-1-to-clear, so reading leaves
+// them). Session 11 saw us stop sending and receiving on CAN for 3.19 s
+// while loop() kept running (#149); this is what tells the next occurrence
+// apart: error-passive, bus-off, or neither.
+// ------------------------------------------------------------------
+void IsobusGuidanceChannel::SampleCanErrors() {
+#if defined(__IMXRT1062__)
+    // Only once the controller is clocked -- see the member's comment.
+    if (!canStarted) return;
+    // FlexCAN_T4's CAN1/CAN2/CAN3 bases, in the plugin's channel order.
+    static constexpr std::uint32_t kFlexCanBase[] = { 0x401D0000UL, 0x401D4000UL, 0x401D8000UL };
+    if (canChannel >= 3) return;
+    const std::uint32_t base = kFlexCanBase[canChannel];
+    const std::uint32_t ecr  = *reinterpret_cast<volatile std::uint32_t*>(base + 0x1C);
+    const std::uint32_t esr1 = *reinterpret_cast<volatile std::uint32_t*>(base + 0x20);
+    canErrors.Sample(ecr, esr1, millis());
+#endif
 }
 
 // ------------------------------------------------------------------
