@@ -1,0 +1,156 @@
+﻿# 12:23:36 first dump after flash of fix/21-tc-counters 2da131e
+--------------------------------
+-----------MeijWorks------------
+--------------------------------
+Ploughcontrol ISOBUS version 0.1
+(c) 2011 - 2026 by J.A. Woltjer 
+--------------------------------
+-------------------------------
+Tractor using following data:
+-------------------------------
+Speed calibration
+250
+-------------------------------
+Simspeed
+1.00
+-------------------------------
+Sim time
+2
+-------------------------------
+Sim mode
+1
+-------------------------------
+Invert hitch signal
+0
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+=====================================
+Guidance source using following data:
+=====================================
+RTK Quality
+4
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+error margin
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Maximum correction
+50
+--------------------------
+IsobusGuidanceChannel: claiming address address claimed: 0x81
+IsobusDebugMenu: send any character to open the status menu.
+
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 22.5 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   90
+  PGN 65256  Speed legacy:      90   last SA=0x1C raw=0x6
+  PGN 65535  XTE JD legacy:     1935   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (13 ms ago)
+  PGN 60160  XTE Trimble legacy:5   last SA=0x1C
+  PGN 64770  AISO stop:         17   last 27622 ms ago
+  TOTAL:                        2318
+--- Guidance telemetry ---
+  XTE:          -1.04 m
+  Speed:        0.01 m/s (0.02 kn)
+  Quality:      4   RTK quality=4  PGN 129029 GNSS position: (none received)
+  PGN 129027 position deltas: 0
+  Guidance machine info (PGN 44032): 181 msgs, last 3 ms ago
+    lockout=no/not-ready  steeringReady=no/not-ready  remoteEngage=n/a  curvature=4.50 1/km
+  IsRtkQuality=Y
+  GGA fix age:  198 ms
+  VTG fix age:  197 ms
+  XTE fix age:  187 ms
+  Lat/Lon/Alt/Course: 53.425358 / 6.720312 / 4.4 m / 319.0 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 18   last 828 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 27622 ms ago
+  GNSS quality (DDI 514):  0, last 27622 ms ago
+  [via stack] Value cmds to handler: 3  last DDI=506 (4180 ms ago)
+  [via stack] Value req callbacks:  105829   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+  [on bus] Requests for our values: 1
+  [on bus] Set-value commands:      3
+  [on bus] Measurement commands:    1  last DDI=515 type=8 (4604 ms ago)
+  [on bus] Other, addressed to us:  5
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): 1  -> terminal DOES implement Tramline Control (4180 ms ago)
+  Guidance track (DDI 507-511): (none yet)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+W] [TP]: Received a Clear to Send (CTS) message with a global destination, ignoring
+W] [TP]: Received an End of Message Acknowledge message with a global destination, ignoring
+

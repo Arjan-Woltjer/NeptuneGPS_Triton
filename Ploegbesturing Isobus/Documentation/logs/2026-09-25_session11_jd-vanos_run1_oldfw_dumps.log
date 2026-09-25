@@ -1,0 +1,153 @@
+﻿# 2026-09-25 12:08:14 session 11 dump, autosteer engaged ~12:07
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+
+# 12:08:32
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 21.6 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   4188
+  PGN 65256  Speed legacy:      4188   last SA=0x1C raw=0x3
+  PGN 65535  XTE JD legacy:     90512   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (1 ms ago)
+  PGN 60160  XTE Trimble legacy:71   last SA=0x1C
+  PGN 64770  AISO stop:         850   last 870692 ms ago
+  TOTAL:                        99809
+--- Guidance telemetry ---
+  XTE:          -0.70 m
+  Speed:        0.01 m/s (0.01 kn)
+  Quality:      4   RTK quality=4  IsRtkQuality=Y
+  GGA fix age:  62 ms
+  VTG fix age:  61 ms
+  XTE fix age:  49 ms
+  Lat/Lon/Alt/Course: 53.425301 / 6.720324 / 4.4 m / 156.2 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 851   last 712 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 870692 ms ago
+  GNSS quality (DDI 514):  0, last 870692 ms ago
+  Value commands (any DDI): 7  last DDI=515 (714637 ms ago)
+  Value requests (any DDI): 19065593
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): 1  -> terminal DOES implement Tramline Control (822643 ms ago)
+  Guidance track (DDI 507-511): (none yet)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+
+# 12:12:18  called: 100 cm right
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 23.9 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   5325
+  PGN 65256  Speed legacy:      5325   last SA=0x1C raw=0x20E
+  PGN 65535  XTE JD legacy:     114870   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (18 ms ago)
+  PGN 60160  XTE Trimble legacy:80   last SA=0x1C
+  PGN 64770  AISO stop:         1077   last 1098154 ms ago
+  TOTAL:                        126677
+--- Guidance telemetry ---
+  XTE:          0.71 m
+  Speed:        1.06 m/s (2.05 kn)
+  Quality:      4   RTK quality=4  IsRtkQuality=Y
+  GGA fix age:  126 ms
+  VTG fix age:  125 ms
+  XTE fix age:  114 ms
+  Lat/Lon/Alt/Course: 53.425365 / 6.720301 / 4.4 m / 135.6 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 1079   last 172 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 1098154 ms ago
+  GNSS quality (DDI 514):  0, last 1098154 ms ago
+  Value commands (any DDI): 7  last DDI=515 (942099 ms ago)
+  Value requests (any DDI): 24281068
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): 1  -> terminal DOES implement Tramline Control (1050105 ms ago)
+  Guidance track (DDI 507-511): (none yet)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+
+# 12:12:31  called: 29 cm right
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81
+Bus load (ch0): 21.7 %
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   5390
+  PGN 65256  Speed legacy:      5390   last SA=0x1C raw=0xD7
+  PGN 65535  XTE JD legacy:     116268   last SA=0xF0 word=0x0 byte1=0x0
+             full payload:     0000000000000000  (9 ms ago)
+  PGN 60160  XTE Trimble legacy:83   last SA=0x1C
+  PGN 64770  AISO stop:         1090   last 1111226 ms ago
+  TOTAL:                        128221
+--- Guidance telemetry ---
+  XTE:          0.90 m
+  Speed:        0.43 m/s (0.84 kn)
+  Quality:      4   RTK quality=4  IsRtkQuality=Y
+  GGA fix age:  198 ms
+  VTG fix age:  197 ms
+  XTE fix age:  186 ms
+  Lat/Lon/Alt/Course: 53.425377 / 6.720283 / 4.2 m / 317.1 deg
+--- Virtual Terminal ---
+  Connected:    Y
+  State:        21/22  Connected
+  VT version:  4
+  VT status msgs: 1092   last 244 ms ago
+  Partner: addr=0x26 valid=Y  reconnect attempts=0
+--- Task Controller ---
+  Connected:    Y
+  TC-GEO (with/without pos): Y/Y
+  Task active:  Y
+  DRP deviation (DDI 513): 0 mm, last 1111226 ms ago
+  GNSS quality (DDI 514):  0, last 1111226 ms ago
+  Value commands (any DDI): 7  last DDI=515 (955171 ms ago)
+  Value requests (any DDI): 24576634
+  Partner: addr=0xF7 valid=Y  reconnect attempts=0
+  Tramline setpoint (DDI 506): 1  -> terminal DOES implement Tramline Control (1063177 ms ago)
+  Guidance track (DDI 507-511): (none yet)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+5. Dump VT object pool as hex
+q. Exit
+
