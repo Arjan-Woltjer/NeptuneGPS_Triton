@@ -23,6 +23,7 @@
 // Standard headers first: the Arduino stub behind AUnit.h defines min/max as
 // macros, and GCC's <string>/<vector> use std::min/max with three arguments.
 #include <cstring>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -70,6 +71,12 @@ struct IsobusTcInterfaceTestAccess {
     // a real TC server on a real bus can advance, so the "we have been
     // connected once" flag is set here rather than reached through it.
     static void Watchdog(IsobusTcInterface& tc) { tc.updateReconnectWatchdog(); }
+    static void ReportWidth(IsobusTcInterface& tc) { tc.reportWidthIfChanged(); }
+    static void ResetWidth(IsobusTcInterface& tc) {
+        tc.lastWidthCm      = -1;
+        tc.widthChangeCount = 0;
+        tc.widthReportCount = 0;
+    }
 
     static void SetHasEverConnected(IsobusTcInterface& tc, bool value) { tc.hasEverConnected = value; }
 
@@ -225,6 +232,65 @@ test(IsobusTcInterface, ddop_declaresTheConnectorOffsets) {
     assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::DeviceElementOffsetY));
 }
 
+// TC06 (#150): the plough's working width. With none declared, a John Deere
+// filled in its own 3 m on every connect and moved the guidance lines with it
+// (session 11). 66, the setpoint, is left out on purpose: the terminal must
+// not be able to command the plough's width.
+test(IsobusTcInterface, ddop_declaresTheWorkingWidth_butNotASetpoint) {
+    const auto ddis = DdisInUploadedPool();
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::ActualWorkingWidth));    // 67
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::DefaultWorkingWidth));   // 68
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::MinimumWorkingWidth));   // 69
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::MaximumWorkingWidth));   // 70
+    assertFalse(PoolHas(ddis, isobus::DataDescriptionIndex::SetpointWorkingWidth)); // 66
+}
+
+// In the bytes we upload: 67 is reported by us (not settable), offered on
+// change, and hangs off the Ploughbody function element; the three limits
+// follow the share count, in mm.
+test(IsobusTcInterface, ddop_workingWidthIsReportedOnChangeWithShareBasedLimits) {
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+
+    using namespace isobus::task_controller_object;
+    const std::int32_t shares = tcImplement->GetShares();
+    std::uint16_t actualId = 0xFFFF;
+    std::uint8_t  actualProperties = 0, actualTriggers = 0;
+    std::map<std::uint16_t, std::int32_t> limits;
+    std::set<std::uint16_t> functionChildren;
+    for (std::uint16_t i = 0; i < parsed.size(); i++) {
+        auto object = parsed.get_object_by_index(i);
+        if (object == nullptr) continue;
+        if (object->get_object_type() == ObjectTypes::DeviceProcessData) {
+            auto dpd = std::static_pointer_cast<DeviceProcessDataObject>(object);
+            if (dpd->get_ddi() == 67) {
+                actualId         = dpd->get_object_id();
+                actualProperties = dpd->get_properties_bitfield();
+                actualTriggers   = dpd->get_trigger_methods_bitfield();
+            }
+        } else if (object->get_object_type() == ObjectTypes::DeviceProperty) {
+            auto dpt = std::static_pointer_cast<DevicePropertyObject>(object);
+            if (dpt->get_ddi() >= 68 && dpt->get_ddi() <= 70) limits[dpt->get_ddi()] = dpt->get_value();
+        } else if (object->get_object_type() == ObjectTypes::DeviceElement) {
+            auto det = std::static_pointer_cast<DeviceElementObject>(object);
+            if (det->get_type() == DeviceElementObject::Type::Function) {
+                for (std::uint16_t c = 0; c < det->get_number_child_objects(); c++) {
+                    functionChildren.insert(det->get_child_object_id(c));
+                }
+            }
+        }
+    }
+    assertNotEqual((int)actualId, 0xFFFF);
+    assertTrue(functionChildren.count(actualId) != 0);
+    assertEqual((int)(actualProperties & static_cast<std::uint8_t>(DeviceProcessDataObject::PropertiesBit::Settable)), 0);
+    assertTrue((actualTriggers & static_cast<std::uint8_t>(DeviceProcessDataObject::AvailableTriggerMethods::OnChange)) != 0);
+    assertEqual(limits[68], shares * 40 * 10);
+    assertEqual(limits[69], shares * 20 * 10);
+    assertEqual(limits[70], shares * 60 * 10);
+}
+
 // ISO 11783-10 wants exactly one device element of type Device in a pool, and
 // a missing one was half of a real TC-side rejection on 2026-08-10.
 test(IsobusTcInterface, ddop_hasExactlyOneRootDeviceElement) {
@@ -331,6 +397,45 @@ test(IsobusTcInterface, valueRequest_trackControlStateAnswersOurOwnState_notTheC
     Command(isobus::DataDescriptionIndex::TramlineControlState, 1);
     assertEqual((int)Fixture().GetCommandedTrackControlState(), 1);
     assertEqual((int)Request(isobus::DataDescriptionIndex::TramlineControlState), 0);
+}
+
+// A Wider/Narrower press changes the plough's working width, so DDI 67 must
+// follow it (#150). The fixture has no TC server, so nothing is actually sent
+// -- the trigger only fires while connected, and get_is_connected() is driven
+// by a state machine only a real server can advance. What this pins is the
+// change detection that decides when to fire.
+test(IsobusTcInterface, widthReport_countsAChange_butNotTheStartingValue) {
+    Fixture();
+    IsobusTcInterfaceTestAccess::ResetWidth(Fixture());
+    IsobusTcInterfaceTestAccess::ReportWidth(Fixture());           // first reading
+    assertEqual(Fixture().GetWidthChangeCount(), (unsigned long)0);  // is the baseline, not a change
+    IsobusTcInterfaceTestAccess::ReportWidth(Fixture());
+    assertEqual(Fixture().GetWidthChangeCount(), (unsigned long)0);  // nothing moved
+
+    // One Wider press through the plough's own path. The mocked clock stays
+    // under AUnit's 10 s test timeout (it runs on the same clock).
+    const short int before = tcImplement->GetOffset();
+    millisValue(5000);
+    tcImplement->Update(0, 10);
+    assertEqual((int)tcImplement->GetOffset(), before + 10);
+    IsobusTcInterfaceTestAccess::ReportWidth(Fixture());
+    assertEqual(Fixture().GetWidthChangeCount(), (unsigned long)1);
+    assertEqual((int)Fixture().GetLastWidthCm(), before + 10);
+    assertEqual(Fixture().GetWidthReportCount(), (unsigned long)0);   // not connected
+
+    // Put the shared fixture back as it was.
+    millisValue(5500);
+    tcImplement->Update(0, -10);
+    IsobusTcInterfaceTestAccess::ReportWidth(Fixture());
+    millisValue(0);
+}
+
+// The width in mm, from the plough's own offset in cm (#150).
+test(IsobusTcInterface, valueRequest_workingWidthAnswersTheOffsetInMm) {
+    Fixture();
+    assertMore((int)tcImplement->GetOffset(), 0);
+    assertEqual(IsobusTcInterfaceTestAccess::Request(Fixture(), 67),
+                (std::int32_t)tcImplement->GetOffset() * 10);
 }
 
 test(IsobusTcInterface, valueRequest_countsEveryRequest) {
