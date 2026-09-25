@@ -320,6 +320,52 @@ test(IsobusGuidanceChannel, johnDeereXte_commitsNegativeValueAndNonRtkQuality) {
     assertEqual((int)gcGuidance.GetQuality(), 0);
 }
 
+// PGN 0xFFFF is busy: on the John Deere rig 0xF0 alone sends ~64 frames/s of
+// it (session 11). The decoder only captures raw bytes from the senders it
+// recognises (0x2A, and Ag Leader's 0x80 for #20), so a frame from anyone else
+// must not overwrite the capture with an empty placeholder -- which is what
+// the dump's all-zero "full payload" was (#153).
+test(IsobusGuidanceChannel, johnDeereXte_otherSendersDoNotOverwriteTheRawCapture) {
+    Reset();
+    millisValue(1000);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF });
+    millisValue(1100);
+    // A real 0xF0 frame shape from log 30: selector 0x55, never all zeros.
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0xF0,
+            { 0x55, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 });
+    assertEqual((int)Channel().GetMessageCounters().lastXteJohnDeereLegacyPayload[0], 0x77);
+    assertEqual((int)Channel().GetMessageCounters().lastXteJohnDeereLegacyPayload[4], 0x7D);
+    assertEqual((int)Channel().GetMessageCounters().lastXteJohnDeereLegacyRawWord, 0x7D16);
+    assertEqual((int)Channel().GetMessageCounters().lastXteJohnDeereLegacyRawByte1, 0x15);
+    assertEqual(Channel().GetMessageCounters().lastXteJohnDeereLegacyPayloadMs, (uint32_t)1000);
+    assertEqual((int)Channel().GetMessageCounters().lastXteJohnDeereLegacyPayloadSourceAddress, 0x2A);
+    // The all-senders fields still follow every frame.
+    assertEqual(Channel().GetMessageCounters().xteJohnDeereLegacy, (uint32_t)2);
+    assertEqual((int)Channel().GetMessageCounters().lastXteJohnDeereLegacySourceAddress, 0xF0);
+    millisValue(0);
+}
+
+// The carrier count answers "is the cross-track feed alive?", which the
+// all-senders count cannot: a frame from 0x2A with another selector, or from
+// another sender entirely, must not move it.
+test(IsobusGuidanceChannel, johnDeereXte_carrierCountsOnlyFramesThatDecodedToXte) {
+    Reset();
+    millisValue(500);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF });   // XTE
+    millisValue(600);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x92, 0x15, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x00 });   // 0x2A, other selector
+    millisValue(700);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0xF0,
+            { 0x55, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 });   // another sender
+    assertEqual(Channel().GetMessageCounters().xteJohnDeereCarrier, (uint32_t)1);
+    assertEqual(Channel().GetMessageCounters().lastXteJohnDeereCarrierMs, (uint32_t)500);
+    assertEqual(Channel().GetMessageCounters().xteJohnDeereLegacy, (uint32_t)3);
+    millisValue(0);
+}
+
 test(IsobusGuidanceChannel, trimbleXte_recordsItsSourceAddress) {
     Reset();
     Deliver(IsobusGuidanceChannelTestAccess::LegacyXteTrimble(), 0xAA,

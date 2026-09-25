@@ -307,19 +307,28 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
     const auto& d = msg.get_data();
     auto result = DecodeLegacyXteJohnDeere(sourceAddress, d.data(), static_cast<uint8_t>(msg.get_data_length()));
 
-    // Raw diagnostics are stored whenever the decoder got far enough to read
-    // them, independent of `valid` -- matching IsobusPgnDecode.hpp's stated
-    // convention, and load-bearing for GitHub issue #20: an Ag Leader/Raven
-    // sender (SA 0x80) is deliberately not decoded any more, but its raw
-    // bytes are exactly what a future capture needs to derive its real
-    // layout, so they must still reach IsobusDebugMenu's readout.
-    self->counters.lastXteJohnDeereLegacyRawWord  = result.rawWord;
-    self->counters.lastXteJohnDeereLegacyRawByte1 = result.rawByte1;
-    if (result.lengthOk) {
+    // Raw diagnostics are kept independent of `valid` -- load-bearing for
+    // GitHub issue #20: an Ag Leader/Raven sender (SA 0x80) is deliberately
+    // not decoded any more, but its raw bytes are exactly what a future
+    // capture needs to derive its real layout. They are kept only when the
+    // decoder actually captured them, though. PGN 0xFFFF carries every
+    // manufacturer's proprietary traffic (0xF0 alone sends ~64 frames/s on the
+    // John Deere rig), and copying the decoder's empty placeholder for those
+    // senders is what showed as an all-zero payload in the dump (#153).
+    if (result.rawCaptured) {
+        self->counters.lastXteJohnDeereLegacyRawWord  = result.rawWord;
+        self->counters.lastXteJohnDeereLegacyRawByte1 = result.rawByte1;
         for (uint8_t i = 0; i < 8; i++) {
             self->counters.lastXteJohnDeereLegacyPayload[i] = result.rawPayload[i];
         }
+        self->counters.lastXteJohnDeereLegacyPayloadSourceAddress = sourceAddress;
         self->counters.lastXteJohnDeereLegacyPayloadMs = millis();
+    }
+
+    // The XTE carrier itself: frames that decoded to a cross-track value.
+    if (result.valid) {
+        self->counters.xteJohnDeereCarrier++;
+        self->counters.lastXteJohnDeereCarrierMs = millis();
     }
 
     GApply(result, self->guidance);

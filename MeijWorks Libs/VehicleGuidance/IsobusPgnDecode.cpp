@@ -381,6 +381,7 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
     for (uint8_t i = 0; i < 8; i++) {
         result.rawPayload[i] = data[i];
     }
+    result.rawCaptured = true;
 
     // ...but only John Deere's payload is actually decoded. Session 6
     // (2026-09-05) disproved Session 1's assumption that Ag Leader/Raven

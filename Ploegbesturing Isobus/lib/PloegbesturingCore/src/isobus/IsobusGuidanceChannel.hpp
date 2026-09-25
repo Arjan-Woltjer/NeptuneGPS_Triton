@@ -114,6 +114,13 @@ public:
         // ground-truth XTE read off the terminal.
         uint8_t  lastXteJohnDeereLegacyPayload[8]      = { 0, 0, 0, 0, 0, 0, 0, 0 };
         uint32_t lastXteJohnDeereLegacyPayloadMs       = 0;
+        // The xteJohnDeereLegacy count and last-SA above cover every PGN 0xFFFF
+        // sender, which on a John Deere bus is mostly other traffic (#153). The
+        // raw capture is only from a sender the decoder recognises, and records
+        // which one; the carrier fields count frames that decoded to XTE.
+        uint8_t  lastXteJohnDeereLegacyPayloadSourceAddress = 0xFF;
+        uint32_t xteJohnDeereCarrier                   = 0;
+        uint32_t lastXteJohnDeereCarrierMs             = 0;
         uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
 
         // PGN 44032, the standard ISO 11783-7 guidance channel. Diagnostics

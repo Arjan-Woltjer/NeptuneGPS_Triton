@@ -301,9 +301,11 @@ with the mapping:
   bus-visible "autosteer engaged" signal on this implement bus** -- record it
   by hand. No NMEA2000 guidance PGNs at all (129025/26/27/29/283).
 
-**One trap:** the board's `PGN 65535 XTE JD legacy` dump line covers *every*
-65535 sender (~104 frames/s), not the XTE carrier; its payload is usually
-`0xF0`'s zeros (#153). Read the XTE from `0x2A`, sub-ID `0x77`.
+**One trap:** the board's `PGN 65535 XTE JD legacy` dump line covered *every*
+65535 sender (~104 frames/s), not the XTE carrier, and its all-zero payload
+was a placeholder, not data -- the decoder only captures bytes from `0x2A` and
+`0x80`, and no sender in this log ever sends an all-zero 65535 payload. Fixed
+in #153. Read the XTE from `0x2A`, sub-ID `0x77`.
 
 ## Reading them
 
