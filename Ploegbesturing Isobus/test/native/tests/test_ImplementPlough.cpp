@@ -201,11 +201,11 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
 }
 
 // ---------------------------------------------------------------------------
-// SetOffset (private, exercised through Update()) -- EEPROM-backed offset
-// clamping. Default offset=160 (shares*40), valid range is
-// (shares*20, shares*60] = (80, 240] with shares=4. Update() only calls
-// setOffset() when (a) at least 200ms elapsed since construction/last update
-// and (b) mode < 2.
+// SetOffset (private, exercised through Update()) -- EEPROM-backed offset,
+// which is the plough's total working width in cm. Default offset=160
+// (shares*40), valid range [shares*20, shares*60] = [80, 240] with shares=4,
+// clamped at both ends (#152). Update() only calls setOffset() when (a) at
+// least 200ms elapsed since construction/last update and (b) mode < 2.
 // ---------------------------------------------------------------------------
 
 test(ImplementPlough, setOffset_withinRange_adds) {
@@ -216,20 +216,51 @@ test(ImplementPlough, setOffset_withinRange_adds) {
     assertEqual(impl.GetOffset(), (short int)210);
 }
 
-test(ImplementPlough, setOffset_aboveUpperBound_resetsToDefault) {
+// Past a limit the width stops at the limit. It used to jump to the middle
+// (shares*40), which these two tests pinned as if it were intended (#152).
+test(ImplementPlough, setOffset_aboveUpperBound_clampsAtMaximum) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
-    impl.Update(0, 100);  // 160 + 100 = 260 > 240 -> reset to shares*40=160
-    assertEqual(impl.GetOffset(), (short int)160);
+    impl.Update(0, 100);  // 160 + 100 = 260 > 240 -> clamped to shares*60=240
+    assertEqual(impl.GetOffset(), (short int)240);
 }
 
-test(ImplementPlough, setOffset_belowLowerBound_resetsToDefault) {
+test(ImplementPlough, setOffset_belowLowerBound_clampsAtMinimum) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(200);
-    impl.Update(0, -100);  // 160 - 100 = 60 < 80 -> reset to shares*40=160
-    assertEqual(impl.GetOffset(), (short int)160);
+    impl.Update(0, -100);  // 160 - 100 = 60 < 80 -> clamped to shares*20=80
+    assertEqual(impl.GetOffset(), (short int)80);
+}
+
+// The operator's actual case: holding Wider at the widest setting. Every
+// further press must leave it there, not swing it to the middle.
+test(ImplementPlough, setOffset_atMaximum_furtherPressesStayThere) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(200);
+    impl.Update(0, 80);   // 160 + 80 = 240, exactly the maximum
+    assertEqual(impl.GetOffset(), (short int)240);
+    millisValue(400);
+    impl.Update(0, 1);    // one more press
+    assertEqual(impl.GetOffset(), (short int)240);
+    millisValue(600);
+    impl.Update(0, 1);
+    assertEqual(impl.GetOffset(), (short int)240);
+}
+
+// The clamped value is what reaches the EEPROM, so it survives a restart
+// instead of reading back as the middle.
+test(ImplementPlough, setOffset_clampedValueIsPersisted) {
+    resetAll();
+    {
+        ImplementPlough impl(nullptr, &mockGuidance);
+        millisValue(200);
+        impl.Update(0, -100);  // clamped to 80
+    }
+    ImplementPlough restarted(nullptr, &mockGuidance);
+    assertEqual(restarted.GetOffset(), (short int)80);
 }
 
 test(ImplementPlough, setOffset_zeroCorrection_isNoOp) {
