@@ -37,7 +37,8 @@ using namespace triton;
 // re-erases the fake EEPROM, guaranteeing the exact same "no calibration data
 // found" defaults every time (positionCalibrationData={600,461,308},
 // positionCalibrationPoints={34,42,50}, offset=160, shares=4, error=2,
-// maxCorrection=20, kp=100 -- see ImplementPlough.cpp's constructor).
+// max correction 50 mm per share (20 cm on 4 shares), kp=100 -- see
+// ImplementPlough.cpp's constructor).
 // ---------------------------------------------------------------------------
 static GuidanceSource mockGuidance;
 
@@ -281,8 +282,8 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
 
 // ---------------------------------------------------------------------------
 // SetSetpoint (private, exercised through Update()) -- proportional-gain
-// (kp=100 default -> gain 1.0) and max-correction clamping (maxCorrection=20
-// default, #163). setpoint = offset - pe (GetSide() reads false by default, so the
+// (kp=100 default -> gain 1.0) and max-correction clamping (50 mm per share
+// on 4 shares = 20 cm default, #163). setpoint = offset - pe (GetSide() reads false by default, so the
 // sign multiplier (GetSide()*2-1) is -1); offset defaults to 160.
 // ---------------------------------------------------------------------------
 
@@ -299,7 +300,7 @@ test(ImplementPlough, setSetpoint_clampsAboveMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(1);
-    mockGuidance.SetXte(100);  // pe=100 > maxCorrection(20) -> clamped to 20
+    mockGuidance.SetXte(100);  // pe=100 > max correction (20 cm) -> clamped to 20
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - 20));
 }
@@ -308,9 +309,26 @@ test(ImplementPlough, setSetpoint_clampsBelowNegativeMaxCorrection) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     millisValue(1);
-    mockGuidance.SetXte(-100);  // pe=-100 <= -maxCorrection(-20) -> clamped to -20
+    mockGuidance.SetXte(-100);  // pe=-100 <= -max correction (-20 cm) -> clamped to -20
     impl.Update(0, 0);
     assertEqual(impl.GetSetpoint(), (short int)(160 - (-20)));
+}
+
+// The setpoint is in whole cm, so a limit with a half centimetre rounds down:
+// 55 mm per share on 3 shares is 16.5 cm, which allows 16, never 17 (#163).
+test(ImplementPlough, setSetpoint_halfCentimetreLimit_roundsDown) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetShares(3);
+    impl.SetMaxCorrectionPerShare(55);
+    millisValue(1);
+    mockGuidance.SetXte(30);
+    impl.Update(0, 0);
+    assertEqual(impl.GetSetpoint(), (short int)(160 - 16));
+    millisValue(2);
+    mockGuidance.SetXte(-30);
+    impl.Update(0, 0);
+    assertEqual(impl.GetSetpoint(), (short int)(160 + 16));
 }
 
 // ---------------------------------------------------------------------------
@@ -411,7 +429,8 @@ test(ImplementPlough, resetCalibration_erasedEeprom_reportsNoData) {
     assertFalse(impl.ResetCalibration());
     assertEqual((int)impl.GetShares(), 4);
     assertEqual((int)impl.GetError(), 2);
-    assertEqual(impl.GetMaxCorrection(), (short int)20);
+    assertEqual((int)impl.GetMaxCorrectionPerShare(), 50);
+    assertEqual(impl.GetMaxCorrection(), (short int)200);
     assertFalse(impl.GetSide());
 }
 
@@ -423,7 +442,7 @@ test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
     analogReadValue(POSITION_SENS_PIN_2, 300); impl.SetPositionCalibrationData(2);
     impl.SetShares(6);
     impl.SetError(7);
-    impl.SetMaxCorrection(35);
+    impl.SetMaxCorrectionPerShare(35);
     impl.SetSwap(true);
     impl.CommitCalibration();
 
@@ -432,7 +451,8 @@ test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
     assertTrue(fresh.ResetCalibration());
     assertEqual((int)fresh.GetShares(), 6);
     assertEqual((int)fresh.GetError(), 7);
-    assertEqual(fresh.GetMaxCorrection(), (short int)35);
+    assertEqual((int)fresh.GetMaxCorrectionPerShare(), 35);
+    assertEqual(fresh.GetMaxCorrection(), (short int)210);
     assertTrue(fresh.GetSide());                 // swap=1 with the side pin low
 
     fresh.PrintCalibrationData();
@@ -440,7 +460,8 @@ test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
     assertTrue(dbg.has("Number of shares\n6\n"));
     assertTrue(dbg.has("error margin\n7\n"));
     assertTrue(dbg.has("error ploughside\n1\n"));
-    assertTrue(dbg.has("Maximum correction\n35\n"));
+    assertTrue(dbg.has("Maximum correction per share (mm)\n35\n"));
+    assertTrue(dbg.has("Maximum correction (mm)\n210\n"));
 }
 
 test(ImplementPlough, outOfRangeStoredBytes_fallBackToDefaults) {
@@ -451,12 +472,12 @@ test(ImplementPlough, outOfRangeStoredBytes_fallBackToDefaults) {
     EEPROM.write(44, 0x01); EEPROM.write(45, 0x2C);   // 300
     // ... and every scalar out of its accepted range.
     EEPROM.write(58, 200);   // error margin >= 10
-    EEPROM.write(60, 200);   // max correction above 4 shares' 40 cm
+    EEPROM.write(60, 200);   // max correction above 100 mm per share
     EEPROM.write(62, 9);     // swap not 0/1
     EEPROM.write(64, 99);    // shares >= 10
     ImplementPlough impl(nullptr, &mockGuidance);
     assertEqual((int)impl.GetError(), 2);
-    assertEqual(impl.GetMaxCorrection(), (short int)20);
+    assertEqual((int)impl.GetMaxCorrectionPerShare(), 50);
     assertEqual((int)impl.GetShares(), 4);
     assertFalse(impl.GetSide());
 }
@@ -471,65 +492,75 @@ test(ImplementPlough, printCalibrationData_onErasedEeprom_printsTheDefaults) {
     assertTrue(dbg.has("Number of shares\n4\n"));
     assertTrue(dbg.has("error margin\n2\n"));
     assertTrue(dbg.has("error ploughside\n0\n"));
-    assertTrue(dbg.has("Maximum correction\n20\n"));
+    assertTrue(dbg.has("Maximum correction per share (mm)\n50\n"));
+    assertTrue(dbg.has("Maximum correction (mm)\n200\n"));
 }
 
 // ---------------------------------------------------------------------------
-// Max correction's range follows the share count (#163): 2.5 to 10 cm per
-// share, default 20 cm. It used to accept only values under 10, so the 20 cm
-// the owner sets was reset to 50 at every boot.
+// Max correction (#163): kept per share, in mm, in one EEPROM byte; the limit
+// is per share times the shares. 25 to 100 mm per share, default 50. The load
+// used to accept only values under 10 (then the total, in cm), so the 20 cm
+// the owner sets was reset to 50 cm at every boot.
 // ---------------------------------------------------------------------------
 
-// A stored scalar block with this share count and max correction; the
-// position data is left erased, which only resets it to its defaults.
-static void storeSharesAndMaxCorrection(byte shares, byte maxCorrection) {
+// A stored scalar block with this share count and max correction per share;
+// the position data is left erased, which only resets it to its defaults.
+static void storeSharesAndMaxCorrectionPerShare(byte shares, byte perShareMm) {
     resetAll();
     EEPROM.write(64, shares);
-    EEPROM.write(60, maxCorrection);
+    EEPROM.write(60, perShareMm);
 }
 
-test(ImplementPlough, maxCorrection_twentyCentimetres_survivesABoot) {
-    storeSharesAndMaxCorrection(4, 20);
+// The #163 regression: a saved setting survives a boot.
+test(ImplementPlough, maxCorrection_savedPerShare_survivesABoot) {
+    storeSharesAndMaxCorrectionPerShare(4, 60);
     ImplementPlough impl(nullptr, &mockGuidance);
-    assertEqual(impl.GetMaxCorrection(), (short int)20);
+    assertEqual((int)impl.GetMaxCorrectionPerShare(), 60);
+    assertEqual(impl.GetMaxCorrection(), (short int)240);
 }
 
-// 4 shares: 10 to 40 cm, both ends included.
-test(ImplementPlough, maxCorrection_rangeIsTwoAndAHalfToTenCmPerShare) {
-    storeSharesAndMaxCorrection(4, 10);
-    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)10);
-    storeSharesAndMaxCorrection(4, 40);
-    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)40);
-    storeSharesAndMaxCorrection(4, 9);
-    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)20);
-    storeSharesAndMaxCorrection(4, 41);
-    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)20);
+// 25 to 100 mm per share, both ends included.
+test(ImplementPlough, maxCorrection_perShareRangeIsTwentyFiveToHundredMm) {
+    storeSharesAndMaxCorrectionPerShare(4, 25);
+    assertEqual((int)ImplementPlough(nullptr, &mockGuidance).GetMaxCorrectionPerShare(), 25);
+    storeSharesAndMaxCorrectionPerShare(4, 100);
+    assertEqual((int)ImplementPlough(nullptr, &mockGuidance).GetMaxCorrectionPerShare(), 100);
+    storeSharesAndMaxCorrectionPerShare(4, 24);
+    assertEqual((int)ImplementPlough(nullptr, &mockGuidance).GetMaxCorrectionPerShare(), 50);
+    storeSharesAndMaxCorrectionPerShare(4, 101);
+    assertEqual((int)ImplementPlough(nullptr, &mockGuidance).GetMaxCorrectionPerShare(), 50);
 }
 
-// The range comes from the *stored* share count, not the constructor's 4:
-// 40 is the top for 4 shares but inside the range for 6 (15 to 60).
-test(ImplementPlough, maxCorrection_rangeUsesTheStoredShares) {
-    storeSharesAndMaxCorrection(6, 55);
+// The limit is per share times the stored share count.
+test(ImplementPlough, maxCorrection_isPerShareTimesTheShares) {
+    storeSharesAndMaxCorrectionPerShare(5, 50);
+    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)250);
+    storeSharesAndMaxCorrectionPerShare(3, 25);
+    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)75);
+}
+
+// A 4+1 plough: a four-share plough that takes an extra share. The limit
+// sizes up with the share, and keeps the operator's per-share setting.
+test(ImplementPlough, maxCorrection_fourPlusOne_sizesWithTheExtraShare) {
+    resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
-    assertEqual((int)impl.GetShares(), 6);
-    assertEqual(impl.GetMaxCorrection(), (short int)55);
+    assertEqual(impl.GetMaxCorrection(), (short int)200);
+    impl.SetMaxCorrectionPerShare(60);
+    impl.SetShares(5);                                    // the extra share on
+    assertEqual(impl.GetMaxCorrection(), (short int)300);
+    impl.CommitCalibration();
+    ImplementPlough fresh(nullptr, &mockGuidance);
+    assertEqual(fresh.GetMaxCorrection(), (short int)300);
+    fresh.SetShares(4);                                   // and off again
+    assertEqual(fresh.GetMaxCorrection(), (short int)240);
 }
 
-// A half-centimetre minimum rounds up, so the minimum is never below 2.5 cm
-// per share: 3 shares is 8 to 30.
-test(ImplementPlough, maxCorrection_limitsForAnOddShareCount) {
-    assertEqual(ImplementPlough::LowestMaxCorrection(3), 8);
-    assertEqual(ImplementPlough::HighestMaxCorrection(3), 30);
-    assertEqual(ImplementPlough::LowestMaxCorrection(4), 10);
-    assertEqual(ImplementPlough::HighestMaxCorrection(4), 40);
-}
-
-// 20 cm is outside the range for 1 share (3 to 10) and 9 shares (23 to 90),
-// so the default is pulled to the nearest end there.
-test(ImplementPlough, maxCorrection_defaultIsPulledIntoTheRange) {
-    assertEqual(ImplementPlough::DefaultMaxCorrection(4), 20);
-    assertEqual(ImplementPlough::DefaultMaxCorrection(1), 10);
-    assertEqual(ImplementPlough::DefaultMaxCorrection(9), 23);
-    storeSharesAndMaxCorrection(1, 200);
-    assertEqual(ImplementPlough(nullptr, &mockGuidance).GetMaxCorrection(), (short int)10);
+// A board that saved the owner's usual 20 (cm, the old format) reads 20 mm
+// per share now: below the range, so it gets the default -- which is 20 cm on
+// 4 shares.
+test(ImplementPlough, maxCorrection_oldTwentyCentimetres_becomesTheDefault) {
+    storeSharesAndMaxCorrectionPerShare(4, 20);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    assertEqual((int)impl.GetMaxCorrectionPerShare(), 50);
+    assertEqual(impl.GetMaxCorrection(), (short int)200);
 }

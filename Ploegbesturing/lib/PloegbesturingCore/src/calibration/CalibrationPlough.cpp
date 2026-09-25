@@ -697,14 +697,10 @@ void CalibrationPlough::Calibrate() {
 
             lcd->WriteScreen(-1);
 
-            temp = implement->GetMaxCorrection();
-
-            // The range the next boot accepts, from the share count set
-            // earlier in this run (#163).
-            const short int lowest  = ImplementPlough::LowestMaxCorrection(implement->GetShares());
-            const short int highest = ImplementPlough::HighestMaxCorrection(implement->GetShares());
-            if (temp < lowest)  temp = lowest;
-            if (temp > highest) temp = highest;
+            // Per share, in mm, in steps of 5 mm, kept inside the range the
+            // next boot accepts (#163). Both ends are multiples of 5.
+            temp = implement->GetMaxCorrectionPerShare();
+            temp = (temp / 5) * 5;
 
             while (interface->CheckButtons(0, 0) != 0) {
             }
@@ -713,11 +709,13 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
-                if (interface->GetButtons() == 1 && temp < highest) {
-                    temp++;
+                if (interface->GetButtons() == 1 &&
+                    temp + 5 <= kHighestMaxCorrectionPerShareMm) {
+                    temp += 5;
                 }
-                else if (interface->GetButtons() == -1 && temp > lowest) {
-                    temp--;
+                else if (interface->GetButtons() == -1 &&
+                         temp - 5 >= kLowestMaxCorrectionPerShareMm) {
+                    temp -= 5;
                 }
                 else if (interface->GetButtons() == 2) {
                     break;
@@ -741,7 +739,7 @@ void CalibrationPlough::Calibrate() {
 
             lcd->WriteScreen(-1);
 
-            implement->SetMaxCorrection(temp);
+            implement->SetMaxCorrectionPerShare(temp);
             break;
         }
     }
