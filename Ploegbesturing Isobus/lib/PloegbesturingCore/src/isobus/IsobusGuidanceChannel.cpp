@@ -168,7 +168,7 @@ void IsobusGuidanceChannel::Begin() {
     serialDebug->print(kIsobusIdentityNumber);
     serialDebug->print(" (serial ");
     serialDebug->print(GTeensySerialNumber());
-    serialDebug->print("), claiming address ");
+    serialDebug->print("), claiming... ");
     // J1939 address claim takes at least 250 ms; block until our address is
     // confirmed before sending PGN requests so the source address is valid
     // in the outgoing frame. One-time startup cost, not called from loop().
