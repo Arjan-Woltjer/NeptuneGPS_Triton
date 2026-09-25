@@ -45,6 +45,26 @@ using namespace isobus;
 namespace triton
 {
 
+namespace {
+// The board's own serial number: the one Teensy Loader and the USB descriptor
+// show (cores/teensy4/usb_desc.c reads the same fuse; it displays it x10 when
+// under 10 000 000, a macOS driver workaround -- this is the raw number).
+std::uint32_t GTeensySerialNumber() {
+#if defined(__IMXRT1062__)
+    return HW_OCOTP_MAC0 & 0xFFFFFFUL;
+#else
+    return 1;   // no fuses on the host build; the native tests never call Begin()
+#endif
+}
+}  // namespace
+
+// The NAME's identity number field is 21 bits. The low 21 bits of the 24-bit
+// serial keep it traceable by hand (identity = serial mod 2^21); two boards
+// only collide if their serials differ by an exact multiple of 2 097 152.
+std::uint32_t IsobusGuidanceChannel::IdentityNumberFromSerial(std::uint32_t teensySerial) {
+    return teensySerial & 0x1FFFFFUL;
+}
+
 // ------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------
@@ -94,11 +114,14 @@ void IsobusGuidanceChannel::Begin() {
     // from the AEF. Tracked as an issue rather than fixed here, because
     // changing the NAME changes how every terminal caches our pools.
     //
-    // The identity number is the part that is actually wrong -- see below.
+    // Owner's decision 2026-09-25 (#45): keep 1407 for now. Moving to a
+    // MeijWorks code later is an accepted second NAME change.
+    //
+    // The identity number comes from the board's own serial -- see below.
     // Named so the two values that define who we are on the bus are visible
     // in one place rather than buried as literals in a setter chain.
     constexpr std::uint16_t kIsobusManufacturerCode = 1407;  // Open-Agriculture
-    constexpr std::uint32_t kIsobusIdentityNumber   = 1;     // see the note below
+    const std::uint32_t     kIsobusIdentityNumber   = IdentityNumberFromSerial(GTeensySerialNumber());
 
     NAME deviceName(0);
     deviceName.set_arbitrary_address_capable(true);
@@ -114,19 +137,13 @@ void IsobusGuidanceChannel::Begin() {
     // against both Fendt and CNH -- a real, unfixed identity-level bug is a
     // more promising remaining variable than more pool-byte bisection.
     deviceName.set_manufacturer_code(kIsobusManufacturerCode);
-    // **Every Triton claims identity 1.** The identity number is the serial
-    // number field of the NAME, and NAME is what makes a control function
-    // unique on the bus: two Ploegbesturing units on one ISOBUS would present
-    // byte-identical NAMEs. We do set arbitrary-address-capable, so they would
-    // not deadlock over an address, but terminals key their cached VT object
-    // pools and DDOPs on NAME, so two units would fight over one cache entry.
-    //
-    // Deliberately NOT changed here. The NAME is an input to that caching, and
-    // altering it mid-investigation would invalidate every terminal's stored
-    // pool and add a variable to the #21 hunt -- the same class of confound
-    // that the stale MW03 label produced in session 9. Derive it from the
-    // Teensy's OCOTP serial in its own change, with a rig session to confirm
-    // the re-upload behaves.
+    // The identity number is the serial number field of the NAME, and NAME is
+    // what makes a control function unique on the bus. Until TC06 every Triton
+    // claimed identity 1, so two Ploegbesturing units on one ISOBUS presented
+    // byte-identical NAMEs and would fight over one terminal-side cache entry
+    // for their VT pool and DDOP (#45). Derived from the board's own fuse
+    // serial now. Changing the NAME makes every terminal re-upload our pools,
+    // so it ships together with the TC06 DDOP change to do that once.
     deviceName.set_identity_number(kIsobusIdentityNumber);
     deviceName.set_ecu_instance(0);
     deviceName.set_function_instance(0);
@@ -147,7 +164,11 @@ void IsobusGuidanceChannel::Begin() {
     // factory method.
     controlFunction = CANNetworkManager::CANNetwork.create_internal_control_function(deviceName, 0, 0x81);
 
-    serialDebug->print("IsobusGuidanceChannel: claiming address ");
+    serialDebug->print("IsobusGuidanceChannel: identity ");
+    serialDebug->print(kIsobusIdentityNumber);
+    serialDebug->print(" (serial ");
+    serialDebug->print(GTeensySerialNumber());
+    serialDebug->print("), claiming address ");
     // J1939 address claim takes at least 250 ms; block until our address is
     // confirmed before sending PGN requests so the source address is valid
     // in the outgoing frame. One-time startup cost, not called from loop().
