@@ -685,6 +685,13 @@ void CalibrationPlough::Calibrate() {
 
             temp = implement->GetMaxCorrection();
 
+            // The range the next boot accepts, from the share count set
+            // earlier in this run (#163).
+            const short int lowest  = ImplementPlough::LowestMaxCorrection(implement->GetShares());
+            const short int highest = ImplementPlough::HighestMaxCorrection(implement->GetShares());
+            if (temp < lowest)  temp = lowest;
+            if (temp > highest) temp = highest;
+
             while (interface->CheckButtons(0, 0) != 0) {
             }
 
@@ -692,10 +699,10 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
-                if (interface->GetButtons() == 1) {
+                if (interface->GetButtons() == 1 && temp < highest) {
                     temp++;
                 }
-                else if (interface->GetButtons() == -1) {
+                else if (interface->GetButtons() == -1 && temp > lowest) {
                     temp--;
                 }
                 else if (interface->GetButtons() == 2) {

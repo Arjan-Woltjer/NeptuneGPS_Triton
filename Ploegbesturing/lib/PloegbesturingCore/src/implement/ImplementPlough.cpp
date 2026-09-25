@@ -134,7 +134,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
         shares = 4;
 
         // maximum correction
-        maxCorrection = 50;
+        maxCorrection = DefaultMaxCorrection(shares);
 
 #ifdef DEBUG
         this->serialDebug->println("No calibration data found");
@@ -522,15 +522,6 @@ boolean ImplementPlough::readCalibrationData() {
         }
 
 
-        //Read maximum correction
-        if (EEPROM.read(60) < 10) {
-            // Read maximum correction
-            maxCorrection = EEPROM.read(60);
-        }
-        else {
-            maxCorrection = 50;  //default to 4
-        }
-
         //Read swap 1 or 0
         if (EEPROM.read(62) < 2) {
             // Read swap
@@ -547,6 +538,18 @@ boolean ImplementPlough::readCalibrationData() {
         }
         else {
             shares = 4;  //default to 4
+        }
+
+        // Read maximum correction, after the shares: its range follows them,
+        // 2.5 to 10 cm per share (#163). It used to accept only values under
+        // 10, so anything the operator set from 10 cm up became 50 at boot.
+        const int storedMaxCorrection = EEPROM.read(60);
+        if (storedMaxCorrection >= LowestMaxCorrection(shares) &&
+            storedMaxCorrection <= HighestMaxCorrection(shares)) {
+            maxCorrection = storedMaxCorrection;
+        }
+        else {
+            maxCorrection = DefaultMaxCorrection(shares);
         }
 
     }
