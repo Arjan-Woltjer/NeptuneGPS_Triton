@@ -411,12 +411,22 @@ short int ImplementPlough::getActualRotation() {
 // ---------------------------------------------------------
 void ImplementPlough::setOffset(short int correction) {
     if (correction) {
-        offset += correction;
-        if (offset > shares * 60 || offset < shares * 20) {
-            offset = shares * 40;
-        }
+        // Clamp at the limits (#152). offset is the plough's total working
+        // width in cm, so an operator holding Wider at the widest setting
+        // must stay there; it used to jump to the middle (shares * 40) instead.
+        // readOffset()'s reset to the middle is a different case -- a blank or
+        // corrupt EEPROM -- and stays as it is.
+        const int lowest  = shares * 20;
+        const int highest = shares * 60;
+        int wanted = offset + correction;
+        if (wanted > highest) wanted = highest;
+        if (wanted < lowest)  wanted = lowest;
 
-        writeInt(offset, 66);
+        // A press at a limit changes nothing, so it costs no EEPROM write.
+        if (wanted != offset) {
+            offset = static_cast<short int>(wanted);
+            writeInt(offset, 66);
+        }
     }
 }
 
