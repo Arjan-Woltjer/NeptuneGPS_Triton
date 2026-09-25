@@ -22,6 +22,7 @@ recoverable from the file.
 | `2026-09-09_session9_agleader-vanmastwijk_log27_faulty-short.MF4` | `AD4F266A` / 27 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 22 s | 1 246 |
 | `2026-09-09_session9_agleader-vanmastwijk_log28_main.MF4` | `AD4F266A` / 28 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 842 s | 230 490 |
 | `2026-09-11_session10_jd-vanos_log29_iop-harvest.MF4` | `AD4F266A` / 29 | 2026-09-11 | John Deere | van Os | 529 s | 268 123 |
+| `2026-09-25_session11_jd-vanos_log30_autosteer-reverse.MF4` | `AD4F266A` / 30 | 2026-09-25 | John Deere | van Os | 2729 s | 1 143 997 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -246,6 +247,63 @@ walk has already seen**. A legal type byte alone proves nothing (1 byte in 5
 is a valid type); references resolving to real, already-parsed objects is
 near-impossible by chance. Fitting deltas on "type byte looks legal" alone
 overfits and oscillates -- it was tried and does not converge.
+
+### Session 11, 2026-09-25
+
+**Triton IS on the bus** (`0x81`), running the session 11 brief. John Deere,
+van Os, same rig as sessions 8-10. **No plough attached**, and a big trailer
+behind, so the tractor went **forward and in reverse** on one short track with
+autosteer engaged, never turning round -- unlike session 10, which turned round.
+The minute-by-minute record and serial logs are in
+[`../logs/`](../logs/) (`2026-09-25_session11_*`).
+
+- **log 30** -- 2729 s, 1 143 997 frames, the longest capture so far. Two
+  firmware runs: the board's arrival firmware until 12:22:58, then PR #44
+  (`fix/21-tc-counters` @ `2da131e`) from 12:23:12 after flashing at the rig.
+
+**Dated from its own contents, not the card.** The StarFire (`0x1C`) sends PGN
+126992 System Time with real UTC, so this log does not depend on the hand
+record: **CEST = log time + 11:54:20.2**, consistent to under a second across
+the whole log. Skip the *first* 126992 frame (t = 9.9 s) -- it reads
+1980-01-06, before the receiver has time. The log ends 12:39:50 CEST; the
+called stop (12:40:07 on the field laptop) came about 15 s later, and the
+laptop clock runs about 2 s ahead of StarFire UTC. Three sharp markers agree
+with the mapping:
+
+| Marker | Log time | CEST |
+|---|---|---|
+| our traffic silent (flashing PR #44) | 1717.5-1731.4 s | 12:22:58-12:23:12 |
+| our second address claim | 1731.4 s | 12:23:12 |
+| our traffic silent (#18 unplug/replug) | 1996.3-2019.4 s | 12:27:36-12:28:00 |
+
+**What it is good for:**
+
+- **#21** -- the TC's Process Data to us at all four connects: DDI 506 = 1
+  every time, **DDIs 507-511, 513 and 514 never**, including the whole
+  autosteer-engaged stretch (12:33:32-12:36:12). Also confirms #44's
+  `[on bus]` counters against the wire, frame for frame.
+- **Travel direction** -- PGN 65096 from `0xF0`, byte 8 bits 1-2 (0 = reverse,
+  1 = forward), with both directions well represented. Course ~138 deg was
+  forward, ~318 deg reverse. This is what settles the XTE sign (#151).
+- **XTE ground truth** -- five operator call-outs with both signs and both
+  travel directions, all reproduced by the legacy `0x2A` decoder within 1.5 cm.
+  **The sign is in the direction-of-travel frame: positive = right of the
+  line**, so in the tractor's frame it flips in reverse. While stationary it
+  follows the last travel direction.
+- **The 12:25:38 VT/TC drop (#149)** -- the bus stays healthy throughout; we
+  alone go silent for 3.19 s (12:25:35.41-12:25:38.60), then flush a 3 ms
+  backlog that the VT NACKs.
+- **#18 recovery** -- the unplug/replug with power kept.
+- **Negatives worth keeping:** `0xAD00` Guidance System Command -- zero frames
+  in 45 min with autosteer demonstrably steering, so on this rig it is simply
+  never broadcast. PGN 44032 `0xAC00` steering readiness reads 0 for the whole
+  engaged stretch (1 only in the first 7.6 s of the log), so **there is no
+  bus-visible "autosteer engaged" signal on this implement bus** -- record it
+  by hand. No NMEA2000 guidance PGNs at all (129025/26/27/29/283).
+
+**One trap:** the board's `PGN 65535 XTE JD legacy` dump line covers *every*
+65535 sender (~104 frames/s), not the XTE carrier; its payload is usually
+`0xF0`'s zeros (#153). Read the XTE from `0x2A`, sub-ID `0x77`.
 
 ## Reading them
 

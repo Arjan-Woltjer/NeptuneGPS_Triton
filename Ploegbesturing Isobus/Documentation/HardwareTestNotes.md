@@ -1807,6 +1807,141 @@ before trusting any per-terminal VT observation here.
   device reappears and the only control function new today is `0x81`, us. The
   10 Hz tractor-ECU set is identical, so that inventory is a property of the
   machine rather than of one afternoon.
+
+## Session 11 -- 2026-09-25 (John Deere, van Os) -- autosteer engaged, forward and reverse, #44 on the wire
+
+Ran [`SESSION_11_TEST_BRIEF.md`](SESSION_11_TEST_BRIEF.md). Two firmware runs: the board's arrival
+firmware (an older `main`, TC05/MW04) until 12:22:58, then `fix/21-tc-counters` @ `2da131e`
+(PR #44) from 12:23:12, flashed at the rig and **squash-merged the same day as `d2b4fc3`**.
+**No plough attached**, and a big trailer behind, so the tractor went **forward and in reverse on
+one short track with autosteer engaged, never turning round** -- which the operator says is
+normal there. The actuator path could not be observed.
+
+Records: the minute-by-minute timeline, the field handover and the serial logs (one full dump per
+second, stamped with the laptop clock) are in [`logs/`](logs/) as `2026-09-25_session11_*`. The
+CANedge ran throughout: **card session 30**, 2729 s, in [`canlogs/`](canlogs/) with its
+provenance. Log time maps to CEST through the StarFire's PGN 126992 UTC
+(**CEST = log time + 11:54:20.2**); the laptop clock runs ~2 s ahead of that.
+
+### DDI 506 at every TC connect; DDIs 507-511 never, even with autosteer engaged (#21)
+
+The TC (`0xF7`) sent **`Value DDI 506 = 1`** (element 2) at all **four** connects on the wire:
+11:54:40 on the arrival firmware, then 12:23:27, 12:25:53 and 12:28:11 on #44's. It is
+independent of autosteer -- the first came ~13 min before autosteer was engaged.
+
+**DDIs 507-511, 513 and 514: zero frames in 45 minutes**, including the whole engaged stretch
+(12:33:32-12:36:12, XTE 0.00 +-0.01 m at up to 1.94 m/s). **The brief's hypothesis for test 3.1 is
+negative**: following a line does not make the TC publish track numbers.
+
+**Why session 9 got no 506 and this session did is not on our side.** Comparing the first
+connect of log 26 (session 9) and log 30, both directions are **byte-identical** -- technical
+capabilities, the whole device-descriptor exchange, the DDI 515 measurement command and request,
+and our `Value DDI 515 = 0` reply. After that, session 11's TC sends 506 within 0.7 s and session
+9's sends nothing more. Session 11's TC also waited **9 s** before configuring DDI 515, against
+1 s in session 9. Whatever unlocks 506 is **terminal state** -- worth asking the operator what was
+set up on the display this time.
+
+### #44's wire counters match the capture frame for frame
+
+Per connect: 3x Value (506, 515, 506), 1x Measurement Change Threshold on DDI 515, 1x Request Value,
+and 5 "other" (1 Technical Capabilities, 4 Device Descriptor) -- exactly the dump's `[on bus]`
+lines, and exactly the brief's replay of session 9. Each reconnect adds +3 / +1.
+
+For reading raw captures, the ISO 11783-10 command nibble: 0 Technical Capabilities, 1 Device
+Descriptor, 2 Request Value, **3 Value**, 4-8 the measurement commands (**8 = change threshold**),
+9 Peer Control, 0xA Set Value and Acknowledge (version 4 only), 0xD Process Data Ack, 0xE TC
+status, **0xF Client Task** (our 2 s heartbeat). For commands 0, 1, 0xE and 0xF, bytes 2-3 are not
+a DDI.
+
+### The XTE sign is in the direction-of-travel frame (#151)
+
+PGN 65096 from the tractor ECU `0xF0`, byte 8 bits 1-2, is the machine direction: **0 = reverse,
+1 = forward**. While moving, course ~138 deg read forward in 507/520 frames and ~318 deg read
+reverse in 748/752 -- so **~138 deg was forward**. Against that signal, every signed call-out fits
+one rule:
+
+| Operator called (tractor frame) | Last travel direction | XTE on the bus (`0x2A`) |
+|---|---|---|
+| 86 cm left | reverse | +86.5 cm |
+| 98 cm right | forward | +98.5 cm |
+| 6 cm right | reverse | -6.5 cm |
+| 23 cm left | reverse | +22.5 cm |
+| 0 | forward | +0.5 cm |
+
+**JD XTE is positive when the vehicle is right of the line in the direction of travel.** In the
+tractor's own frame -- the plough's -- it therefore **flips sign when reversing**. While stationary
+it follows the *last* travel direction (the 86 cm call came 45 s after the tractor last moved).
+This completes session 8's result, which established that opposite signs are opposite sides but
+not which side is positive. Magnitudes match the terminal within 1.5 cm on all points.
+
+It is also distance to the **nearest** track, wrapping at +-width/2 (+-1.5 m at 3 m spacing) -- a
+full-track-width step at every line change. Both behaviours are normal operation on this rig, so
+the plough control has to gate on the direction bits and reject wrap steps (#151).
+
+### No bus signal says "autosteer engaged"
+
+- **`0xAD00` Guidance System Command: zero frames** in 45 min with autosteer demonstrably
+  steering. On this rig it is never broadcast, whatever the steering state. (Session 10 was
+  written up as showing this, but its "autosteer engaged" premise was withdrawn on re-analysis;
+  this session is the one that shows it.)
+- **PGN 44032 steering readiness reads 0 for all 1600 frames of the engaged stretch** -- raw byte 3
+  bits 3-4 -- and 1 only in the first 7.6 s of the log. **Our decode is correct**; the tractor ECU
+  simply does not report steering state on the implement bus. Lockout 0 throughout.
+
+So engagement has to be **recorded by hand** at the rig, as this session did.
+
+### #18: recovery works on a real terminal
+
+Connector pulled with power kept: our traffic stops 12:27:36.5 on the wire and resumes 12:27:59.6.
+**VT back 12:28:02, TC back 12:28:12** (laptop clock), no reboot, no operator action, and no fresh
+address claim needed. #18 closed.
+
+### The 12:25:38 "spontaneous" drop was us, not the terminal (#149)
+
+The operator touched nothing. The VT logged `The VT Server is NACK-ing our VT messages.
+Disconnecting.` x5 and AgIsoStack recovered on its own (TC re-handshake from 12:25:46).
+
+The capture puts it on our side. The bus stayed healthy -- flat 384 frames/s, VT Status at 1 Hz on
+time, the NAV steady, no new senders or claims -- but **we sent nothing from 12:25:35.41 to
+12:25:38.60**. We resumed with a 3 ms backlog burst, and the VT, having gone >3 s without our
+Working Set Maintenance, NACKed 5 of those messages. Meanwhile the serial dumps kept answering every
+second, while the firmware's CAN receive counters froze. **CAN receive and transmit stopped
+together while `loop()` ran.** The cause is unknown; the leading candidate is the FlexCAN
+controller in an error state, which nothing in the firmware currently reports (#149).
+
+### Working width: our DDOP lets the terminal overwrite the operator's (#150)
+
+We declare no working width, deliberately (`IsobusTcInterface.hpp`). On every TC connect the JD
+offers to set 3 m, and once acknowledged replaces the operator's 2.25 m -- changing the track
+spacing, and with it the XTE: **-1.03 -> +1.22 m stationary** at 12:28:49 (1.22 + 1.03 = 2.25).
+
+### Wider/Narrower
+
+Presses arrive and reach AUTO at working speed (5 Wider + 7 Narrower at 0.7-1.1 m/s, 10 Wider with
+autosteer on the line) -- the first time speed and quality were both satisfied. With no plough,
+that is all that could be checked. Reading the code turned up that `setOffset()` jumps to the
+middle past either limit instead of stopping (#152).
+
+### Other
+
+- **No NMEA2000 guidance PGNs at all** (129025/26/27/29/283). The 129029 receive path is still
+  unexercised on any rig; quality came from the legacy `0x2A` decoder.
+- **Diagnostic trap:** the dump's `PGN 65535 XTE JD legacy` line covers every 65535 sender
+  (~104 frames/s from `0x1C`, `0x2A`, `0xF0`), not the XTE carrier; its payload is usually `0xF0`'s
+  zeros (#153). It briefly looked like an XTE failure during the drop analysis. The XTE itself was
+  unaffected.
+
+### Open after session 11
+
+- **#21** -- what terminal state unlocks DDI 506, and why the TC stops after it.
+- **#151** -- XTE direction gating and wrap rejection in the plough control. Needs a plough.
+- **#149** -- the 3.2 s CAN freeze; add FlexCAN error state to the dump first.
+- **#150** -- declare a working width (TC06).
+- **#152**, **#153** -- `setOffset()` clamping; the 65535 dump label.
+- **#42** -- untouched: this was John Deere only. The Ag Leader still needs an autosteer capture.
+- **#45** -- the identity number and manufacturer code, still undecided; change the NAME only
+  together with a `TC0x`/`MW0x` bump.
+
 ---
 
 *Historical note: this file absorbed the standalone `TCGEO_Field_Test_Log.md`
