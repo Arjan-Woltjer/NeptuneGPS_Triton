@@ -70,6 +70,7 @@ struct IsobusGuidanceChannelTestAccess {
     static Callback LegacyXteJohnDeere(){ return IsobusGuidanceChannel::OnLegacyXteJohnDeere; }
     static Callback LegacyXteTrimble()  { return IsobusGuidanceChannel::OnLegacyXteTrimble; }
     static Callback AllImplementStop()  { return IsobusGuidanceChannel::OnAllImplementStop; }
+    static Callback GnssPositionData()  { return IsobusGuidanceChannel::OnGnssPositionData; }
 };
 }  // namespace triton
 
@@ -357,6 +358,85 @@ test(IsobusGuidanceChannel, trimbleXte_wrongSelectorOrSenderCommitsNothing) {
     assertEqual(gcGuidance.GetXte(), 42);
     assertEqual((int)gcGuidance.GetQuality(), 4);
     assertEqual(Channel().GetMessageCounters().xteTrimbleLegacy, (uint32_t)2);
+}
+
+// ---------------------------------------------------------------------------
+// PGN 129029 GNSS Position Data -- the fast-packet callback
+// ---------------------------------------------------------------------------
+
+// This is the only callback that commits GNSS quality from an NMEA2000 message,
+// and so the one that can let IsRtkQuality() go true and the plough leave HOLD
+// on a rig without the John Deere or Trimble legacy XTE. No rig visited so far
+// sends 129029 at all (session 11 confirmed it again), so until these tests it
+// had never executed anywhere. The decoder is covered in
+// test_IsobusPgnDecode.cpp; these pin what the callback commits. Frames are the
+// same spec-built fixtures (Groningen test site), not captures.
+namespace {
+std::vector<std::uint8_t> GnssFrame(std::uint8_t byte31) {
+    // byte 31: high nibble = method (4 = RTK fixed, 0 = no fix, 0xF = n/a),
+    // low nibble = type of system.
+    return { 0x2A, 0xE1, 0x50, 0x00, 0x51, 0x25, 0x02, 0x40, 0x50, 0x5F, 0x7F, 0xF7, 0x12, 0x6A, 0x07,
+             0x00, 0x8E, 0xF0, 0x4A, 0x38, 0xC3, 0xEE, 0x00, 0x90, 0xD9, 0x40, 0x00, 0x00, 0x00, 0x00,
+             0x00, byte31, 0xFC, 0x12, 0x55, 0x00, 0x96, 0x00, 0xCC, 0x10, 0x00, 0x00, 0x00 };
+}
+}  // namespace
+
+test(IsobusGuidanceChannel, gnssPositionData_rtkFixed_commitsFixPositionAltitudeAndQuality) {
+    Reset();
+    millisValue(1234);
+    Deliver(IsobusGuidanceChannelTestAccess::GnssPositionData(), 0x1C, GnssFrame(0x40));
+    assertEqual(gcGuidance.GetGgaTimestamp(), (unsigned long)1234);
+    assertNear(gcGuidance.GetLatitude(), 53.426036f, 1e-4f);
+    assertNear(gcGuidance.GetLongitude(), 6.7205691f, 1e-4f);
+    assertNear(gcGuidance.GetAltitude(), 4.25f, 0.01f);
+    assertEqual((int)gcGuidance.GetQuality(), 4);
+    assertTrue(gcGuidance.IsRtkQuality());
+    assertEqual(Channel().GetMessageCounters().gnssPositionData, (uint32_t)1);
+    assertEqual((int)Channel().GetMessageCounters().lastGnssMethod, 4);
+    assertEqual((int)Channel().GetMessageCounters().lastGnssSvCount, 18);
+    millisValue(0);
+}
+
+// The safety property: a receiver saying "no fix" (method 0) must drop the RTK
+// quality, so the interlock puts the plough back in HOLD rather than keeping a
+// stale 4.
+test(IsobusGuidanceChannel, gnssPositionData_lostFix_dropsRtkQuality) {
+    Reset();
+    gcGuidance.SetQuality(4);
+    assertTrue(gcGuidance.IsRtkQuality());
+    Deliver(IsobusGuidanceChannelTestAccess::GnssPositionData(), 0x1C, GnssFrame(0x00));
+    assertEqual((int)gcGuidance.GetQuality(), 0);
+    assertFalse(gcGuidance.IsRtkQuality());
+}
+
+// Same split as every other position path: an implausible coordinate must not
+// cost the fix, because the fix age drives the HOLD interlock. Latitude here
+// is 95 degrees.
+test(IsobusGuidanceChannel, gnssPositionData_implausibleCoordinatesStillCountAsAFix) {
+    Reset();
+    millisValue(1234);
+    std::vector<std::uint8_t> frame = GnssFrame(0x40);
+    const std::uint8_t lat95[8] = { 0x00, 0x00, 0x9F, 0x78, 0xF7, 0x13, 0x2F, 0x0D };
+    for (int i = 0; i < 8; i++) frame[7 + i] = lat95[i];
+    Deliver(IsobusGuidanceChannelTestAccess::GnssPositionData(), 0x1C, frame);
+    assertEqual(gcGuidance.GetGgaTimestamp(), (unsigned long)1234);
+    assertNear(gcGuidance.GetLatitude(), 0.0f, 1e-6f);   // untouched
+    assertNear(gcGuidance.GetLongitude(), 0.0f, 1e-6f);
+    millisValue(0);
+}
+
+// 129029 is 43 bytes; anything shorter is counted and otherwise ignored.
+test(IsobusGuidanceChannel, gnssPositionData_shortFrameIsCountedAndCommitsNothing) {
+    Reset();
+    millisValue(1234);
+    gcGuidance.SetQuality(4);
+    std::vector<std::uint8_t> frame = GnssFrame(0x00);
+    frame.pop_back();   // 42 bytes
+    Deliver(IsobusGuidanceChannelTestAccess::GnssPositionData(), 0x1C, frame);
+    assertEqual(Channel().GetMessageCounters().gnssPositionData, (uint32_t)1);
+    assertEqual(gcGuidance.GetGgaTimestamp(), (unsigned long)0);
+    assertEqual((int)gcGuidance.GetQuality(), 4);   // the method-0 byte was never read
+    millisValue(0);
 }
 
 // ---------------------------------------------------------------------------
