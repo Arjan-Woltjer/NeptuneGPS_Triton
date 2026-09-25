@@ -158,6 +158,14 @@ public:
 
     // Snapshot, safe to call at any time -- single-threaded loop, no
     // concurrent writer.
+    // Whether Update() should re-request the guidance PGNs now: true when the
+    // last request is at least a retry interval old and any of position (GGA),
+    // speed/course (VTG) or cross-track (XTE) has not produced a committed
+    // message within that interval (0 = never). Pure, so the rule is testable
+    // without the CAN stack (#153).
+    static bool NeedsGuidanceRequest(unsigned long nowMs, unsigned long lastRequestMs,
+                                     unsigned long ggaMs, unsigned long vtgMs, unsigned long xteMs);
+
     inline MessageCounters GetMessageCounters() const { return counters; }
     inline void            ResetMessageCounters()      { counters = MessageCounters(); }
 

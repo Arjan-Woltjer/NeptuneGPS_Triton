@@ -501,6 +501,57 @@ test(IsobusGuidanceChannel, gnssPositionData_shortFrameIsCountedAndCommitsNothin
 }
 
 // ---------------------------------------------------------------------------
+// Re-requesting the guidance PGNs (#153)
+// ---------------------------------------------------------------------------
+
+// The retry interval is 10 s: a family counts as arriving if it produced a
+// committed message within the last 10 s.
+test(IsobusGuidanceChannel, retry_nothingYet_requestsOncePaced) {
+    assertTrue(IsobusGuidanceChannel::NeedsGuidanceRequest(10000, 0, 0, 0, 0));
+    assertFalse(IsobusGuidanceChannel::NeedsGuidanceRequest(5000, 0, 0, 0, 0));      // paced
+    assertFalse(IsobusGuidanceChannel::NeedsGuidanceRequest(25000, 20000, 0, 0, 0)); // asked 5 s ago
+}
+
+test(IsobusGuidanceChannel, retry_allArriving_asksNothing) {
+    assertFalse(IsobusGuidanceChannel::NeedsGuidanceRequest(30000, 0, 29000, 29500, 29900));
+}
+
+// Any one family missing is enough, and "missing" includes one that stopped:
+// a receiver rebooting mid-session may need asking again.
+test(IsobusGuidanceChannel, retry_oneFamilyStale_requests) {
+    assertTrue(IsobusGuidanceChannel::NeedsGuidanceRequest(30000, 0, 29000, 29500, 0));      // no XTE ever
+    assertTrue(IsobusGuidanceChannel::NeedsGuidanceRequest(30000, 0, 29000, 29500, 15000));  // XTE stopped
+    assertTrue(IsobusGuidanceChannel::NeedsGuidanceRequest(30000, 0, 5000, 29500, 29900));   // position stopped
+}
+
+// The #153 regression, end to end through the callbacks: another sender's
+// traffic on PGN 0xFFFF must not count as the cross-track feed arriving. It
+// used to -- the retry keyed off the all-senders counter.
+test(IsobusGuidanceChannel, retry_otherTrafficOnXtePgns_isNotXte) {
+    Reset();
+    // Commit at t = 1 s and ask at t = 10.5 s, so everything committed is
+    // fresh. The mocked clock stays under AUnit's 10 s test timeout, which
+    // runs on that same clock: a failing assert must not leave it far ahead,
+    // or every later test reports a timeout instead of its own result.
+    millisValue(1000);
+    gcGuidance.NoteGgaFixReceived();
+    gcGuidance.SetSpeedKnots(2.0f);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0xF0,
+            { 0x55, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 });
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x92, 0x15, 0x00, 0x00, 0xFF, 0x7F, 0x00, 0x00 });    // 0x2A, not XTE
+    assertTrue(IsobusGuidanceChannel::NeedsGuidanceRequest(10500, 0, gcGuidance.GetGgaTimestamp(),
+               gcGuidance.GetVtgTimestamp(), gcGuidance.GetXteTimestamp()));
+
+    // A real cross-track frame is what satisfies it.
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF });
+    assertFalse(IsobusGuidanceChannel::NeedsGuidanceRequest(10500, 0, gcGuidance.GetGgaTimestamp(),
+                gcGuidance.GetVtgTimestamp(), gcGuidance.GetXteTimestamp()));
+    millisValue(0);
+}
+
+// ---------------------------------------------------------------------------
 // All Implement Stop -- the safety path
 // ---------------------------------------------------------------------------
 

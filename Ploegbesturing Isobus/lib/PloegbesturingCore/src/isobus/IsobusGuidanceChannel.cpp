@@ -183,31 +183,42 @@ void IsobusGuidanceChannel::Begin() {
 void IsobusGuidanceChannel::Update() {
     CANHardwareInterface::update();
 
-    // Legacy GPS units aren't always listening yet the moment Begin()'s
-    // one-shot request goes out (their own power-on race), and a single
-    // request frame can simply get lost -- so keep re-requesting whichever
-    // PGN families haven't produced a single message yet, every
-    // kPgnRetryIntervalMs, until each of position/speed/XTE has. Any
-    // variant (NMEA2000 or legacy) counting as a hit is enough to stop
-    // retrying that family; decode-level correctness (address filters,
-    // scale factors) is a separate concern a repeated request can't fix.
-    bool havePosition = (counters.positionNmea2000 > 0) || (counters.positionLegacy > 0);
-    bool haveSpeed    = (counters.speedNmea2000 > 0)    || (counters.speedLegacy > 0);
-    bool haveXte      = (counters.xteNmea2000 > 0)      || (counters.xteJohnDeereLegacy > 0) || (counters.xteTrimbleLegacy > 0);
-
-    if (!havePosition || !haveSpeed || !haveXte) {
-        unsigned long now = millis();
-        if (now - lastPgnRetryMs >= kPgnRetryIntervalMs) {
-            lastPgnRetryMs = now;
-            RequestGuidancePgns();
-        }
+    // Legacy GPS units aren't always listening the moment Begin()'s one-shot
+    // request goes out (their own power-on race), some only broadcast once
+    // asked, and a single request frame can simply get lost -- so re-request
+    // whenever a guidance message isn't arriving: none yet, or none for a
+    // retry interval, e.g. after the receiver reboots mid-session.
+    const unsigned long now = millis();
+    if (NeedsGuidanceRequest(now, lastPgnRetryMs, guidance->GetGgaTimestamp(),
+                             guidance->GetVtgTimestamp(), guidance->GetXteTimestamp())) {
+        lastPgnRetryMs = now;
+        RequestGuidancePgns();
     }
 }
 
 // ------------------------------------------------------------------
+// The re-request decision, kept free of the CAN stack so it is testable.
+//
+// "Arriving" means GuidanceSource's own timestamps -- messages that decoded
+// and were committed -- not raw PGN counters (#153, owner's decision).
+// PGN 0xFFFF carries every manufacturer's proprietary traffic and 60160 is
+// also the transport-protocol data PGN, so counting "a frame on that PGN
+// arrived" stopped the XTE requests within milliseconds on any real bus,
+// whether or not a cross-track source ever appeared.
+// ------------------------------------------------------------------
+bool IsobusGuidanceChannel::NeedsGuidanceRequest(unsigned long nowMs, unsigned long lastRequestMs,
+                                                 unsigned long ggaMs, unsigned long vtgMs,
+                                                 unsigned long xteMs) {
+    if (nowMs - lastRequestMs < kPgnRetryIntervalMs) return false;
+    // 0 is GuidanceSource's "never received".
+    auto stale = [nowMs](unsigned long t) { return t == 0 || nowMs - t > kPgnRetryIntervalMs; };
+    return stale(ggaMs) || stale(vtgMs) || stale(xteMs);
+}
+
+// ------------------------------------------------------------------
 // Sends one PGN request per guidance PGN this channel consumes. Called
-// once from Begin() and then repeated from Update() (see its comment)
-// until every family has produced at least one message.
+// once from Begin() and then from Update() whenever a guidance family
+// isn't arriving (see NeedsGuidanceRequest()).
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::RequestGuidancePgns() {
     ParameterGroupNumberRequestProtocol::request_parameter_group_number(kPgnPositionNmea2000,   controlFunction, nullptr);
