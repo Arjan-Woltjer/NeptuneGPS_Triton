@@ -560,9 +560,8 @@ test(ImplementSprayer, tooFewPwmCalibrationPoints_stopsPump) {
 test(ImplementSprayer, actual_insideCurve_equalsRequested) {
     // analog=2048 -> 100 l/ha, 1.0 m/s -> 1800 ml/min, inside {0..4000}
     resetAll();
-    impl.outputs[2].pwm = true;
-    iface.analogInputs[0].value = 2048;
-    runUntil(1000, 1.0f);
+    startSpraying(1.0f, 2048);
+    assertTrue(impl.outputs[2].state);
     assertNear(impl.doseLHA,   100.0f, 0.01f);
     assertNear(impl.actualLHA, 100.0f, 0.01f);
 }
@@ -571,10 +570,8 @@ test(ImplementSprayer, actual_belowLowestFlow_isZero) {
     // Lowest calibrated flow 500 ml/min; 50 l/ha at 0.5 m/s asks for
     // 50*0.5*300*60/1e6 = 0.45 l/min = 450 ml/min -> pump is cut, actual 0.
     resetAll();
-    impl.outputs[2].pwm = true;
     impl.pwmCalibrationPoints[0] = { 500, 1000 };
-    iface.analogInputs[0].value = 0;
-    runUntil(1000, 0.5f);
+    startSpraying(0.5f, 0);
     assertEqual(impl.outputs[2].value, (unsigned int)0);
     assertNear(impl.actualLHA, 0.0f, 0.001f);
 }
@@ -584,9 +581,7 @@ test(ImplementSprayer, actual_aboveTopPoint_reportsSaturatedFlow) {
     // ml/min at full duty, which at this speed and width is
     // 4000*1000/(2.0*300*60) = 111.1 l/ha.
     resetAll();
-    impl.outputs[2].pwm = true;
-    iface.analogInputs[0].value = 4095;
-    runUntil(1000, 2.0f);
+    startSpraying(2.0f, 4095);
     assertEqual(impl.outputs[2].value, (unsigned int)PWM_MAX_DUTY);
     assertNear(impl.doseLHA,   200.0f, 0.01f);
     assertNear(impl.actualLHA, 111.11f, 0.05f);
@@ -594,12 +589,10 @@ test(ImplementSprayer, actual_aboveTopPoint_reportsSaturatedFlow) {
 
 test(ImplementSprayer, actual_staleGuidance_isUndefined) {
     resetAll();
-    impl.outputs[2].pwm = true;
-    iface.analogInputs[0].value = 2048;
-    runUntil(1000, 1.0f);
+    startSpraying(1.0f, 2048);
     assertNear(impl.actualLHA, 100.0f, 0.01f);
 
-    millisValue(1000 + 2001);   // no message since t=1000
+    millisValue(2000 + 2001);   // no message since the last runUntil step
     impl.Update();
     assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
 }
@@ -624,6 +617,23 @@ test(ImplementSprayer, actual_gpsCreepAtStandstill_isUndefined_noDeviation) {
     assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
     assertFalse(impl.doseDeviation);
     assertFalse(impl.outputs[3].state);
+}
+
+test(ImplementSprayer, actual_pumpSwitchedOff_isUndefined) {
+    // Moving, with a dose the pump could deliver, but the operator has not
+    // switched the pump on. Nothing is being sprayed, so there is no actual
+    // dose: the app must show a dash rather than the figure the pump would
+    // manage if it were running (NeptuneGPS_Triton#166).
+    //
+    // Distinct from 0, which means the pump was cut *while spraying* because
+    // the demand fell below the lowest calibrated flow -- that one the driver
+    // has to react to.
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 2048;
+    runUntil(1000, 1.0f);
+    assertFalse(impl.outputs[2].state);
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
 }
 
 test(ImplementSprayer, actual_tooFewPwmPoints_isUndefined) {
@@ -682,12 +692,14 @@ test(ImplementSprayer, deviation_lowFlowCutoff_setsWhileSpraying) {
 
 test(ImplementSprayer, deviation_notSet_whenPumpOff) {
     // Same saturated demand, but nobody is spraying: no alarm on the way to
-    // the field or on the headland.
+    // the field or on the headland, and no actual dose either -- with the
+    // pump down there is nothing being delivered to report
+    // (NeptuneGPS_Triton#166).
     resetAll();
     impl.outputs[2].pwm = true;
     iface.analogInputs[0].value = 4095;
     runUntil(5000, 2.0f);
-    assertNear(impl.actualLHA, 111.11f, 0.05f);
+    assertEqual(impl.actualLHA, ImplementSprayer::kActualDoseUndefined);
     assertFalse(impl.doseDeviation);
     assertFalse(impl.outputs[3].state);
 }
