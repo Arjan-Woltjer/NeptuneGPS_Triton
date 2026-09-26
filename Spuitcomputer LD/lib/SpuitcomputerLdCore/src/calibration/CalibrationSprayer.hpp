@@ -91,6 +91,7 @@ private:
     void startPwmStep();
     void handlePwmStep();
     void handlePwmMeasure();
+    void cancelCalibration();
     void finishAnalogCal();
     void finishPwmCal();
     void printCurrentCalibration();

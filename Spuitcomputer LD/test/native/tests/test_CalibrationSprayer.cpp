@@ -322,10 +322,10 @@ test(CalibrationSprayer, analog_threePoints_rejectsBadDose_sortsAndSaves) {
     knob(300);
     line(cal, "1");
     assertTrue(term.has("--- Analog point 1/3 ---"));
-    assertTrue(term.has("Set knob to MINIMUM position, then press ENTER."));
+    assertTrue(term.has("Set knob to MINIMUM position, then press ENTER (q to cancel)."));
     line(cal, "");
     assertTrue(term.has("Analog reading: 300"));
-    assertTrue(term.has("Enter dose for this position (l/ha): "));
+    assertTrue(term.has("Enter dose for this position (l/ha, q to cancel): "));
 
     // Only digits reach the buffer in this step, so letters vanish and the
     // empty line is rejected; so is zero.
@@ -361,6 +361,52 @@ test(CalibrationSprayer, analog_threePoints_rejectsBadDose_sortsAndSaves) {
     assertEqual(cImpl.doseCalibrationPoints[2].dose, 150);
 
     // Calibration handed back: the app can take it now.
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(CalibrationSprayer, analog_qAtCapturePrompt_cancelsAndKeepsTable) {
+    // Starting option 1 by mistake must not force the operator to walk the
+    // whole procedure through or reset the board (NeptuneGPS_Triton#168).
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    knob(300);
+    line(cal, "1");
+    term.clearOut();
+
+    line(cal, "q");
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertTrue(term.has("=== SPRAYER CALIBRATION ==="));
+    // Live table untouched: the wizard stages into newDosePoints[].
+    assertEqual(cImpl.doseCalibrationPoints[0].dose, 50);
+    assertEqual(cImpl.doseCalibrationPoints[1].dose, 100);
+    assertEqual(cImpl.doseCalibrationPoints[2].dose, 200);
+    // And calibration is handed back, or the app stays locked out.
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(CalibrationSprayer, analog_qAtDosePrompt_cancelsMidWay) {
+    // The trap that bit the 2026-09-26 session: two of three points captured,
+    // and no way back to the menu.
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    knob(300);
+    line(cal, "1");
+    line(cal, "");              // capture point 1
+    line(cal, "150");           // dose for point 1 -> moves to point 2
+    knob(100);
+    line(cal, "");              // capture point 2
+    term.clearOut();
+
+    line(cal, "q");             // bail out at the dose prompt
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertEqual(cImpl.doseCalibrationPoints[0].dose, 50);
+    assertEqual(cImpl.doseCalibrationPoints[2].dose, 200);
     assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
     cImpl.ReleaseCalibration(CalibrationOwner::Remote);
 }
@@ -424,7 +470,7 @@ static int runOnePoint(CalibrationSprayer& cal, unsigned long& now, const char* 
     if (cImpl.CalibrationRunActive()) return 5;
     term.clearOut();
     cal.Process();
-    if (!term.has("Run complete. Enter volume collected (ml): ")) return 6;
+    if (!term.has("Run complete. Enter volume collected (ml, q to cancel): ")) return 6;
     line(cal, volume);
     return 0;
 }

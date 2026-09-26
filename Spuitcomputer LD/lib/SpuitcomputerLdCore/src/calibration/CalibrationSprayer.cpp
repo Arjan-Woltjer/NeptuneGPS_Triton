@@ -57,7 +57,7 @@ void CalibrationSprayer::Process() {
             bufLen = 0;
             buf[0] = 0;
             serial->println();
-            serial->print("Run complete. Enter volume collected (ml): ");
+            serial->print("Run complete. Enter volume collected (ml, q to cancel): ");
             lastCountdown = 0;
             state = State::PWM_MEASURE;
         } else {
@@ -127,7 +127,10 @@ void CalibrationSprayer::Process() {
             if (state == State::EDIT_PWM_SELECT || state == State::EDIT_PWM_VALUE)
                 valid = (c >= '0' && c <= '9') || c == 'q' || c == 'Q';
             else if (state == State::ANALOG_DOSE || state == State::PWM_MEASURE)
-                valid = (c >= '0' && c <= '9');
+                // 'q' as well as digits: without it these two prompts cannot be
+                // escaped at all, and the only ways out are to complete the
+                // calibration or reset the board (NeptuneGPS_Triton#168).
+                valid = (c >= '0' && c <= '9') || c == 'q' || c == 'Q';
             else
                 valid = (c >= 32 && c < 127);
             if (valid) {
@@ -280,25 +283,29 @@ void CalibrationSprayer::startAnalogPoint() {
     serial->println(" ---");
     serial->print("Set knob to ");
     serial->print(labels[analogPointIdx]);
-    serial->println(" position, then press ENTER.");
+    serial->println(" position, then press ENTER (q to cancel).");
     state = State::ANALOG_CAPTURE;
 }
 
 void CalibrationSprayer::handleAnalogCapture() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelCalibration(); return; }
+
     // inputAnalog[0] is refreshed by ImplementSprayer::Update() each loop cycle
     int val = impl->inputAnalog[0]->value;
     newDosePoints[analogPointIdx].analogValue = val;
     serial->print("Analog reading: ");
     serial->println(val);
-    serial->print("Enter dose for this position (l/ha): ");
+    serial->print("Enter dose for this position (l/ha, q to cancel): ");
     state = State::ANALOG_DOSE;
 }
 
 void CalibrationSprayer::handleAnalogDose() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelCalibration(); return; }
+
     int dose;
     if (!parseInt(&dose) || dose <= 0) {
         serial->println("Invalid — enter a positive whole number.");
-        serial->print("Enter dose (l/ha): ");
+        serial->print("Enter dose (l/ha, q to cancel): ");
         return;
     }
     newDosePoints[analogPointIdx].dose = dose;
@@ -311,6 +318,18 @@ void CalibrationSprayer::handleAnalogDose() {
     } else {
         startAnalogPoint();
     }
+}
+
+// Abandon a running calibration: drop the staged points and hand calibration
+// back. Nothing is written, because both wizards stage into newDosePoints[] /
+// newPwmPoints[] and only commit in their finish...() (NeptuneGPS_Triton#168).
+void CalibrationSprayer::cancelCalibration() {
+    impl->StopCalibrationRun();
+    impl->ReleaseCalibration(CalibrationOwner::Serial);
+    serial->println();
+    serial->println("Cancelled - nothing was changed.");
+    printMenu();
+    state = State::MENU;
 }
 
 void CalibrationSprayer::finishAnalogCal() {
@@ -396,10 +415,12 @@ void CalibrationSprayer::handlePwmStep() {
 }
 
 void CalibrationSprayer::handlePwmMeasure() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelCalibration(); return; }
+
     int volumeMl;
     if (!parseInt(&volumeMl) || volumeMl <= 0 || volumeMl > 4000) {
         serial->println("Invalid — enter a whole number between 1 and 4000.");
-        serial->print("Enter volume collected (ml): ");
+        serial->print("Enter volume collected (ml, q to cancel): ");
         return;
     }
 
