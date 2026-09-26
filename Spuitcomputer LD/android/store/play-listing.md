@@ -1,8 +1,13 @@
 # Play store listing copy
 
 Prepared for NeptuneGPS_Triton#130. Dutch is the default locale: the operators
-are Dutch. English is the second. German and French are optional — the app
-itself is translated into both, so adding them later costs only the copy.
+are Dutch, and English is the second. German and French follow, because the app
+itself is translated into both and the listing should not be narrower than the
+app.
+
+The copy in each locale uses that locale's own words for the machine's parts.
+The app does not: on screen the four channels stay Mixer, Vernevelaar, Pomp and
+Aux in every language, because those are the labels on the physical panel.
 
 **The app name is "MeijWorks SprayComputer LD" and must stay that.** "Loofdoes"
 is a trademark and must not appear anywhere in the listing.
@@ -141,6 +146,142 @@ device.
 
 Bluetooth is used only to find the sprayer and stay connected to it, never to
 work out where you are.
+```
+
+---
+
+## German (de-DE)
+
+### Title (limit 30)
+
+```
+MeijWorks SprayComputer LD
+```
+
+### Short description (limit 80)
+
+```
+MeijWorks-Krautspritze vom Handy oder Tablet bedienen und kalibrieren.
+```
+
+### Full description (limit 4000)
+
+```
+MeijWorks SprayComputer LD ist die Bedien-App für den Spritzcomputer der
+MeijWorks-Krautabtötungsspritze. Die App verbindet sich per Bluetooth mit dem
+Steuergerät an der Maschine und zeigt, was dieses gerade tut.
+
+HINWEIS: Diese App benötigt MeijWorks-Spritztechnik. Ohne gekoppeltes
+Steuergerät kann sie nichts ausrichten.
+
+WÄHREND DER ARBEIT
+
+- Geschwindigkeit, Sollmenge und Istmenge in l/ha, groß genug zum Ablesen
+- Der Zustand der Ein- und Ausgänge: Mixer, Vernebler, Pumpe und Aux
+- GPS-Qualität, Alter des Fixes und Position
+- Ein Alarm, sobald die Istmenge mehr als 5 % von der Sollmenge abweicht, mit
+  sechs Tönen zur Auswahl, einstellbarer Lautstärke und Vibration
+
+Die Verbindung läuft weiter, wenn der Bildschirm ausgeht, damit der Alarm Sie
+auch während der Fahrt erreicht.
+
+KALIBRIEREN VOM SCHLEPPER AUS
+
+- Vollständiger Kalibrierassistent: erst die drei Knopfstellungen, dann die
+  Pumpenkurve
+- Oder nur das Potentiometer, oder nur die Pumpe, wenn nur eine Hälfte neu muss
+- Die Pumpe läuft genau eine Minute je Punkt, getaktet vom Steuergerät
+- Einzelne Punkte beider Tabellen nachträglich korrigieren
+- Arbeitsbreite, Lenk-Timeout, GPS-Baudrate und minimale Fixqualität einstellen
+
+Der Assistent folgt denselben Schritten wie das serielle Menü am Steuergerät,
+die bestehende Kalibrierprozedur gilt also weiter. Die Kalibrierung wird erst
+am Ende auf dem Steuergerät gespeichert; ein Abbruch lässt die vorhandenen
+Werte stehen.
+
+DAS STEUERGERÄT BEHÄLT DIE KONTROLLE
+
+Das Steuergerät arbeitet eigenständig. Diese App ist Anzeige und Bedienfeld,
+keine Steuerung: Bricht die Verbindung ab, läuft die Maschine weiter, und Sie
+verlieren nur das Kalibrieren und den Alarm am Telefon. Die Pumpe wird immer
+vom Steuergerät getaktet, nie vom Telefon.
+
+DATENSCHUTZ
+
+Die App sammelt nichts und sendet nichts. Sie hat überhaupt keinen
+Internetzugriff — die Berechtigung fehlt schlicht in der App. Ihre
+Einstellungen bleiben auf Ihrem eigenen Gerät.
+
+Bluetooth dient nur dazu, die Spritze zu finden und verbunden zu bleiben,
+niemals dazu, Ihren Standort zu bestimmen.
+```
+
+---
+
+## French (fr-FR)
+
+### Title (limit 30)
+
+```
+MeijWorks SprayComputer LD
+```
+
+### Short description (limit 80)
+
+```
+Pilotez et étalonnez votre pulvérisateur de défanage MeijWorks sur mobile.
+```
+
+### Full description (limit 4000)
+
+```
+MeijWorks SprayComputer LD est l'application de commande du calculateur de
+pulvérisation MeijWorks pour le défanage. Elle se connecte en Bluetooth au
+boîtier installé sur la machine et montre ce qu'il fait à l'instant.
+
+À NOTER : cette application nécessite du matériel de pulvérisation MeijWorks.
+Sans boîtier appairé, elle n'a rien à faire.
+
+PENDANT LE TRAVAIL
+
+- Vitesse, dose de consigne et dose réelle en l/ha, en gros caractères
+- L'état des entrées et des sorties : mélangeur, atomiseur, pompe et aux
+- Qualité GPS, âge du point et position
+- Une alarme dès que la dose réelle s'écarte de plus de 5 % de la consigne,
+  avec six sonneries au choix, volume réglable et vibration
+
+La liaison reste active quand l'écran s'éteint, afin que l'alarme vous
+parvienne aussi pendant que vous conduisez.
+
+ÉTALONNAGE DEPUIS LA CABINE
+
+- Assistant complet : d'abord les trois positions de molette, puis la courbe
+  de pompe
+- Ou le potentiomètre seul, ou la pompe seule, quand une moitié suffit
+- La pompe tourne exactement une minute par point, chronométrée par le boîtier
+- Corriger ensuite des points isolés de l'une ou l'autre table
+- Régler la largeur de travail, le délai de guidage, la vitesse en bauds du
+  GPS et la qualité de point minimale
+
+L'assistant suit les mêmes étapes que le menu série du boîtier : la procédure
+d'étalonnage existante reste donc valable. L'étalonnage n'est écrit sur le
+boîtier qu'à la fin ; annuler laisse les valeurs en place.
+
+LE BOÎTIER RESTE MAÎTRE
+
+Le boîtier fonctionne de façon autonome. Cette application est un afficheur et
+un pupitre, pas le système de commande : si la liaison tombe, la machine
+continue et vous ne perdez que l'étalonnage et l'alarme du téléphone. La pompe
+est toujours chronométrée par le boîtier, jamais par le téléphone.
+
+CONFIDENTIALITÉ
+
+L'application ne collecte rien et n'envoie rien. Elle n'a aucun accès à
+Internet — l'autorisation est tout simplement absente de l'application. Vos
+réglages restent sur votre propre appareil.
+
+Le Bluetooth sert uniquement à trouver le pulvérisateur et à rester connecté,
+jamais à déterminer où vous êtes.
 ```
 
 ---
