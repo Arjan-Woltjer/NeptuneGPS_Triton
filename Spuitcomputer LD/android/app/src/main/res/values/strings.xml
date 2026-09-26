@@ -29,7 +29,10 @@
     <string name="value_ml_min" translatable="false">%1$.0f ml/min</string>
     <string name="value_seconds" translatable="false">%1$.1f s</string>
     <string name="value_speed_kmh" translatable="false">%1$.1f km/h</string>
-    <string name="value_position" translatable="false">%1$.6f, %2$.6f</string>
+    <!-- Semicolon, not a comma: nl, de and fr all use a comma as the decimal
+         separator, so a comma here made the pair read as four numbers
+         ("53,418400, 6,725913"). Decimals stay locale-native. -->
+    <string name="value_position" translatable="false">%1$.6f; %2$.6f</string>
 
     <!-- Status screen -->
     <string name="status_title" translatable="false">SprayComputer LD</string>
