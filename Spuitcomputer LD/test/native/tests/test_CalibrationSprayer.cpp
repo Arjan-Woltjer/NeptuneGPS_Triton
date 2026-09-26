@@ -322,10 +322,10 @@ test(CalibrationSprayer, analog_threePoints_rejectsBadDose_sortsAndSaves) {
     knob(300);
     line(cal, "1");
     assertTrue(term.has("--- Analog point 1/3 ---"));
-    assertTrue(term.has("Set knob to MINIMUM position, then press ENTER."));
+    assertTrue(term.has("Set knob to MINIMUM position, then press ENTER (q to cancel)."));
     line(cal, "");
     assertTrue(term.has("Analog reading: 300"));
-    assertTrue(term.has("Enter dose for this position (l/ha): "));
+    assertTrue(term.has("Enter dose for this position (l/ha, q to cancel): "));
 
     // Only digits reach the buffer in this step, so letters vanish and the
     // empty line is rejected; so is zero.
@@ -365,6 +365,52 @@ test(CalibrationSprayer, analog_threePoints_rejectsBadDose_sortsAndSaves) {
     cImpl.ReleaseCalibration(CalibrationOwner::Remote);
 }
 
+test(CalibrationSprayer, analog_qAtCapturePrompt_cancelsAndKeepsTable) {
+    // Starting option 1 by mistake must not force the operator to walk the
+    // whole procedure through or reset the board (NeptuneGPS_Triton#168).
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    knob(300);
+    line(cal, "1");
+    term.clearOut();
+
+    line(cal, "q");
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertTrue(term.has("=== SPRAYER CALIBRATION ==="));
+    // Live table untouched: the wizard stages into newDosePoints[].
+    assertEqual(cImpl.doseCalibrationPoints[0].dose, 50);
+    assertEqual(cImpl.doseCalibrationPoints[1].dose, 100);
+    assertEqual(cImpl.doseCalibrationPoints[2].dose, 200);
+    // And calibration is handed back, or the app stays locked out.
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(CalibrationSprayer, analog_qAtDosePrompt_cancelsMidWay) {
+    // The trap that bit the 2026-09-26 session: two of three points captured,
+    // and no way back to the menu.
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    knob(300);
+    line(cal, "1");
+    line(cal, "");              // capture point 1
+    line(cal, "150");           // dose for point 1 -> moves to point 2
+    knob(100);
+    line(cal, "");              // capture point 2
+    term.clearOut();
+
+    line(cal, "q");             // bail out at the dose prompt
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertEqual(cImpl.doseCalibrationPoints[0].dose, 50);
+    assertEqual(cImpl.doseCalibrationPoints[2].dose, 200);
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
 // ---------------------------------------------------------------------------
 // PWM output calibration (option 2)
 // ---------------------------------------------------------------------------
@@ -376,15 +422,80 @@ test(CalibrationSprayer, pwm_armRequiresKnobAtMinimum) {
     knob(100);
     line(cal, "2");
     assertTrue(term.has("=== PWM OUTPUT CALIBRATION ==="));
-    assertTrue(term.has("Turn the analog knob fully to MINIMUM, then press ENTER to arm."));
+    assertTrue(term.has("Turn the analog knob fully to MINIMUM, then press ENTER to arm (q to cancel)."));
     term.clearOut();
     line(cal, "");
-    assertTrue(term.has("Knob not at minimum (reading 100). Turn it down and press ENTER."));
+    assertTrue(term.has("Knob not at minimum (reading 100). Turn it down and press ENTER (q to cancel)."));
     assertFalse(term.has("until the pump just starts flowing"));
     knob(10);
     line(cal, "");
     assertTrue(term.has("Turn the analog knob until the pump just starts flowing."));
     cImpl.ReleaseCalibration(CalibrationOwner::Serial);
+}
+
+test(CalibrationSprayer, pwm_qAtArmPrompt_cancels) {
+    // Option 2 picked by mistake: out again before the pump has ever turned.
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    line(cal, "2");
+    term.clearOut();
+
+    line(cal, "q");
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertTrue(term.has("=== SPRAYER CALIBRATION ==="));
+    assertEqual(cImpl.GetCalibrationDuty(), 0);
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(CalibrationSprayer, pwm_qDuringKnobSearch_cancelsAndStopsThePump) {
+    // The knob search drives the pump live, and its prompt discards every
+    // character so the \r-updated display stays clean -- which is exactly why
+    // 'q' never used to reach the buffer. Cancelling here must also leave the
+    // pump off, not at whatever duty the knob last asked for.
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    line(cal, "2");
+    line(cal, "");                  // knob is at 0, so this arms
+    knob(2000);                     // operator turns it up; Process() tracks
+    cal.Process();
+    assertTrue(cImpl.GetCalibrationDuty() > 0);
+    term.clearOut();
+
+    line(cal, "q");
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertEqual(cImpl.GetCalibrationDuty(), 0);
+    assertEqual(cImpl.numPwmCalibrationPoints, (uint8_t)3);
+    assertEqual(cImpl.pwmCalibrationPoints[1].flowMlMin, 2000);
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+test(CalibrationSprayer, pwm_qAtStepPrompt_cancelsBeforeTheTimedRun) {
+    // Last chance before committing to a minute of pumping per point.
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    line(cal, "2");
+    line(cal, "");                  // arm
+    knob(2000);
+    cal.Process();
+    line(cal, "");                  // capture the start PWM -> point 1 prompt
+    assertTrue(term.has("Press ENTER to start 1-minute run (q to cancel)."));
+    term.clearOut();
+
+    line(cal, "q");
+
+    assertTrue(term.has("Cancelled - nothing was changed."));
+    assertFalse(term.has("Running..."));
+    assertFalse(cImpl.CalibrationRunActive());
+    assertEqual(cImpl.GetCalibrationDuty(), 0);
+    assertTrue(cImpl.AcquireCalibration(CalibrationOwner::Remote));
+    cImpl.ReleaseCalibration(CalibrationOwner::Remote);
 }
 
 test(CalibrationSprayer, pwm_busyWhileAppHoldsCalibration) {
@@ -424,7 +535,7 @@ static int runOnePoint(CalibrationSprayer& cal, unsigned long& now, const char* 
     if (cImpl.CalibrationRunActive()) return 5;
     term.clearOut();
     cal.Process();
-    if (!term.has("Run complete. Enter volume collected (ml): ")) return 6;
+    if (!term.has("Run complete. Enter volume collected (ml, q to cancel): ")) return 6;
     line(cal, volume);
     return 0;
 }
@@ -447,7 +558,7 @@ test(CalibrationSprayer, pwm_fullRun_fiveEqualSteps_fromCapturedStart) {
     assertFalse(term.has("zz"));
     line(cal, "");
     assertTrue(term.has("Start PWM captured: 2048"));
-    assertTrue(term.has("Point 1/5: PWM = 2048. Press ENTER to start 1-minute run."));
+    assertTrue(term.has("Point 1/5: PWM = 2048. Press ENTER to start 1-minute run (q to cancel)."));
 
     unsigned long now = 0;
     // Bad volumes first: zero, above 4000, letters.
