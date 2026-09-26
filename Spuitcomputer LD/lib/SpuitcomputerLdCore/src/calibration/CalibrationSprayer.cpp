@@ -113,8 +113,13 @@ void CalibrationSprayer::Process() {
         }
 
         // During the knob-search phase only ENTER matters; echoing other characters
-        // would interleave with the live \r-updated PWM value on the same line
-        if (state == State::PWM_FIND) continue;
+        // would interleave with the live \r-updated PWM value on the same line.
+        // 'q' is buffered all the same, just not echoed, so the search can be
+        // abandoned while the pump is running (NeptuneGPS_Triton#168).
+        if (state == State::PWM_FIND) {
+            if ((c == 'q' || c == 'Q') && bufLen < (int)sizeof(buf) - 1) buf[bufLen++] = c;
+            continue;
+        }
 
         if (c == '\b' || c == 0x7F) {
             if (bufLen > 0) {
@@ -205,7 +210,7 @@ void CalibrationSprayer::handleMenu() {
             }
             serial->println();
             serial->println("=== PWM OUTPUT CALIBRATION ===");
-            serial->println("Turn the analog knob fully to MINIMUM, then press ENTER to arm.");
+            serial->println("Turn the analog knob fully to MINIMUM, then press ENTER to arm (q to cancel).");
             currentPWM = 0;
             impl->SetCalibrationPWM(2, 0);
             state = State::PWM_ARM;
@@ -360,6 +365,8 @@ void CalibrationSprayer::finishAnalogCal() {
 // ---------------------------------------------------------------------------
 
 void CalibrationSprayer::handlePwmArm() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelCalibration(); return; }
+
     // Pump stays off (state != PWM_FIND, so Process() isn't driving it yet) until
     // the knob is confirmed at minimum — otherwise the live tracking below would
     // jump straight to whatever the knob currently reads.
@@ -367,15 +374,17 @@ void CalibrationSprayer::handlePwmArm() {
     if (val > PWM_ARM_THRESHOLD) {
         serial->print("Knob not at minimum (reading ");
         serial->print(val);
-        serial->println("). Turn it down and press ENTER.");
+        serial->println("). Turn it down and press ENTER (q to cancel).");
         return;
     }
     serial->println("Turn the analog knob until the pump just starts flowing.");
-    serial->println("Press ENTER to capture that value as the start point.");
+    serial->println("Press ENTER to capture that value as the start point (q to cancel).");
     state = State::PWM_FIND;
 }
 
 void CalibrationSprayer::handlePwmFind() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelCalibration(); return; }
+
     // currentPWM was kept up-to-date by Process() while knob was turned
     serial->println();
     serial->print("Start PWM captured: ");
@@ -399,11 +408,13 @@ void CalibrationSprayer::startPwmStep() {
     serial->print(NUM_PWM_STEPS);
     serial->print(": PWM = ");
     serial->print(pwmSteps[pwmStepIdx]);
-    serial->println(". Press ENTER to start 1-minute run.");
+    serial->println(". Press ENTER to start 1-minute run (q to cancel).");
     state = State::PWM_STEP;
 }
 
 void CalibrationSprayer::handlePwmStep() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelCalibration(); return; }
+
     // Any ENTER starts the timed run — buffer content is ignored.
     // The countdown itself (including the first tick) is printed by the
     // \r-based updater in Process(), so every line on this row shares the
