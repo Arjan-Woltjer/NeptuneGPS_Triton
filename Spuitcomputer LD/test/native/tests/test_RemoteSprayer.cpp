@@ -512,7 +512,9 @@ test(RemoteSprayer, status_lineFormatAndRate) {
     for (unsigned long t = 100; t <= 1000; t += 100) tick(t, 1.0f);
     assertEqual(sink.count(), (size_t)5);
     // speed, req, act, flow, raw, mixer, vern, pump, pumpPwm, dev, cal, inputs, outputs
-    assertEqual(sink.last().c_str(), "S:1.00,100.0,100.0,1800.0,2048,0,0,0,1843,0,0,0000,0000");
+    // Actual is the -1.0 sentinel because the pump output is down: this line
+    // is what the app turns into a dash (NeptuneGPS_Triton#166).
+    assertEqual(sink.last().c_str(), "S:1.00,100.0,-1.0,1800.0,2048,0,0,0,1843,0,0,0000,0000");
 
     remote.HandleLine("TELEM S 0");
     sink.clear();

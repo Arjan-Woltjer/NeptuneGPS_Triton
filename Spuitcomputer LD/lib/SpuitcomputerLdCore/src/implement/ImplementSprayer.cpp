@@ -93,6 +93,21 @@ void ImplementSprayer::Update() {
     calculatePWMValues(2);  // pump output
 
     updateOutputs();
+
+    // The pump output is down -- mixer, vernevelaar or the pump switch itself
+    // -- so nothing is being sprayed and there is no actual dose to report
+    // (NeptuneGPS_Triton#166). A figure here reads as "delivering this", when
+    // it only ever meant "could deliver this if it were running".
+    //
+    // Cleared after updateOutputs() rather than inside calculatePWMValues(),
+    // because updateOutputs() is what settles the switch states: reading them
+    // a step earlier would report the previous cycle's.
+    //
+    // Deliberately the sentinel and not 0. Zero already means the pump was cut
+    // *while spraying*, because demand fell below the lowest calibrated flow,
+    // and the driver has to react to that one.
+    if (!outputs[2].state) actualLHA = kActualDoseUndefined;
+
     updateDeviation();
 }
 
