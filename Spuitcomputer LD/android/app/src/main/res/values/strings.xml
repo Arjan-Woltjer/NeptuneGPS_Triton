@@ -29,7 +29,10 @@
     <string name="value_ml_min" translatable="false">%1$.0f ml/min</string>
     <string name="value_seconds" translatable="false">%1$.1f s</string>
     <string name="value_speed_kmh" translatable="false">%1$.1f km/h</string>
-    <string name="value_position" translatable="false">%1$.6f, %2$.6f</string>
+    <!-- Semicolon, not a comma: nl, de and fr all use a comma as the decimal
+         separator, so a comma here made the pair read as four numbers
+         ("53,418400, 6,725913"). Decimals stay locale-native. -->
+    <string name="value_position" translatable="false">%1$.6f; %2$.6f</string>
 
     <!-- Status screen -->
     <string name="status_title" translatable="false">SprayComputer LD</string>
@@ -82,7 +85,7 @@
     <string name="calibrate_title">Calibrate</string>
     <string name="menu_wizard">Wizard</string>
     <string name="menu_wizard_sub">Full calibration: knob positions, then the pump curve</string>
-    <string name="menu_potmeter">Potmeter calibration</string>
+    <string name="menu_potmeter">Potentiometer calibration</string>
     <string name="menu_potmeter_sub">The three knob positions only</string>
     <string name="menu_sprayer">Sprayer</string>
     <string name="menu_sprayer_sub">Width and guidance timeout</string>
@@ -99,7 +102,7 @@
 
     <!-- Calibration wizard -->
     <string name="wizard_title_full">Calibration wizard</string>
-    <string name="wizard_title_dose">Potmeter calibration</string>
+    <string name="wizard_title_dose">Potentiometer calibration</string>
     <string name="wizard_title_pump">Pump calibration</string>
     <string name="wizard_starting">Starting…</string>
     <string name="wizard_taking_calibration">Taking calibration on the board…</string>
@@ -164,8 +167,8 @@
     <string name="msg_wizard_point_refused">Board refused a pump point</string>
     <string name="msg_wizard_link_lost">Link lost; the board stopped the pump and kept its old calibration</string>
 
-    <!-- Potmeter screen -->
-    <string name="potmeter_title">Potmeter calibration</string>
+    <!-- Potentiometer screen -->
+    <string name="potmeter_title">Potentiometer calibration</string>
     <string name="potmeter_current">Current knob positions</string>
     <string name="potmeter_live_reading">Live knob reading: %1$s of 4095</string>
     <string name="potmeter_point">%1$d. %2$s</string>
@@ -288,7 +291,7 @@
     <!-- Calibration split (#138) -->
     <string name="menu_pump">Pump calibration</string>
     <string name="menu_pump_sub">The pump curve only, jug and a minute per point</string>
-    <string name="advanced_edit_dose">Edit potmeter points</string>
+    <string name="advanced_edit_dose">Edit potentiometer points</string>
     <string name="advanced_edit_pump">Edit pump points</string>
     <string name="advanced_point_number">Point %1$d</string>
 </resources>
