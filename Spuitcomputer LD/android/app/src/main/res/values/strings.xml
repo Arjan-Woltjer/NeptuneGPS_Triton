@@ -294,4 +294,12 @@
     <string name="advanced_edit_dose">Edit potentiometer points</string>
     <string name="advanced_edit_pump">Edit pump points</string>
     <string name="advanced_point_number">Point %1$d</string>
+
+    <!-- Log export (#128) -->
+    <string name="diagnostics_card">Diagnostics</string>
+    <string name="diagnostics_hint">Keeps the last few megabytes of everything the app and the controller said to each other, on this device only. Export it if something goes wrong in the field.</string>
+    <string name="diagnostics_export">Export the log</string>
+    <string name="diagnostics_subject">SprayComputer LD log</string>
+    <string name="diagnostics_chooser">Send the log</string>
+    <string name="diagnostics_failed">Could not export the log: %1$s</string>
 </resources>

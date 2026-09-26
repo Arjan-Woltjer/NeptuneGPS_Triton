@@ -259,4 +259,12 @@
     <string name="advanced_edit_dose">Potentiometerpunkte bearbeiten</string>
     <string name="advanced_edit_pump">Pumpenpunkte bearbeiten</string>
     <string name="advanced_point_number">Punkt %1$d</string>
+
+    <!-- Log-Export (#128) -->
+    <string name="diagnostics_card">Diagnose</string>
+    <string name="diagnostics_hint">Behält die letzten paar Megabyte von allem, was App und Steuergerät einander gesagt haben, nur auf diesem Gerät. Exportieren Sie es, wenn im Feld etwas schiefgeht.</string>
+    <string name="diagnostics_export">Log exportieren</string>
+    <string name="diagnostics_subject">SprayComputer LD-Log</string>
+    <string name="diagnostics_chooser">Log senden</string>
+    <string name="diagnostics_failed">Log konnte nicht exportiert werden: %1$s</string>
 </resources>

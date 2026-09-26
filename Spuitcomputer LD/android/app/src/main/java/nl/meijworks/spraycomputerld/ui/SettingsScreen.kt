@@ -18,6 +18,7 @@
 
 package nl.meijworks.spraycomputerld.ui
 
+import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,17 +48,21 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import nl.meijworks.spraycomputerld.BuildConfig
 import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.Settings
 import nl.meijworks.spraycomputerld.SettingsState
 import nl.meijworks.spraycomputerld.audio.AlarmSound
+import nl.meijworks.spraycomputerld.service.LogExport
 import nl.meijworks.spraycomputerld.service.SprayerController
 
 /** Taps on the build row that turn developer mode on; the Android convention. */
@@ -96,6 +101,7 @@ fun SettingsScreen(
             AlarmCard(settings, serviceRunning)
             OptionsCard(settings, onBatteryOptimizations, isIgnoringBatteryOptimizations, onShowIntroduction)
             if (settings.developerMode) DeveloperCard()
+            DiagnosticsCard()
             AboutCard()
             Spacer(Modifier.height(24.dp))
         }
@@ -220,6 +226,59 @@ private fun SwitchRow(
             }
         }
         Switch(checked = checked, onCheckedChange = onChange)
+    }
+}
+
+/**
+ * Export the log (NeptuneGPS_Triton#128). When something goes wrong in a field
+ * there is otherwise no evidence afterwards, and this app has no crash
+ * reporter by deliberate choice: the users are few and reachable, so a file
+ * they send on purpose beats aggregate statistics and a data-collection
+ * disclosure.
+ *
+ * The file is written to the app's cache and handed to a share target. Nothing
+ * leaves the device unless the operator picks somewhere to send it.
+ */
+@Composable
+private fun DiagnosticsCard() {
+    val context = LocalContext.current
+    val sprayer by SprayerController.state.collectAsStateWithLifecycle()
+    val subject = stringResource(R.string.diagnostics_subject)
+    val chooser = stringResource(R.string.diagnostics_chooser)
+    var failure by remember { mutableStateOf<String?>(null) }
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(stringResource(R.string.diagnostics_card), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.diagnostics_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedButton(onClick = {
+                failure = try {
+                    val file = LogExport.write(context, state = sprayer)
+                    context.startActivity(
+                        Intent.createChooser(LogExport.shareIntent(context, file, subject), chooser)
+                    )
+                    null
+                } catch (e: Exception) {
+                    // A device with nothing that accepts text/plain, or a
+                    // cache that cannot be written. Either way, say so rather
+                    // than looking like the button did nothing.
+                    e.message ?: e.javaClass.simpleName
+                }
+            }) {
+                Text(stringResource(R.string.diagnostics_export))
+            }
+            failure?.let {
+                Text(
+                    stringResource(R.string.diagnostics_failed, it),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
     }
 }
 

@@ -119,10 +119,12 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         super.onStartCommand(intent, flags, startId)
         when (intent?.action) {
             ACTION_STOP -> {
+                log("-- service stopping")
                 shutdown()
                 return START_NOT_STICKY
             }
             else -> {
+                log("-- service starting")
                 if (!goForeground()) {
                     stopSelf()
                     return START_NOT_STICKY
@@ -146,6 +148,13 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     // ------------------------------------------------------------ commands
 
     fun refresh() {
+        // Ask for the version rather than waiting for the board to volunteer
+        // it. The board does send V: on its own, but early enough that it can
+        // land before notifications are on, and then the app never learns the
+        // firmware at all: the connection banner stays bare and the exported
+        // log says "Firmware unknown", which is most of a bug report gone
+        // (NeptuneGPS_Triton#128). INFO is read-only and answers V: then OK.
+        send(SprayerProtocol.CMD_INFO)
         send(SprayerProtocol.CMD_CAL_GET)
         send(SprayerProtocol.CMD_CFG_GET)
     }
@@ -229,6 +238,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     // ------------------------------------------------------------ BLE events
 
     override fun onConnectionState(state: ConnectionState, deviceName: String?) {
+        log("-- ${state.name.lowercase()}${deviceName?.let { " $it" } ?: ""}")
         SprayerController.publish {
             it.copy(
                 connection = state,
@@ -267,7 +277,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         // console they would push every reply out of view within seconds,
         // unless the operator asked to see them.
         val telemetry = line.startsWith("S:") || line.startsWith("G:")
-        if (!telemetry || SprayerController.showTelemetry.value) log("< $line")
+        log("< $line", console = !telemetry || SprayerController.showTelemetry.value)
         when (val m = SprayerProtocol.parse(line)) {
             is BoardMessage.Version -> SprayerController.publish {
                 it.copy(firmwareVersion = m.firmware, protocolVersion = m.protocol)
@@ -305,11 +315,13 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
     }
 
     override fun onError(message: String) {
+        log("!! $message")
         // Straight from the BLE stack; not ours to translate.
         SprayerController.publish { it.copy(lastMessage = UiText.Raw(message)) }
     }
 
     override fun onPairing(active: Boolean) {
+        log(if (active) "-- pairing prompt" else "-- pairing finished")
         SprayerController.publish {
             it.copy(
                 pairing = active,
@@ -349,7 +361,14 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         }
     }
 
-    private fun log(entry: String) {
+    /**
+     * Record [entry]. It always goes to the diagnostic log behind the export
+     * (NeptuneGPS_Triton#128); [console] says whether the on-screen console
+     * shows it too, which only the 5 Hz status and 1 Hz GPS lines opt out of.
+     */
+    private fun log(entry: String, console: Boolean = true) {
+        DiagnosticLog.shared.append(entry)
+        if (!console) return
         SprayerController.publish {
             val next = it.log + entry
             it.copy(log = if (next.size > SprayerState.LOG_LINES) next.takeLast(SprayerState.LOG_LINES) else next)
@@ -380,6 +399,7 @@ class SprayerService : LifecycleService(), SprayerBleClient.Listener {
         } catch (e: Exception) {
             // Typically a missing BLUETOOTH_CONNECT permission on Android 14.
             Log.e(TAG, "startForeground failed", e)
+            log("!! startForeground failed: ${e.message}")
             SprayerController.publish { it.copy(lastMessage = uiText(R.string.msg_cannot_start, e.message.orEmpty())) }
             false
         }

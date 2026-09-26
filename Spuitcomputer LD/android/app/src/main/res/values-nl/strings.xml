@@ -261,4 +261,12 @@
     <string name="advanced_edit_dose">Potmeterpunten bewerken</string>
     <string name="advanced_edit_pump">Pomppunten bewerken</string>
     <string name="advanced_point_number">Punt %1$d</string>
+
+    <!-- Logexport (#128) -->
+    <string name="diagnostics_card">Diagnose</string>
+    <string name="diagnostics_hint">Bewaart de laatste paar megabytes van alles wat de app en de kast tegen elkaar zeiden, alleen op dit toestel. Exporteer het als er in het veld iets misgaat.</string>
+    <string name="diagnostics_export">Log exporteren</string>
+    <string name="diagnostics_subject">SprayComputer LD-log</string>
+    <string name="diagnostics_chooser">Log versturen</string>
+    <string name="diagnostics_failed">Exporteren van het log is mislukt: %1$s</string>
 </resources>
