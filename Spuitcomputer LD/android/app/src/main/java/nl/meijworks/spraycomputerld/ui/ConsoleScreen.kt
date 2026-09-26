@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -113,7 +114,39 @@ fun ConsoleScreen(sprayer: SprayerState, onBack: () -> Unit) {
                     }
                 },
             )
-        }
+        },
+        // The log fills the height and the input row sits under it, so unlike
+        // every other screen there is nothing to scroll the bottom back into
+        // view: whatever does not fit is simply gone. As a weighted sibling of
+        // the log the row was pushed past the bottom of the window -- only the
+        // top edge of the field showed above the navigation bar and the Send
+        // button was never laid out at all, which left the console read-only
+        // (NeptuneGPS_Triton#169). Scaffold measures a bottomBar first and
+        // hands the content only what is left, so the row always fits.
+        bottomBar = {
+            Column(Modifier.imePadding()) {
+                HorizontalDivider()
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = command,
+                        onValueChange = { command = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        placeholder = { Text("PING, CAL GET, CFG GET, TELEM S 0 …") },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(onSend = { send() }),
+                        enabled = sprayer.connected,
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Button(onClick = { send() }, enabled = sprayer.connected && command.isNotBlank()) {
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
+                    }
+                }
+            }
+        },
     ) { padding ->
         Column(Modifier.padding(padding).fillMaxSize()) {
             Row(
@@ -149,27 +182,6 @@ fun ConsoleScreen(sprayer: SprayerState, onBack: () -> Unit) {
                             else MaterialTheme.colorScheme.onSurface,
                         )
                     }
-                }
-            }
-
-            HorizontalDivider()
-            Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedTextField(
-                    value = command,
-                    onValueChange = { command = it },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true,
-                    placeholder = { Text("PING, CAL GET, CFG GET, TELEM S 0 …") },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
-                    keyboardActions = KeyboardActions(onSend = { send() }),
-                    enabled = sprayer.connected,
-                )
-                Spacer(Modifier.width(8.dp))
-                Button(onClick = { send() }, enabled = sprayer.connected && command.isNotBlank()) {
-                    Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
                 }
             }
         }
