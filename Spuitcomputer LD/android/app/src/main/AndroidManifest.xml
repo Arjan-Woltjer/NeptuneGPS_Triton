@@ -48,5 +48,18 @@
             android:name=".service.SprayerService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
+
+        <!-- Hands an exported log file to whatever the operator picks to send
+             it with (#128). Not exported: the receiving app gets a one-shot
+             read grant on the single URI, nothing more. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.logs"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 </manifest>

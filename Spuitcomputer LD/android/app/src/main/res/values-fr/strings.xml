@@ -259,4 +259,12 @@
     <string name="advanced_edit_dose">Modifier les points du potentiomètre</string>
     <string name="advanced_edit_pump">Modifier les points de pompe</string>
     <string name="advanced_point_number">Point %1$d</string>
+
+    <!-- Export du journal (#128) -->
+    <string name="diagnostics_card">Diagnostic</string>
+    <string name="diagnostics_hint">Conserve les derniers mégaoctets de tout ce que l\'application et le boîtier se sont dit, sur cet appareil uniquement. Exportez-le si quelque chose ne va pas au champ.</string>
+    <string name="diagnostics_export">Exporter le journal</string>
+    <string name="diagnostics_subject">Journal SprayComputer LD</string>
+    <string name="diagnostics_chooser">Envoyer le journal</string>
+    <string name="diagnostics_failed">Impossible d\'exporter le journal : %1$s</string>
 </resources>
