@@ -6,10 +6,11 @@
 #include <stdint.h>
 #include <string.h>
 
-// Real Teensy 4.1 emulated EEPROM is a few KB; ImplementPlough's highest
-// address used is 66 (SetOffset's WriteInt(offset, 66) call) -- sized with
-// generous headroom rather than the exact minimum.
-#define EEPROM_FAKE_SIZE 256
+// The Teensy 4.1's emulated EEPROM: 4284 bytes (E2END + 1). The map reaches
+// 379 (NeptuneGPS_Triton#78), and a fake smaller than the real device would
+// drop writes the board keeps -- this used to be 256, which silently threw
+// away everything above 255, exactly where an 8-bit address would wrap to.
+#define EEPROM_FAKE_SIZE 4284
 
 class EEPROMClass {
   public:
