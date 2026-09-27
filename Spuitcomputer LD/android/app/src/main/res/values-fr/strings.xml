@@ -60,24 +60,19 @@
 
     <!-- Menu d\'étalonnage -->
     <string name="calibrate_title">Étalonner</string>
-    <string name="menu_wizard">Assistant</string>
-    <string name="menu_wizard_sub">Étalonnage complet : positions de molette, puis la courbe de pompe</string>
     <string name="menu_potmeter">Étalonnage du potentiomètre</string>
-    <string name="menu_potmeter_sub">Les trois positions de molette seulement</string>
+    <string name="menu_potmeter_sub">Les trois positions de molette, ou une seule</string>
     <string name="menu_sprayer">Pulvérisateur</string>
     <string name="menu_sprayer_sub">Largeur de travail et délai de guidage</string>
     <string name="menu_gps">Réglages GPS</string>
     <string name="menu_gps_sub">Débit en bauds et qualité de point minimale</string>
-    <string name="menu_advanced">Avancé</string>
-    <string name="menu_advanced_sub">Tables d\'étalonnage, réglages, correction d\'un point de pompe</string>
     <string name="menu_console_sub">Lignes de protocole brutes, trames GPS, pour l\'atelier</string>
     <string name="buzzer_title">Avertisseur sur le boîtier</string>
     <string name="buzzer_sub" formatted="false">Sonne tant que la dose s\'écarte de plus de 5 % de la consigne. L\'alarme du téléphone est indépendante (Réglages).</string>
-    <string name="calibrate_hint_connected">L\'assistant suit les mêmes étapes que le menu série du boîtier.</string>
+    <string name="calibrate_hint_connected">L\'étalonnage suit les mêmes étapes que le menu série du boîtier.</string>
     <string name="calibrate_hint_disconnected">Connectez-vous d\'abord au pulvérisateur.</string>
 
     <!-- Assistant d\'étalonnage -->
-    <string name="wizard_title_full">Assistant d\'étalonnage</string>
     <string name="wizard_title_dose">Étalonnage du potentiomètre</string>
     <string name="wizard_title_pump">Étalonnage de la pompe</string>
     <string name="wizard_starting">Démarrage…</string>
@@ -171,19 +166,6 @@
     <string name="gps_baudrate">Débit en bauds du récepteur</string>
     <string name="gps_baudrate_hint">Appliqué immédiatement ; le port rouvre au nouveau débit.</string>
 
-    <!-- Avancé -->
-    <string name="advanced_title">Avancé</string>
-    <string name="advanced_reread">Relire depuis le boîtier</string>
-    <string name="advanced_column_analog">Analogique</string>
-    <string name="advanced_board_settings">Réglages du boîtier</string>
-    <string name="advanced_width">Largeur</string>
-    <string name="advanced_guidance_timeout">Délai de guidage</string>
-    <string name="advanced_gps_baudrate">Débit en bauds GPS</string>
-    <string name="advanced_baud_index">index %1$d</string>
-    <string name="advanced_min_fix">Point minimal pour doser</string>
-    <string name="advanced_protocol">Protocole</string>
-    <string name="advanced_firmware">Micrologiciel</string>
-
     <!-- Réglages -->
     <string name="settings_title">Réglages</string>
     <string name="settings_alarm_card">Alarme de dose</string>
@@ -255,11 +237,7 @@
 
     <!-- Étalonnage séparé (#138) -->
     <string name="menu_pump">Étalonnage de la pompe</string>
-    <string name="menu_pump_sub">La courbe de pompe seule, un récipient et une minute par point</string>
-    <string name="advanced_edit_dose">Modifier les points du potentiomètre</string>
-    <string name="advanced_edit_pump">Modifier les points de pompe</string>
-    <string name="advanced_point_number">Point %1$d</string>
-
+    <string name="menu_pump_sub">Tous les points ou un seul, un récipient et une minute par point</string>
     <!-- Export du journal (#128) -->
     <string name="diagnostics_card">Diagnostic</string>
     <string name="diagnostics_hint">Conserve les derniers mégaoctets de tout ce que l\'application et le boîtier se sont dit, sur cet appareil uniquement. Exportez-le si quelque chose ne va pas au champ.</string>
@@ -267,4 +245,21 @@
     <string name="diagnostics_subject">Journal SprayComputer LD</string>
     <string name="diagnostics_chooser">Envoyer le journal</string>
     <string name="diagnostics_failed">Impossible d\'exporter le journal : %1$s</string>
+
+    <!-- Étalonnage de la pompe, graphiques et point refusé (#179) -->
+    <string name="pump_title">Étalonnage de la pompe</string>
+    <string name="pump_current">Points de pompe actuels</string>
+    <string name="pump_point">Point %1$d</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_redo_all">Refaire toute la courbe de pompe</string>
+    <string name="pump_redo_start">Refaire le point de départ</string>
+    <string name="pump_hint">Chaque point est une marche d\'une minute dans un récipient, au rapport cyclique de ce point. Refaire le point de départ refait aussi les autres points s\'il se déplace de plus de la moitié du chemin vers le point 2. Enregistré sur le boîtier seulement à la fin ; annuler conserve les valeurs actuelles.</string>
+    <string name="graph_axis_knob">molette</string>
+    <string name="graph_was">avant</string>
+    <string name="graph_refused">refusé</string>
+    <string name="wizard_refused_title">Point non enregistré</string>
+    <string name="wizard_refused_below">%1$d ml/min n\'est pas au-dessus du point %2$d (%3$d ml/min). La courbe doit monter, donc rien n\'a été enregistré.</string>
+    <string name="wizard_refused_above">%1$d ml/min n\'est pas au-dessous du point %2$d (%3$d ml/min). La courbe doit monter, donc rien n\'a été enregistré.</string>
+    <string name="wizard_start_moved">Le point de départ s\'est déplacé de plus de la moitié du chemin vers le point 2, donc tous les points sont refaits.</string>
+    <string name="msg_wizard_table_not_read">La table de pompe n\'a pas encore été lue depuis le boîtier.</string>
 </resources>

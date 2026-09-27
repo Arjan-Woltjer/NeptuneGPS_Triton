@@ -61,6 +61,8 @@ import androidx.compose.ui.unit.sp
 import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
 import nl.meijworks.spraycomputerld.text
+import nl.meijworks.spraycomputerld.protocol.DosePoint
+import nl.meijworks.spraycomputerld.protocol.PwmPoint
 import nl.meijworks.spraycomputerld.protocol.WizardMath
 import nl.meijworks.spraycomputerld.service.SprayerController
 import nl.meijworks.spraycomputerld.service.WizardMode
@@ -107,8 +109,9 @@ fun WizardScreen(sprayer: SprayerState, title: String, onClose: () -> Unit) {
                     WizardStep.PUMP_STEP_READY -> PumpStepReady(w)
                     WizardStep.PUMP_RUNNING -> PumpRunning(w)
                     WizardStep.PUMP_ENTER -> PumpEnter(w)
+                    WizardStep.REFUSED -> Refused(w, onClose)
                     WizardStep.SAVING -> Waiting(stringResource(R.string.wizard_saving))
-                    WizardStep.DONE -> Done(w, onClose)
+                    WizardStep.DONE -> Done(w, sprayer, onClose)
                     WizardStep.FAILED -> Failed(w, onClose)
                 }
                 if (sprayer.pairing) {
@@ -138,15 +141,11 @@ fun WizardScreen(sprayer: SprayerState, title: String, onClose: () -> Unit) {
 
 @Composable
 private fun Progress(w: WizardState) {
-    val (done, total) = when (w.mode) {
-        WizardMode.FULL -> {
-            val dose = if (w.step >= WizardStep.PUMP_FIND) WizardMath.DOSE_POINTS else w.doseIndex
-            val pump = if (w.step >= WizardStep.PUMP_STEP_READY) w.pwmIndex else 0
-            (dose + pump) to (WizardMath.DOSE_POINTS + WizardMath.PWM_STEPS)
-        }
-        WizardMode.DOSE_ONLY -> w.doseIndex to WizardMath.DOSE_POINTS
-        WizardMode.DOSE_SINGLE -> (if (w.step >= WizardStep.SAVING) 1 else 0) to 1
-        WizardMode.PUMP_ONLY -> (if (w.step >= WizardStep.PUMP_STEP_READY) w.pwmIndex else 0) to WizardMath.PWM_STEPS
+    val single = w.mode == WizardMode.DOSE_SINGLE || w.pumpTarget != null
+    val (done, total) = when {
+        single -> (if (w.step >= WizardStep.SAVING) 1 else 0) to 1
+        w.mode == WizardMode.DOSE_ONLY -> w.doseIndex to WizardMath.DOSE_POINTS
+        else -> (if (w.step >= WizardStep.PUMP_STEP_READY) w.pwmIndex else 0) to WizardMath.PWM_STEPS
     }
     val fraction = if (w.step == WizardStep.DONE) 1f else done.toFloat() / total
     LinearProgressIndicator(progress = { fraction }, modifier = Modifier.fillMaxWidth())
@@ -181,6 +180,7 @@ private fun DoseCapture(w: WizardState, sprayer: SprayerState) {
             enabled = !w.busy && raw != null,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(R.string.wizard_capture)) }
+        if (w.mode == WizardMode.DOSE_SINGLE) DoseGraph(w, w.doseBefore)
     }
 }
 
@@ -238,7 +238,10 @@ private fun PumpFind(w: WizardState, sprayer: SprayerState) {
 
 @Composable
 private fun PumpStepReady(w: WizardState) {
-    StepCard(title = stringResource(R.string.wizard_point_of, w.pwmIndex + 1, w.pwmSteps.size)) {
+    StepCard(title = stringResource(R.string.wizard_point_of, w.pointNumber, w.pointCount)) {
+        if (w.startMovedTooFar && w.pwmIndex == 0) {
+            Text(stringResource(R.string.wizard_start_moved), color = MaterialTheme.colorScheme.primary)
+        }
         Text(stringResource(R.string.wizard_jug_hint))
         BigValue(
             label = stringResource(R.string.wizard_pump_duty),
@@ -250,12 +253,13 @@ private fun PumpStepReady(w: WizardState) {
             enabled = !w.busy,
             modifier = Modifier.fillMaxWidth(),
         ) { Text(stringResource(R.string.wizard_start_run)) }
+        if (w.pumpTarget != null) PumpGraph(w, w.pumpBefore)
     }
 }
 
 @Composable
 private fun PumpRunning(w: WizardState) {
-    StepCard(title = stringResource(R.string.wizard_point_running, w.pwmIndex + 1, w.pwmSteps.size)) {
+    StepCard(title = stringResource(R.string.wizard_point_running, w.pointNumber, w.pointCount)) {
         BigValue(
             label = stringResource(R.string.wizard_remaining),
             value = (w.secondsRemaining ?: 0).toString(),
@@ -280,7 +284,7 @@ private fun PumpRunning(w: WizardState) {
 private fun PumpEnter(w: WizardState) {
     var text by rememberSaveable(w.pwmIndex) { mutableStateOf("") }
     val value = text.toIntOrNull()
-    StepCard(title = stringResource(R.string.wizard_point_volume, w.pwmIndex + 1, w.pwmSteps.size)) {
+    StepCard(title = stringResource(R.string.wizard_point_volume, w.pointNumber, w.pointCount)) {
         Text(stringResource(R.string.wizard_run_complete, w.currentPwmDuty))
         OutlinedTextField(
             value = text,
@@ -296,7 +300,7 @@ private fun PumpEnter(w: WizardState) {
             modifier = Modifier.fillMaxWidth(),
         ) {
         Text(
-            if (w.pwmIndex + 1 < w.pwmSteps.size) stringResource(R.string.wizard_save_and_next)
+            if (w.pumpTarget == null && w.pwmIndex + 1 < w.pwmSteps.size) stringResource(R.string.wizard_save_and_next)
             else stringResource(R.string.wizard_save_and_finish)
         )
     }
@@ -306,8 +310,12 @@ private fun PumpEnter(w: WizardState) {
 // ---------------------------------------------------------------- end
 
 @Composable
-private fun Done(w: WizardState, onClose: () -> Unit) {
+private fun Done(w: WizardState, sprayer: SprayerState, onClose: () -> Unit) {
     StepCard(title = stringResource(R.string.wizard_saved_on_board)) {
+        // The saved table as the board now holds it; after a single redo the
+        // old point stays beside the new one, so a jump is plain (#179).
+        if (w.doseCaptured.isNotEmpty() && sprayer.dosePoints.isNotEmpty()) DoseGraph(w, sprayer.dosePoints, showWas = true)
+        if (w.pwmCaptured.isNotEmpty() && sprayer.pwmPoints.isNotEmpty()) PumpGraph(w, sprayer.pwmPoints, showWas = true)
         if (w.doseCaptured.isNotEmpty()) {
             Text(stringResource(R.string.wizard_knob_positions), fontWeight = FontWeight.SemiBold)
             w.doseCaptured.forEach {
@@ -334,6 +342,79 @@ private fun Failed(w: WizardState, onClose: () -> Unit) {
             Text(stringResource(R.string.action_close))
         }
     }
+}
+
+/**
+ * A single pump point that would cross a neighbour (#179): nothing was saved.
+ * Says which neighbour, shows where the point would have landed, and offers
+ * the whole curve instead.
+ */
+@Composable
+private fun Refused(w: WizardState, onClose: () -> Unit) {
+    val target = w.pumpTarget ?: 0
+    val flow = w.refusedFlow ?: 0
+    val below = w.refusedCrossing == WizardMath.Crossing.BELOW_PREVIOUS
+    val neighbour = if (below) target - 1 else target + 1
+    val neighbourFlow = w.pumpBefore.getOrNull(neighbour)?.flowMlMin ?: 0
+    StepCard(title = stringResource(R.string.wizard_refused_title)) {
+        Text(
+            stringResource(
+                if (below) R.string.wizard_refused_below else R.string.wizard_refused_above,
+                flow, neighbour + 1, neighbourFlow,
+            )
+        )
+        PumpGraph(w, w.pumpBefore, refused = GraphPoint(w.currentPwmDuty, flow))
+        Button(
+            onClick = { SprayerController.clearWizard(); SprayerController.startWizard(WizardMode.PUMP_ONLY) },
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text(stringResource(R.string.pump_redo_all)) }
+        OutlinedButton(onClick = { SprayerController.clearWizard(); onClose() }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.action_close))
+        }
+    }
+}
+
+/** The point number and count a pump step shows: the table's, when one point is redone. */
+private val WizardState.pointNumber: Int get() = (pumpTarget ?: pwmIndex) + 1
+private val WizardState.pointCount: Int get() = if (pumpTarget != null) maxOf(pumpBefore.size, 1) else pwmSteps.size
+
+@Composable
+private fun PumpGraph(
+    w: WizardState,
+    table: List<PwmPoint>,
+    showWas: Boolean = false,
+    refused: GraphPoint? = null,
+) {
+    if (table.isEmpty()) return
+    val target = w.pumpTarget
+    val old = if (showWas) target?.let { w.pumpBefore.getOrNull(it) } else null
+    CalibrationGraph(
+        points = table.map { GraphPoint(it.pwm, it.flowMlMin) },
+        xLabel = stringResource(R.string.graph_axis_pwm),
+        yLabel = stringResource(R.string.graph_axis_ml_min),
+        highlight = target,
+        highlightLabel = target?.let { stringResource(R.string.pump_point, it + 1) },
+        was = old?.let { GraphPoint(it.pwm, it.flowMlMin) },
+        wasLabel = stringResource(R.string.graph_was),
+        refused = refused,
+        refusedLabel = stringResource(R.string.graph_refused),
+    )
+}
+
+@Composable
+private fun DoseGraph(w: WizardState, table: List<DosePoint>, showWas: Boolean = false) {
+    if (table.isEmpty()) return
+    val target = if (w.mode == WizardMode.DOSE_SINGLE) w.doseIndex else null
+    val old = if (showWas) target?.let { w.doseBefore.getOrNull(it) } else null
+    CalibrationGraph(
+        points = table.map { GraphPoint(it.analog, it.doseLha) },
+        xLabel = stringResource(R.string.graph_axis_knob),
+        yLabel = stringResource(R.string.unit_lha),
+        highlight = target,
+        highlightLabel = target?.let { stringResource(R.string.pump_point, it + 1) },
+        was = old?.let { GraphPoint(it.analog, it.doseLha) },
+        wasLabel = stringResource(R.string.graph_was),
+    )
 }
 
 // ---------------------------------------------------------------- pieces

@@ -83,25 +83,20 @@
 
     <!-- Calibrate menu -->
     <string name="calibrate_title">Calibrate</string>
-    <string name="menu_wizard">Wizard</string>
-    <string name="menu_wizard_sub">Full calibration: knob positions, then the pump curve</string>
     <string name="menu_potmeter">Potentiometer calibration</string>
-    <string name="menu_potmeter_sub">The three knob positions only</string>
+    <string name="menu_potmeter_sub">All three knob positions, or one</string>
     <string name="menu_sprayer">Sprayer</string>
     <string name="menu_sprayer_sub">Width and guidance timeout</string>
     <string name="menu_gps">GPS config</string>
     <string name="menu_gps_sub">Baudrate and minimum fix quality</string>
-    <string name="menu_advanced">Advanced</string>
-    <string name="menu_advanced_sub">Calibration tables, settings, pump point correction</string>
     <string name="menu_console" translatable="false">Console</string>
     <string name="menu_console_sub">Raw protocol lines, GPS sentences, for the bench</string>
     <string name="buzzer_title">Buzzer on the board</string>
     <string name="buzzer_sub" formatted="false">Sounds while the dose is outside 5 % of requested. The phone alarm is separate (Settings).</string>
-    <string name="calibrate_hint_connected">The wizard follows the same steps as the serial menu on the board.</string>
+    <string name="calibrate_hint_connected">Calibration follows the same steps as the serial menu on the board.</string>
     <string name="calibrate_hint_disconnected">Connect to the sprayer first.</string>
 
     <!-- Calibration wizard -->
-    <string name="wizard_title_full">Calibration wizard</string>
     <string name="wizard_title_dose">Potentiometer calibration</string>
     <string name="wizard_title_pump">Pump calibration</string>
     <string name="wizard_starting">Starting…</string>
@@ -200,24 +195,6 @@
     <string name="gps_baudrate">Receiver baudrate</string>
     <string name="gps_baudrate_hint">Applied at once; the port reopens at the new rate.</string>
 
-    <!-- Advanced -->
-    <string name="advanced_title">Advanced</string>
-    <string name="advanced_reread">Re-read from the board</string>
-    <string name="advanced_column_analog">Analog</string>
-    <string name="advanced_column_pwm" translatable="false">PWM</string>
-    <string name="advanced_board_settings">Board settings</string>
-    <string name="advanced_width">Width</string>
-    <string name="advanced_guidance_timeout">Guidance timeout</string>
-    <string name="advanced_gps_baudrate">GPS baudrate</string>
-    <string name="advanced_baud_index">index %1$d</string>
-    <string name="advanced_min_fix">Minimum fix to dose</string>
-    <string name="advanced_protocol">Protocol</string>
-    <string name="advanced_protocol_value" translatable="false">v%1$s</string>
-    <string name="advanced_firmware">Firmware</string>
-    <string name="advanced_value_cm" translatable="false">%1$d cm</string>
-    <string name="advanced_value_ms" translatable="false">%1$d ms</string>
-    <string name="advanced_field_ml_min" translatable="false">ml/min</string>
-
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_alarm_card">Dose alarm</string>
@@ -290,11 +267,7 @@
 
     <!-- Calibration split (#138) -->
     <string name="menu_pump">Pump calibration</string>
-    <string name="menu_pump_sub">The pump curve only, jug and a minute per point</string>
-    <string name="advanced_edit_dose">Edit potentiometer points</string>
-    <string name="advanced_edit_pump">Edit pump points</string>
-    <string name="advanced_point_number">Point %1$d</string>
-
+    <string name="menu_pump_sub">All points or one, a jug and a minute per point</string>
     <!-- Log export (#128) -->
     <string name="diagnostics_card">Diagnostics</string>
     <string name="diagnostics_hint">Keeps the last few megabytes of everything the app and the controller said to each other, on this device only. Export it if something goes wrong in the field.</string>
@@ -302,4 +275,23 @@
     <string name="diagnostics_subject">SprayComputer LD log</string>
     <string name="diagnostics_chooser">Send the log</string>
     <string name="diagnostics_failed">Could not export the log: %1$s</string>
+
+    <!-- Pompkalibratie screen, graphs and a refused point (#179) -->
+    <string name="pump_title">Pump calibration</string>
+    <string name="pump_current">Current pump points</string>
+    <string name="pump_point">Point %1$d</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_redo_all">Redo the whole pump curve</string>
+    <string name="pump_redo_start">Redo the start point</string>
+    <string name="pump_hint">Each point is a one-minute run into a jug at that point\'s duty. Redoing the start point redoes the other points as well if it moves more than half the way to point 2. Saved on the board only at the end; cancelling keeps the current values.</string>
+    <string name="graph_axis_knob">knob</string>
+    <string name="graph_axis_pwm" translatable="false">PWM</string>
+    <string name="graph_axis_ml_min" translatable="false">ml/min</string>
+    <string name="graph_was">was</string>
+    <string name="graph_refused">refused</string>
+    <string name="wizard_refused_title">Point not saved</string>
+    <string name="wizard_refused_below">%1$d ml/min is not above point %2$d (%3$d ml/min). The curve has to rise, so nothing was saved.</string>
+    <string name="wizard_refused_above">%1$d ml/min is not below point %2$d (%3$d ml/min). The curve has to rise, so nothing was saved.</string>
+    <string name="wizard_start_moved">The start point moved more than half the way to point 2, so all points are redone.</string>
+    <string name="msg_wizard_table_not_read">The pump table has not been read from the board yet.</string>
 </resources>

@@ -56,4 +56,32 @@ object WizardMath {
             start + ((MAX_DUTY - start).toLong() * i / (PWM_STEPS - 1)).toInt()
         }
     }
+
+    /** Which neighbour a re-measured pump point would cross (NeptuneGPS_Triton#179). */
+    enum class Crossing { BELOW_PREVIOUS, ABOVE_NEXT }
+
+    /**
+     * Redoing the start point (point 1) redoes the other points too when it
+     * moved more than half the spacing between point 1 and point 2. The other
+     * duties were spaced evenly from the old start, so past that they no
+     * longer belong to it. A start at or beyond point 2 is always too far: the
+     * table would be out of order. Compared doubled, so no rounding.
+     */
+    fun startMovedTooFar(oldStart: Int, oldSecond: Int, newStart: Int): Boolean =
+        newStart >= oldSecond || 2 * kotlin.math.abs(newStart - oldStart) > oldSecond - oldStart
+
+    /**
+     * A re-measured pump point must lie strictly between its neighbours'
+     * flows; otherwise it is refused (NeptuneGPS_Triton#179). Null means it
+     * fits. Equal flows count as crossing: the curve has to rise.
+     */
+    fun crossing(table: List<PwmPoint>, index: Int, flowMlMin: Int): Crossing? {
+        val previous = table.getOrNull(index - 1)
+        val next = table.getOrNull(index + 1)
+        return when {
+            previous != null && flowMlMin <= previous.flowMlMin -> Crossing.BELOW_PREVIOUS
+            next != null && flowMlMin >= next.flowMlMin -> Crossing.ABOVE_NEXT
+            else -> null
+        }
+    }
 }

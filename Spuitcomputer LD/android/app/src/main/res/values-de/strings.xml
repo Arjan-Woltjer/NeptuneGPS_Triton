@@ -60,24 +60,19 @@
 
     <!-- Kalibriermenü -->
     <string name="calibrate_title">Kalibrieren</string>
-    <string name="menu_wizard">Assistent</string>
-    <string name="menu_wizard_sub">Vollständige Kalibrierung: Knopfstellungen, danach die Pumpenkennlinie</string>
     <string name="menu_potmeter">Potentiometer-Kalibrierung</string>
-    <string name="menu_potmeter_sub">Nur die drei Knopfstellungen</string>
+    <string name="menu_potmeter_sub">Alle drei Knopfstellungen oder eine</string>
     <string name="menu_sprayer">Spritze</string>
     <string name="menu_sprayer_sub">Arbeitsbreite und Lenk-Timeout</string>
     <string name="menu_gps">GPS-Einstellungen</string>
     <string name="menu_gps_sub">Baudrate und minimale Fixqualität</string>
-    <string name="menu_advanced">Erweitert</string>
-    <string name="menu_advanced_sub">Kalibriertabellen, Einstellungen, Korrektur eines Pumpenpunkts</string>
     <string name="menu_console_sub">Rohe Protokollzeilen, GPS-Sätze, für die Werkbank</string>
     <string name="buzzer_title">Summer am Rechner</string>
     <string name="buzzer_sub" formatted="false">Ertönt, solange die Aufwandmenge mehr als 5 % vom Soll abweicht. Der Alarm auf dem Telefon ist davon getrennt (Einstellungen).</string>
-    <string name="calibrate_hint_connected">Der Assistent folgt denselben Schritten wie das serielle Menü am Rechner.</string>
+    <string name="calibrate_hint_connected">Das Kalibrieren folgt denselben Schritten wie das serielle Menü am Rechner.</string>
     <string name="calibrate_hint_disconnected">Zuerst mit der Spritze verbinden.</string>
 
     <!-- Kalibrierassistent -->
-    <string name="wizard_title_full">Kalibrierassistent</string>
     <string name="wizard_title_dose">Potentiometer-Kalibrierung</string>
     <string name="wizard_title_pump">Pumpenkalibrierung</string>
     <string name="wizard_starting">Wird gestartet…</string>
@@ -171,19 +166,6 @@
     <string name="gps_baudrate">Baudrate des Empfängers</string>
     <string name="gps_baudrate_hint">Wird sofort übernommen; der Port öffnet mit der neuen Rate.</string>
 
-    <!-- Erweitert -->
-    <string name="advanced_title">Erweitert</string>
-    <string name="advanced_reread">Erneut vom Rechner auslesen</string>
-    <string name="advanced_column_analog">Analog</string>
-    <string name="advanced_board_settings">Einstellungen am Rechner</string>
-    <string name="advanced_width">Arbeitsbreite</string>
-    <string name="advanced_guidance_timeout">Lenk-Timeout</string>
-    <string name="advanced_gps_baudrate">GPS-Baudrate</string>
-    <string name="advanced_baud_index">Index %1$d</string>
-    <string name="advanced_min_fix">Mindest-Fix zum Dosieren</string>
-    <string name="advanced_protocol">Protokoll</string>
-    <string name="advanced_firmware">Firmware</string>
-
     <!-- Einstellungen -->
     <string name="settings_title">Einstellungen</string>
     <string name="settings_alarm_card">Dosieralarm</string>
@@ -255,11 +237,7 @@
 
     <!-- Kalibrierung aufgeteilt (#138) -->
     <string name="menu_pump">Pumpenkalibrierung</string>
-    <string name="menu_pump_sub">Nur die Pumpenkennlinie, Messbecher und eine Minute je Punkt</string>
-    <string name="advanced_edit_dose">Potentiometerpunkte bearbeiten</string>
-    <string name="advanced_edit_pump">Pumpenpunkte bearbeiten</string>
-    <string name="advanced_point_number">Punkt %1$d</string>
-
+    <string name="menu_pump_sub">Alle Punkte oder einer, Messbecher und eine Minute je Punkt</string>
     <!-- Log-Export (#128) -->
     <string name="diagnostics_card">Diagnose</string>
     <string name="diagnostics_hint">Behält die letzten paar Megabyte von allem, was App und Steuergerät einander gesagt haben, nur auf diesem Gerät. Exportieren Sie es, wenn im Feld etwas schiefgeht.</string>
@@ -267,4 +245,21 @@
     <string name="diagnostics_subject">SprayComputer LD-Log</string>
     <string name="diagnostics_chooser">Log senden</string>
     <string name="diagnostics_failed">Log konnte nicht exportiert werden: %1$s</string>
+
+    <!-- Pumpenkalibrierung, Diagramme und ein abgelehnter Punkt (#179) -->
+    <string name="pump_title">Pumpenkalibrierung</string>
+    <string name="pump_current">Aktuelle Pumpenpunkte</string>
+    <string name="pump_point">Punkt %1$d</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_redo_all">Die ganze Pumpenkennlinie wiederholen</string>
+    <string name="pump_redo_start">Startpunkt wiederholen</string>
+    <string name="pump_hint">Jeder Punkt ist ein Lauf von einer Minute in einen Messbecher, mit dem Tastgrad dieses Punkts. Wird der Startpunkt wiederholt und verschiebt er sich um mehr als die Hälfte des Wegs zu Punkt 2, werden die anderen Punkte ebenfalls wiederholt. Erst am Ende am Rechner gespeichert; ein Abbruch lässt die aktuellen Werte stehen.</string>
+    <string name="graph_axis_knob">Knopf</string>
+    <string name="graph_was">vorher</string>
+    <string name="graph_refused">abgelehnt</string>
+    <string name="wizard_refused_title">Punkt nicht gespeichert</string>
+    <string name="wizard_refused_below">%1$d ml/min liegt nicht über Punkt %2$d (%3$d ml/min). Die Kennlinie muss ansteigen, deshalb wurde nichts gespeichert.</string>
+    <string name="wizard_refused_above">%1$d ml/min liegt nicht unter Punkt %2$d (%3$d ml/min). Die Kennlinie muss ansteigen, deshalb wurde nichts gespeichert.</string>
+    <string name="wizard_start_moved">Der Startpunkt hat sich um mehr als die Hälfte des Wegs zu Punkt 2 verschoben, deshalb werden alle Punkte wiederholt.</string>
+    <string name="msg_wizard_table_not_read">Die Pumpentabelle wurde noch nicht vom Rechner gelesen.</string>
 </resources>

@@ -55,7 +55,7 @@ object SprayerController {
     /** Re-read the calibration tables and settings from the board. */
     fun refresh() = service?.refresh()
 
-    /** Send one raw protocol line; for the bench console under Advanced. */
+    /** Send one raw protocol line; for the bench console. */
     fun sendRaw(line: String) = service?.sendRaw(line)
 
     fun previewSound(sound: AlarmSound) = service?.previewSound(sound)
@@ -64,12 +64,11 @@ object SprayerController {
     // Board settings (ConfigSprayer): validated on the board, re-read after.
     fun setConfig(key: String, value: Long) = service?.setConfig(key, value)
 
-    // Direct edits of the two calibration tables (NeptuneGPS_Triton#138).
-    fun editPwmPoint(index: Int, pwm: Int, flowMlMin: Int) = service?.editPwmPoint(index, pwm, flowMlMin)
-    fun editDosePoint(index: Int, analog: Int, doseLha: Int) = service?.editDosePoint(index, analog, doseLha)
-
-    // Calibration wizard, driven by the screens, executed in the service.
-    fun startWizard(mode: WizardMode, singleIndex: Int = 0) = service?.wizard?.start(mode, singleIndex)
+    // Calibration wizard, driven by the screens, executed in the service. It
+    // gets the tables as last read, to check a single pump point against its
+    // neighbours and to draw the old point after a redo (#179).
+    fun startWizard(mode: WizardMode, singleIndex: Int = 0) =
+        service?.wizard?.start(mode, singleIndex, state.value.dosePoints, state.value.pwmPoints)
     fun wizardCaptureDose(rawNow: Int?) = service?.wizard?.captureDose(rawNow)
     fun wizardEnterDose(doseLha: Int) = service?.wizard?.enterDose(doseLha)
     fun wizardSetFindDuty(duty: Int) = service?.wizard?.setFindDuty(duty)
