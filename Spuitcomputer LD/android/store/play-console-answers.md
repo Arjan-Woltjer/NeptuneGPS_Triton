@@ -76,10 +76,11 @@ drifts. Keep it with the listing assets.
 
 ## Privacy policy
 
-Required even with no data collection. Draft text is in
-`store/privacy-policy.md`; it needs hosting at a stable public URL before this
-field can be filled in. GitHub Pages on this repository is the cheapest option
-that stays under MeijWorks' control.
+Required even with no data collection. The text is `store/privacy-policy.md`,
+which is the source of truth. It is published as a page on the MeijWorks
+WordPress site at meijworks.nl, not from this repository, so the URL keeps
+working whatever the repository's visibility. When the app changes what it
+stores, edit the .md in the same PR and re-paste it into the WordPress page.
 
 ---
 
@@ -99,12 +100,18 @@ Supporting detail, if the Console asks for it:
 > SharedPreferences, never transmitted, and removed when the app is
 > uninstalled. Everything else the app shows — application rate, speed,
 > calibration tables — is read live from the sprayer's controller over
-> Bluetooth and is not retained.
+> Bluetooth. The app keeps a diagnostic log of the controller's lines
+> (including its GPS position) in memory only, about the last hour. It is
+> written to a file only when the operator taps "Export the log", and then it
+> is handed to Android's share sheet for the operator to send wherever they
+> choose. The app itself never transmits it and has no internet permission.
 
-**Depends on NeptuneGPS_Triton#128.** These answers assume the app keeps no
-crash reporting, or at most an on-device log the operator exports deliberately.
-Adding a third-party crash reporter would make several of the answers above
-"yes" and would need its own section in the privacy policy.
+The log export (NeptuneGPS_Triton#128, shipped in 1.1.0) does not change the
+"No" above. Play counts data as collected when the app transmits it off the
+device. A file the user deliberately passes to another app through the share
+sheet doesn't count. Adding a third-party crash reporter would change that:
+several answers would become "yes", and it would need its own section in the
+privacy policy.
 
 ---
 
