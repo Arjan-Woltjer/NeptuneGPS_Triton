@@ -100,40 +100,20 @@ library (#78):
   this rule and still writes its own bytes; `VehicleGps` did too and no longer
   has a consumer.
 - **Teensy boards use the Arduino `EEPROM` API** (wear-levelled flash
-  emulation) at the addresses in the map below. A new block claims a range here
-  before it claims it in code.
+  emulation) at the addresses in the map linked below.
 - **ESP32 boards use `Preferences` (NVS) only.** The ESP32 `EEPROM` library is a
   RAM shadow that needs `EEPROM.commit()`, which no project calls, so writes
-  through it never reach flash. Spuitcomputer LD keeps every setting in the
-  `sprayer_cfg` namespace and does not include `EEPROM.h`.
+  through it never reach flash. Spuitcomputer LD keeps its calibration tables in
+  the `sprayer_cal` namespace and its settings in `sprayer_cfg`, and does not
+  include `EEPROM.h`.
 
-EEPROM map (Teensy projects; one board never links two implement blocks, so
-same-range rows for different boards do not collide):
-
-| Bytes | Owner | Contents |
-|---|---|---|
-| 0 | every `Implement*` | boot counter, printed at start-up (never incremented) |
-| 1 | `CalibrationPlough`, `CalibrationPlanter` | program selection from the wizard; nothing reads it back |
-| 10 | `VehicleGps`, `CalibrationPlough` (`Ploegbesturing`), `CalibrationPlanter`, `CalibrationScraper` | receiver rate index found by the boot autodetect |
-| 11 | `VehicleGps`, `CalibrationPlough` (both plough projects) | RTK quality; every migrated project keeps `VehicleGps`' slots so a board keeps its settings across the migration |
-| 20 to 28 | `VehicleTractor` | speed constant, simulation, inversion |
-| 40 to 66 | `ImplementPlough` (both plough projects) | position/rotation calibration, offset, shares, correction |
-| 70 to 94 | `ImplementPlanter` | |
-| 100 to 181 | `ImplementKipper` | |
-| 100 to 191 | `Spuitcomputer SP` `ImplementSprayer` | |
-| 130 to 148 | `ImplementScraper` | |
-| 200 to 222 | `ImplementRooier` | |
-
-Validity is a sentinel check (`0xFF` means unwritten) with no version byte or
-checksum yet; see `docs/security-review-2026-07-31.md` for what a torn write
-does and the block-header fix still open under #78.
-
-A **signed** 16-bit field is stored and rebuilt with each implement class's
-`writeInt(value, addr)` / `readInt(addr)` helpers, never with
-`highByte()`/`lowByte()` and `word()`. `word()` is unsigned, so a negative
-value came back as a large positive one, failed its range check and was reset
-on every boot (#100). Unsigned fields, the sensor calibration arrays among
-them, keep their existing byte pairs.
+The EEPROM layout for every Teensy project is defined in the
+[Triton EEPROM Memory Map](https://github.com/Arjan-Woltjer/NeptuneGPS_Documentation/blob/main/Design%20documents/Triton/eeprom-memory-map.md)
+in the documentation repository (#78). That document is authoritative: a new field
+claims its address there before it claims it in code. It gives every field's
+address, encoding and range check, the rule that a signed field never goes through
+`word()` (#100), the layout-version bytes, and the blocks whose code has not caught
+up with it yet.
 
 ## Licence
 
