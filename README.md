@@ -91,14 +91,16 @@ New and substantially reworked files take the canonical source header from
 Settings and calibration live in one place per board, and never inside a shared
 library (#78):
 
-- **Shared libraries never touch storage.** `MeijWorks Libs` classes expose
+- **Shared libraries never own storage addresses.** `MeijWorks Libs` classes expose
   `Set*()`/`Get*()` for their calibratable values and nothing else. The project
   that owns the calibration menu or config class decides where a value is
   stored and hands it back at boot (`CalibrationPlough` for `GuidanceSource`'s
   RTK quality, `CalibrationPlanter`/`CalibrationScraper` for the receiver rate
   index, `ConfigSprayer` for Spuitcomputer LD's settings). `VehicleTractor` predates
   this rule and still writes its own bytes; `VehicleGps` did too and no longer
-  has a consumer.
+  has a consumer. A storage *helper* is allowed in `MeijWorks Libs`: one that
+  encodes and decodes values at an address its caller passes in, and owns none
+  itself (#177).
 - **Teensy boards use the Arduino `EEPROM` API** (wear-levelled flash
   emulation) at the addresses in the map linked below.
 - **ESP32 boards use `Preferences` (NVS) only.** The ESP32 `EEPROM` library is a
@@ -111,9 +113,8 @@ The EEPROM layout for every Teensy project is defined in the
 [Triton EEPROM Memory Map](https://github.com/Arjan-Woltjer/NeptuneGPS_Documentation/blob/main/Design%20documents/Triton/eeprom-memory-map.md)
 in the documentation repository (#78). That document is authoritative: a new field
 claims its address there before it claims it in code. It gives every field's
-address, encoding and range check, the rule that a signed field never goes through
-`word()` (#100), the layout-version bytes, and the blocks whose code has not caught
-up with it yet.
+address, type and range check, the single byte order (little-endian, #177), the
+layout-version bytes, and the blocks whose code has not caught up with it yet.
 
 ## Licence
 
