@@ -291,16 +291,19 @@ jamais à déterminer où vous êtes.
 | Asset | Requirement | Status |
 |---|---|---|
 | App icon | 512 × 512 PNG, 32-bit, opaque | **Done** — `store/icon-512.png`, rendered from the app's own vector paths (#122) |
-| Feature graphic | 1024 × 500 PNG or JPEG, no transparency | Not started |
-| Phone screenshots | at least 2, 16:9 or 9:16, 320–3840 px | Blocked: needs a connected board |
-| Tablet screenshots | at least 2 for 7" and 10" | Blocked: needs a connected board |
+| Feature graphic | 1024 × 500 PNG or JPEG, no transparency | **Done** — uploaded in the Play Console |
+| Phone screenshots | at least 2, 16:9 or 9:16, 320–3840 px | **Done** — `store/screenshots/<locale>/phone/`, 5 per locale, 1080 × 1920 |
+| Tablet screenshots | at least 2 for 7" and 10" | **Done** — `store/screenshots/<locale>/tablet/`, 5 per locale, 1920 × 1080; the same set serves both slots |
 
-**Screenshots are deliberately blocked.** They have to be taken from a device
-connected to a live controller, so the status screen shows real speeds and
-rates rather than dashes. Screenshots full of "–" would be worse than none, and
-Play reviewers do look at whether the screenshots show the app working.
+Screenshots exist for every listing locale (`nl`, `en`, `de`, `fr`), each set in
+that language: status, calibrate menu, pump curve, potmeter curve, settings.
+They were taken on 2026-09-27 from a Sony Xperia (Android 16) and a Lenovo Tab
+(TB128XU) connected to the bench controller, so the status screen shows a live
+speed and a live actual dose, not dashes. The display was overridden to an exact
+9:16 / 16:9 size (`adb shell wm size`) and the status bar put in demo mode
+(10:00, full battery, no notifications).
 
-Take them in Dutch, since that is the default listing locale.
+Upload each locale's set to that locale's listing.
 
 ---
 
