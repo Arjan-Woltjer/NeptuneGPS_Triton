@@ -104,8 +104,8 @@ private:
 
     void readOffset();
 
-    void writeInt(short int x, byte addr);
-    short int readInt(byte addr);
+    void writeInt(short int x, uint16_t addr);
+    short int readInt(uint16_t addr);
 
     boolean readCalibrationData();
     void writeCalibrationData();

@@ -488,7 +488,7 @@ void ImplementKipper::wipeCalibrationData() {
 // word()/highByte(), which are unsigned and silently lose the sign
 // (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
 // stored its own offset this way.
-short int ImplementKipper::readInt(byte addr) {
+short int ImplementKipper::readInt(uint16_t addr) {
     union {
         byte b[2];
         short int i;
@@ -503,7 +503,7 @@ short int ImplementKipper::readInt(byte addr) {
 // -------------------------------------
 // Method for writing int data to EEPROM
 // -------------------------------------
-void ImplementKipper::writeInt(short int x, byte addr) {
+void ImplementKipper::writeInt(short int x, uint16_t addr) {
     union {
         byte b[2];
         short int i;

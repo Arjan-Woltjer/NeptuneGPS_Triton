@@ -480,7 +480,7 @@ void ImplementScraper::readRefB() {
 // ------------------------------
 // Method for setting a Reference
 // ------------------------------
-void ImplementScraper::setRef(float* lat, float* lon, short int* height, byte addr) {
+void ImplementScraper::setRef(float* lat, float* lon, short int* height, uint16_t addr) {
     *lat = guidance->GetLatitude();
     *lon = guidance->GetLongitude();
     *height = altitudeCm();
@@ -674,7 +674,7 @@ void ImplementScraper::wipeCalibrationData() {
 // -----------------------------------------
 // Method for reading float data from EEPROM
 // -----------------------------------------
-float ImplementScraper::readFloat(byte addr) {
+float ImplementScraper::readFloat(uint16_t addr) {
     union {
         byte b[4];
         float f;
@@ -688,7 +688,7 @@ float ImplementScraper::readFloat(byte addr) {
 // ---------------------------------------
 // Method for writing float data to EEPROM
 // ---------------------------------------
-void ImplementScraper::writeFloat(float x, byte addr) {
+void ImplementScraper::writeFloat(float x, uint16_t addr) {
     union {
         byte b[4];
         float f;
@@ -702,7 +702,7 @@ void ImplementScraper::writeFloat(float x, byte addr) {
 // ---------------------------------------
 // Method for reading int data from EEPROM
 // ---------------------------------------
-short int ImplementScraper::readInt(byte addr) {
+short int ImplementScraper::readInt(uint16_t addr) {
     union {
         byte b[2];
         short int i;
@@ -716,7 +716,7 @@ short int ImplementScraper::readInt(byte addr) {
 // -------------------------------------
 // Method for writing int data to EEPROM
 // -------------------------------------
-void ImplementScraper::writeInt(short int x, byte addr) {
+void ImplementScraper::writeInt(short int x, uint16_t addr) {
     union {
         byte b[2];
         short int i;

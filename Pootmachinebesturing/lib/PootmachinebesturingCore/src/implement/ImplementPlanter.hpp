@@ -125,8 +125,8 @@ private:
     // Signed 16-bit EEPROM access, as ImplementPlough has always had. Every
     // signed value goes through these instead of word()/highByte(), which
     // are unsigned and lose the sign (NeptuneGPS_Triton#100).
-    short int readInt(byte addr);
-    void      writeInt(short int x, byte addr);
+    short int readInt(uint16_t addr);
+    void      writeInt(short int x, uint16_t addr);
 
 public:
     // -----------------------------------------------------------

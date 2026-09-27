@@ -124,14 +124,14 @@ private:
     void readOffset();
     void readRefA();
     void readRefB();
-    void setRef(float* lat, float* lon, short int* height, byte addr);
+    void setRef(float* lat, float* lon, short int* height, uint16_t addr);
 
     void calculateDistances();
 
-    void writeFloat(float x, byte addr);
-    float readFloat(byte addr);
-    void writeInt(short int x, byte addr);
-    short int readInt(byte addr);
+    void writeFloat(float x, uint16_t addr);
+    float readFloat(uint16_t addr);
+    void writeInt(short int x, uint16_t addr);
+    short int readInt(uint16_t addr);
 
     bool readCalibrationData();
     void writeCalibrationData();

@@ -652,7 +652,7 @@ void ImplementPlough::writeCalibrationData() {
 // ---------------------------------------
 // Method for reading int data from EEPROM
 // ---------------------------------------
-short int ImplementPlough::readInt(byte addr) {
+short int ImplementPlough::readInt(uint16_t addr) {
     union {
         byte b[2];
         short int i;
@@ -666,7 +666,7 @@ short int ImplementPlough::readInt(byte addr) {
 // -------------------------------------
 // Method for writing int data to EEPROM
 // -------------------------------------
-void ImplementPlough::writeInt(short int x, byte addr) {
+void ImplementPlough::writeInt(short int x, uint16_t addr) {
     union {
         byte b[2];
         short int i;

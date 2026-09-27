@@ -724,7 +724,7 @@ void ImplementPlanter::PrintCalibrationData() {
 // word()/highByte(), which are unsigned and silently lose the sign
 // (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
 // stored its own offset this way.
-short int ImplementPlanter::readInt(byte addr) {
+short int ImplementPlanter::readInt(uint16_t addr) {
     union {
         byte b[2];
         short int i;
@@ -739,7 +739,7 @@ short int ImplementPlanter::readInt(byte addr) {
 // -------------------------------------
 // Method for writing int data to EEPROM
 // -------------------------------------
-void ImplementPlanter::writeInt(short int x, byte addr) {
+void ImplementPlanter::writeInt(short int x, uint16_t addr) {
     union {
         byte b[2];
         short int i;
