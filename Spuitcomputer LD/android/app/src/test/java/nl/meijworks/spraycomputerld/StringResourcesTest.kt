@@ -89,6 +89,32 @@ class StringResourcesTest {
         )
     }
 
+    @Test
+    fun unitsWithASlashNeverBreakAcrossALine() {
+        // Android's line breaker treats "/" as a break opportunity, so a
+        // sentence that wraps can split a unit in two: the German refusal
+        // message read "(650 ml/" / "min)" on a phone. A word joiner (U+2060)
+        // after the slash forbids that break. Standalone unit labels are
+        // single tokens and are left alone (NeptuneGPS_Triton#179 follow-up).
+        val bare = Regex("""ml/min|(?<!m)l/ha""")
+        val offenders = mutableListOf<String>()
+
+        for (locale in listOf(null) + locales) {
+            for (entry in read(locale)) {
+                if (entry.translatable && bare.containsMatchIn(entry.text)) {
+                    offenders += "values${locale?.let { "-$it" } ?: ""}/${entry.name}"
+                }
+            }
+        }
+
+        assertEquals(
+            "these put ml/min or l/ha in running text without a word joiner, so a wrap can split " +
+                "the unit; write ml/\\u2060min and l/\\u2060ha",
+            emptyList<String>(),
+            offenders,
+        )
+    }
+
     // ------------------------------------------------------------- reading
 
     private fun read(locale: String?): List<Entry> {

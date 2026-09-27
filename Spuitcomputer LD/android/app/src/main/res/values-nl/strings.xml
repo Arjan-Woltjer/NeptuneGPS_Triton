@@ -7,7 +7,7 @@
     <string name="notification_channel_description">Houdt de verbinding met de spuit in stand terwijl het scherm uit staat</string>
     <string name="notification_disconnected">Zoeken naar de spuit…</string>
     <string name="notification_connected_no_status">Verbonden</string>
-    <string name="notification_connected">Gevraagd %1$.0f l/ha, werkelijk %2$s l/ha</string>
+    <string name="notification_connected">Gevraagd %1$.0f l/\u2060ha, werkelijk %2$s l/\u2060ha</string>
     <string name="notification_stop">Stoppen</string>
 
     <!-- Algemene knoppen en eenheden -->
@@ -92,7 +92,7 @@
     <string name="wizard_capture">Vastleggen</string>
     <string name="wizard_dose_for_position">Dosering voor de stand %1$s</string>
     <string name="wizard_knob_captured">Knopwaarde vastgelegd: %1$d</string>
-    <string name="wizard_dose_field">Dosering (l/ha)</string>
+    <string name="wizard_dose_field">Dosering (l/\u2060ha)</string>
     <string name="wizard_save_point">Punt %1$d opslaan</string>
     <string name="wizard_find_start">Startpunt van de pomp zoeken</string>
     <string name="wizard_find_start_hint">Schuif langzaam omhoog tot de pomp net gaat lopen en leg dat vast.</string>
@@ -114,8 +114,8 @@
     <string name="wizard_saved_on_board">Opgeslagen op de kast</string>
     <string name="wizard_knob_positions">Knopstanden</string>
     <string name="wizard_pump_curve">Pompcurve</string>
-    <string name="wizard_dose_summary">  %1$d: analoog %2$d, %3$d l/ha</string>
-    <string name="wizard_pwm_summary">  %1$d: sturing %2$d, %3$d ml/min</string>
+    <string name="wizard_dose_summary">  %1$d: analoog %2$d, %3$d l/\u2060ha</string>
+    <string name="wizard_pwm_summary">  %1$d: sturing %2$d, %3$d ml/\u2060min</string>
     <string name="wizard_not_completed">Kalibratie niet afgerond</string>
     <string name="wizard_nothing_changed">Er is niets op de kast gewijzigd buiten wat al was opgeslagen.</string>
 
@@ -144,14 +144,14 @@
     <string name="potmeter_current">Huidige knopstanden</string>
     <string name="potmeter_live_reading">Actuele knopwaarde: %1$s van 4095</string>
     <string name="potmeter_point">%1$d. %2$s</string>
-    <string name="potmeter_point_values">analoog %1$d, %2$d l/ha</string>
+    <string name="potmeter_point_values">analoog %1$d, %2$d l/\u2060ha</string>
     <string name="potmeter_redo_all">Alle drie de standen overdoen</string>
-    <string name="potmeter_hint">Elke stand wordt van de knop op de machine overgenomen en krijgt daarna zijn l/ha. Pas aan het eind op de kast opgeslagen; annuleren laat de huidige waarden staan.</string>
+    <string name="potmeter_hint">Elke stand wordt van de knop op de machine overgenomen en krijgt daarna zijn l/\u2060ha. Pas aan het eind op de kast opgeslagen; annuleren laat de huidige waarden staan.</string>
 
     <!-- Spuitinstellingen -->
     <string name="sprayer_title">Spuit</string>
     <string name="sprayer_width">Werkbreedte</string>
-    <string name="sprayer_width_hint">Tussen 50 en 5000. Rekent l/ha om naar een pompdebiet bij de huidige snelheid.</string>
+    <string name="sprayer_width_hint">Tussen 50 en 5000. Rekent l/\u2060ha om naar een pompdebiet bij de huidige snelheid.</string>
     <string name="sprayer_guidance">Stuurtimeout</string>
     <string name="sprayer_guidance_hint">Tussen 500 en 10000. Blijft een snelheidsbericht zo lang uit, dan stopt de pomp.</string>
     <string name="setting_on_board_now">Nu op de kast: %1$s</string>
@@ -252,7 +252,7 @@
     <string name="pump_title">Pompkalibratie</string>
     <string name="pump_current">Huidige pomppunten</string>
     <string name="pump_point">Punt %1$d</string>
-    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/\u2060min</string>
     <string name="pump_redo_all">De hele pompcurve overdoen</string>
     <string name="pump_redo_start">Startpunt overdoen</string>
     <string name="pump_hint">Elk punt is een run van een minuut in een maatbeker, op de sturing van dat punt. Wie het startpunt overdoet, doet de andere punten ook over als het meer dan halverwege naar punt 2 verschuift. Pas aan het eind op de kast opgeslagen; annuleren laat de huidige waarden staan.</string>
@@ -260,8 +260,8 @@
     <string name="graph_was">was</string>
     <string name="graph_refused">geweigerd</string>
     <string name="wizard_refused_title">Punt niet opgeslagen</string>
-    <string name="wizard_refused_below">%1$d ml/min ligt niet boven punt %2$d (%3$d ml/min). De curve moet oplopen, dus er is niets opgeslagen.</string>
-    <string name="wizard_refused_above">%1$d ml/min ligt niet onder punt %2$d (%3$d ml/min). De curve moet oplopen, dus er is niets opgeslagen.</string>
+    <string name="wizard_refused_below">%1$d ml/\u2060min ligt niet boven punt %2$d (%3$d ml/\u2060min). De curve moet oplopen, dus er is niets opgeslagen.</string>
+    <string name="wizard_refused_above">%1$d ml/\u2060min ligt niet onder punt %2$d (%3$d ml/\u2060min). De curve moet oplopen, dus er is niets opgeslagen.</string>
     <string name="wizard_start_moved">Het startpunt is meer dan halverwege naar punt 2 verschoven, dus alle punten worden overgedaan.</string>
     <string name="msg_wizard_table_not_read">De pomptabel is nog niet van de kast gelezen.</string>
 </resources>
