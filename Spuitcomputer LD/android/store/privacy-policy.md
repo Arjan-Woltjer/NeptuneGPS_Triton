@@ -1,11 +1,6 @@
 # Privacy policy — MeijWorks SprayComputer LD
 
-*Draft for NeptuneGPS_Triton#129. Play requires a publicly reachable privacy
-policy URL even for an app that collects nothing, so this has to be hosted
-somewhere stable before the listing can be completed. Replace the placeholders
-in **bold** and set the date before publishing.*
-
-**Last updated: (date of publication)**
+**Last updated: 27 September 2026**
 
 ## Summary
 
@@ -24,7 +19,22 @@ controller's GPS fix. It can also send calibration values back to the
 controller.
 
 Everything the app shows comes from the controller over Bluetooth and is shown
-live. It is not recorded, not accumulated and not uploaded.
+live. It is never uploaded. The only thing kept is the diagnostic log described
+below, and that stays on your device unless you send it yourself.
+
+## The diagnostic log
+
+To help find the cause of a fault in the field, the app keeps a short log of
+what the controller reported: the status lines (speed, rates, inputs and
+outputs), the controller's GPS lines, which include the machine's position,
+and connection events. This log is held in the app's memory only. It holds
+roughly the last hour and discards older lines as new ones arrive, and it is
+gone as soon as the app stops running.
+
+The log is written to a file only when you tap **Export the log** in the
+app's settings. The app then opens Android's share menu, and you choose where it goes,
+for example an e-mail to your dealer. The app never sends the log anywhere by
+itself, and it never sends it to us unless you choose to.
 
 ## What is stored on your device
 
@@ -65,8 +75,9 @@ the connection alive while the alarm is active.
 
 ## Data sharing
 
-None. There is no analytics, no crash reporting, no advertising, and no
-third-party service of any kind in the app.
+None. There is no analytics, no automatic crash reporting, no advertising, and
+no third-party service of any kind in the app. The diagnostic log leaves your
+device only when you share it yourself, as described above.
 
 ## Children
 
@@ -80,4 +91,4 @@ that version is published, and the change will be described here.
 
 ## Contact
 
-**MeijWorks — (contact address to fill in)**
+MeijWorks — [app@meijworks.nl](mailto:app@meijworks.nl)

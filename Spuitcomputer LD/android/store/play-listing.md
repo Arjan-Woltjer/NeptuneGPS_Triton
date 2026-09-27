@@ -312,9 +312,9 @@ Upload each locale's set to that locale's listing.
 | Field | Value |
 |---|---|
 | Application type | App |
-| Category | Tools |
+| Category | Tools (set in the Console) |
 | Tags | pick at most 5, e.g. agriculture, utilities |
-| Contact email | (MeijWorks address — to fill in) |
+| Contact email | app@meijworks.nl (set in the Console) |
 | Contact website | (optional) |
 | Contact phone | (optional) |
-| Privacy policy URL | needs hosting; draft in `store/privacy-policy.md` |
+| Privacy policy URL | https://meijworks.nl/privacy/spraycomputer-ld/ (WordPress page; text from `store/privacy-policy.md`) |
