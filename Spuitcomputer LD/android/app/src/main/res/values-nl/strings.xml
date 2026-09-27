@@ -62,24 +62,19 @@
 
     <!-- Kalibratiemenu -->
     <string name="calibrate_title">Kalibreren</string>
-    <string name="menu_wizard">Wizard</string>
-    <string name="menu_wizard_sub">Volledige kalibratie: knopstanden, daarna de pompcurve</string>
     <string name="menu_potmeter">Potmeterkalibratie</string>
-    <string name="menu_potmeter_sub">Alleen de drie knopstanden</string>
+    <string name="menu_potmeter_sub">Alle drie de knopstanden, of één</string>
     <string name="menu_sprayer">Spuit</string>
     <string name="menu_sprayer_sub">Werkbreedte en stuurtimeout</string>
     <string name="menu_gps">GPS-instellingen</string>
     <string name="menu_gps_sub">Baudrate en minimale fixkwaliteit</string>
-    <string name="menu_advanced">Geavanceerd</string>
-    <string name="menu_advanced_sub">Kalibratietabellen, instellingen, correctie van een pomppunt</string>
     <string name="menu_console_sub">Ruwe protocolregels, gps-zinnen, voor de werkbank</string>
     <string name="buzzer_title">Zoemer op de kast</string>
     <string name="buzzer_sub" formatted="false">Klinkt zolang de dosering buiten 5 % van de gevraagde ligt. Het alarm op de telefoon staat daar los van (Instellingen).</string>
-    <string name="calibrate_hint_connected">De wizard volgt dezelfde stappen als het seriële menu op de kast.</string>
+    <string name="calibrate_hint_connected">Kalibreren volgt dezelfde stappen als het seriële menu op de kast.</string>
     <string name="calibrate_hint_disconnected">Maak eerst verbinding met de spuit.</string>
 
     <!-- Kalibratiewizard -->
-    <string name="wizard_title_full">Kalibratiewizard</string>
     <string name="wizard_title_dose">Potmeterkalibratie</string>
     <string name="wizard_title_pump">Pompkalibratie</string>
     <string name="wizard_starting">Starten…</string>
@@ -173,19 +168,6 @@
     <string name="gps_baudrate">Baudrate van de ontvanger</string>
     <string name="gps_baudrate_hint">Wordt meteen toegepast; de poort gaat op de nieuwe snelheid open.</string>
 
-    <!-- Geavanceerd -->
-    <string name="advanced_title">Geavanceerd</string>
-    <string name="advanced_reread">Opnieuw uitlezen van de kast</string>
-    <string name="advanced_column_analog">Analoog</string>
-    <string name="advanced_board_settings">Instellingen op de kast</string>
-    <string name="advanced_width">Werkbreedte</string>
-    <string name="advanced_guidance_timeout">Stuurtimeout</string>
-    <string name="advanced_gps_baudrate">GPS-baudrate</string>
-    <string name="advanced_baud_index">index %1$d</string>
-    <string name="advanced_min_fix">Minimale fix om te doseren</string>
-    <string name="advanced_protocol">Protocol</string>
-    <string name="advanced_firmware">Firmware</string>
-
     <!-- Instellingen -->
     <string name="settings_title">Instellingen</string>
     <string name="settings_alarm_card">Doseringsalarm</string>
@@ -257,11 +239,7 @@
 
     <!-- Kalibratie gesplitst (#138) -->
     <string name="menu_pump">Pompkalibratie</string>
-    <string name="menu_pump_sub">Alleen de pompcurve, maatbeker en een minuut per punt</string>
-    <string name="advanced_edit_dose">Potmeterpunten bewerken</string>
-    <string name="advanced_edit_pump">Pomppunten bewerken</string>
-    <string name="advanced_point_number">Punt %1$d</string>
-
+    <string name="menu_pump_sub">Alle punten of één, maatbeker en een minuut per punt</string>
     <!-- Logexport (#128) -->
     <string name="diagnostics_card">Diagnose</string>
     <string name="diagnostics_hint">Bewaart de laatste paar megabytes van alles wat de app en de kast tegen elkaar zeiden, alleen op dit toestel. Exporteer het als er in het veld iets misgaat.</string>
@@ -269,4 +247,21 @@
     <string name="diagnostics_subject">SprayComputer LD-log</string>
     <string name="diagnostics_chooser">Log versturen</string>
     <string name="diagnostics_failed">Exporteren van het log is mislukt: %1$s</string>
+
+    <!-- Pompkalibratiescherm, grafieken en een geweigerd punt (#179) -->
+    <string name="pump_title">Pompkalibratie</string>
+    <string name="pump_current">Huidige pomppunten</string>
+    <string name="pump_point">Punt %1$d</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_redo_all">De hele pompcurve overdoen</string>
+    <string name="pump_redo_start">Startpunt overdoen</string>
+    <string name="pump_hint">Elk punt is een run van een minuut in een maatbeker, op de sturing van dat punt. Wie het startpunt overdoet, doet de andere punten ook over als het meer dan halverwege naar punt 2 verschuift. Pas aan het eind op de kast opgeslagen; annuleren laat de huidige waarden staan.</string>
+    <string name="graph_axis_knob">knop</string>
+    <string name="graph_was">was</string>
+    <string name="graph_refused">geweigerd</string>
+    <string name="wizard_refused_title">Punt niet opgeslagen</string>
+    <string name="wizard_refused_below">%1$d ml/min ligt niet boven punt %2$d (%3$d ml/min). De curve moet oplopen, dus er is niets opgeslagen.</string>
+    <string name="wizard_refused_above">%1$d ml/min ligt niet onder punt %2$d (%3$d ml/min). De curve moet oplopen, dus er is niets opgeslagen.</string>
+    <string name="wizard_start_moved">Het startpunt is meer dan halverwege naar punt 2 verschoven, dus alle punten worden overgedaan.</string>
+    <string name="msg_wizard_table_not_read">De pomptabel is nog niet van de kast gelezen.</string>
 </resources>

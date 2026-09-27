@@ -54,13 +54,13 @@ bereikt terwijl je rijdt.
 
 KALIBREREN VANAF DE TREKKER
 
-- Volledige kalibratiewizard: eerst de drie knopstanden, daarna de pompcurve
-- Alleen de potmeter, of alleen de pomp, als er maar een helft opnieuw moet
+- Potmeterkalibratie: alle drie de knopstanden, of één
+- Pompkalibratie: de hele curve, één punt, of een nieuw startpunt
 - De pomp loopt precies een minuut per punt; de kast klokt dat zelf
-- Losse punten van beide tabellen achteraf corrigeren
+- Een grafiek van elke curve laat zien waar de kast mee doseert
 - Werkbreedte, stuurtimeout, gps-baudrate en minimale fixkwaliteit instellen
 
-De wizard volgt dezelfde stappen als het seriële menu op de kast, dus de
+Kalibreren volgt dezelfde stappen als het seriële menu op de kast, dus de
 bestaande kalibratieprocedure blijft gelden. Kalibratie wordt pas aan het eind
 op de kast opgeslagen; annuleren laat de bestaande waarden staan.
 
@@ -121,13 +121,13 @@ reaches you while you are driving.
 
 CALIBRATION FROM THE CAB
 
-- Full calibration wizard: the three knob positions first, then the pump curve
-- Or just the potentiometer, or just the pump, when only one half needs redoing
+- Potentiometer calibration: all three knob positions, or just one
+- Pump calibration: the whole curve, a single point, or a new start point
 - The pump runs for exactly one minute per point, timed by the controller
-- Correct individual points of either table afterwards
+- A graph of each curve shows exactly what the controller doses from
 - Set working width, guidance timeout, GPS baud rate and minimum fix quality
 
-The wizard follows the same steps as the serial menu on the controller, so the
+Calibration follows the same steps as the serial menu on the controller, so the
 existing calibration procedure still applies. Calibration is written to the
 controller only at the end; cancelling leaves the existing values alone.
 
@@ -187,14 +187,14 @@ auch während der Fahrt erreicht.
 
 KALIBRIEREN VOM SCHLEPPER AUS
 
-- Vollständiger Kalibrierassistent: erst die drei Knopfstellungen, dann die
-  Pumpenkurve
-- Oder nur das Potentiometer, oder nur die Pumpe, wenn nur eine Hälfte neu muss
+- Potentiometer-Kalibrierung: alle drei Knopfstellungen oder nur eine
+- Pumpenkalibrierung: die ganze Kurve, ein einzelner Punkt oder ein neuer
+  Startpunkt
 - Die Pumpe läuft genau eine Minute je Punkt, getaktet vom Steuergerät
-- Einzelne Punkte beider Tabellen nachträglich korrigieren
+- Ein Diagramm jeder Kurve zeigt, womit das Steuergerät dosiert
 - Arbeitsbreite, Lenk-Timeout, GPS-Baudrate und minimale Fixqualität einstellen
 
-Der Assistent folgt denselben Schritten wie das serielle Menü am Steuergerät,
+Das Kalibrieren folgt denselben Schritten wie das serielle Menü am Steuergerät,
 die bestehende Kalibrierprozedur gilt also weiter. Die Kalibrierung wird erst
 am Ende auf dem Steuergerät gespeichert; ein Abbruch lässt die vorhandenen
 Werte stehen.
@@ -255,15 +255,15 @@ parvienne aussi pendant que vous conduisez.
 
 ÉTALONNAGE DEPUIS LA CABINE
 
-- Assistant complet : d'abord les trois positions de molette, puis la courbe
-  de pompe
-- Ou le potentiomètre seul, ou la pompe seule, quand une moitié suffit
+- Étalonnage du potentiomètre : les trois positions de molette, ou une seule
+- Étalonnage de la pompe : toute la courbe, un seul point, ou un nouveau point
+  de départ
 - La pompe tourne exactement une minute par point, chronométrée par le boîtier
-- Corriger ensuite des points isolés de l'une ou l'autre table
+- Un graphique de chaque courbe montre ce à partir de quoi le boîtier dose
 - Régler la largeur de travail, le délai de guidage, la vitesse en bauds du
   GPS et la qualité de point minimale
 
-L'assistant suit les mêmes étapes que le menu série du boîtier : la procédure
+L'étalonnage suit les mêmes étapes que le menu série du boîtier : la procédure
 d'étalonnage existante reste donc valable. L'étalonnage n'est écrit sur le
 boîtier qu'à la fin ; annuler laisse les valeurs en place.
 

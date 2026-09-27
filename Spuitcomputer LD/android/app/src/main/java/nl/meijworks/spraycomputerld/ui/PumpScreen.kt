@@ -47,23 +47,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import nl.meijworks.spraycomputerld.R
 import nl.meijworks.spraycomputerld.SprayerState
-import nl.meijworks.spraycomputerld.protocol.WizardMath
 import nl.meijworks.spraycomputerld.service.SprayerController
 import nl.meijworks.spraycomputerld.service.WizardMode
 
 /**
- * The knob half of the calibration on its own: the current three points and
- * their graph, redo them all, or redo one. The graph shows whether the knob's
- * potentiometer is linear or logarithmic: a bend at the middle point
- * (NeptuneGPS_Triton#179).
+ * The pump curve on its own, in the same shape as Potmeterkalibratie
+ * (NeptuneGPS_Triton#179): the current points and their graph, then redo
+ * one point, redo the start point, or redo the lot.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PotmeterScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () -> Unit) {
+fun PumpScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () -> Unit) {
+    fun start(mode: WizardMode, index: Int = 0) {
+        SprayerController.startWizard(mode, index)
+        onStartWizard()
+    }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.potmeter_title)) },
+                title = { Text(stringResource(R.string.pump_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -81,62 +83,46 @@ fun PotmeterScreen(sprayer: SprayerState, onBack: () -> Unit, onStartWizard: () 
         ) {
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.potmeter_current), style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        stringResource(
-                            R.string.potmeter_live_reading,
-                            sprayer.status?.raw?.toString() ?: stringResource(R.string.value_none),
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (sprayer.dosePoints.isEmpty()) {
+                    Text(stringResource(R.string.pump_current), style = MaterialTheme.typography.titleMedium)
+                    if (sprayer.pwmPoints.isEmpty()) {
                         Text(stringResource(R.string.value_not_read_yet), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
                         CalibrationGraph(
-                            points = sprayer.dosePoints.map { GraphPoint(it.analog, it.doseLha) },
-                            xLabel = stringResource(R.string.graph_axis_knob),
-                            yLabel = stringResource(R.string.unit_lha),
+                            points = sprayer.pwmPoints.map { GraphPoint(it.pwm, it.flowMlMin) },
+                            xLabel = stringResource(R.string.graph_axis_pwm),
+                            yLabel = stringResource(R.string.graph_axis_ml_min),
                         )
                     }
-                    sprayer.dosePoints.forEach { p ->
+                    sprayer.pwmPoints.forEach { p ->
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
+                                Text(stringResource(R.string.pump_point, p.index + 1), fontWeight = FontWeight.Medium)
                                 Text(
-                                    stringResource(
-                                        R.string.potmeter_point,
-                                        p.index + 1,
-                                        WizardMath.DOSE_LABELS.getOrNull(p.index)?.let { stringResource(it) }.orEmpty(),
-                                    ),
-                                    fontWeight = FontWeight.Medium,
-                                )
-                                Text(
-                                    stringResource(R.string.potmeter_point_values, p.analog, p.doseLha),
+                                    stringResource(R.string.pump_point_values, p.pwm, p.flowMlMin),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                             OutlinedButton(
-                                onClick = {
-                                    SprayerController.startWizard(WizardMode.DOSE_SINGLE, p.index)
-                                    onStartWizard()
-                                },
+                                onClick = { start(WizardMode.PUMP_SINGLE, p.index) },
                                 enabled = sprayer.connected,
                             ) { Text(stringResource(R.string.action_redo)) }
                         }
                     }
                 }
             }
-            Button(
-                onClick = {
-                    SprayerController.startWizard(WizardMode.DOSE_ONLY)
-                    onStartWizard()
-                },
+            OutlinedButton(
+                onClick = { start(WizardMode.PUMP_START) },
                 enabled = sprayer.connected,
                 modifier = Modifier.fillMaxWidth(),
-            ) { Text(stringResource(R.string.potmeter_redo_all)) }
+            ) { Text(stringResource(R.string.pump_redo_start)) }
+            Button(
+                onClick = { start(WizardMode.PUMP_ONLY) },
+                enabled = sprayer.connected,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.pump_redo_all)) }
             Text(
-                stringResource(R.string.potmeter_hint),
+                stringResource(R.string.pump_hint),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

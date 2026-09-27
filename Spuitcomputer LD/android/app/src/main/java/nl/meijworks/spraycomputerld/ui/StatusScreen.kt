@@ -79,7 +79,7 @@ import nl.meijworks.spraycomputerld.protocol.CalibrationOwner
 import nl.meijworks.spraycomputerld.protocol.StatusSample
 import kotlinx.coroutines.delay
 
-enum class Screen { ONBOARDING, STATUS, CALIBRATE, WIZARD, POTMETER, SPRAYER, GPS, ADVANCED, CONSOLE, SETTINGS }
+enum class Screen { ONBOARDING, STATUS, CALIBRATE, WIZARD, POTMETER, PUMP, SPRAYER, GPS, CONSOLE, SETTINGS }
 
 /**
  * Home: speed, requested l/ha and actual l/ha large, the rest below, one

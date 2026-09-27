@@ -49,19 +49,21 @@ import nl.meijworks.spraycomputerld.SprayerState
 import nl.meijworks.spraycomputerld.protocol.SprayerProtocol
 import nl.meijworks.spraycomputerld.service.SprayerController
 
-/** The Calibrate menu (NeptuneGPS_Triton#46): the five agreed entries plus the console (#69). */
+/**
+ * The Calibrate menu (NeptuneGPS_Triton#46): the two calibrations, the two
+ * settings screens and the console (#69). Wizard and Geavanceerd went in #179:
+ * each calibration redoes all its points or one, which is everything they did.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CalibrateMenuScreen(
     sprayer: SprayerState,
     developerMode: Boolean,
     onBack: () -> Unit,
-    onWizard: () -> Unit,
     onPotmeter: () -> Unit,
-    onPumpWizard: () -> Unit,
+    onPump: () -> Unit,
     onSprayer: () -> Unit,
     onGps: () -> Unit,
-    onAdvanced: () -> Unit,
     onConsole: () -> Unit,
 ) {
     Scaffold(
@@ -86,28 +88,17 @@ fun CalibrateMenuScreen(
             Card(Modifier.fillMaxWidth()) {
                 Column {
                     MenuEntry(
-                        stringResource(R.string.menu_wizard),
-                        stringResource(R.string.menu_wizard_sub),
-                        enabled = sprayer.connected,
-                        onClick = onWizard,
-                    )
-                    HorizontalDivider()
-                    MenuEntry(
                         stringResource(R.string.menu_potmeter),
                         stringResource(R.string.menu_potmeter_sub),
                         enabled = sprayer.connected,
                         onClick = onPotmeter,
                     )
                     HorizontalDivider()
-                    // The pump half on its own. WizardMode.PUMP_ONLY existed
-                    // and was titled, but nothing ever started it, so the pump
-                    // curve could only be redone by re-running the knob
-                    // positions too (NeptuneGPS_Triton#138).
                     MenuEntry(
                         stringResource(R.string.menu_pump),
                         stringResource(R.string.menu_pump_sub),
                         enabled = sprayer.connected,
-                        onClick = onPumpWizard,
+                        onClick = onPump,
                     )
                     HorizontalDivider()
                     MenuEntry(
@@ -123,14 +114,6 @@ fun CalibrateMenuScreen(
                         enabled = sprayer.connected,
                         onClick = onGps,
                     )
-                    HorizontalDivider()
-                    MenuEntry(
-                        stringResource(R.string.menu_advanced),
-                        stringResource(R.string.menu_advanced_sub),
-                        enabled = sprayer.connected,
-                        onClick = onAdvanced,
-                    )
-                    HorizontalDivider()
                     HorizontalDivider()
                     BuzzerRow(sprayer)
                     // Console writes arbitrary protocol lines to the board;

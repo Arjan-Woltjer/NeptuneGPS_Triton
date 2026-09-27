@@ -46,4 +46,45 @@ class WizardMathTest {
         assertEquals("PWM SET 777", SprayerProtocol.cmdPwmSet(777))
         assertEquals("CAL SAVE", SprayerProtocol.CMD_CAL_SAVE)
     }
+
+    // ------------------------------------------------ NeptuneGPS_Triton#179
+
+    @Test
+    fun startMovedTooFar_isMoreThanHalfTheSpacingToPointTwo() {
+        // Spacing 1000 -> 2000 is 1000; half of it is 500.
+        assertEquals(false, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 2000, newStart = 1500))
+        assertEquals(true, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 2000, newStart = 1501))
+        assertEquals(false, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 2000, newStart = 500))
+        assertEquals(true, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 2000, newStart = 499))
+        assertEquals(false, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 2000, newStart = 1000))
+    }
+
+    @Test
+    fun startMovedTooFar_coversAStartAtOrPastPointTwo() {
+        // At or beyond point 2 the table would be out of order: always too far.
+        assertEquals(true, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 1001, newStart = 1001))
+        assertEquals(true, WizardMath.startMovedTooFar(oldStart = 1000, oldSecond = 2000, newStart = 2500))
+    }
+
+    private val table = listOf(
+        PwmPoint(0, 1338, 200), PwmPoint(1, 2027, 600), PwmPoint(2, 2716, 1100),
+        PwmPoint(3, 3450, 1450), PwmPoint(4, 4095, 1800),
+    )
+
+    @Test
+    fun crossing_strictlyBetweenNeighboursIsFine() {
+        assertEquals(null, WizardMath.crossing(table, 2, 700))
+        assertEquals(null, WizardMath.crossing(table, 2, 1449))
+        assertEquals(null, WizardMath.crossing(table, 0, 1))       // first point: no lower neighbour
+        assertEquals(null, WizardMath.crossing(table, 4, 4000))    // last point: no upper neighbour
+    }
+
+    @Test
+    fun crossing_namesTheNeighbourItCrosses() {
+        assertEquals(WizardMath.Crossing.BELOW_PREVIOUS, WizardMath.crossing(table, 2, 600))   // equal is not strictly above
+        assertEquals(WizardMath.Crossing.BELOW_PREVIOUS, WizardMath.crossing(table, 2, 100))
+        assertEquals(WizardMath.Crossing.ABOVE_NEXT, WizardMath.crossing(table, 2, 1450))      // equal is not strictly below
+        assertEquals(WizardMath.Crossing.ABOVE_NEXT, WizardMath.crossing(table, 0, 700))
+        assertEquals(WizardMath.Crossing.BELOW_PREVIOUS, WizardMath.crossing(table, 4, 1450))
+    }
 }

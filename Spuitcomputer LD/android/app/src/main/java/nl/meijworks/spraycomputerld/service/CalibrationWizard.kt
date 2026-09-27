@@ -32,10 +32,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 enum class WizardMode {
-    FULL,        // knob positions, then the pump curve: the serial wizard, step for step
     DOSE_ONLY,   // the three knob positions
     DOSE_SINGLE, // one knob position re-entered
-    PUMP_ONLY,   // the pump curve
+    PUMP_ONLY,   // the whole pump curve: find the start, a one-minute run per point
+    PUMP_SINGLE, // one pump point: a one-minute run at its stored duty
+    PUMP_START,  // find the start again; redo point 1, or all of them if it moved too far
 }
 
 enum class WizardStep {
@@ -46,6 +47,7 @@ enum class WizardStep {
     PUMP_STEP_READY,  // point i/5 at duty d: tap Start 1-minute run
     PUMP_RUNNING,     // counting down on the board
     PUMP_ENTER,       // type the ml collected
+    REFUSED,          // a single point crossed a neighbour: nothing saved
     SAVING,
     DONE,
     FAILED,
@@ -62,6 +64,12 @@ data class WizardState(
     val pwmSteps: List<Int> = emptyList(),
     val pwmIndex: Int = 0,
     val pwmCaptured: List<PwmPoint> = emptyList(),
+    val pumpTarget: Int? = null,            // the one pump point being replaced; null for the whole curve
+    val doseBefore: List<DosePoint> = emptyList(),  // the tables as they were at the start, for the
+    val pumpBefore: List<PwmPoint> = emptyList(),   // neighbour check and the graph's old point
+    val startMovedTooFar: Boolean = false,  // PUMP_START turned into the whole curve
+    val refusedFlow: Int? = null,
+    val refusedCrossing: WizardMath.Crossing? = null,
     val secondsRemaining: Int? = null,
     val busy: Boolean = false,          // a command is in flight; buttons disabled
     val message: UiText? = null,        // last error or hint
@@ -100,14 +108,42 @@ class CalibrationWizard(
         publish(state)
     }
 
-    fun start(mode: WizardMode, singleIndex: Int = 0) {
+    /**
+     * [doseTable] and [pumpTable] are the board's tables as the app last read
+     * them: a single pump point is checked against its neighbours there, and
+     * the screen draws the old point from them after a redo.
+     */
+    fun start(
+        mode: WizardMode,
+        singleIndex: Int = 0,
+        doseTable: List<DosePoint> = emptyList(),
+        pumpTable: List<PwmPoint> = emptyList(),
+    ) {
         cancelJob()
-        state = WizardState(mode = mode, doseIndex = if (mode == WizardMode.DOSE_SINGLE) singleIndex else 0)
+        state = WizardState(
+            mode = mode,
+            doseIndex = if (mode == WizardMode.DOSE_SINGLE) singleIndex else 0,
+            doseBefore = doseTable,
+            pumpBefore = pumpTable,
+        )
         publish(state)
+        if (mode == WizardMode.PUMP_SINGLE && pumpTable.getOrNull(singleIndex) == null) {
+            fail(uiText(R.string.msg_wizard_table_not_read))
+            return
+        }
         perform {
             when (val r = command(SprayerProtocol.cmdCalMode(true))) {
                 Reply.Ok -> set {
-                    it.copy(step = if (mode == WizardMode.PUMP_ONLY) WizardStep.PUMP_FIND else WizardStep.DOSE_CAPTURE)
+                    when (mode) {
+                        WizardMode.DOSE_ONLY, WizardMode.DOSE_SINGLE -> it.copy(step = WizardStep.DOSE_CAPTURE)
+                        WizardMode.PUMP_ONLY, WizardMode.PUMP_START -> it.copy(step = WizardStep.PUMP_FIND)
+                        WizardMode.PUMP_SINGLE -> it.copy(
+                            step = WizardStep.PUMP_STEP_READY,
+                            pwmSteps = listOf(pumpTable[singleIndex].pwm),
+                            pwmIndex = 0,
+                            pumpTarget = singleIndex,
+                        )
+                    }
                 }
                 Reply.Busy -> fail(uiText(R.string.msg_wizard_busy_serial))
                 is Reply.Error -> fail(uiText(R.string.msg_board_refused, r.reason))
@@ -139,11 +175,6 @@ class CalibrationWizard(
                         !doseDone -> set {
                             it.copy(doseCaptured = captured, doseIndex = next, capturedAnalog = null,
                                 step = WizardStep.DOSE_CAPTURE, message = null)
-                        }
-                        s.mode == WizardMode.FULL -> {
-                            // Save the knob half now, so a cancelled pump half keeps it.
-                            set { it.copy(doseCaptured = captured, step = WizardStep.SAVING) }
-                            if (save()) set { it.copy(step = WizardStep.PUMP_FIND, findDuty = 0, message = null) }
                         }
                         else -> {
                             set { it.copy(doseCaptured = captured, step = WizardStep.SAVING) }
@@ -187,14 +218,22 @@ class CalibrationWizard(
             set { it.copy(message = uiText(R.string.msg_wizard_slide_up)) }
             return
         }
+        // PUMP_START redoes only point 1 unless the start moved more than
+        // half the spacing to point 2 (NeptuneGPS_Triton#179). Without a
+        // readable table there is nothing to keep, so it redoes the lot.
+        val old = s.pumpBefore
+        val onlyPointOne = s.mode == WizardMode.PUMP_START && old.size >= 2 &&
+            !WizardMath.startMovedTooFar(old[0].pwm, old[1].pwm, start)
         perform {
             command(SprayerProtocol.cmdPwmSet(0))   // off until a run is started
             set {
                 it.copy(
                     startPwm = start,
-                    pwmSteps = WizardMath.pwmSteps(start),
+                    pwmSteps = if (onlyPointOne) listOf(start) else WizardMath.pwmSteps(start),
                     pwmIndex = 0,
                     pwmCaptured = emptyList(),
+                    pumpTarget = if (onlyPointOne) 0 else null,
+                    startMovedTooFar = s.mode == WizardMode.PUMP_START && !onlyPointOne && old.size >= 2,
                     step = WizardStep.PUMP_STEP_READY,
                     message = null,
                 )
@@ -249,6 +288,7 @@ class CalibrationWizard(
             set { it.copy(message = uiText(R.string.msg_wizard_volume_range, WizardMath.MAX_FLOW_ML_MIN)) }
             return
         }
+        s.pumpTarget?.let { target -> saveSinglePumpPoint(s, target, ml); return }
         val captured = s.pwmCaptured + PwmPoint(s.pwmIndex, s.currentPwmDuty, ml)
         val next = s.pwmIndex + 1
         if (next < s.pwmSteps.size) {
@@ -303,6 +343,36 @@ class CalibrationWizard(
         }
     }
 
+    /**
+     * One pump point replaced: refused outright if it would cross a
+     * neighbour, so the curve always rises (NeptuneGPS_Triton#179). CAL MODE 1
+     * staged the live table, so staging this point and saving changes only it.
+     */
+    private fun saveSinglePumpPoint(s: WizardState, target: Int, ml: Int) {
+        val crossing = WizardMath.crossing(s.pumpBefore, target, ml)
+        if (crossing != null) {
+            set {
+                it.copy(
+                    step = WizardStep.REFUSED,
+                    refusedFlow = ml,
+                    refusedCrossing = crossing,
+                    pwmCaptured = emptyList(),
+                    message = null,
+                )
+            }
+            scope.launch { command(SprayerProtocol.cmdCalMode(false)) }   // hand calibration back; nothing staged is kept
+            return
+        }
+        val point = PwmPoint(target, s.currentPwmDuty, ml)
+        perform {
+            set { it.copy(pwmCaptured = listOf(point), step = WizardStep.SAVING) }
+            if (command(SprayerProtocol.cmdCalPwm(point.index, point.pwm, point.flowMlMin)) != Reply.Ok) {
+                fail(uiText(R.string.msg_wizard_point_refused)); return@perform
+            }
+            if (save()) finish()
+        }
+    }
+
     // ------------------------------------------------------------ helpers
 
     private suspend fun save(): Boolean {
@@ -314,9 +384,9 @@ class CalibrationWizard(
 
     private suspend fun finish() {
         command(SprayerProtocol.cmdCalMode(false))
-        // Bench 2026-09-13: Advanced kept showing the tables read at connect
-        // time (three pump points) after a five-point wizard had saved. The
-        // service commits the C: lines this answer brings on its OK.
+        // Bench 2026-09-13: the screens kept showing the tables read at
+        // connect time (three pump points) after a five-point run had saved.
+        // The service commits the C: lines this answer brings on its OK.
         command(SprayerProtocol.CMD_CAL_GET)
         set { it.copy(step = WizardStep.DONE, busy = false, message = null) }
     }
