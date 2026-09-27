@@ -5,7 +5,7 @@
     <string name="notification_channel_description">Maintient la liaison avec le pulvérisateur pendant que l\'écran est éteint</string>
     <string name="notification_disconnected">Recherche du pulvérisateur…</string>
     <string name="notification_connected_no_status">Connecté</string>
-    <string name="notification_connected">Consigne %1$.0f l/ha, réel %2$s l/ha</string>
+    <string name="notification_connected">Consigne %1$.0f l/\u2060ha, réel %2$s l/\u2060ha</string>
     <string name="notification_stop">Arrêter</string>
 
     <!-- Boutons et unités communs -->
@@ -90,7 +90,7 @@
     <string name="wizard_capture">Valider</string>
     <string name="wizard_dose_for_position">Dose pour la position %1$s</string>
     <string name="wizard_knob_captured">Valeur de molette validée : %1$d</string>
-    <string name="wizard_dose_field">Dose (l/ha)</string>
+    <string name="wizard_dose_field">Dose (l/\u2060ha)</string>
     <string name="wizard_save_point">Enregistrer le point %1$d</string>
     <string name="wizard_find_start">Trouver le point de démarrage de la pompe</string>
     <string name="wizard_find_start_hint">Montez lentement jusqu\'à ce que la pompe commence tout juste à débiter, puis validez.</string>
@@ -112,8 +112,8 @@
     <string name="wizard_saved_on_board">Enregistré sur le boîtier</string>
     <string name="wizard_knob_positions">Positions de molette</string>
     <string name="wizard_pump_curve">Courbe de pompe</string>
-    <string name="wizard_dose_summary">  %1$d : analogique %2$d, %3$d l/ha</string>
-    <string name="wizard_pwm_summary">  %1$d : commande %2$d, %3$d ml/min</string>
+    <string name="wizard_dose_summary">  %1$d : analogique %2$d, %3$d l/\u2060ha</string>
+    <string name="wizard_pwm_summary">  %1$d : commande %2$d, %3$d ml/\u2060min</string>
     <string name="wizard_not_completed">Étalonnage non terminé</string>
     <string name="wizard_nothing_changed">Rien n\'a été modifié sur le boîtier au-delà de ce qui était déjà enregistré.</string>
 
@@ -142,14 +142,14 @@
     <string name="potmeter_current">Positions de molette actuelles</string>
     <string name="potmeter_live_reading">Valeur de molette en direct : %1$s sur 4095</string>
     <string name="potmeter_point">%1$d. %2$s</string>
-    <string name="potmeter_point_values">analogique %1$d, %2$d l/ha</string>
+    <string name="potmeter_point_values">analogique %1$d, %2$d l/\u2060ha</string>
     <string name="potmeter_redo_all">Refaire les trois positions</string>
-    <string name="potmeter_hint">Chaque position est relevée sur la molette de la machine, puis reçoit sa valeur en l/ha. Enregistré sur le boîtier seulement à la fin ; annuler conserve les valeurs actuelles.</string>
+    <string name="potmeter_hint">Chaque position est relevée sur la molette de la machine, puis reçoit sa valeur en l/\u2060ha. Enregistré sur le boîtier seulement à la fin ; annuler conserve les valeurs actuelles.</string>
 
     <!-- Réglages du pulvérisateur -->
     <string name="sprayer_title">Pulvérisateur</string>
     <string name="sprayer_width">Largeur de travail</string>
-    <string name="sprayer_width_hint">Entre 50 et 5000. Sert à convertir les l/ha en débit de pompe à la vitesse actuelle.</string>
+    <string name="sprayer_width_hint">Entre 50 et 5000. Sert à convertir les l/\u2060ha en débit de pompe à la vitesse actuelle.</string>
     <string name="sprayer_guidance">Délai de guidage</string>
     <string name="sprayer_guidance_hint">Entre 500 et 10000. Sans message de vitesse pendant ce délai, la pompe s\'arrête.</string>
     <string name="setting_on_board_now">Sur le boîtier actuellement : %1$s</string>
@@ -250,7 +250,7 @@
     <string name="pump_title">Étalonnage de la pompe</string>
     <string name="pump_current">Points de pompe actuels</string>
     <string name="pump_point">Point %1$d</string>
-    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/\u2060min</string>
     <string name="pump_redo_all">Refaire toute la courbe de pompe</string>
     <string name="pump_redo_start">Refaire le point de départ</string>
     <string name="pump_hint">Chaque point est une marche d\'une minute dans un récipient, au rapport cyclique de ce point. Refaire le point de départ refait aussi les autres points s\'il se déplace de plus de la moitié du chemin vers le point 2. Enregistré sur le boîtier seulement à la fin ; annuler conserve les valeurs actuelles.</string>
@@ -258,8 +258,8 @@
     <string name="graph_was">avant</string>
     <string name="graph_refused">refusé</string>
     <string name="wizard_refused_title">Point non enregistré</string>
-    <string name="wizard_refused_below">%1$d ml/min n\'est pas au-dessus du point %2$d (%3$d ml/min). La courbe doit monter, donc rien n\'a été enregistré.</string>
-    <string name="wizard_refused_above">%1$d ml/min n\'est pas au-dessous du point %2$d (%3$d ml/min). La courbe doit monter, donc rien n\'a été enregistré.</string>
+    <string name="wizard_refused_below">%1$d ml/\u2060min n\'est pas au-dessus du point %2$d (%3$d ml/\u2060min). La courbe doit monter, donc rien n\'a été enregistré.</string>
+    <string name="wizard_refused_above">%1$d ml/\u2060min n\'est pas au-dessous du point %2$d (%3$d ml/\u2060min). La courbe doit monter, donc rien n\'a été enregistré.</string>
     <string name="wizard_start_moved">Le point de départ s\'est déplacé de plus de la moitié du chemin vers le point 2, donc tous les points sont refaits.</string>
     <string name="msg_wizard_table_not_read">La table de pompe n\'a pas encore été lue depuis le boîtier.</string>
 </resources>

@@ -5,7 +5,7 @@
     <string name="notification_channel_description">Hält die Verbindung zur Spritze aufrecht, während der Bildschirm aus ist</string>
     <string name="notification_disconnected">Spritze wird gesucht…</string>
     <string name="notification_connected_no_status">Verbunden</string>
-    <string name="notification_connected">Soll %1$.0f l/ha, ist %2$s l/ha</string>
+    <string name="notification_connected">Soll %1$.0f l/\u2060ha, ist %2$s l/\u2060ha</string>
     <string name="notification_stop">Stopp</string>
 
     <!-- Allgemeine Schaltflächen und Einheiten -->
@@ -90,7 +90,7 @@
     <string name="wizard_capture">Übernehmen</string>
     <string name="wizard_dose_for_position">Aufwandmenge für die Stellung %1$s</string>
     <string name="wizard_knob_captured">Knopfwert übernommen: %1$d</string>
-    <string name="wizard_dose_field">Aufwandmenge (l/ha)</string>
+    <string name="wizard_dose_field">Aufwandmenge (l/\u2060ha)</string>
     <string name="wizard_save_point">Punkt %1$d speichern</string>
     <string name="wizard_find_start">Startpunkt der Pumpe suchen</string>
     <string name="wizard_find_start_hint">Langsam hochschieben, bis die Pumpe gerade zu fördern beginnt, dann übernehmen.</string>
@@ -112,8 +112,8 @@
     <string name="wizard_saved_on_board">Am Rechner gespeichert</string>
     <string name="wizard_knob_positions">Knopfstellungen</string>
     <string name="wizard_pump_curve">Pumpenkennlinie</string>
-    <string name="wizard_dose_summary">  %1$d: analog %2$d, %3$d l/ha</string>
-    <string name="wizard_pwm_summary">  %1$d: Ansteuerung %2$d, %3$d ml/min</string>
+    <string name="wizard_dose_summary">  %1$d: analog %2$d, %3$d l/\u2060ha</string>
+    <string name="wizard_pwm_summary">  %1$d: Ansteuerung %2$d, %3$d ml/\u2060min</string>
     <string name="wizard_not_completed">Kalibrierung nicht abgeschlossen</string>
     <string name="wizard_nothing_changed">Am Rechner wurde nichts geändert außer dem, was bereits gespeichert war.</string>
 
@@ -142,14 +142,14 @@
     <string name="potmeter_current">Aktuelle Knopfstellungen</string>
     <string name="potmeter_live_reading">Aktueller Knopfwert: %1$s von 4095</string>
     <string name="potmeter_point">%1$d. %2$s</string>
-    <string name="potmeter_point_values">analog %1$d, %2$d l/ha</string>
+    <string name="potmeter_point_values">analog %1$d, %2$d l/\u2060ha</string>
     <string name="potmeter_redo_all">Alle drei Stellungen wiederholen</string>
-    <string name="potmeter_hint">Jede Stellung wird vom Knopf an der Maschine übernommen und bekommt danach ihre l/ha. Erst am Ende am Rechner gespeichert; ein Abbruch lässt die aktuellen Werte stehen.</string>
+    <string name="potmeter_hint">Jede Stellung wird vom Knopf an der Maschine übernommen und bekommt danach ihre l/\u2060ha. Erst am Ende am Rechner gespeichert; ein Abbruch lässt die aktuellen Werte stehen.</string>
 
     <!-- Spritzeneinstellungen -->
     <string name="sprayer_title">Spritze</string>
     <string name="sprayer_width">Arbeitsbreite</string>
-    <string name="sprayer_width_hint">Zwischen 50 und 5000. Rechnet l/ha bei der aktuellen Geschwindigkeit in einen Pumpendurchfluss um.</string>
+    <string name="sprayer_width_hint">Zwischen 50 und 5000. Rechnet l/\u2060ha bei der aktuellen Geschwindigkeit in einen Pumpendurchfluss um.</string>
     <string name="sprayer_guidance">Lenk-Timeout</string>
     <string name="sprayer_guidance_hint">Zwischen 500 und 10000. Bleibt eine Geschwindigkeitsmeldung so lange aus, stoppt die Pumpe.</string>
     <string name="setting_on_board_now">Jetzt am Rechner: %1$s</string>
@@ -250,7 +250,7 @@
     <string name="pump_title">Pumpenkalibrierung</string>
     <string name="pump_current">Aktuelle Pumpenpunkte</string>
     <string name="pump_point">Punkt %1$d</string>
-    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/\u2060min</string>
     <string name="pump_redo_all">Die ganze Pumpenkennlinie wiederholen</string>
     <string name="pump_redo_start">Startpunkt wiederholen</string>
     <string name="pump_hint">Jeder Punkt ist ein Lauf von einer Minute in einen Messbecher, mit dem Tastgrad dieses Punkts. Wird der Startpunkt wiederholt und verschiebt er sich um mehr als die Hälfte des Wegs zu Punkt 2, werden die anderen Punkte ebenfalls wiederholt. Erst am Ende am Rechner gespeichert; ein Abbruch lässt die aktuellen Werte stehen.</string>
@@ -258,8 +258,8 @@
     <string name="graph_was">vorher</string>
     <string name="graph_refused">abgelehnt</string>
     <string name="wizard_refused_title">Punkt nicht gespeichert</string>
-    <string name="wizard_refused_below">%1$d ml/min liegt nicht über Punkt %2$d (%3$d ml/min). Die Kennlinie muss ansteigen, deshalb wurde nichts gespeichert.</string>
-    <string name="wizard_refused_above">%1$d ml/min liegt nicht unter Punkt %2$d (%3$d ml/min). Die Kennlinie muss ansteigen, deshalb wurde nichts gespeichert.</string>
+    <string name="wizard_refused_below">%1$d ml/\u2060min liegt nicht über Punkt %2$d (%3$d ml/\u2060min). Die Kennlinie muss ansteigen, deshalb wurde nichts gespeichert.</string>
+    <string name="wizard_refused_above">%1$d ml/\u2060min liegt nicht unter Punkt %2$d (%3$d ml/\u2060min). Die Kennlinie muss ansteigen, deshalb wurde nichts gespeichert.</string>
     <string name="wizard_start_moved">Der Startpunkt hat sich um mehr als die Hälfte des Wegs zu Punkt 2 verschoben, deshalb werden alle Punkte wiederholt.</string>
     <string name="msg_wizard_table_not_read">Die Pumpentabelle wurde noch nicht vom Rechner gelesen.</string>
 </resources>

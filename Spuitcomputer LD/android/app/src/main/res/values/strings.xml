@@ -8,7 +8,7 @@
     <string name="notification_title" translatable="false">SprayComputer LD</string>
     <string name="notification_disconnected">Searching for the sprayer…</string>
     <string name="notification_connected_no_status">Connected</string>
-    <string name="notification_connected">Requested %1$.0f l/ha, actual %2$s l/ha</string>
+    <string name="notification_connected">Requested %1$.0f l/\u2060ha, actual %2$s l/\u2060ha</string>
     <string name="notification_stop">Stop</string>
 
     <!-- Shared actions and units -->
@@ -114,7 +114,7 @@
     <string name="wizard_capture">Capture</string>
     <string name="wizard_dose_for_position">Dose for the %1$s position</string>
     <string name="wizard_knob_captured">Knob reading captured: %1$d</string>
-    <string name="wizard_dose_field">Dose (l/ha)</string>
+    <string name="wizard_dose_field">Dose (l/\u2060ha)</string>
     <string name="wizard_save_point">Save point %1$d</string>
     <string name="wizard_find_start">Find the pump\'s start point</string>
     <string name="wizard_find_start_hint">Slide up slowly until the pump just starts flowing, then capture.</string>
@@ -137,8 +137,8 @@
     <string name="wizard_saved_on_board">Saved on the board</string>
     <string name="wizard_knob_positions">Knob positions</string>
     <string name="wizard_pump_curve">Pump curve</string>
-    <string name="wizard_dose_summary">  %1$d: analog %2$d, %3$d l/ha</string>
-    <string name="wizard_pwm_summary">  %1$d: duty %2$d, %3$d ml/min</string>
+    <string name="wizard_dose_summary">  %1$d: analog %2$d, %3$d l/\u2060ha</string>
+    <string name="wizard_pwm_summary">  %1$d: duty %2$d, %3$d ml/\u2060min</string>
     <string name="wizard_not_completed">Calibration not completed</string>
     <string name="wizard_nothing_changed">Nothing was changed on the board beyond what was already saved.</string>
 
@@ -167,15 +167,15 @@
     <string name="potmeter_current">Current knob positions</string>
     <string name="potmeter_live_reading">Live knob reading: %1$s of 4095</string>
     <string name="potmeter_point">%1$d. %2$s</string>
-    <string name="potmeter_point_values">analog %1$d, %2$d l/ha</string>
+    <string name="potmeter_point_values">analog %1$d, %2$d l/\u2060ha</string>
     <string name="potmeter_redo_all">Redo all three positions</string>
-    <string name="potmeter_hint">Each position is captured from the knob on the machine, then given its l/ha. Saved on the board only at the end; cancelling keeps the current values.</string>
+    <string name="potmeter_hint">Each position is captured from the knob on the machine, then given its l/\u2060ha. Saved on the board only at the end; cancelling keeps the current values.</string>
 
     <!-- Sprayer config -->
     <string name="sprayer_title">Sprayer</string>
     <string name="sprayer_width">Working width</string>
     <string name="unit_cm" translatable="false">cm</string>
-    <string name="sprayer_width_hint">Between 50 and 5000. Used to turn l/ha into a pump flow at the current speed.</string>
+    <string name="sprayer_width_hint">Between 50 and 5000. Used to turn l/\u2060ha into a pump flow at the current speed.</string>
     <string name="sprayer_guidance">Guidance timeout</string>
     <string name="unit_ms" translatable="false">ms</string>
     <string name="sprayer_guidance_hint">Between 500 and 10000. Without a speed message for this long the pump stops.</string>
@@ -280,7 +280,7 @@
     <string name="pump_title">Pump calibration</string>
     <string name="pump_current">Current pump points</string>
     <string name="pump_point">Point %1$d</string>
-    <string name="pump_point_values">PWM %1$d, %2$d ml/min</string>
+    <string name="pump_point_values">PWM %1$d, %2$d ml/\u2060min</string>
     <string name="pump_redo_all">Redo the whole pump curve</string>
     <string name="pump_redo_start">Redo the start point</string>
     <string name="pump_hint">Each point is a one-minute run into a jug at that point\'s duty. Redoing the start point redoes the other points as well if it moves more than half the way to point 2. Saved on the board only at the end; cancelling keeps the current values.</string>
@@ -290,8 +290,8 @@
     <string name="graph_was">was</string>
     <string name="graph_refused">refused</string>
     <string name="wizard_refused_title">Point not saved</string>
-    <string name="wizard_refused_below">%1$d ml/min is not above point %2$d (%3$d ml/min). The curve has to rise, so nothing was saved.</string>
-    <string name="wizard_refused_above">%1$d ml/min is not below point %2$d (%3$d ml/min). The curve has to rise, so nothing was saved.</string>
+    <string name="wizard_refused_below">%1$d ml/\u2060min is not above point %2$d (%3$d ml/\u2060min). The curve has to rise, so nothing was saved.</string>
+    <string name="wizard_refused_above">%1$d ml/\u2060min is not below point %2$d (%3$d ml/\u2060min). The curve has to rise, so nothing was saved.</string>
     <string name="wizard_start_moved">The start point moved more than half the way to point 2, so all points are redone.</string>
     <string name="msg_wizard_table_not_read">The pump table has not been read from the board yet.</string>
 </resources>
