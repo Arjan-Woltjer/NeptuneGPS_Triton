@@ -78,7 +78,8 @@ drifts. Keep it with the listing assets.
 
 Required even with no data collection. The text is `store/privacy-policy.md`,
 which is the source of truth. It is published as a page on the MeijWorks
-WordPress site at meijworks.nl, not from this repository, so the URL keeps
+WordPress site, https://meijworks.nl/privacy/spraycomputer-ld/, not from this
+repository, so the URL keeps
 working whatever the repository's visibility. When the app changes what it
 stores, edit the .md in the same PR and re-paste it into the WordPress page.
 

@@ -317,4 +317,4 @@ Upload each locale's set to that locale's listing.
 | Contact email | app@meijworks.nl (set in the Console) |
 | Contact website | (optional) |
 | Contact phone | (optional) |
-| Privacy policy URL | page on meijworks.nl (WordPress), text from `store/privacy-policy.md` |
+| Privacy policy URL | https://meijworks.nl/privacy/spraycomputer-ld/ (WordPress page; text from `store/privacy-policy.md`) |
