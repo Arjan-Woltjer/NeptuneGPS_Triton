@@ -277,6 +277,10 @@ Count `is now offline` lines per address over the whole run. A handful spread
 across the session is normal: ECUs do go quiet. A steady beat on one address is
 the failure.
 
+Expect little here: session 11's logs from this John Deere have no `[NM]` lines
+at all, so this bus may never roll-call. The real test of #5 and #6 is session
+13 on the New Holland + Ag Leader rig (`SESSION_13_TEST_BRIEF.md`).
+
 ---
 
 ## 4. New in the debug dump (menu 1)
