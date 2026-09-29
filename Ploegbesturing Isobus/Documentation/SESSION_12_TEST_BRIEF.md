@@ -31,6 +31,11 @@ default 50, and the limit is per share × shares: 20 cm on 4 shares, 25 cm on 5.
 It used to reset to 50 cm at every boot whatever was set (#163). The calibration
 menu now asks for it per share.
 
+**The AgIsoStack fork moved one commit.** `lib_deps` now pins fork commit
+`9aa491e` instead of the `0.1.5-neptune1` tag. It adds patch #6, which removes
+dead roll-call code, raised on upstream PR #718. It should change nothing you
+can see. It gets a passive check in 3.6: no extra actions, just the serial log.
+
 **Settled since session 11 — don't re-test:**
 
 - the 12:25 VT drop (#149) was the bus cable being pulled, not a fault;
@@ -251,6 +256,29 @@ tramline settings? Also note today's setup, and whether `Tramline setpoint
 
 ---
 
+### 3.6 Address-claim churn — AgIsoStack patches #5 and #6 (passive)
+
+Nothing to do at the rig. This is read from the serial log afterwards.
+
+This is the first field run of patch #5 (a CF that comes back after a
+roll-call is credited for it) and of patch #6 (the dead code next to it
+removed). Patch #4 already keeps our VT/TC partner from being pruned, so the
+check is on the **other** CFs on the bus.
+
+- **Pass:** a CF that logs `is now offline` comes back with `has claimed
+  address` and **stays**. There is no repeating `offline` → `claimed` pair for
+  the same address every 1–2 s. Session 6 showed address 205 doing that for
+  800 s.
+- **Pass:** VT and TC stay up as in every session since patch #4.
+- **Fail:** any address cycling offline/online at the roll-call rate. Keep the
+  log; it goes on upstream #718.
+
+Count `is now offline` lines per address over the whole run. A handful spread
+across the session is normal: ECUs do go quiet. A steady beat on one address is
+the failure.
+
+---
+
 ## 4. New in the debug dump (menu 1)
 
 As captured on the bench (alone on its bus, so passive and nothing received):
@@ -322,6 +350,7 @@ CAN controller: error-PASSIVE  TX err 128 (peak 128)  RX err 0 (peak 0)
 | #151 premise | Does hitch-up really force MANUAL on this rig? | 3.2 step 1 | if not, reopen #151 |
 | #159 | Does the CAN readout show recovery on a live bus? | 3.4 | note in the hardware test notes |
 | #21 | What on the terminal unlocks DDI 506? | 3.5 | progress comment on #21 |
+| upstream #718 | Does a restored CF stay restored (patches #5 + #6)? | 3.6 | post the result on #718; tag `0.1.5-neptune2` on the fork |
 
 If the Ag Leader / CNH rig comes up instead, the appendix of
 `SESSION_11_TEST_BRIEF.md` still applies: read the 44032 lockout line first, and
