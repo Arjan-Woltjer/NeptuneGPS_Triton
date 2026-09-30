@@ -59,6 +59,7 @@ public:
 //      output bits OUT1..OUT4, each as a 4-character field of 0/1)
 //   G:<quality>,<lat>,<lon>,<fixAgeMs>
 //   N:<sentence>            each GPS sentence as received, while TELEM N is on
+//   N:# <text>              a note in the same stream, e.g. the queue overflowed
 //
 // Every command answers OK, BUSY or ERR:<reason>; reason is one word:
 // args, range, mode, key, running, auth, unknown.
@@ -76,6 +77,7 @@ class RemoteSprayer {
 public:
     static constexpr uint8_t       kProtocolVersion   = 2;
     static constexpr unsigned long kNmeaMinIntervalMs = 50;   // at most 20 sentences/s over the link
+    static constexpr size_t        kNmeaQueueLength   = 24;   // one receiver burst (17 lines seen, #185) plus margin
     static constexpr unsigned long kStatusIntervalMs  = 200;
     static constexpr unsigned long kGpsIntervalMs     = 1000;
     static constexpr unsigned long kDefaultRunMs      = ImplementSprayer::kCalibrationRunMaxMs;
@@ -115,7 +117,21 @@ private:
     unsigned long lastStatusAt;
     unsigned long lastGpsAt;
     unsigned long lastNmeaAt;
-    uint32_t      lastNmeaSeq;
+
+    // TELEM N: every sentence the channel's tap reports, queued and sent one
+    // per kNmeaMinIntervalMs slot, so a receiver's burst reaches the app whole
+    // instead of as whichever line was last when a slot came up (#185). When
+    // the queue overflows, only nmeaUsed() sentences are queued for the rest
+    // of the session, and one N:# line says so after the lines queued before
+    // the drop.
+    static constexpr size_t kNmeaSentenceLength = 90;   // SerialGuidanceChannel's cap
+    char    nmeaQueue[kNmeaQueueLength][kNmeaSentenceLength + 1];
+    size_t  nmeaHead;
+    size_t  nmeaCount;
+    bool    nmeaFiltered;
+    bool    nmeaNoticePending;
+    size_t  nmeaBeforeNotice;   // queued lines still to go out ahead of the notice
+    uint32_t nmeaDropped;
 
     // Countdown bookkeeping so R: lines only go out when the second changes.
     bool          runWasActive;
@@ -141,6 +157,10 @@ private:
     void sendStatus();
     void sendGps();
     void sendNmea();
+    void resetNmea();
+    void queueNmea(const char* sentence);
+    static bool nmeaUsed(const char* sentence);
+    static void onSentence(void* context, const char* sentence);
     void serviceRunCountdown();
 
     void reply(const char* line) { sink->WriteLine(line); }

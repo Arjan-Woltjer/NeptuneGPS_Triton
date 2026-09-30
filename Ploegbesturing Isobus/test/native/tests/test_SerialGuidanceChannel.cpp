@@ -207,6 +207,33 @@ test(SerialGuidanceChannel, sentence_tap_keeps_last_line_and_counts) {
     assertEqual(ch.GetLastSentence(), "$GPVTG,213.4,T,,M,002.91,N,005.39,K*61");
 }
 
+// Two lines in one Update() overwrite each other in GetLastSentence(); the
+// callback sees both, in order (NeptuneGPS_Triton#185).
+struct TapRecorder {
+    int  calls = 0;
+    char lines[2][100] = {};
+    static void Record(void* context, const char* sentence) {
+        TapRecorder* self = static_cast<TapRecorder*>(context);
+        if (self->calls < 2) strncpy(self->lines[self->calls], sentence, sizeof(self->lines[0]) - 1);
+        ++self->calls;
+    }
+};
+
+test(SerialGuidanceChannel, sentence_tap_callback_sees_every_line_in_order) {
+    FakeGpsSerial serial;
+    GuidanceSource g;
+    SerialGuidanceChannel ch(nullptr, &serial, &g);
+    TapRecorder rec;
+    ch.SetSentenceTap(&TapRecorder::Record, &rec);
+
+    serial.Feed(kGga);
+    serial.Feed(kVtg);
+    ch.Update();
+    assertEqual(rec.calls, 2);
+    assertEqual(strncmp(rec.lines[0], "$GPGGA,", 7), 0);
+    assertEqual(rec.lines[1], "$GPVTG,213.4,T,,M,002.91,N,005.39,K*61");
+}
+
 test(SerialGuidanceChannel, sentence_tap_shows_trimble_frame_as_printable_remains) {
     FakeGpsSerial serial;
     GuidanceSource g;

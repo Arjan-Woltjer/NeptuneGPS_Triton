@@ -580,6 +580,73 @@ test(RemoteSprayer, nmea_offByDefault_onDemand_rateLimited) {
     assertEqual(sink.count(), (size_t)0);
 }
 
+// A receiver sends its whole 1 Hz burst within ~70 ms (NeptuneGPS_Triton#185:
+// the original LD unit's RMC, VTG, GGA, 5x GSA, 7x GSV, GLL, ZDA, TXT). A tap
+// that kept only the last line sent VTG, GLL and TXT and never GGA. Every
+// sentence must reach the app, in order, still one per 50 ms slot.
+test(RemoteSprayer, nmea_burst_everySentenceReachesTheApp_oneSlotEach) {
+    static const char* const burst[] = {
+        "$GNRMC,093746.00,A,5325.10704,N,00643.56111,E,0.20,,300926,,,A,V*27",
+        "$GNVTG,,,,,0.20,N,0.38,K,A*2D",
+        "$GNGGA,093746.00,5325.10704,N,00643.56111,E,1,08,1.3,11.47,M,40.76,M,,*41",
+        "$GNGSA,A,3,04,07,09,11,16,21,30,,,,,,2.4,1.3,2.1,1*3B",
+        "$GPGSV,3,3,09,30,34,192,09,1*5A",
+        "$GNGLL,5325.10694,N,00643.56124,E,093745.00,A,A*75",
+        "$GNZDA,093745.00,30,09,2026,00,00*78",
+        "$GPTXT,01,01,01,ANTENNA OK*35",
+    };
+    const size_t n = sizeof(burst) / sizeof(burst[0]);
+
+    rReset();
+    remote.HandleLine("TELEM N 1");
+    sink.clear();
+    for (size_t i = 0; i < n; ++i) { rSerial.Feed(burst[i]); rSerial.Feed("\r\n"); }
+
+    tick(1000, 0.0f);
+    assertEqual(sink.count(), (size_t)1);          // paced: one line per slot, not the burst at once
+    tick(1020, 0.0f);
+    assertEqual(sink.count(), (size_t)1);
+    for (size_t i = 1; i < n; ++i) tick(1000 + 50 * i, 0.0f);
+
+    assertEqual(sink.count(), n);
+    for (size_t i = 0; i < n; ++i) {
+        assertEqual(sink.at(i).c_str(), (std::string("N:") + burst[i]).c_str());
+    }
+}
+
+// More sentences than the queue holds: the ones that don't fit are dropped,
+// the console is told once, and for the rest of this TELEM N session only the
+// sentences the firmware itself uses are queued. TELEM N 1 starts afresh.
+test(RemoteSprayer, nmea_queueOverflow_fallsBackToUsedSentences) {
+    rReset();
+    remote.HandleLine("TELEM N 1");
+    sink.clear();
+    // One more than fits: that one is dropped, and it switches the filter on.
+    for (size_t i = 0; i < RemoteSprayer::kNmeaQueueLength + 1; ++i) rSerial.Feed("$GPGSV,3,3,09,30,34,192,09,1*5A\r\n");
+    unsigned long t = 1000;
+    tick(t, 0.0f);
+
+    // After the overflow: a GSV is filtered out (not counted as dropped), a GGA is not.
+    rSerial.Feed("$GPGSV,3,3,09,30,34,192,09,1*5A\r\n");
+    rSerial.Feed("$GNGGA,093746.00,5325.10704,N,00643.56111,E,1,08,1.3,11.47,M,40.76,M,,*41\r\n");
+    for (size_t i = 0; i < RemoteSprayer::kNmeaQueueLength + 5; ++i) { t += 50; tick(t, 0.0f); }
+
+    // Every queued GSV, then the notice, then the GGA; nothing else.
+    assertEqual(sink.count(), (size_t)RemoteSprayer::kNmeaQueueLength + 2);
+    assertEqual(sink.at(RemoteSprayer::kNmeaQueueLength).c_str(),
+                "N:# queue full, 1 dropped: GGA VTG XTE TXT only from now on");
+    assertEqual(sink.last().c_str(),
+                "N:$GNGGA,093746.00,5325.10704,N,00643.56111,E,1,08,1.3,11.47,M,40.76,M,,*41");
+
+    // TELEM N 1 again: the full stream is back.
+    remote.HandleLine("TELEM N 1");
+    sink.clear();
+    rSerial.Feed("$GPGSV,3,3,09,30,34,192,09,1*5A\r\n");
+    t += 50; tick(t, 0.0f);
+    assertEqual(sink.count(), (size_t)1);
+    assertEqual(sink.last().c_str(), "N:$GPGSV,3,3,09,30,34,192,09,1*5A");
+}
+
 // The whole path a real receiver takes: bytes on the port, the channel's
 // checksum and parser, GuidanceSource, ImplementSprayer's speed average, a
 // pump duty. The stub this suite used before could only assert the last
