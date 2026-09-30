@@ -49,6 +49,12 @@ Saturn#14). The short version:
   debug it at the rig.
 - **Laptop, once, before leaving:** `py -m pip install gs_usb pyusb libusb pyserial`,
   then plug Saturn in so Windows binds its driver. Use `py`, never `python`.
+  **Done on the field laptop, 2026-09-30 evening.** It has no `py`: its Python is uv's
+  (installed by VS Code) and refuses pip, so the packages (plus `mdf_iter numpy pandas`
+  for `compare_capture.py`) are in a venv. Use its interpreter wherever this file says `py`:
+  `C:\Users\arjan\.venvs\can\Scripts\python.exe tools\gsusb_capture.py capture --label ...`
+  Saturn 13251400 enumerated there with WinUSB (console COM3), opens through libusb, and
+  `compare_capture.py selftest` passes on log 25.
 - **Hardware at the rig:**
   - Termination jumper for bus A **out**.
   - The Jupiter needs **its own 12 V supply**: on USB alone FlexCAN never synchronises.
@@ -65,6 +71,20 @@ Saturn#14). The short version:
 - **Output:** `NeptuneGPS Saturn/captures/<date>_<time>_<label>_saturn.csv` plus
   `.console.log`. Gitignored, so copy both to
   `OneDrive\MeijWorks Projects\CANedge logs\saturn\` next to the session's MF4.
+
+## Session 14, same visit, after the session 13 repeat
+
+`SESSION_14_TEST_BRIEF.md` (Ag Leader, where the InCommand 1200 puts cross-track error)
+gives Saturn a second job. It stays on the same receive-only build:
+
+- **First, the bit-rate probe on the Ag Leader's own module bus, CAN A.** The rate that
+  shows frames/s > 0 is right. `NO FRAMES` means the wrong rate. In listen-only there are
+  no `err` rows at any rate, so don't wait for them.
+- **Then a second CAN A log next to CANedge ch2.** Saturn's clock is real time, which the
+  CANedge's isn't. `compare_capture.py <saturn.csv> <MF4> --channel 2` prints
+  `laptop time = CANedge time + X s`.
+- **Saturn never goes alone on a bus that no CANedge channel sees**, or it can't be
+  aligned.
 
 ## Afterwards (either machine)
 

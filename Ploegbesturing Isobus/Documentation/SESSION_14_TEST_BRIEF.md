@@ -98,8 +98,14 @@ py tools/gsusb_capture.py --bitrate 1000000 capture --label probe-cana-1m   --du
 py tools/gsusb_capture.py --bitrate 125000  capture --label probe-cana-125k --duration 20
 ```
 
-Right rate: frames/s > 0 in the status line, console `synch`, no `err` rows.
-Wrong rate: `NO FRAMES`, `err` rows, REC climbing. If it is not 250k, put the
+On the field laptop, `py` is `C:\Users\arjan\.venvs\can\Scripts\python.exe`: it has no
+`py` (see `logs/2026-10-01_session12-13_repeat_handover.md`).
+
+Right rate: frames/s > 0 in the status line. Wrong rate: `NO FRAMES`. That is
+the only signal. In listen-only, FlexCAN's error counters are frozen, so Saturn
+never produces `err` rows and REC stays 0 at any rate. It also only receives
+frames another node has ACKed, which CAN A's modules do for each other. `synch`
+is in the capture's `.console.log` (10 s heartbeat), not on screen. If it is not 250k, put the
 other config on the card and power-cycle the CANedge. Then start the real
 capture and leave it running to the end:
 
@@ -109,8 +115,8 @@ py tools/gsusb_capture.py --bitrate <rate> capture --label session14-agleader-ca
 
 ### 3.3 Before engaging autosteer
 
-Engine on, autosteer off: the display shows no CAN/module fault, Saturn shows
-`synch` and no `err` rows, the CANedge LEDs show both channels logging. Only
+Engine on, autosteer off: the display shows no CAN/module fault, Saturn's
+status line shows frames/s > 0, the CANedge LEDs show both channels logging. Only
 then engage. If the display complains about the tap at any point: pull the
 tap, note the time, and run ch2 on the tractor bus instead.
 
@@ -162,7 +168,7 @@ longitude on a straight pass.
 SETUP [ ] GPS page: correction ____ fix ____   [ ] CAN A terminator found (photo, PN ____)
       [ ] key off: 120 Ω on plug pins __/__ ; harness __ Ω   [ ] key on: 12 V pin __ GND __ H __ L __
       [ ] Saturn probe -> rate ______   [ ] CANedge ch2 config matches   [ ] CANedge power-cycled
-      [ ] engine on, autosteer off: no display fault, Saturn synch, no err rows
+      [ ] engine on, autosteer off: no display fault, Saturn frames/s > 0
 LOG   [ ] Saturn capture --label session14-agleader-cana   [ ] CANedge logging   [ ] serial log, menu 2 ON
       [ ] S1 ECU power-cycle __:__:__   [ ] S2 A __:__:__ B __:__:__ width ____ m
       [ ] S3 engaged __:__:__ XTE call-outs / film   [ ] menu 1 dump
@@ -180,7 +186,7 @@ NOTE  [ ] L160 fitted?   [ ] Devices screen photos   [ ] NMEA Out menu + firmwar
 - CANedge MF4 named with the card session, in `Documentation/canlogs/`, with a
   README row. Serial log in `Documentation/logs/`, timeline by hand.
 - Analysis, in this order (Python 3.13 on the workstation):
-  1. `compare_capture.py <saturn.csv> <MF4> --channel 2` → real time for the CANedge log.
+  1. `compare_capture.py <saturn.csv> <MF4> --channel 2` → real time for the CANedge log: the "Clock: laptop time = CANedge time + X s" line (Saturn PR #14, a40abde).
   2. `mf4_to_pcap.py <MF4> --inventory --channel 2` and `--channel 1` → who is on CAN A.
   3. `xte_hunt.py <MF4> --pos-channel 1 --pos-sa 0x80 --scan-channel 2 --line-window <S2..S3> --spacing <width>`, then `--scan-channel 1`.
   4. `gps_traffic_map.py <MF4> --src 0xCD` and `--src 0x80` around S3/S5: request/answer traffic, 65535 selectors while engaged.
