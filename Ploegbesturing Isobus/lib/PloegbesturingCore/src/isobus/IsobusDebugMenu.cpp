@@ -173,7 +173,13 @@ void IsobusDebugMenu::printFullDump() {
 
     serialDebug->print("Address claim: ");
     serialDebug->print(claimed ? "CLAIMED  address=0x" : "NOT CLAIMED");
-    if (claimed) serialDebug->print(controlFunction->get_address(), HEX);
+    if (claimed) {
+        serialDebug->print(controlFunction->get_address(), HEX);
+        // Our NAME's identity, from the board's serial since TC06 (#45) --
+        // what to look for on the bus to tell two ploughs apart.
+        serialDebug->print("  identity=");
+        serialDebug->print(controlFunction->get_NAME().get_identity_number());
+    }
     serialDebug->println();
 
     {
@@ -472,6 +478,14 @@ void IsobusDebugMenu::printFullDump() {
         }
         serialDebug->print("  [on bus] Other, addressed to us:  ");
         serialDebug->println(tcInterface->GetBusOtherProcessDataCount());
+        // Working width, DDI 67 (#150): changes counted, and how many of them
+        // were sent to the TC (only while connected).
+        serialDebug->print("  Working width (DDI 67): ");
+        serialDebug->print(tcInterface->GetLastWidthCm());
+        serialDebug->print(" cm, changes ");
+        serialDebug->print(tcInterface->GetWidthChangeCount());
+        serialDebug->print(", reported ");
+        serialDebug->println(tcInterface->GetWidthReportCount());
         // Partner address/validity: the thing that silently went false in
         // both #17 and #19 and was readable nowhere at the time.
         serialDebug->print("  Partner: addr=0x");

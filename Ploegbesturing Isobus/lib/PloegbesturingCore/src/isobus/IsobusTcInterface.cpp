@@ -73,6 +73,12 @@ constexpr std::uint16_t kObjTrackRight            = 13;  // DDI 510
 constexpr std::uint16_t kObjTrackLeft             = 14;  // DDI 511
 constexpr std::uint16_t kObjTramlineState         = 15;  // DDI 515
 
+// Working width, TC06 (NeptuneGPS_Triton#150).
+constexpr std::uint16_t kObjActualWidth  = 16;  // DDI 67, process data, reported on change
+constexpr std::uint16_t kObjDefaultWidth = 17;  // DDI 68, property
+constexpr std::uint16_t kObjMinWidth     = 18;  // DDI 69, property
+constexpr std::uint16_t kObjMaxWidth     = 19;  // DDI 70, property
+
 // DDI 505 value: bitfield of Tramline Control Levels we support.
 //   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
 //
@@ -189,7 +195,7 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC05",  // Structure label -- bumped from TC01 for the
+                      "TC06",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
@@ -206,6 +212,10 @@ void IsobusTcInterface::buildDdop() {
                                // DDIs 507, 508, 509, 510, 511 and 515 to
                                // complete the Level 1 required set (six new
                                // objects), and sets DDI 505 to 0x01.
+                               // TC06 adds the working width (DDIs 67-70,
+                               // #150) and ships with the serial-derived
+                               // NAME identity (#45), so terminals re-upload
+                               // our pools once, on purpose.
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by
@@ -368,6 +378,34 @@ void IsobusTcInterface::buildDdop() {
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTrackLeft);
 
+    // --- Working width, TC06 (NeptuneGPS_Triton#150) ----------------------
+    // ImplementPlough's offset is the plough's total furrow width in cm,
+    // bounded to [shares * 20, shares * 60] (confirmed by the owner). With no
+    // width in the pool, a John Deere offered its own 3 m on every connect
+    // and, once acknowledged, replaced the operator's value -- which moves the
+    // guidance track spacing, and the XTE with it (session 11).
+    //
+    // 67 is what the plough actually has: reported by us, not settable, and
+    // sent on every change (see reportWidthIfChanged()). 68-70 are fixed
+    // properties of the machine. 66 (setpoint) is deliberately not declared:
+    // the terminal must not be able to command the plough's width. All in mm,
+    // as the DDIs define them; offset is in cm, hence the x10.
+    constexpr std::uint8_t kMemberOfDefaultSet = static_cast<std::uint8_t>(task_controller_object::DeviceProcessDataObject::PropertiesBit::MemberOfDefaultSet);
+    ddop->add_device_process_data("Actual Working Width",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth),
+                                   NULL_OBJECT_ID,
+                                   kMemberOfDefaultSet, kTriggers, kObjActualWidth);
+    const std::int32_t shares = (implement != nullptr) ? implement->GetShares() : 0;
+    ddop->add_device_property("Default Working Width", shares * 40 * 10,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::DefaultWorkingWidth),
+                               NULL_OBJECT_ID, kObjDefaultWidth);
+    ddop->add_device_property("Minimum Working Width", shares * 20 * 10,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::MinimumWorkingWidth),
+                               NULL_OBJECT_ID, kObjMinWidth);
+    ddop->add_device_property("Maximum Working Width", shares * 60 * 10,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::MaximumWorkingWidth),
+                               NULL_OBJECT_ID, kObjMaxWidth);
+
     // Same attachment requirement as the Connector's Offset X/Y above.
     auto functionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjFunction));
     functionElement->add_reference_to_child_object(kObjDeviation);
@@ -380,6 +418,10 @@ void IsobusTcInterface::buildDdop() {
     functionElement->add_reference_to_child_object(kObjActualTrack);
     functionElement->add_reference_to_child_object(kObjTrackRight);
     functionElement->add_reference_to_child_object(kObjTrackLeft);
+    functionElement->add_reference_to_child_object(kObjActualWidth);
+    functionElement->add_reference_to_child_object(kObjDefaultWidth);
+    functionElement->add_reference_to_child_object(kObjMinWidth);
+    functionElement->add_reference_to_child_object(kObjMaxWidth);
 }
 
 // ------------------------------------------------------------------
@@ -448,6 +490,34 @@ void IsobusTcInterface::Update() {
     if (tcClient) {
         tcClient->update();
         updateReconnectWatchdog();
+        reportWidthIfChanged();
+    }
+}
+
+// ------------------------------------------------------------------
+// Working width on change (#150). A Wider/Narrower press changes the
+// plough's width, so DDI 67 changes with it. Every change is counted; the
+// trigger is only fired while connected, because AgIsoStack's
+// on_value_changed_trigger() queues unconditionally and sends only once
+// connected -- presses made while disconnected would all flush as
+// duplicates on reconnect. A TC that wants the value after connecting asks
+// for it (the John Deere does exactly that for DDI 515).
+//
+// The trigger makes AgIsoStack call OnValueRequest() and send the result,
+// so the value that goes out is always the current one.
+// ------------------------------------------------------------------
+void IsobusTcInterface::reportWidthIfChanged() {
+    if (implement == nullptr) return;
+    const short int widthCm = implement->GetOffset();
+    if (widthCm == lastWidthCm) return;
+    const bool baseline = (lastWidthCm < 0);
+    lastWidthCm = widthCm;
+    if (baseline) return;   // the starting value is not a change
+    widthChangeCount++;
+    if (tcClient && tcClient->get_is_connected()) {
+        tcClient->on_value_changed_trigger(kElementFunction,
+                                           static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth));
+        widthReportCount++;
     }
 }
 
@@ -689,6 +759,13 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::GNSSQuality):
             processVariableValue = self->tcGnssQuality;
+            break;
+
+        // The plough's working width in mm; offset is kept in cm (#150).
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth):
+            processVariableValue = (self->implement != nullptr)
+                                       ? static_cast<std::int32_t>(self->implement->GetOffset()) * 10
+                                       : 0;
             break;
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber):  // 507
