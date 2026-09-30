@@ -64,6 +64,7 @@ bool SerialGuidanceChannel::Update() {
                 lastSentence[rawLen] = '\0';
                 sentenceSeq++;
                 rawLen = 0;
+                if (sentenceTap) sentenceTap(sentenceTapContext, lastSentence);
             }
         } else if (c >= 32 && c < 127 && rawLen < kMaxSentence) {
             rawSentence[rawLen++] = (char)c;

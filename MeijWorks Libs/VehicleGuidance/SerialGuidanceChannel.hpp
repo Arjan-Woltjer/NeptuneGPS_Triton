@@ -64,6 +64,14 @@ public:
     inline const char* GetLastSentence() const { return lastSentence; }
     inline uint32_t    GetSentenceSeq() const  { return sentenceSeq; }
 
+    // The same tap, without the overwriting: called from Update() once per
+    // line, in order, with the line as GetLastSentence() shows it. The
+    // pointer is only valid during the call. A receiver's 1 Hz burst lands
+    // in one Update(), so a poller of GetLastSentence() sees only its last
+    // line (NeptuneGPS_Triton#185). Pass nullptr to remove it.
+    using SentenceTap = void (*)(void* context, const char* sentence);
+    inline void SetSentenceTap(SentenceTap tap, void* context) { sentenceTap = tap; sentenceTapContext = context; }
+
 private:
     static constexpr uint8_t kMaxSentence = 90;
 
@@ -94,6 +102,8 @@ private:
     uint8_t  rawLen = 0;
     char     lastSentence[kMaxSentence + 1] = {};
     uint32_t sentenceSeq = 0;
+    SentenceTap sentenceTap = nullptr;
+    void*       sentenceTapContext = nullptr;
 
     // Route the current term to the active parser or find a new active parser.
     // Returns true when a valid sentence was just committed.

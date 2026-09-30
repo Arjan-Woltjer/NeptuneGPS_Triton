@@ -47,9 +47,11 @@ constexpr int kReplyLength = 96;
 RemoteSprayer::RemoteSprayer(ImplementSprayer* impl, SerialGuidanceChannel* gpsChannel, ConfigSprayer* config, RemoteSink* sink)
     : impl(impl), gpsChannel(gpsChannel), config(config), sink(sink),
       statusEnabled(false), gpsEnabled(false), nmeaEnabled(false),
-      lastStatusAt(0), lastGpsAt(0), lastNmeaAt(0), lastNmeaSeq(0),
+      lastStatusAt(0), lastGpsAt(0), lastNmeaAt(0),
       runWasActive(false), lastReportedSeconds(0), stagedPwmCount(0) {
+    resetNmea();
     stageFromLive();
+    if (gpsChannel) gpsChannel->SetSentenceTap(&RemoteSprayer::onSentence, this);
 }
 
 // ---------------------------------------------------------------------------
@@ -116,9 +118,8 @@ void RemoteSprayer::Update() {
         lastGpsAt = now;
         sendGps();
     }
-    if (nmeaEnabled && gpsChannel->GetSentenceSeq() != lastNmeaSeq && now - lastNmeaAt >= kNmeaMinIntervalMs) {
-        lastNmeaAt  = now;
-        lastNmeaSeq = gpsChannel->GetSentenceSeq();
+    if (nmeaEnabled && (nmeaCount > 0 || nmeaNoticePending) && now - lastNmeaAt >= kNmeaMinIntervalMs) {
+        lastNmeaAt = now;
         sendNmea();
     }
 }
@@ -135,6 +136,7 @@ void RemoteSprayer::OnDisconnect() {
     statusEnabled = false;
     gpsEnabled    = false;
     nmeaEnabled   = false;
+    resetNmea();
     runWasActive  = false;   // no R:0 into a dead link
     lastReportedSeconds = 0;
 }
@@ -380,7 +382,7 @@ void RemoteSprayer::handleTelem(int argc, const char* const argv[]) {
         lastGpsAt  = now;
     } else if (strcmp(argv[1], "N") == 0) {
         nmeaEnabled = on;
-        lastNmeaSeq = gpsChannel->GetSentenceSeq();   // only sentences from now on
+        resetNmea();   // only sentences from now on, and the full set again
         lastNmeaAt  = now;
     } else {
         err("args");
@@ -453,12 +455,65 @@ void RemoteSprayer::sendStatus() {
     reply(line);
 }
 
-// N:<sentence>, the receiver's last complete line as it came in. For
-// debugging the receiver from the app; the parser is not involved.
+// N:<sentence>, the oldest queued receiver line as it came in, or the
+// overflow note once the lines queued ahead of it have gone. For debugging
+// the receiver from the app; the parser is not involved.
 void RemoteSprayer::sendNmea() {
     char line[kReplyLength];
-    snprintf(line, sizeof(line), "N:%s", gpsChannel->GetLastSentence());
+    if (nmeaNoticePending && nmeaBeforeNotice == 0) {
+        nmeaNoticePending = false;
+        snprintf(line, sizeof(line), "N:# queue full, %lu dropped: GGA VTG XTE TXT only from now on",
+                 (unsigned long)nmeaDropped);
+        reply(line);
+        return;
+    }
+    if (nmeaCount == 0) return;
+    snprintf(line, sizeof(line), "N:%s", nmeaQueue[nmeaHead]);
+    nmeaHead = (nmeaHead + 1) % kNmeaQueueLength;
+    --nmeaCount;
+    if (nmeaNoticePending && nmeaBeforeNotice > 0) --nmeaBeforeNotice;
     reply(line);
+}
+
+void RemoteSprayer::resetNmea() {
+    nmeaHead          = 0;
+    nmeaCount         = 0;
+    nmeaFiltered      = false;
+    nmeaNoticePending = false;
+    nmeaBeforeNotice  = 0;
+    nmeaDropped       = 0;
+}
+
+// Called by the channel for every line, from inside its Update().
+void RemoteSprayer::onSentence(void* context, const char* sentence) {
+    static_cast<RemoteSprayer*>(context)->queueNmea(sentence);
+}
+
+void RemoteSprayer::queueNmea(const char* sentence) {
+    if (!nmeaEnabled) return;
+    if (nmeaFiltered && !nmeaUsed(sentence)) return;
+    if (nmeaCount == kNmeaQueueLength) {
+        ++nmeaDropped;
+        if (!nmeaNoticePending) {
+            nmeaNoticePending = true;
+            nmeaBeforeNotice  = nmeaCount;
+        }
+        nmeaFiltered = true;
+        return;
+    }
+    char* slot = nmeaQueue[(nmeaHead + nmeaCount) % kNmeaQueueLength];
+    strncpy(slot, sentence, kNmeaSentenceLength);
+    slot[kNmeaSentenceLength] = 0;
+    ++nmeaCount;
+}
+
+// The sentences NmeaParser acts on, whatever the talker: position and
+// quality, speed, cross-track error, the antenna status text.
+bool RemoteSprayer::nmeaUsed(const char* sentence) {
+    if (sentence[0] != '$' || strlen(sentence) < 6) return false;
+    const char* type = sentence + 3;
+    return strncmp(type, "GGA", 3) == 0 || strncmp(type, "VTG", 3) == 0
+        || strncmp(type, "XTE", 3) == 0 || strncmp(type, "TXT", 3) == 0;
 }
 
 // G:<quality>,<lat>,<lon>,<fixAgeMs>; age -1 until the first position fix.
