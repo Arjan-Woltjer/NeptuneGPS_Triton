@@ -69,6 +69,10 @@ or you are testing the old library.
   address-claimed would be one more join. Listen-only, it doesn't exist on the
   bus. Wire and power it **before** the terminals come up, and leave it
   through the power-cycles.
+- **Part 2 of this visit is `SESSION_14_TEST_BRIEF.md`** (driven, autosteer
+  engaged, CANedge ch2 + Saturn on Ag Leader's CAN A): where does the
+  InCommand put its cross-track error. Saturn is better spent there than as a
+  second ISOBUS logger; ch1 already covers the ISOBUS.
 - **Serial log** on from power-on.
 
 ---
