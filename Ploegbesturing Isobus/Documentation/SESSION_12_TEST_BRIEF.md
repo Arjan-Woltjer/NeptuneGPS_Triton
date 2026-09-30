@@ -332,7 +332,17 @@ CAN controller: error-PASSIVE  TX err 128 (peak 128)  RX err 0 (peak 0)
 
 - **CANedge on the ISOBUS segment**, logging *before* the board powers on:
   passive tap, and the logger's termination **off**.
+  **Check the SD card is in the CANedge before starting it.** The first
+  session 12 run (2026-09-30) was done without one, and nothing was captured.
 - **Triton on the bus at the same time.**
+- **Optional: Saturn as a second, passive logger** (NeptuneGPS Saturn,
+  `docs/field-capture.md`). Only the `teensy41_jupiter_receive_only` build,
+  bench-tested the night before (`py tools/gsusb_capture.py bench`). **Never the
+  VT app on this bus.** Termination jumper out, the Jupiter on its own supply,
+  wired from the CANedge's tap. Plug its USB in after Triton is flashed. Start
+  `py tools/gsusb_capture.py capture --label session12-jd-vanos` before the
+  tractor and Triton, and stop it after the CANedge. If it costs attention the
+  brief needs, leave it out: the CANedge is the capture that counts.
 - **Serial log** with the 1 Hz summary line (menu 2), plus a full dump (menu 1)
   after each test in section 3.
 - **A handwritten timeline:** date, rig, owner, plough (shares, 4 or 4+1, side),

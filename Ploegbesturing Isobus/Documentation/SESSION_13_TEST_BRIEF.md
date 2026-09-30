@@ -60,6 +60,15 @@ or you are testing the old library.
   **It is required this time.** It is the only proof that roll-calls happened
   (section 4), and the only way to read `0xCD`'s and `0xAC`'s NAMEs, which the
   serial log cannot print.
+  **Check the SD card is in the CANedge before starting it.** The first
+  session 13 run (2026-09-30) was done without one: the serial side looked
+  like a pass, but with no capture it proves nothing.
+- **Optional: Saturn as a second, passive logger**, set up as in session 12
+  (`--label session13-nh-vanmastwijk`). It must be the receive-only build and
+  never the VT app: this test counts joins and roll-calls, and a Saturn that
+  address-claimed would be one more join. Listen-only, it doesn't exist on the
+  bus. Wire and power it **before** the terminals come up, and leave it
+  through the power-cycles.
 - **Serial log** on from power-on.
 
 ---
