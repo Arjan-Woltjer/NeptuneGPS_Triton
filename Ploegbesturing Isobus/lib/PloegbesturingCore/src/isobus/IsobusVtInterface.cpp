@@ -131,15 +131,19 @@ void IsobusVtInterface::Begin() {
     // silent -- nothing errors, the terminal just shows an old screen. Bump
     // this on every change to VT3PoolData, exactly as the DDOP's TC0x label
     // is bumped on every DDOP change.
-    // Bumped MW04 -> MW05, 2026-10-01: 12x16 font and autoscaling (below).
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW05");
+    // Bumped MW04 -> MW05 -> MW06, 2026-10-01: 12x16 font and autoscaling
+    // (below), then AgIsoStack's soft-key scaling fix (neptune-main a9453ff).
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW06");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
     // (session 13 repeat, 2026-10-01). AgIsoStack reads the terminal's data
     // mask and soft key sizes during the handshake and resizes positions,
     // sizes and fonts before the upload. Each terminal caches its own scaled
-    // copy under the label, so one label still serves every screen size.
+    // copy under the label, so one label still serves every screen size --
+    // and so a change in how the pool SCALES (these numbers, or AgIsoStack's
+    // scaling code) needs a label bump just like a change to the pool itself:
+    // the bench VT kept showing MW05 scaled by the pre-fix library.
     vtClient->set_object_pool_scaling(0, 200, 60);
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
