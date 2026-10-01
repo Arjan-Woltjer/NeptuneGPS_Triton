@@ -9,10 +9,12 @@ $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PloegbesturingCore\src"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
 $implement = "$root\lib\PloegbesturingCore\src\implement"
-# The real AgIsoStack, compiled for the host (NeptuneGPS_Triton#98). Its core
-# is portable C++17; only flex_can_t4_plugin.cpp is Teensy-bound and is
-# filtered out below. Fetched by "pio pkg install -e native".
-$agisostack = "$root\.pio\libdeps\native\AgIsoStack\src"
+# The real AgIsoStack-plus-plus, compiled for the host (NeptuneGPS_Triton#98,
+# #189). Its core is portable C++17. The tree is nested: three include roots,
+# and sources from isobus/src, utility/src and the one portable file in
+# hardware_integration/src. Fetched by "pio pkg install -e native".
+$agisostack = "$root\.pio\libdeps\native\AgIsoStack__"
+$agisostackIncludes = "/I`"$agisostack\isobus\include`" /I`"$agisostack\utility\include`" /I`"$agisostack\hardware_integration\include`""
 $test    = "$root\test\native\tests"
 $driver  = "$root\test\native\PloegbesturingNativeTests.cpp"
 $out     = "$env:TEMP\msvc_test"
@@ -58,7 +60,7 @@ $aunitSources = @(
 # SalaciaFirmwareCore convention), and $lib is only for the test_*.cpp files
 # below reaching in via library-root-relative paths ("implement/
 # ImplementPlough.hpp" etc.).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /DISOBUS /DCAN_STACK_DISABLE_THREADS /I`"$aunit`" /I`"$agisostack`" /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /DISOBUS /DCAN_STACK_DISABLE_THREADS /I`"$aunit`" $agisostackIncludes /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches
@@ -69,10 +71,12 @@ Write-Host "=== Building PloegbesturingNativeTests ===" -ForegroundColor Cyan
 
 $testSources = (Get-ChildItem "$test\test_*.cpp" | ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
-# Every AgIsoStack core source except the one Teensy-bound plugin, matching
-# platformio.ini's glob-plus-exclusion for [env:native].
-$agisostackSources = (Get-ChildItem "$agisostack\*.cpp" |
-    Where-Object { $_.Name -ne 'flex_can_t4_plugin.cpp' } |
+# The AgIsoStack core, matching platformio.ini's [env:native] build_src_filter:
+# everything under isobus/src and utility/src, plus the hardware interface (the
+# other hardware_integration sources are drivers for real CAN hardware).
+$agisostackSources = ((@(Get-ChildItem "$agisostack\isobus\src\*.cpp") +
+    @(Get-ChildItem "$agisostack\utility\src\*.cpp") +
+    @(Get-Item "$agisostack\hardware_integration\src\can_hardware_interface.cpp")) |
     ForEach-Object { "`"$($_.FullName)`"" }) -join ' '
 
 # Through a response file, not the command line: AgIsoStack adds 40 source

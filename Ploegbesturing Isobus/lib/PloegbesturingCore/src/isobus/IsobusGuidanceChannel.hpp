@@ -42,9 +42,9 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_hardware_plugin.hpp>
-#include <can_internal_control_function.hpp>
-#include <can_message.hpp>
+#include <isobus/hardware_integration/can_hardware_plugin.hpp>
+#include <isobus/isobus/can_internal_control_function.hpp>
+#include <isobus/isobus/can_message.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 

@@ -28,6 +28,15 @@
 #include "VehicleTractor.hpp"
 
 #ifdef ISOBUS
+// The FlexCAN plugin used to arrive through the AgIsoStack.hpp umbrella the
+// Arduino packaging generated; AgIsoStack-plus-plus has no umbrella (#189).
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
+#include <isobus/hardware_integration/flex_can_t4_plugin.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 #include "isobus/IsobusDebugMenu.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
 #include "isobus/IsobusVtInterface.hpp"

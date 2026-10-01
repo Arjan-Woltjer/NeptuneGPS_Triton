@@ -30,8 +30,8 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_NAME_filter.hpp>
-#include <can_network_manager.hpp>
+#include <isobus/isobus/can_NAME_filter.hpp>
+#include <isobus/isobus/can_network_manager.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 

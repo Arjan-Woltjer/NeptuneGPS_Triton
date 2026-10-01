@@ -36,11 +36,11 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_hardware_interface_single_thread.hpp>
-#include <can_network_manager.hpp>
-#include <isobus_device_descriptor_object_pool.hpp>
-#include <isobus_standard_data_description_indices.hpp>
-#include <isobus_task_controller_client_objects.hpp>
+#include <isobus/hardware_integration/can_hardware_interface.hpp>
+#include <isobus/isobus/can_network_manager.hpp>
+#include <isobus/isobus/isobus_device_descriptor_object_pool.hpp>
+#include <isobus/isobus/isobus_standard_data_description_indices.hpp>
+#include <isobus/isobus/isobus_task_controller_client_objects.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -203,14 +203,14 @@ test(IsobusTcInterface, ddop_generatesAndParsesBack) {
 // would be silent on the bench and cost another rig session.
 test(IsobusTcInterface, ddop_declaresTheCompleteTramlineControlLevel1Set) {
     const auto ddis = DdisInUploadedPool();
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::TramlineControlLevel));            // 505
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::SetpointTramlineControlLevel));    // 506
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::TramlineSequenceNumber));          // 507
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::UniqueABGuidanceReferenceLineID)); // 508
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::ActualTrackNumber));               // 509
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::TrackNumberToTheRight));           // 510
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::TrackNumberToTheLeft));            // 511
-    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::TramlineControlState));            // 515
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::SupportedTrackControlLevels));            // 505
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::SetpointTrackControlLevel));    // 506
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::GuidanceTrackSequenceNumber));          // 507
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID)); // 508
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::ActualGuidanceTrackNumber));               // 509
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::GuidanceTrackNumberToTheRight));           // 510
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::GuidanceTrackNumberToTheLeft));            // 511
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::TrackControlState));            // 515
 }
 
 test(IsobusTcInterface, ddop_declaresTheTwoGuidanceDdisWeActuallyConsume) {
@@ -289,7 +289,7 @@ test(IsobusTcInterface, valueCommand_countsEveryDdi_notJustTheOnesWeUse) {
 // is that 506 arrived at all, so it has to survive to be read off the debug
 // menu afterwards. Level 0 ("no common level") still counts as an answer.
 test(IsobusTcInterface, valueCommand_tramlineSetpointLatchesEvenAtLevelZero) {
-    Command(isobus::DataDescriptionIndex::SetpointTramlineControlLevel, 0);
+    Command(isobus::DataDescriptionIndex::SetpointTrackControlLevel, 0);
     assertTrue(Fixture().HasTramlineSetpoint());
     assertEqual(Fixture().GetTramlineSetpointLevel(), 0);
 
@@ -299,14 +299,14 @@ test(IsobusTcInterface, valueCommand_tramlineSetpointLatchesEvenAtLevelZero) {
 }
 
 test(IsobusTcInterface, valueCommand_guidanceTrackFieldsAreStored) {
-    Command(isobus::DataDescriptionIndex::TramlineSequenceNumber, 7);
+    Command(isobus::DataDescriptionIndex::GuidanceTrackSequenceNumber, 7);
     assertTrue(Fixture().HasGuidanceTrackInfo());
     assertEqual((int)Fixture().GetTramlineSequenceNumber(), 7);
 
-    Command(isobus::DataDescriptionIndex::UniqueABGuidanceReferenceLineID, 42);
+    Command(isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID, 42);
     assertEqual((int)Fixture().GetAbLineId(), 42);
 
-    Command(isobus::DataDescriptionIndex::TramlineControlState, 1);
+    Command(isobus::DataDescriptionIndex::TrackControlState, 1);
     assertTrue(Fixture().HasTrackControlState());
     assertEqual((int)Fixture().GetCommandedTrackControlState(), 1);
 }
@@ -314,13 +314,13 @@ test(IsobusTcInterface, valueCommand_guidanceTrackFieldsAreStored) {
 test(IsobusTcInterface, valueRequest_echoesWhatTheTcWroteToUs) {
     Command(isobus::DataDescriptionIndex::GuidanceLineDeviation, 125);
     Command(isobus::DataDescriptionIndex::GNSSQuality, 4);
-    Command(isobus::DataDescriptionIndex::TramlineSequenceNumber, 9);
-    Command(isobus::DataDescriptionIndex::UniqueABGuidanceReferenceLineID, 77);
+    Command(isobus::DataDescriptionIndex::GuidanceTrackSequenceNumber, 9);
+    Command(isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID, 77);
 
     assertEqual((int)Request(isobus::DataDescriptionIndex::GuidanceLineDeviation), 125);
     assertEqual((int)Request(isobus::DataDescriptionIndex::GNSSQuality), 4);
-    assertEqual((int)Request(isobus::DataDescriptionIndex::TramlineSequenceNumber), 9);
-    assertEqual((int)Request(isobus::DataDescriptionIndex::UniqueABGuidanceReferenceLineID), 77);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::GuidanceTrackSequenceNumber), 9);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID), 77);
 }
 
 // DDI 515 shares DDI 160's definition: the TC sets the state and the client
@@ -328,9 +328,9 @@ test(IsobusTcInterface, valueRequest_echoesWhatTheTcWroteToUs) {
 // performs track control. Answering with the commanded value would be a lie
 // the TC has no way to detect.
 test(IsobusTcInterface, valueRequest_trackControlStateAnswersOurOwnState_notTheCommandedOne) {
-    Command(isobus::DataDescriptionIndex::TramlineControlState, 1);
+    Command(isobus::DataDescriptionIndex::TrackControlState, 1);
     assertEqual((int)Fixture().GetCommandedTrackControlState(), 1);
-    assertEqual((int)Request(isobus::DataDescriptionIndex::TramlineControlState), 0);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::TrackControlState), 0);
 }
 
 test(IsobusTcInterface, valueRequest_countsEveryRequest) {
