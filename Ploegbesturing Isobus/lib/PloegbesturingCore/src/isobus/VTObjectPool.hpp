@@ -79,6 +79,29 @@ enum PloughVtObjectId : uint16_t {
     // pool a VT has cached under this working set's version label.
     Key_Calibrate   = 24,
     Label_Calibrate = 25,
+
+    // Top-view picture of the tractor and plough (VTImages.hpp), one per
+    // ploughing side, shown through an ObjectPointer that IsobusVtInterface
+    // points at the side ImplementPlough::GetSide() reports.
+    Img_PloughLeft  = 26,
+    Img_PloughRight = 27,
+    Ptr_PloughImage = 28,
+
+    // GPS and speed indicators: a green dot when the control's own gate is
+    // met (PloughGates.hpp), a red triangle when it is not, each through a
+    // pointer IsobusVtInterface switches; plus the speed itself in km/h.
+    Img_StatusOk     = 29,
+    Img_StatusWarn   = 30,
+    Ptr_GpsStatus    = 31,
+    Ptr_SpeedStatus  = 32,
+    Label_Gps        = 33,
+    Out_Speed        = 34,
+    Var_Speed        = 35,  // 0.1 km/h
+    Label_SpeedUnit  = 36,
+    // Its own 8x8 font, not Font_White_Small: a font shared with the soft key
+    // labels would make AgIsoStack scale those labels' font with the data
+    // mask factor again (neptune-main a9453ff keeps shared fonts there).
+    Font_White_Unit  = 37,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
