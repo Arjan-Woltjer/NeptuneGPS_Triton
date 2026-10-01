@@ -404,6 +404,12 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print(vtInterface->IsPartnerAddressValid() ? "Y" : "N");
         serialDebug->print("  reconnect attempts=");
         serialDebug->println(vtInterface->GetReconnectAttemptCount());
+        // VT failover (VtFailoverPolicy.hpp): switches to another VT, and the
+        // address-claim requests sent while looking for one.
+        serialDebug->print("  VT failover: switches=");
+        serialDebug->print(vtInterface->GetVtSwitchCount());
+        serialDebug->print(" claim requests=");
+        serialDebug->println(vtInterface->GetVtClaimRequestCount());
     }
 
     serialDebug->println("--- Task Controller ---");
