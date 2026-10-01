@@ -564,7 +564,7 @@ boolean ImplementPlough::readCalibrationData() {
 //---------------------------------------------------
 //Method for printing calibration data to serial port
 //---------------------------------------------------
-void ImplementPlough::PrintCalibrationData() {
+FLASHMEM void ImplementPlough::PrintCalibrationData() {
     // Print amount of times started
     serialDebug->println("Times started");
     serialDebug->println(EEPROM.read(0));
