@@ -41,7 +41,7 @@ void CalibrationPlough::commitGuidanceCalibration() {
     EEPROM.write(kEepromRtkQuality, guidance->GetRtkQuality());
 }
 
-void CalibrationPlough::PrintCalibrationData() {
+FLASHMEM void CalibrationPlough::PrintCalibrationData() {
     serialDebug->println("=====================================");
     serialDebug->println("Guidance source using following data:");
     serialDebug->println("=====================================");
@@ -53,7 +53,7 @@ void CalibrationPlough::PrintCalibrationData() {
 // --------------------------------
 // Method for calibrating implement
 // --------------------------------
-void CalibrationPlough::Calibrate() {
+FLASHMEM void CalibrationPlough::Calibrate() {
     // Stop any adjusting
     implement->Stop();
 
