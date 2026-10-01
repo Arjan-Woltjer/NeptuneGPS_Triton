@@ -36,6 +36,7 @@
 #undef max
 #include <can_internal_control_function.hpp>
 #include <can_message.hpp>
+#include <can_NAME_filter.hpp>
 #include <can_partnered_control_function.hpp>
 #include <can_stack_logger.hpp>
 #include <event_dispatcher.hpp>
@@ -46,6 +47,7 @@
 
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
+#include "VtFailoverPolicy.hpp"
 
 namespace triton
 {
@@ -133,12 +135,20 @@ public:
     // this to TaskControllerClient as its `primaryVT`, which is what the TC
     // client uses to source ISO 11783-7 language/unit data when the connected
     // TC server is older than version 4 -- see IsobusTcInterface::Begin().
-    // Null until Begin() has run.
+    // Null until Begin() has run. After a VT failover this returns the new
+    // partner, but the TC client keeps the one it was given at Begin(): only
+    // its language/unit source for TC < 4 is affected, and only until reboot.
     std::shared_ptr<isobus::PartneredControlFunction> GetPartner() const { return partner; }
 
     // Reconnect watchdog counters (GitHub issue #18) -- see the private
     // reconnect fields for why this exists.
     unsigned int  GetReconnectAttemptCount() const { return reconnectAttempts; }
+
+    // VT failover counters -- see VtFailoverPolicy.hpp. Switches: times the
+    // client was rebuilt onto another VT. Requests: global requests for
+    // address claim sent while looking for one.
+    unsigned int  GetVtSwitchCount() const { return failover.GetSwitchCount(); }
+    unsigned int  GetVtClaimRequestCount() const { return failover.GetRequestCount(); }
 
     // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
     // release, cleared by the call itself (edge-triggered, matching a
@@ -243,8 +253,15 @@ private:
     unsigned long lastReconnectTryMs   = 0;
     unsigned int  reconnectAttempts    = 0;
 
+    // Moving to another VT when ours goes away (VtFailoverPolicy.hpp has the
+    // field case). The policy decides; updateFailover() carries it out.
+    VtFailoverPolicy failover;
+
+    void createClient(const std::vector<isobus::NAMEFilter>& filters);
     void updateVtVariables();
     void updateReconnectWatchdog();
+    void updateFailover();
+    void switchTo(std::uint8_t address);
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
     static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);
 };
