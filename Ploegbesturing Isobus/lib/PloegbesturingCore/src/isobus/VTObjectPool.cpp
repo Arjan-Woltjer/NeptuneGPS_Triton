@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "VTObjectPool.hpp"
+#include "VTImages.hpp"
 
 #include <string.h>
 
@@ -56,9 +57,14 @@ namespace triton
 {
 
 // ----------------------------------------------------------------
-// Pool storage -- sized to comfortably hold all 25 objects (~500 B)
+// Pool storage. The two plough pictures (VTImages.hpp) are ~5.4 KB each, so
+// the pool is ~11.5 KB; 16 KB leaves room. DMAMEM puts it in the Teensy 4.1's
+// RAM2 (512 KB, mostly free) instead of RAM1, whose free space is the stack.
 // ----------------------------------------------------------------
-static uint8_t  poolBuffer[1024];
+#ifndef DMAMEM
+#define DMAMEM
+#endif
+DMAMEM static uint8_t poolBuffer[16384];
 static uint32_t poolPos = 0;
 
 const uint8_t* VT3PoolData = nullptr;
@@ -67,7 +73,12 @@ uint32_t       VT3PoolSize = 0;
 // ----------------------------------------------------------------
 // Binary helpers -- all little-endian, matching ISO 11783-6 §B
 // ----------------------------------------------------------------
-static void pu8(uint8_t v) { poolBuffer[poolPos++] = v; }
+// Never writes past the buffer: an oversized pool shows up as VT3PoolSize
+// exceeding the capacity (test_VTObjectPool.cpp checks it), not as corruption.
+static void pu8(uint8_t v) {
+    if (poolPos < sizeof(poolBuffer)) poolBuffer[poolPos] = v;
+    poolPos++;
+}
 static void pu16(uint16_t v) { pu8(v & 0xFF); pu8(v >> 8); }
 static void pu32(uint32_t v) { pu16(v & 0xFFFF); pu16(v >> 16); }
 static void pi32(int32_t v) { pu32((uint32_t)v); }
@@ -149,13 +160,27 @@ static void appendSoftKeyMask(uint16_t id, uint8_t bgColour, uint8_t nKeys) {
     pu8(nKeys); pu8(0);  // N keys, 0 macros
 }
 
+// Soft key labels: an 8x8 font in a 10 px band, placed in the middle of the
+// 60x60 key the pool is designed for. Vertical centring is done by position:
+// VT3 has no vertical justification, and the InCommand 1200 is a VT3.
+static const uint16_t kKeyLabelW = 60;
+static const uint16_t kKeyLabelH = 10;
+static const uint16_t kKeyLabelY = (60 - kKeyLabelH) / 2;
+
 // Type 5: Key
 static void appendKey(uint16_t id, uint8_t bgColour, uint8_t keyCode, uint16_t labelID) {
     pu16(id); pu8(5);
     pu8(bgColour);
     pu8(keyCode);
     pu8(1); pu8(0);  // 1 child object, 0 macros
-    appendObjRef(labelID, 0, 0);
+    appendObjRef(labelID, 0, kKeyLabelY);
+}
+
+// Type 27: ObjectPointer -- shows whichever object `value` names; the VT
+// switches it on a Change Numeric Value command (IsobusVtInterface).
+static void appendObjectPointer(uint16_t id, uint16_t value) {
+    pu16(id); pu8(27);
+    pu16(value);
 }
 
 // Type 11: OutputString (static text)
@@ -221,6 +246,23 @@ static void appendPictureGraphic(uint16_t id, uint16_t width, uint16_t height,
     pu32(rawDataLen);
     pu8(0);              // 0 macros
     for (uint32_t i = 0; i < rawDataLen; i++) pu8(rawData[i]);
+}
+
+// Type 20: PictureGraphic, 8-bit standard palette, run-length encoded
+// ((count, colour) pairs -- ISO 11783-6 B.12.2; same layout as above, format
+// 2 and option bit 2). For the plough pictures in VTImages.hpp.
+static void appendPictureGraphicRle8(uint16_t id, uint16_t width, uint16_t height,
+                                     const uint8_t* rleData, uint32_t rleDataLen) {
+    pu16(id); pu8(20);
+    pu16(width);         // design width
+    pu16(width);         // actual width
+    pu16(height);        // actual height
+    pu8(2);              // format: 8-bit colour
+    pu8(1 << 2);         // options: opaque, not flashing, run-length encoded
+    pu8(0);              // transparency colour (unused, opaque)
+    pu32(rleDataLen);
+    pu8(0);              // 0 macros
+    for (uint32_t i = 0; i < rleDataLen; i++) pu8(rleData[i]);
 }
 
 // 16x16 monochrome plough pictogram -- a narrowing hitch/frame down to a
@@ -361,9 +403,13 @@ void BuildObjectPool() {
     // matters), except an XTE of 10 m or more, which is clipped -- far off
     // the line, never while ploughing.
     constexpr uint16_t kMediumCharW = 12;  // 12x16
-    constexpr uint16_t LBL_X = 2, LBL_W = 132, ROW_H = 30;
+    constexpr uint16_t LBL_X = 2, LBL_W = 132, ROW_H = 28;
     constexpr uint16_t VAL_X = 136, VAL_W = 64;
-    const uint16_t ROW_Y[4] = { 10, 50, 90, 130 };
+    // The plough picture across the top, centred; the four rows below it,
+    // 29 px apart, the last one ending inside the 200 px mask.
+    const uint16_t IMG_X = (200 - kPloughImageWidth) / 2, IMG_Y = 2;
+    const uint16_t ROW_TOP = IMG_Y + kPloughImageHeight + 4;
+    const uint16_t ROW_Y[4] = { ROW_TOP, uint16_t(ROW_TOP + 29), uint16_t(ROW_TOP + 58), uint16_t(ROW_TOP + 87) };
     static_assert((sizeof(kTextPosition) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextSetpoint) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextXte) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
@@ -415,7 +461,10 @@ void BuildObjectPool() {
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
-    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 8);
+    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 9);
+    // The tractor-and-plough picture, through a pointer that IsobusVtInterface
+    // switches to the side the plough is ploughing (left until it says so).
+    appendObjRef(Ptr_PloughImage, IMG_X, IMG_Y);
     // Working width first (owner's request, 2026-10-01): it is the value the
     // operator sets with Wider/Narrower.
     appendObjRef(Label_Offset, LBL_X, ROW_Y[0]);
@@ -454,15 +503,23 @@ void BuildObjectPool() {
     appendOutputString(Label_XTE, LBL_W, ROW_H, Font_White_Medium, 0, kTextXte);
     appendOutputString(Label_Offset, LBL_W, ROW_H, Font_White_Medium, 0, kTextWorkingWidth);
 
-    // Soft key labels (centred, small font)
-    appendOutputString(Label_Wider, 60, 40, Font_White_Small, 1, "BREDER");
-    appendOutputString(Label_Narrower, 60, 40, Font_White_Small, 1, "SMALLER");
-    appendOutputString(Label_Auto, 60, 40, Font_White_Small, 1, "AUTO");
+    // Soft key labels: horizontally centred by justification, vertically by
+    // their place in the key (appendKey(), kKeyLabelY).
+    appendOutputString(Label_Wider, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREDER");
+    appendOutputString(Label_Narrower, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "SMALLER");
+    appendOutputString(Label_Auto, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "AUTO");
     // "CALIBR" not "KALIBR": LanguagePlough.hpp's own LCD wizard strings
     // already say "Breedte calibratie"/"Rotatie calibratie", so this matches
     // what the operator reads on the cab display. 6 chars at 8x8 = 48 px,
     // inside the 60 px key label box.
-    appendOutputString(Label_Calibrate, 60, 40, Font_White_Small, 1, "CALIBR");
+    appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "CALIBR");
+
+    // ---- Plough pictures and the pointer that shows one of them ----
+    appendPictureGraphicRle8(Img_PloughLeft, kPloughImageWidth, kPloughImageHeight, kPloughLeftImage,
+                             kPloughLeftImageSize);
+    appendPictureGraphicRle8(Img_PloughRight, kPloughImageWidth, kPloughImageHeight, kPloughRightImage,
+                             kPloughRightImageSize);
+    appendObjectPointer(Ptr_PloughImage, Img_PloughLeft);
 
     // ---- NumberVariables (initial values) ----
     appendNumberVariable(Var_Position, 0);

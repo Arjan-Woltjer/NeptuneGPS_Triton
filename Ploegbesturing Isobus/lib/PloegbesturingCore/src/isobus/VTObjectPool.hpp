@@ -79,6 +79,13 @@ enum PloughVtObjectId : uint16_t {
     // pool a VT has cached under this working set's version label.
     Key_Calibrate   = 24,
     Label_Calibrate = 25,
+
+    // Top-view picture of the tractor and plough (VTImages.hpp), one per
+    // ploughing side, shown through an ObjectPointer that IsobusVtInterface
+    // points at the side ImplementPlough::GetSide() reports.
+    Img_PloughLeft  = 26,
+    Img_PloughRight = 27,
+    Ptr_PloughImage = 28,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.

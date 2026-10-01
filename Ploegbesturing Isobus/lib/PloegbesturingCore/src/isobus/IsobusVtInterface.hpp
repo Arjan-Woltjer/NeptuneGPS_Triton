@@ -218,6 +218,7 @@ private:
     int32_t       lastSentSetpoint = 0;
     int32_t       lastSentXte      = 0;
     int32_t       lastSentOffset   = 0;
+    uint16_t      lastSentPloughImage = 0;  // the object Ptr_PloughImage points at
 
     bool pendingWiderPress     = false;
     bool pendingNarrowerPress  = false;
