@@ -37,6 +37,14 @@ static constexpr short int kAdcMaxCount = 1023;
 // readCalibrationData() when what was stored cannot be used.
 static constexpr short int kDefaultPositionCalibration[3] = { 600, 461, 308 };
 
+// Max correction is kept per share, in mm (#163): it sizes with the plough --
+// a 4+1 plough taking its extra share on gets that share's worth more -- and
+// it fits one EEPROM byte. 2.5 to 10 cm per share; the default is 5 cm, which
+// is 20 cm for 4 shares.
+static constexpr byte kLowestMaxCorrectionPerShareMm  = 25;
+static constexpr byte kHighestMaxCorrectionPerShareMm = 100;
+static constexpr byte kDefaultMaxCorrectionPerShareMm = 50;
+
 class ImplementPlough {
 private:
     //-------------
@@ -65,7 +73,7 @@ private:
     // Variables concerning adjust loop
     short int setpoint;
     byte      error;
-    byte      maxCorrection;
+    byte      maxCorrectionPerShare;   // mm (#163)
 
     short int offset;
     byte      manPwm;
@@ -175,8 +183,15 @@ public:
         return shares;
     }
 
+    // Per share, in mm: what the calibration menu adjusts and EEPROM holds.
+    inline byte GetMaxCorrectionPerShare() {
+        return maxCorrectionPerShare;
+    }
+
+    // The plough's limit on the XTE correction: per share times the shares,
+    // in mm (#163).
     inline short int GetMaxCorrection() {
-        return maxCorrection;
+        return maxCorrectionPerShare * shares;
     }
 
 #ifdef PID_KP
@@ -236,8 +251,8 @@ public:
     }
 #endif
 
-    inline void SetMaxCorrection(short int value) {
-        maxCorrection = value;
+    inline void SetMaxCorrectionPerShare(byte value) {
+        maxCorrectionPerShare = value;
     }
 
     inline void SetError(byte value) {
