@@ -39,10 +39,10 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_internal_control_function.hpp>
-#include <can_partnered_control_function.hpp>
-#include <isobus_device_descriptor_object_pool.hpp>
-#include <isobus_task_controller_client.hpp>
+#include <isobus/isobus/can_internal_control_function.hpp>
+#include <isobus/isobus/can_partnered_control_function.hpp>
+#include <isobus/isobus/isobus_device_descriptor_object_pool.hpp>
+#include <isobus/isobus/isobus_task_controller_client.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
