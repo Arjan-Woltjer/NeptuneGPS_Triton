@@ -36,4 +36,12 @@ extern const uint32_t kPloughRightImageSize;
 extern const uint16_t kPloughImageWidth;
 extern const uint16_t kPloughImageHeight;
 
+// Status icons, kStatusIconSize square on the mask's black background:
+// a green dot (OK) and a red triangle pointing up (not OK).
+extern const uint8_t  kStatusOkImage[];
+extern const uint32_t kStatusOkImageSize;
+extern const uint8_t  kStatusWarnImage[];
+extern const uint32_t kStatusWarnImageSize;
+extern const uint16_t kStatusIconSize;
+
 }  // namespace triton

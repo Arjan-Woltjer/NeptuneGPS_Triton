@@ -58,7 +58,7 @@ test(VTObjectPool, build_isRepeatable) {
 
 test(VTObjectPool, everyDeclaredObjectId_appearsInThePool) {
     BuildObjectPool();
-    for (uint16_t id = Plough_WorkingSet; id <= Ptr_PloughImage; id++) {
+    for (uint16_t id = Plough_WorkingSet; id <= Font_White_Unit; id++) {
         assertTrue(poolContainsId(id));
     }
 }
@@ -142,4 +142,42 @@ test(VTObjectPool, ploughImages_inThePoolAsRle8_andThePointerStartsLeft) {
     const int32_t ptr = findObject(Ptr_PloughImage, 27);
     assertTrue(ptr >= 0);
     assertEqual((int)(VT3PoolData[ptr + 3] | (VT3PoolData[ptr + 4] << 8)), (int)Img_PloughLeft);
+}
+
+test(VTObjectPool, statusIcons_decodeAndThePointersStartNotOk) {
+    assertEqual((uint32_t)rowsOf(kStatusOkImage, kStatusOkImageSize, kStatusIconSize).size(), (uint32_t)kStatusIconSize);
+    assertEqual((uint32_t)rowsOf(kStatusWarnImage, kStatusWarnImageSize, kStatusIconSize).size(),
+                (uint32_t)kStatusIconSize);
+    BuildObjectPool();
+    for (uint16_t ptr : { (uint16_t)Ptr_GpsStatus, (uint16_t)Ptr_SpeedStatus }) {
+        const int32_t at = findObject(ptr, 27);
+        assertTrue(at >= 0);
+        assertEqual((int)(VT3PoolData[at + 3] | (VT3PoolData[at + 4] << 8)), (int)Img_StatusWarn);
+    }
+}
+
+test(VTObjectPool, softKeyFont_isUsedOnlyByTheSoftKeyLabels) {
+    // AgIsoStack (neptune-main a9453ff) scales a font with the soft key factor
+    // only if nothing off the keys uses it; one data mask string on
+    // Font_White_Small would make the key labels outgrow their keys again.
+    BuildObjectPool();
+    const uint16_t keyLabels[] = { Label_Wider, Label_Narrower, Label_Auto, Label_Calibrate };
+    const uint16_t maskTexts[] = { Label_Position, Label_Setpoint, Label_XTE, Label_Offset, Label_Gps,
+                                   Label_SpeedUnit };
+    for (uint16_t id : keyLabels) {
+        const int32_t at = findObject(id, 11);
+        assertTrue(at >= 0);
+        assertEqual((int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)), (int)Font_White_Small);
+    }
+    for (uint16_t id : maskTexts) {
+        const int32_t at = findObject(id, 11);
+        assertTrue(at >= 0);
+        assertNotEqual((int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)), (int)Font_White_Small);
+    }
+    const uint16_t maskNumbers[] = { Out_Position, Out_Setpoint, Out_XTE, Out_Offset, Out_Speed };
+    for (uint16_t id : maskNumbers) {
+        const int32_t at = findObject(id, 12);
+        assertTrue(at >= 0);
+        assertNotEqual((int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)), (int)Font_White_Small);
+    }
 }

@@ -219,6 +219,9 @@ private:
     int32_t       lastSentXte      = 0;
     int32_t       lastSentOffset   = 0;
     uint16_t      lastSentPloughImage = 0;  // the object Ptr_PloughImage points at
+    uint16_t      lastSentGpsIcon     = 0;  // the object Ptr_GpsStatus points at
+    uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
+    int32_t       lastSentSpeed       = 0;  // 0.1 km/h
 
     bool pendingWiderPress     = false;
     bool pendingNarrowerPress  = false;

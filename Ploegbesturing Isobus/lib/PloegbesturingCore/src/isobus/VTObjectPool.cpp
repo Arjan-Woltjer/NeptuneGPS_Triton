@@ -405,9 +405,13 @@ void BuildObjectPool() {
     constexpr uint16_t kMediumCharW = 12;  // 12x16
     constexpr uint16_t LBL_X = 2, LBL_W = 132, ROW_H = 28;
     constexpr uint16_t VAL_X = 136, VAL_W = 64;
-    // The plough picture across the top, centred; the four rows below it,
-    // 29 px apart, the last one ending inside the 200 px mask.
-    const uint16_t IMG_X = (200 - kPloughImageWidth) / 2, IMG_Y = 2;
+    // The plough picture top left; the GPS and speed indicators in the column
+    // to its right; the four rows below, 29 px apart, the last one ending
+    // inside the 200 px mask.
+    const uint16_t IMG_X = 2, IMG_Y = 2;
+    const uint16_t STAT_X = IMG_X + kPloughImageWidth + 4;      // 126: "GPS", speed, "km/h"
+    const uint16_t ICON_X = 200 - kStatusIconSize - 6;          // indicators, right edge
+    const uint16_t GPS_Y = 8, SPEED_Y = 36, UNIT_Y = 58;
     const uint16_t ROW_TOP = IMG_Y + kPloughImageHeight + 4;
     const uint16_t ROW_Y[4] = { ROW_TOP, uint16_t(ROW_TOP + 29), uint16_t(ROW_TOP + 58), uint16_t(ROW_TOP + 87) };
     static_assert((sizeof(kTextPosition) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
@@ -461,10 +465,18 @@ void BuildObjectPool() {
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
-    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 9);
+    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 14);
     // The tractor-and-plough picture, through a pointer that IsobusVtInterface
     // switches to the side the plough is ploughing (left until it says so).
     appendObjRef(Ptr_PloughImage, IMG_X, IMG_Y);
+    // GPS: OK when position, speed and cross-track are fresh and RTK fixed;
+    // speed: OK at or above the minimum speed (PloughGates.hpp, the same
+    // checks the control holds on).
+    appendObjRef(Label_Gps, STAT_X, GPS_Y);
+    appendObjRef(Ptr_GpsStatus, ICON_X, GPS_Y + 3);
+    appendObjRef(Out_Speed, STAT_X, SPEED_Y);
+    appendObjRef(Ptr_SpeedStatus, ICON_X, SPEED_Y + 3);
+    appendObjRef(Label_SpeedUnit, STAT_X, UNIT_Y);
     // Working width first (owner's request, 2026-10-01): it is the value the
     // operator sets with Wider/Narrower.
     appendObjRef(Label_Offset, LBL_X, ROW_Y[0]);
@@ -496,6 +508,7 @@ void BuildObjectPool() {
     // ---- Font attributes ----
     appendFontAttributes(Font_White_Medium, kWhite, kFont12x16);
     appendFontAttributes(Font_White_Small, kWhite, kFont8x8);
+    appendFontAttributes(Font_White_Unit, kWhite, kFont8x8);
 
     // ---- Static data labels ----
     appendOutputString(Label_Position, LBL_W, ROW_H, Font_White_Medium, 0, kTextPosition);
@@ -521,11 +534,22 @@ void BuildObjectPool() {
                              kPloughRightImageSize);
     appendObjectPointer(Ptr_PloughImage, Img_PloughLeft);
 
+    // ---- GPS and speed indicators ----
+    appendPictureGraphicRle8(Img_StatusOk, kStatusIconSize, kStatusIconSize, kStatusOkImage, kStatusOkImageSize);
+    appendPictureGraphicRle8(Img_StatusWarn, kStatusIconSize, kStatusIconSize, kStatusWarnImage,
+                             kStatusWarnImageSize);
+    // Not OK until IsobusVtInterface reports otherwise.
+    appendObjectPointer(Ptr_GpsStatus, Img_StatusWarn);
+    appendObjectPointer(Ptr_SpeedStatus, Img_StatusWarn);
+    appendOutputString(Label_Gps, 48, 20, Font_White_Medium, 0, "GPS");
+    appendOutputString(Label_SpeedUnit, 48, 10, Font_White_Unit, 0, "km/h");
+
     // ---- NumberVariables (initial values) ----
     appendNumberVariable(Var_Position, 0);
     appendNumberVariable(Var_Setpoint, 0);
     appendNumberVariable(Var_XTE, 1000);  // 1000 = bias; OutputNumber offset -1000 -> 0.00 m at rest
     appendNumberVariable(Var_Offset, 0);
+    appendNumberVariable(Var_Speed, 0);
 
     // ---- Output numbers ----
     // Position and setpoint: raw calibrated units
@@ -535,6 +559,9 @@ void BuildObjectPool() {
     appendOutputNumber(Out_XTE, VAL_W, ROW_H, Font_White_Medium, Var_XTE, -1000, 0.01f, 2);
     // Offset: raw value
     appendOutputNumber(Out_Offset, VAL_W, ROW_H, Font_White_Medium, Var_Offset, 0, 1.0f, 0);
+    // Speed: the variable holds 0.1 km/h; scale 0.1, one decimal -> "12.3".
+    // 48 px = 4 characters at 12x16, up to 99.9 km/h.
+    appendOutputNumber(Out_Speed, 48, 20, Font_White_Medium, Var_Speed, 0, 0.1f, 1);
 
     VT3PoolData = poolBuffer;
     VT3PoolSize = poolPos;

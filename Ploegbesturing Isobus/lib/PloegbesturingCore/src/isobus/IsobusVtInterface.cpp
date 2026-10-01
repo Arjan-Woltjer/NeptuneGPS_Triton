@@ -36,6 +36,7 @@
 #pragma pop_macro("min")
 
 #include "VTObjectPool.hpp"
+#include "../PloughGates.hpp"
 
 using namespace isobus;
 
@@ -134,7 +135,8 @@ void IsobusVtInterface::Begin() {
     // Bumped MW04 -> MW05 -> MW06, 2026-10-01: 12x16 font and autoscaling
     // (below), then AgIsoStack's soft-key scaling fix (neptune-main a9453ff).
     // MW06 -> MW07, same day: the plough pictures and centred key labels.
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW07");
+    // MW07 -> MW08, same day: GPS and speed indicators, speed in km/h.
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW08");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
@@ -279,6 +281,26 @@ void IsobusVtInterface::updateVtVariables() {
     if (forceSend || ploughImage != lastSentPloughImage) {
         vtClient->send_change_numeric_value(Ptr_PloughImage, ploughImage);
         lastSentPloughImage = ploughImage;
+    }
+    // GPS and speed indicators: the same gates the control holds on
+    // (PloughGates.hpp), so a green dot means that gate is met.
+    const uint16_t gpsIcon = GpsReadyToSteer(*guidance, millis()) ? Img_StatusOk : Img_StatusWarn;
+    if (forceSend || gpsIcon != lastSentGpsIcon) {
+        vtClient->send_change_numeric_value(Ptr_GpsStatus, gpsIcon);
+        lastSentGpsIcon = gpsIcon;
+    }
+    const uint16_t speedIcon = SpeedReadyToSteer(*guidance) ? Img_StatusOk : Img_StatusWarn;
+    if (forceSend || speedIcon != lastSentSpeedIcon) {
+        vtClient->send_change_numeric_value(Ptr_SpeedStatus, speedIcon);
+        lastSentSpeedIcon = speedIcon;
+    }
+    // Speed in 0.1 km/h (the OutputNumber scales by 0.1).
+    float speedDeciKmh = guidance->GetSpeedMs() * 36.0f;
+    if (speedDeciKmh < 0.0f) speedDeciKmh = 0.0f;
+    const int32_t speed = static_cast<int32_t>(speedDeciKmh + 0.5f);
+    if (forceSend || speed != lastSentSpeed) {
+        vtClient->send_change_numeric_value(Var_Speed, static_cast<uint32_t>(speed));
+        lastSentSpeed = speed;
     }
 
     sentInitialVtVariables = true;

@@ -97,6 +97,39 @@ def draw_left():
     return px
 
 
+ICON = 14                     # status icons: ICON x ICON
+OK_GREEN = cube(0, 4, 0)
+OK_RIM = cube(0, 2, 0)
+WARN_RED = cube(5, 0, 0)
+WARN_RIM = cube(3, 0, 0)
+
+
+def draw_dot():
+    """Status OK: a green dot on the mask's black background."""
+    px = [[BLACK] * ICON for _ in range(ICON)]
+    c = (ICON - 1) / 2
+    for y in range(ICON):
+        for x in range(ICON):
+            d2 = (x - c) ** 2 + (y - c) ** 2
+            if d2 <= 6.4 ** 2:
+                px[y][x] = OK_RIM if d2 > 5.2 ** 2 else OK_GREEN
+    return px
+
+
+def draw_triangle():
+    """Status not OK: a red triangle pointing up, on black."""
+    px = [[BLACK] * ICON for _ in range(ICON)]
+    top, bottom = 1, ICON - 2
+    for y in range(top, bottom + 1):
+        half = (y - top) * (ICON - 2) / (2 * (bottom - top))
+        c = (ICON - 1) / 2
+        for x in range(ICON):
+            if abs(x - c) <= half + 0.5:
+                edge = abs(x - c) > half - 0.7 or y == bottom
+                px[y][x] = WARN_RIM if edge else WARN_RED
+    return px
+
+
 def mirror(px):
     return [list(reversed(row)) for row in px]
 
@@ -132,8 +165,8 @@ def write_preview(path, pictures):
     draw = ImageDraw.Draw(img)
     for n, (name, px) in enumerate(pictures):
         ox = gap + n * (W * scale + gap)
-        for y in range(H):
-            for x in range(W):
+        for y in range(len(px)):
+            for x in range(len(px[0])):
                 draw.rectangle([ox + x * scale, gap + y * scale, ox + x * scale + scale - 1, gap + y * scale + scale - 1],
                                fill=palette_rgb(px[y][x]))
         draw.text((ox, gap + H * scale + 4), name, fill=(255, 255, 255))
@@ -154,6 +187,7 @@ def write_cpp(path, pictures):
         lines.append("")
     lines.append(f"const uint16_t kPloughImageWidth = {W};")
     lines.append(f"const uint16_t kPloughImageHeight = {H};")
+    lines.append(f"const uint16_t kStatusIconSize = {ICON};")
     lines.append("")
     lines.append("}  // namespace triton")
     with open(path, "w", encoding="ascii", newline="\n") as f:
@@ -166,11 +200,13 @@ if __name__ == "__main__":
     ap.add_argument("--preview")
     args = ap.parse_args()
     left = draw_left()
-    pictures = [("kPloughLeftImage", left), ("kPloughRightImage", mirror(left))]
+    pictures = [("kPloughLeftImage", left), ("kPloughRightImage", mirror(left)),
+                ("kStatusOkImage", draw_dot()), ("kStatusWarnImage", draw_triangle())]
     here = os.path.dirname(os.path.abspath(__file__))
     out = os.path.join(here, "..", "lib", "PloegbesturingCore", "src", "isobus", "VTImages.generated.cpp")
     sizes = write_cpp(out, pictures)
     print("wrote", os.path.normpath(out), sizes, f"({W}x{H})")
     if args.preview:
-        write_preview(args.preview, [("L: plough left, furrows right", left), ("R: mirror", mirror(left))])
+        write_preview(args.preview, [("L: plough left, furrows right", left), ("R: mirror", mirror(left)),
+                                     ("OK", draw_dot()), ("not OK", draw_triangle())])
         print("preview", args.preview)

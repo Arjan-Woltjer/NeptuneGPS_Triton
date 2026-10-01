@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfacePlough.hpp"
+#include "PloughGates.hpp"
 
 namespace triton
 {
@@ -99,12 +100,8 @@ void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed, bool v
     // ----
     // Hold
     // ----
-    else if (millis() - guidance->GetGgaTimestamp() > 2000 ||
-             millis() - guidance->GetVtgTimestamp() > 2000 ||
-             millis() - guidance->GetXteTimestamp() > 2000 ||
-             !guidance->IsRtkQuality() ||
-             !guidance->MinSpeed()
-            ) {
+    // (PloughGates.hpp: the same two checks drive the VT's indicators.)
+    else if (!GpsReadyToSteer(*guidance, millis()) || !SpeedReadyToSteer(*guidance)) {
         // set mode to hold
         mode = 1;
 
