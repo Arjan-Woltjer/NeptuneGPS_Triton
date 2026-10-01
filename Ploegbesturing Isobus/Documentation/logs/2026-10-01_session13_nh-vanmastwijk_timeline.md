@@ -49,7 +49,7 @@ Brief: `SESSION_13_TEST_BRIEF.md`. Part 2 of the visit: session 14.
 | ~15:57:38 | Operator: **CNH VT back online**; rebooting (the plough control?) now |
 | 15:57:38 | Address **38 (0x26, the CNH VT)** now appears in the offline list: no longer our partner (we're on 0x80), so no longer exempt from the prune |
 | 15:57-16:02 | CNH screen rebooting / back; 172/205 drops continue every few s |
-| 16:02:50 | Serial logger stopped. **CANedge stop time: fill in** (operator to note) |
+| 16:02:50 | Serial logger stopped. **CANedge stopped a few minutes before 16:04** (operator, from memory; the MF4's last frame is exact) |
 
 ## Results (serial side; the MF4 now exists and is the reference)
 
