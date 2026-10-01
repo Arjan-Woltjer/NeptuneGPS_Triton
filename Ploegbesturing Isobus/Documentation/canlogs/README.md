@@ -23,6 +23,8 @@ recoverable from the file.
 | `2026-09-09_session9_agleader-vanmastwijk_log28_main.MF4` | `AD4F266A` / 28 | 2026-09-09 | Ag Leader kit on a CNH tractor | van Mastwijk | 842 s | 230 490 |
 | `2026-09-11_session10_jd-vanos_log29_iop-harvest.MF4` | `AD4F266A` / 29 | 2026-09-11 | John Deere | van Os | 529 s | 268 123 |
 | `2026-09-25_session11_jd-vanos_log30_autosteer-reverse.MF4` | `AD4F266A` / 30 | 2026-09-25 | John Deere | van Os | 2729 s | 1 143 997 |
+| `2026-10-01_session13_nh-vanmastwijk_log31_join-addressed-requests-vt-off.MF4` | `AD4F266A` / 31 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 3070 s | 843 066 |
+| `2026-10-01_session13_nh-vanmastwijk_log32_after-canedge-restart.MF4` | `AD4F266A` / 32 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 136 s | 37 340 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -306,6 +308,26 @@ with the mapping:
 was a placeholder, not data -- the decoder only captures bytes from `0x2A` and
 `0x80`, and no sender in this log ever sends an all-zero 65535 payload. Fixed
 in #153. Read the XTE from `0x2A`, sub-ID `0x77`.
+
+### Session 13 repeat, 2026-10-01
+
+**Triton IS on the bus** (`0x81`), running `test/session12` (code = `48a7ae4`, fork `9aa491e`),
+NH + Ag Leader, van Mastwijk. Same rig as session 9. Brief: `SESSION_13_TEST_BRIEF.md`;
+timeline and serial log in [`../logs/`](../logs/) (`2026-10-01_session13_*`).
+
+- **log 31**: 15:09:18.7 to 16:00:28 CEST, 3070 s. **log 32**: the CANedge restarted (17 s
+  gap, a new card session), 16:00:46 to 16:03:01.8.
+- **Clock:** the anchor is Triton's own address claim after its reboot (log +2820.169 s =
+  serial 15:56:18.919). The cross-check is the CNH VT's last VT Status (0x26, PGN 0xE600)
+  before each serial `VT Status Timeout`: 2.99 s and 3.01 s earlier, against AgIsoStack's
+  3 s timeout. So the mapping is good to ~10 ms. The operator's "CANedge on" (~15:09:23)
+  agrees within 5 s.
+- **ch2 recorded nothing.** It was on the steering controller's CAN 2 from ~15:11:34,
+  Monitoring / auto-detect. Channels 1 and 9 only. Either CAN 2 carries no traffic, or it
+  carries frames nobody ACKs, or the tap was on the wrong pins. The logger's syslog says
+  nothing about it.
+- No StarFire on this rig: no PGN 126992, so log time maps to wall time only through the
+  anchor above.
 
 ## Reading them
 
