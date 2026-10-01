@@ -165,6 +165,10 @@ public:
 
     // Snapshot, safe to call at any time -- single-threaded loop, no
     // concurrent writer.
+    // Our NAME's 21-bit identity number from the board's 24-bit Teensy serial
+    // (#45): its low 21 bits, so the mapping stays traceable by hand.
+    static std::uint32_t IdentityNumberFromSerial(std::uint32_t teensySerial);
+
     // Whether Update() should re-request the guidance PGNs now: true when the
     // last request is at least a retry interval old and any of position (GGA),
     // speed/course (VTG) or cross-track (XTE) has not produced a committed

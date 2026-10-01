@@ -71,13 +71,14 @@ namespace triton
 // through geometry validation -- Device/Connector/Function elements, the
 // connector's X/Y offsets (load-bearing for DDI 513's correctness, see
 // design doc sec 4.3), and the two TC-writable process data variables.
-// The design doc's own sketch also listed DDI 67/70 (working width) and
-// 141 (actual work state) on the Function element -- deliberately NOT
-// declared here: this implement controls plough *offset*, not width
-// (ImplementPlough has no working-width concept at all), and has no
-// engaged/disengaged state ImplementPlough exposes either. Declaring
-// DDIs with no real backing value would mean inventing data. Revisit if/
-// when those capabilities exist.
+// Working width (DDIs 67-70) is declared on the Function element since TC06
+// (NeptuneGPS_Triton#150). It was left out until then on the premise that
+// ImplementPlough had no working-width concept -- wrong: its "offset" IS the
+// plough's total furrow width in cm (confirmed by the owner, 2026-09-25).
+// Leaving width out did not avoid inventing data either; a John Deere filled
+// in its own 3 m on every connect (session 11). DDI 141 (actual work state)
+// is still not declared: ImplementPlough exposes no engaged/disengaged state,
+// and declaring it would mean inventing data.
 //
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes, exactly like
@@ -124,6 +125,13 @@ public:
     inline std::uint16_t GetLastValueCommandDdi() const  { return lastValueCommandDdi; }
     inline unsigned long GetLastValueCommandMs() const   { return lastValueCommandMs; }
     inline unsigned long GetValueRequestCount() const   { return valueRequestCount; }
+
+    // Working width (#150). ImplementPlough's offset is the plough's total
+    // working width in cm. Every change is counted; it is sent to the TC
+    // (DDI 67, on change) only while connected -- see reportWidthIfChanged().
+    inline unsigned long GetWidthChangeCount() const    { return widthChangeCount; }
+    inline unsigned long GetWidthReportCount() const    { return widthReportCount; }
+    inline short int     GetLastWidthCm() const         { return lastWidthCm; }   // -1 = not read yet
 
     // --- Counted off the wire, not through AgIsoStack (GitHub issue #21) ---
     //
@@ -254,6 +262,7 @@ private:
 
     void buildDdop();
     void updateReconnectWatchdog();
+    void reportWidthIfChanged();
 
     Stream*           serialDebug;
     ImplementPlough*  implement;
@@ -281,6 +290,10 @@ private:
     std::uint16_t   lastValueCommandDdi  = 0xFFFF;  // 0xFFFF = none received yet
     unsigned long   lastValueCommandMs   = 0;
     unsigned long   valueRequestCount    = 0;
+
+    short int       lastWidthCm          = -1;   // -1 = no baseline yet
+    unsigned long   widthChangeCount     = 0;
+    unsigned long   widthReportCount     = 0;
 
     // Wire-level Process Data tallies. See the accessors above for why these
     // exist alongside the callback counters rather than replacing them: the
