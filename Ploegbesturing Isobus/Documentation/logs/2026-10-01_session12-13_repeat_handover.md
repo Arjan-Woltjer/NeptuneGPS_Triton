@@ -13,6 +13,13 @@ Nothing from them is in `HardwareTestNotes.md` yet.
 
 ## Firmware for Triton (the plough ECU)
 
+> **REFLASH BEFORE THE SESSION 12 REPEAT (added 2026-10-01 evening).** On the
+> workstation bench, the plough ECU (board 1324910) was flashed with the
+> AgIsoStack-plus-plus trial build (PR #190, built from `main`). It does NOT
+> have the session 12 changes (#162 TC06/NAME, #164 per-share menu). Flash
+> `test/session12` again before going to the JD, and check the boot print: it
+> should show `identity 1324910` and "Maximum correction per share (mm)".
+
 - Branch **`test/session12`** at **`196b727`** or later. Only the briefs changed since
   `48a7ae4`, the build used on 2026-09-30.
 - AgIsoStack fork pinned at **`9aa491e`** (patches #1-#6). **Not patch #7**
