@@ -131,7 +131,16 @@ void IsobusVtInterface::Begin() {
     // silent -- nothing errors, the terminal just shows an old screen. Bump
     // this on every change to VT3PoolData, exactly as the DDOP's TC0x label
     // is bumped on every DDOP change.
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW04");
+    // Bumped MW04 -> MW05, 2026-10-01: 12x16 font and autoscaling (below).
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW05");
+    // Scale the pool to each terminal's real screen. It is drawn for the VT3
+    // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
+    // layout); unscaled, the InCommand 1200 showed it small and squeezed
+    // (session 13 repeat, 2026-10-01). AgIsoStack reads the terminal's data
+    // mask and soft key sizes during the handshake and resizes positions,
+    // sizes and fonts before the upload. Each terminal caches its own scaled
+    // copy under the label, so one label still serves every screen size.
+    vtClient->set_object_pool_scaling(0, 200, 60);
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(

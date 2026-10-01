@@ -247,11 +247,26 @@ static const uint8_t kIconPloughData[32] = {
     0x00, 0x00,  // row 15
 };
 
+// ISO 11783-6 FontAttributes font size codes. Two shapes: 8x12, 16x24 ... are
+// 2:3 (tall and thin), 8x8, 16x16 ... square, and 12x16 sits between at 3:4.
+constexpr uint8_t kFont8x8   = 1;
+constexpr uint8_t kFont12x16 = 3;
+
+// The data-mask texts, as constants so the layout below can check at compile
+// time that each one fits its column.
+constexpr char kTextPosition[] = "POSITIE";
+constexpr char kTextSetpoint[] = "SETPUNT";
+constexpr char kTextXte[]      = "XTE (m)";
+// ImplementPlough's "offset" is the plough's total working width in cm (the
+// owner's confirmation, 2026-09-25), so the screen says so; it was labelled
+// AFWIJKING until 2026-10-01.
+constexpr char kTextWorkingWidth[] = "WERKBREEDTE";
+
 // Type 23: FontAttributes
 static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
     pu16(id); pu8(23);
     pu8(colour);
-    pu8(size);  // 1=8x8, 2=8x12
+    pu8(size);  // ISO 11783-6 font size code, see kFont* below
     pu8(0);     // type: Latin-1
     pu8(0);     // style: normal
     pu8(0);     // 0 macros
@@ -337,10 +352,24 @@ void BuildObjectPool() {
     return;
 #endif
 
-    // Screen layout (VT3 minimum area: 200x176 pixels)
-    const uint16_t LBL_X = 5, LBL_W = 90, ROW_H = 30;
-    const uint16_t VAL_X = 100, VAL_W = 95;
+    // Screen layout (VT3 minimum area: 200x176 pixels). Labels and values use
+    // the 12x16 font: at 8x12 (2:3) the InCommand 1200 drew them visibly too
+    // narrow (session 13 repeat, 2026-10-01: "height was ok, but width not").
+    // 12x16 is half as wide again at about the same height. The label column
+    // is sized for WERKBREEDTE (11 characters, 132 px), which leaves the value
+    // column 5 characters: every value fits ("-9.99" is the widest XTE that
+    // matters), except an XTE of 10 m or more, which is clipped -- far off
+    // the line, never while ploughing.
+    constexpr uint16_t kMediumCharW = 12;  // 12x16
+    constexpr uint16_t LBL_X = 2, LBL_W = 132, ROW_H = 30;
+    constexpr uint16_t VAL_X = 136, VAL_W = 64;
     const uint16_t ROW_Y[4] = { 10, 50, 90, 130 };
+    static_assert((sizeof(kTextPosition) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
+    static_assert((sizeof(kTextSetpoint) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
+    static_assert((sizeof(kTextXte) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
+    static_assert((sizeof(kTextWorkingWidth) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
+    static_assert(5 * kMediumCharW <= VAL_W, "value column narrower than 5 characters");
+    static_assert(LBL_X + LBL_W <= VAL_X && VAL_X + VAL_W <= 200, "columns overlap or leave the mask");
 
     // ---- Top-level structure ----
     // Field order after appendWorkingSet() is fixed: any child object
@@ -387,14 +416,16 @@ void BuildObjectPool() {
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
     appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 8);
-    appendObjRef(Label_Position, LBL_X, ROW_Y[0]);
-    appendObjRef(Out_Position, VAL_X, ROW_Y[0]);
-    appendObjRef(Label_Setpoint, LBL_X, ROW_Y[1]);
-    appendObjRef(Out_Setpoint, VAL_X, ROW_Y[1]);
-    appendObjRef(Label_XTE, LBL_X, ROW_Y[2]);
-    appendObjRef(Out_XTE, VAL_X, ROW_Y[2]);
-    appendObjRef(Label_Offset, LBL_X, ROW_Y[3]);
-    appendObjRef(Out_Offset, VAL_X, ROW_Y[3]);
+    // Working width first (owner's request, 2026-10-01): it is the value the
+    // operator sets with Wider/Narrower.
+    appendObjRef(Label_Offset, LBL_X, ROW_Y[0]);
+    appendObjRef(Out_Offset, VAL_X, ROW_Y[0]);
+    appendObjRef(Label_Position, LBL_X, ROW_Y[1]);
+    appendObjRef(Out_Position, VAL_X, ROW_Y[1]);
+    appendObjRef(Label_Setpoint, LBL_X, ROW_Y[2]);
+    appendObjRef(Out_Setpoint, VAL_X, ROW_Y[2]);
+    appendObjRef(Label_XTE, LBL_X, ROW_Y[3]);
+    appendObjRef(Out_XTE, VAL_X, ROW_Y[3]);
 
     // 4 soft keys. ISO 11783-6 only guarantees a VT renders 6 per mask, so
     // this stays inside what every terminal must support -- but a VT is free
@@ -414,14 +445,14 @@ void BuildObjectPool() {
     appendKey(Key_Calibrate, kBlack, KeyCode_Calibrate, Label_Calibrate);
 
     // ---- Font attributes ----
-    appendFontAttributes(Font_White_Medium, kWhite, 2);  // 8x12
-    appendFontAttributes(Font_White_Small, kWhite, 1);   // 8x8
+    appendFontAttributes(Font_White_Medium, kWhite, kFont12x16);
+    appendFontAttributes(Font_White_Small, kWhite, kFont8x8);
 
     // ---- Static data labels ----
-    appendOutputString(Label_Position, LBL_W, ROW_H, Font_White_Medium, 0, "POSITIE");
-    appendOutputString(Label_Setpoint, LBL_W, ROW_H, Font_White_Medium, 0, "SETPUNT");
-    appendOutputString(Label_XTE, LBL_W, ROW_H, Font_White_Medium, 0, "XTE (m)");
-    appendOutputString(Label_Offset, LBL_W, ROW_H, Font_White_Medium, 0, "AFWIJKING");
+    appendOutputString(Label_Position, LBL_W, ROW_H, Font_White_Medium, 0, kTextPosition);
+    appendOutputString(Label_Setpoint, LBL_W, ROW_H, Font_White_Medium, 0, kTextSetpoint);
+    appendOutputString(Label_XTE, LBL_W, ROW_H, Font_White_Medium, 0, kTextXte);
+    appendOutputString(Label_Offset, LBL_W, ROW_H, Font_White_Medium, 0, kTextWorkingWidth);
 
     // Soft key labels (centred, small font)
     appendOutputString(Label_Wider, 60, 40, Font_White_Small, 1, "BREDER");
