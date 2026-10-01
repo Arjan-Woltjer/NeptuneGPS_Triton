@@ -52,7 +52,7 @@ jobs:
           # package left the SDK repository and sdkmanager 16 fails on it.
           packages: platform-tools
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v6
 
       - name: Derive versionName and versionCode
         run: |
