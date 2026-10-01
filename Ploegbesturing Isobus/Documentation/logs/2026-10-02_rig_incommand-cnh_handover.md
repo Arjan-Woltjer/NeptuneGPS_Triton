@@ -47,6 +47,26 @@ Note the time of everything you touch.
 6. **TC:** connects to the InCommand's TC as before (`DDOP Activated`).
 7. **Ploughing**, if there is time: AUTO only when both indicators are green; Wider/Narrower from the VT.
 
+## Saturn: sniffing (listen-only)
+
+Saturn (Jupiter board 13251400) runs the **receive-only build** (`a40abde`, flashed 2026-10-01 evening).
+Bench checks 4/4: it refuses a normal-mode start, so nothing on the laptop can make it ACK or transmit, the
+VT app included. Details: NeptuneGPS Saturn `docs/field-capture.md`.
+
+- **Hardware:** termination jumper for bus A **out**; the Jupiter on its **own 12 V** (USB alone: no
+  reception); CAN H/L/GND on the same tap as the CANedge, short stub. Wire and power it **before** the
+  terminals come up, and leave it through the power-cycles.
+- **Plug Saturn's USB in after the plough control is flashed**, if a reflash is needed at all.
+- **Capture**, from the `NeptuneGPS Saturn` folder, with the field laptop's venv (it has no `py`):
+  `C:\Users\arjan\.venvs\can\Scripts\python.exe tools\gsusb_capture.py capture --label rig-2026-10-02-nh`
+  (ISOBUS is 250k, the default; for another bus put `--bitrate 500000` etc. **before** `capture`).
+- **Status line:** every 5 s. `NO FRAMES` on a live bus means stop and carry on without Saturn; don't debug
+  it at the rig. Ctrl+C at the end, after the CANedge is stopped.
+- **Output:** `captures/<date>_<time>_<label>_saturn.csv` + `.console.log`; copy both next to the session's MF4.
+- **Never open Saturn's (or any Teensy's) console at 134 baud to read it:** 134 is the Teensy's
+  reboot-to-bootloader request. Read at 115200.
+- Saturn can't act as a VT in this build. To use the VT app on the bench again, flash `teensy41_jupiter`.
+
 ## Afterwards
 
 Archive the MF4 and serial log as usual (`canlogs/`, `logs/`), with a timeline. Results go on PRs #188, #190
