@@ -1,7 +1,7 @@
 # 2026-10-02 -- Raven rig -- timeline
 
 Wall-clock times are the field laptop's (CEST). Serial log: `2026-10-02_raven_serial.log`,
-every line stamped on arrival. CANedge AD4F266A on the ISOBUS (card session: fill in).
+every line stamped on arrival. CANedge AD4F266A card session 33 -- which turned out to be the tractor's vehicle bus, not the ISOBUS (see "Results from the MF4" below).
 Firmware on the plough control: `test/rig-2026-10-02` @ `8c0cc7b` (#190 AgIsoStack-plus-plus,
 #191 new VT screen MW08, #188 VT failover), per the boot print (no identity in the claim
 line, old "Maximum correction", failover messages). Written for the InCommand + CNH visit
@@ -70,3 +70,53 @@ line, old "Maximum correction", failover messages). Written for the InCommand + 
   no periodic line enabled, nothing to log), but keys went unanswered and answers arrived late (15:02:59 ->
   15:07:47; 15:12:29 -> 15:13:04). The 1 Hz periodic line was never enabled this run (laptop-side omission).
 - Heartbeat timeout from 0xF0 at 14:56:24 (tractor restart). NACKed requests for PGN 65259 / 64834: normal.
+
+## Results from the MF4 (workstation, 2026-10-02 evening)
+
+**Card session 33 is not the ISOBUS. It is the CNH tractor's vehicle bus (J1939).** The CANedge
+ran for the whole session (1740 s, 2 197 512 frames, channel 1 only), but on a different bus from
+the plough control. Zero frames of PGN 0xE600/0xE700 (VT), 65535, 129026, 129029, 129283, 44032
+or TC process data; no SA 0x26 (Raven VT), 0x80 (GNSS), 0x81 (us) or 0xF0. What is there: engine
+at 0x00 (EEC1 at 46 Hz), retarder BAMs from 0x0F, transmission 0x03, rear hitch 0x23 (PGN 65093),
+front hitch 0x2E, PTOs 0x24/0x27, lighting and a dozen manufacturer-94 ECUs. Second time a field
+session's ISOBUS capture is lost this way (session 23 was the first); `--inventory` first, every
+time, before anything is concluded from a card.
+
+**The serial log is therefore the only ISOBUS record of this session.** The five MF4 questions in
+the field handover (129283 raw bytes at 15:06:27 / 15:08:37 / 15:12:26, who sends 129029 and
+whether frames are lost, any other CF on 0x81, our VT maintenance during the serial silences, the
+bus-off storm's error frames) cannot be answered from log 33. The log is kept in the OneDrive
+CANedge archive (`card-AD4F266A/session-00000033`), not in `canlogs/`.
+
+What the vehicle bus does give:
+
+- **A real clock.** CNH SA 0x28 broadcasts J1939 Time/Date (PGN 65254) at 1 Hz with local offset
+  +2 h: log start = **14:45:15.7 CEST**, 2026-10-02, end 15:14:15. The laptop clock agrees to
+  ~1 s: the serial `Heartbeat from 0xF0 timed out` at 14:56:24.6 matches the vehicle bus coming
+  back up at 14:56:24 (first address claims after the power cycle).
+- **The power cycle around the rewire.** Engine revved to ~1500 rpm 14:51:15-14:51:45, stopped
+  ~14:52:10, ignition off (bus silent) 14:54:45-14:56:15, back on 14:56:15, idle 850 rpm from
+  14:56:45. So the "tractor restart" was 14:56:15-14:56:45, not ~14:57:01, and the H/L swap was
+  done with the tractor off from ~14:52.
+- **Motion.** Ground speed (PGN 65097, 0x27): stationary except **15:03:00-15:06:10** (peak
+  1.83 m/s) and **15:11:15-15:13:00** (peak 0.76 m/s). The Raven readings 225 cm (15:06:27) and
+  220 cm (15:08:37) were taken **standing still**; the -1.58 m decode (~15:12:26 event time) was
+  during the second move at ~0.6 m/s, which matches the dump's GNSS speed of 0.65 m/s.
+- **Rear hitch (PGN 65093) never moved:** 81.6 % before the power cycle, 81.2 % after, constant.
+  Nothing was lowered into the ground this session.
+
+**#199 root cause, from the AgIsoStack-plus-plus source (fork `neptune-main`, identical on upstream
+`main`):** `CANNetworkManager::process_transmitted_can_message_frame()` pushes any *transmitted*
+request for the Address Claim PGN into `receivedMessageQueue` ("We need to receive manual requests
+for the address claim PGN"). `process_rx_messages()` then runs
+`process_can_message_for_address_violations()` on it before `process_rx_message_for_address_claiming()`.
+#188 sends the request via `ParameterGroupNumberRequestProtocol::request_parameter_group_number(AddressClaim,
+controlFunction, nullptr)`, i.e. with **our ICF as source, SA 0x81**. `InternalControlFunction::
+process_rx_message_for_address_violation()` only checks source address == own address and state ==
+AddressClaimingComplete, not the message type, so it fires on our own frame, logs the warning, and
+moves the ICF to `SendReclaimAddressOnRequest`; the same message is then processed as a request for
+address claim and we re-claim. Deterministic and bus-independent: it fired on the dead bus at 14:47
+with nothing received. No other 0x81 is needed to explain it. Two fixes, either is enough:
+`CANNetworkManager::send_request_for_address_claim(port)` sends with the NULL source (0xFE), which
+the violation check excludes; or the library skips the violation check for `CANMessage::Type::Transmit`
+(an upstream-worthy one-liner).

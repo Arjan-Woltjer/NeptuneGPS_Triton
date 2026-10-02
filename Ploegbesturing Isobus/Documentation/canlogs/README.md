@@ -329,6 +329,25 @@ timeline and serial log in [`../logs/`](../logs/) (`2026-10-01_session13_*`).
 - No StarFire on this rig: no PGN 126992, so log time maps to wall time only through the
   anchor above.
 
+### Raven terminal, 2026-10-02 -- card log 33 is the tractor's vehicle bus, NOT archived here
+
+Unplanned visit to a Raven terminal on a CNH tractor (rig/owner: see the timeline). The plough control
+ran `test/rig-2026-10-02` (8c0cc7b); serial log and timeline in [`../logs/`](../logs/)
+(`2026-10-02_raven_*`). The CANedge logged **card session 33** (1740 s, 2 197 512 frames) for the
+whole visit, but on the **J1939 vehicle bus**: engine 0x00, retarder 0x0F, transmission 0x03, hitches
+0x23/0x2E, PTOs, CNH ECUs. No VT, no GNSS, no 0x81, no 129283. The ISOBUS side of the session exists
+only in the serial log. The file stays in the OneDrive CANedge archive
+(`card-AD4F266A/session-00000033`), not in this folder, so nobody mistakes it for the Raven session
+later (session 23 was lost the same way in September).
+
+- **Datable despite the bogus RTC:** CNH SA 0x28 sends J1939 Time/Date (PGN 65254) at 1 Hz with the
+  local offset: log start 14:45:15.7 CEST, end 15:14:15; agrees with the laptop clock to ~1 s.
+- Useful for cross-checks only: the tractor's power cycle (engine off ~14:52:10, bus silent
+  14:54:45-14:56:15), ground speed (moving 15:03:00-15:06:10 and 15:11:15-15:13:00, standing still
+  at both Raven XTE call-outs), rear hitch at 81 % throughout.
+- **Rule, again:** run `mf4_to_pcap.py --inventory` on a card session before trusting it; a bus
+  without SA 0x26/0xF7/0x81 and PGN 0xE600 is not the implement bus.
+
 ## Reading them
 
 `mf4_to_pcap.py` -- now in the Documentation repo at
