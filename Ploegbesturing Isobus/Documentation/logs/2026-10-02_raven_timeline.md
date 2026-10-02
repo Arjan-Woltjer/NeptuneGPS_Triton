@@ -51,3 +51,22 @@ line, old "Maximum correction", failover messages). Written for the InCommand + 
 | **USB serial (rig build)** | Stalls/delays after the VT connects, several times: output held back and delivered in bursts (one dump 35 s late, two others 4.5 min late, released by a USB replug). Firmware kept running throughout. Never seen on test/session12. Possibly linked to the AgIsoStack-plus-plus log flood (`[FP]: Ignoring FP message with PGN 129029, no context available`, up to 24 lines/s) -- that flood is itself a finding: 129029 fast-packet frames dropped |
 | Address violation 0x81 | Every 10 s while alone on the bus (before the wiring fix), right after our own failover request; probably our own claim flagged by our own stack. Check the MF4 for any other SA 0x81 |
 | Every USB replug restarts the board | Seen three times |
+
+## Analysis of the serial log (2026-10-02, after the run)
+
+- **XTE / 129283:** only *valid* frames refresh the XTE timestamp (`GuidanceCommit.hpp` GApply). So:
+  15:02:49 age 2 ms, value **0.00** = the Raven sent *valid* 129283 frames carrying 0 (no fix at the time);
+  ~15:03 the same; 15:13:04 age **38 s**, last valid value **-1.58 m**, then 38 s of rejected frames
+  (navigation-terminated or not-available) while the fix came and went next to the barn.
+  The decoder works. The Raven sends 0 as a *valid* XTE when it has no fix -- the RTK gate is what keeps
+  that from steering. No reading was taken while the screen showed 225/220 cm (15:06-15:08): pair via the MF4.
+- **Address violation for 0x81:** 53 times, 14:47:26-15:11:20, each one straight after our own #188
+  "requesting address claims" -- including at 15:11:20 on the live bus. Our own global request makes our own
+  stack flag a violation. Finding for #188/#190.
+- **[FP] on PGN 129029 only:** 279 "no context available" + 45 "existing session matched new frame counter,
+  aborting", 15:02:53-15:13:06, dense from 15:12:03 when RTK came in. Either frames are lost on our side or
+  two senders interleave 129029 -- the MF4 tells which.
+- **Silent periods** 14:57:50-15:00:31, 15:03:26-15:07:46, 15:07:51-15:10:39: partly normal (VT connected,
+  no periodic line enabled, nothing to log), but keys went unanswered and answers arrived late (15:02:59 ->
+  15:07:47; 15:12:29 -> 15:13:04). The 1 Hz periodic line was never enabled this run (laptop-side omission).
+- Heartbeat timeout from 0xF0 at 14:56:24 (tractor restart). NACKed requests for PGN 65259 / 64834: normal.
