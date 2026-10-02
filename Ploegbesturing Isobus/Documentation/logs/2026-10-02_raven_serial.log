@@ -1,0 +1,1116 @@
+﻿14:47:23.298 ### logger started (auto: PJRC 16C0:0483)
+14:47:23.987 ### port COM4 open
+14:47:23.996 --------------------------------
+14:47:23.998 -----------MeijWorks------------
+14:47:23.999 --------------------------------
+14:47:23.999 Ploughcontrol ISOBUS version 0.1
+14:47:24.000 (c) 2011 - 2026 by J.A. Woltjer 
+14:47:24.000 --------------------------------
+14:47:24.001 -------------------------------
+14:47:24.001 Tractor using following data:
+14:47:24.001 -------------------------------
+14:47:24.002 Speed calibration
+14:47:24.002 250
+14:47:24.003 -------------------------------
+14:47:24.003 Simspeed
+14:47:24.003 1.00
+14:47:24.004 -------------------------------
+14:47:24.004 Sim time
+14:47:24.005 2
+14:47:24.005 -------------------------------
+14:47:24.006 Sim mode
+14:47:24.006 1
+14:47:24.006 -------------------------------
+14:47:24.007 Invert hitch signal
+14:47:24.007 1
+14:47:24.008 -------------------------------
+14:47:24.008 Times started
+14:47:24.008 255
+14:47:24.009 --------------------------
+14:47:24.009 Using following data:
+14:47:24.010 --------------------------
+14:47:24.010 Offset calibration data
+14:47:24.011 600, 34
+14:47:24.011 461, 42
+14:47:24.012 308, 50
+14:47:24.012 --------------------------
+14:47:24.013 Number of shares
+14:47:24.013 4
+14:47:24.014 --------------------------
+14:47:24.014 error margin
+14:47:24.015 2
+14:47:24.015 --------------------------
+14:47:24.016 error ploughside
+14:47:24.016 1
+14:47:24.017 --------------------------
+14:47:24.017 Maximum correction
+14:47:24.017 50
+14:47:24.018 --------------------------
+14:47:24.018 =====================================
+14:47:24.018 Guidance source using following data:
+14:47:24.019 =====================================
+14:47:24.019 RTK Quality
+14:47:24.020 4
+14:47:24.020 -------------------------------
+14:47:24.020 Times started
+14:47:24.021 255
+14:47:24.021 --------------------------
+14:47:24.021 Using following data:
+14:47:24.022 --------------------------
+14:47:24.022 Offset calibration data
+14:47:24.022 600, 34
+14:47:24.023 461, 42
+14:47:24.023 308, 50
+14:47:24.024 --------------------------
+14:47:24.024 Number of shares
+14:47:24.024 4
+14:47:24.025 --------------------------
+14:47:24.025 error margin
+14:47:24.026 2
+14:47:24.026 --------------------------
+14:47:24.026 error ploughside
+14:47:24.027 1
+14:47:24.027 --------------------------
+14:47:24.028 Maximum correction
+14:47:24.028 50
+14:47:24.029 --------------------------
+14:47:24.029 CAN controller at start: error-active, TX err 0, RX err 0
+14:47:24.029 IsobusGuidanceChannel: claiming address address claimed: 0x81
+14:47:24.030 CAN controller after the claim: error-PASSIVE, TX err 128, RX err 0
+14:47:24.030 IsobusDebugMenu: send any character to open the status menu.
+14:47:26.326 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:47:26.327 W] [AC]: Address violation for address 129
+14:47:36.305 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:47:36.306 W] [AC]: Address violation for address 129
+14:47:46.300 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:47:46.300 W] [AC]: Address violation for address 129
+14:47:56.328 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:47:56.329 W] [AC]: Address violation for address 129
+14:48:06.323 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:48:06.324 W] [AC]: Address violation for address 129
+14:48:16.309 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:48:16.311 W] [AC]: Address violation for address 129
+14:48:26.303 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:48:26.304 W] [AC]: Address violation for address 129
+14:48:31.340 ### sending keys: x1q
+14:48:36.327 === ISOBUS DEBUG MENU ===
+14:48:36.328 1. Full status dump
+14:48:36.328 2. Periodic summary line (OFF - press to toggle)
+14:48:36.329 3. Reset message counters
+14:48:36.329 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:48:36.329 5. Dump VT object pool as hex
+14:48:36.330 q. Exit
+14:48:36.330 === ISOBUS STATUS ===
+14:48:36.331 Address claim: CLAIMED  address=0x81
+14:48:36.331 CAN controller: error-PASSIVE  TX err 136 (peak 136)  RX err 133 (peak 133)
+14:48:36.332   error-passive entries: 1  bus-off entries: 0  longest episode: 0 ms  (current: 100463 ms)
+14:48:36.332 Bus load (ch0): 0.3 %
+14:48:36.332 --- Message counters ---
+14:48:36.332   PGN 129025 Position NMEA2000: 0
+14:48:36.333   PGN 129026 Speed NMEA2000:    0
+14:48:36.333   PGN 129283 XTE NMEA2000:      0
+14:48:36.334   PGN 65267  Position legacy:   0
+14:48:36.334   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+14:48:36.334   PGN 65535  all senders:       0   last SA=0xFF
+14:48:36.335   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+14:48:36.336              raw: nothing from 0x2A or 0x80 yet
+14:48:36.336   PGN 60160  XTE Trimble legacy:0   last SA=0xFF
+14:48:36.336   PGN 64770  AISO stop:         0   last 0 ms ago
+14:48:36.337   TOTAL:                        0
+14:48:36.337 --- Guidance telemetry ---
+14:48:36.338   XTE:          0.00 m
+14:48:36.338   Speed:        0.00 m/s (0.00 kn)
+14:48:36.338   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+14:48:36.339   PGN 129027 position deltas: 0
+14:48:36.339   Guidance machine info (PGN 44032): (none received)
+14:48:36.339   IsRtkQuality=N
+14:48:36.340   GGA fix age:  107511 ms
+14:48:36.340   VTG fix age:  107511 ms
+14:48:36.341   XTE fix age:  107511 ms
+14:48:36.341   Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+14:48:36.341 --- Virtual Terminal ---
+14:48:36.342   Connected:    N
+14:48:36.342   State:        0/22  Disconnected
+14:48:36.342   VT version:  (unknown)
+14:48:36.344   VT status msgs: 0   last 0 ms ago
+14:48:36.345   Partner: addr=0xFE valid=N  reconnect attempts=0
+14:48:36.345   VT failover: switches=0 claim requests=9
+14:48:36.345 --- Task Controller ---
+14:48:36.346   Connected:    N
+14:48:36.346   TC-GEO (with/without pos): (not connected)
+14:48:36.348   Task active:  N
+14:48:36.348   DRP deviation (DDI 513): 0 mm, last 107511 ms ago
+14:48:36.348   GNSS quality (DDI 514):  0, last 107511 ms ago
+14:48:36.349   [via stack] Value cmds to handler: 0  last DDI=(none)
+14:48:36.349   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+14:48:36.350   [on bus] Requests for our values: 0
+14:48:36.350   [on bus] Set-value commands:      0
+14:48:36.350   [on bus] Measurement commands:    0  (none)
+14:48:36.350   [on bus] Other, addressed to us:  0
+14:48:36.351   Partner: addr=0xFE valid=N  reconnect attempts=0
+14:48:36.351   Tramline setpoint (DDI 506): (not connected)
+14:48:36.351   Guidance track (DDI 507-511): (not connected)
+14:48:36.352 === ISOBUS DEBUG MENU ===
+14:48:36.352 1. Full status dump
+14:48:36.352 2. Periodic summary line (OFF - press to toggle)
+14:48:36.353 3. Reset message counters
+14:48:36.353 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:48:36.353 5. Dump VT object pool as hex
+14:48:36.354 q. Exit
+14:48:36.354 Exiting.
+14:48:36.354 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:48:36.355 W] [AC]: Address violation for address 129
+14:48:46.318 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:48:46.319 W] [AC]: Address violation for address 129
+14:48:56.309 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:48:56.310 W] [AC]: Address violation for address 129
+14:49:06.321 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:49:06.322 W] [AC]: Address violation for address 129
+14:49:16.337 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:49:16.339 W] [AC]: Address violation for address 129
+14:49:26.325 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:49:26.327 W] [AC]: Address violation for address 129
+14:49:36.330 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:49:36.331 W] [AC]: Address violation for address 129
+14:49:46.326 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:49:46.327 W] [AC]: Address violation for address 129
+14:49:56.306 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:49:56.306 W] [AC]: Address violation for address 129
+14:50:06.311 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:50:06.312 W] [AC]: Address violation for address 129
+14:50:16.322 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:50:16.323 W] [AC]: Address violation for address 129
+14:50:26.326 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:50:26.327 W] [AC]: Address violation for address 129
+14:50:36.338 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:50:36.339 W] [AC]: Address violation for address 129
+14:50:46.324 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:50:46.325 W] [AC]: Address violation for address 129
+14:50:56.330 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:50:56.331 W] [AC]: Address violation for address 129
+14:51:06.318 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:51:06.319 W] [AC]: Address violation for address 129
+14:51:16.313 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:51:16.314 W] [AC]: Address violation for address 129
+14:51:26.317 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:51:26.318 W] [AC]: Address violation for address 129
+14:51:36.305 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:51:36.306 W] [AC]: Address violation for address 129
+14:51:46.316 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:51:46.317 W] [AC]: Address violation for address 129
+14:51:56.318 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:51:56.320 W] [AC]: Address violation for address 129
+14:52:06.335 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:52:06.522 W] [AC]: Address violation for address 129
+14:52:16.308 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:52:26.312 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:52:36.327 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:52:46.313 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:52:56.330 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:53:06.335 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:53:16.353 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:53:26.338 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:53:36.320 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:53:46.312 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:53:56.339 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:54:06.320 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:54:08.276 W] [AC]: Address violation for address 129
+14:54:16.336 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:54:16.338 W] [AC]: Address violation for address 129
+14:54:26.315 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:54:36.311 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:54:46.313 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:54:56.329 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:55:06.336 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:55:16.318 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:55:26.326 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:55:36.328 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:55:46.323 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:55:56.329 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:06.329 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:16.345 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:21.540 W] [AC]: Address violation for address 129
+14:56:21.571 W] [AC]: Address violation for address 129
+14:56:21.573 W] [AC]: Address violation for address 129
+14:56:21.667 W] [AC]: Address violation for address 129
+14:56:21.699 W] [AC]: Address violation for address 129
+14:56:21.699 W] [AC]: Address violation for address 129
+14:56:21.702 W] [AC]: Address violation for address 129
+14:56:21.702 W] [AC]: Address violation for address 129
+14:56:21.732 W] [AC]: Address violation for address 129
+14:56:21.733 W] [AC]: Address violation for address 129
+14:56:21.734 W] [AC]: Address violation for address 129
+14:56:21.764 W] [AC]: Address violation for address 129
+14:56:24.275 W] [HB]: Initial heartbeat sequence counter not received from control function at address 0xF0.
+14:56:24.569 E] [HB]: Heartbeat from control function at address 0xF0 timed out.
+14:56:26.335 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:26.336 W] [AC]: Address violation for address 129
+14:56:36.340 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:36.340 W] [AC]: Address violation for address 129
+14:56:46.349 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:46.349 W] [AC]: Address violation for address 129
+14:56:56.329 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:56:56.330 W] [AC]: Address violation for address 129
+14:57:06.318 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:57:06.319 W] [AC]: Address violation for address 129
+14:57:16.327 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:57:16.327 W] [AC]: Address violation for address 129
+14:57:26.335 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:57:26.335 W] [AC]: Address violation for address 129
+14:57:28.717 ### sending keys: x1q
+14:57:36.316 === ISOBUS DEBUG MENU ===
+14:57:36.318 1. Full status dump
+14:57:36.318 2. Periodic summary line (OFF - press to toggle)
+14:57:36.318 3. Reset message counters
+14:57:36.318 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:57:36.318 5. Dump VT object pool as hex
+14:57:36.318 q. Exit
+14:57:36.318 === ISOBUS STATUS ===
+14:57:36.318 Address claim: CLAIMED  address=0x81
+14:57:36.318 CAN controller: error-active  TX err 0 (peak 248)  RX err 0 (peak 135)
+14:57:36.318   error-passive entries: 4983  bus-off entries: 4981  longest episode: 133103 ms
+14:57:36.318   last bus-off 190522 ms ago
+14:57:36.318 Bus load (ch0): 14.3 %
+14:57:36.318 --- Message counters ---
+14:57:36.318   PGN 129025 Position NMEA2000: 0
+14:57:36.318   PGN 129026 Speed NMEA2000:    689
+14:57:36.318   PGN 129283 XTE NMEA2000:      0
+14:57:36.318   PGN 65267  Position legacy:   0
+14:57:36.318   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+14:57:36.318   PGN 65535  all senders:       0   last SA=0xFF
+14:57:36.318   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+14:57:36.318              raw: nothing from 0x2A or 0x80 yet
+14:57:36.318   PGN 60160  XTE Trimble legacy:0   last SA=0xFF
+14:57:36.318   PGN 64770  AISO stop:         61   last 644855 ms ago
+14:57:36.318   TOTAL:                        2014
+14:57:36.318 --- Guidance telemetry ---
+14:57:36.318   XTE:          0.00 m
+14:57:36.318   Speed:        0.00 m/s (0.00 kn)
+14:57:36.318   Quality:      0   RTK quality=4  PGN 129029 GNSS position: 640 msgs, method=0 no GNSS  SVs=36  HDOP=0.56  last 16 ms ago
+14:57:36.318   PGN 129027 position deltas: 0
+14:57:36.318   Guidance machine info (PGN 44032): 624 msgs, last 60 ms ago
+14:57:36.318     lockout=no/not-ready  steeringReady=no/not-ready  remoteEngage=no/not-ready  curvature=5.25 1/km
+14:57:36.318   IsRtkQuality=N
+14:57:36.318   GGA fix age:  16 ms
+14:57:36.318   VTG fix age:  24 ms
+14:57:36.318   XTE fix age:  644855 ms
+14:57:36.318   Lat/Lon/Alt/Course: 53.444324 / 6.721748 / 41.8 m / 0.0 deg
+14:57:36.318 --- Virtual Terminal ---
+14:57:36.318   Connected:    N
+14:57:36.318   State:        0/22  Disconnected
+14:57:36.318   VT version:  (unknown)
+14:57:36.334   VT status msgs: 0   last 0 ms ago
+14:57:36.334   Partner: addr=0xFE valid=N  reconnect attempts=0
+14:57:36.334   VT failover: switches=0 claim requests=63
+14:57:36.334 --- Task Controller ---
+14:57:36.334   Connected:    N
+14:57:36.334   TC-GEO (with/without pos): (not connected)
+14:57:36.334   Task active:  N
+14:57:36.334   DRP deviation (DDI 513): 0 mm, last 644855 ms ago
+14:57:36.334   GNSS quality (DDI 514):  0, last 644855 ms ago
+14:57:36.334   [via stack] Value cmds to handler: 0  last DDI=(none)
+14:57:36.334   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+14:57:36.334   [on bus] Requests for our values: 0
+14:57:36.334   [on bus] Set-value commands:      0
+14:57:36.334   [on bus] Measurement commands:    0  (none)
+14:57:36.334   [on bus] Other, addressed to us:  0
+14:57:36.334   Partner: addr=0xFE valid=N  reconnect attempts=0
+14:57:36.334   Tramline setpoint (DDI 506): (not connected)
+14:57:36.334   Guidance track (DDI 507-511): (not connected)
+14:57:36.334 === ISOBUS DEBUG MENU ===
+14:57:36.334 1. Full status dump
+14:57:36.334 2. Periodic summary line (OFF - press to toggle)
+14:57:36.334 3. Reset message counters
+14:57:36.334 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:57:36.334 5. Dump VT object pool as hex
+14:57:36.334 q. Exit
+14:57:36.334 Exiting.
+14:57:36.334 VT: partner 0xFE silent -- requesting address claims to find another VT
+14:57:36.334 W] [AC]: Address violation for address 129
+14:57:43.409 I] [NM]: Partnered control function with name 000000000000000lx has claimed address 197133009 on channel 2684361984.
+14:57:44.195 W] [PR]: NACK-ing PGN request for PGN 65259 because no callback could handle it.
+14:57:46.324 VT: partner 0x26 silent -- requesting address claims to find another VT
+14:57:46.324 W] [AC]: Address violation for address 129
+14:57:46.728 W] [PR]: NACK-ing PGN request for PGN 64834 because no callback could handle it.
+14:57:46.728 I] [VT]: No version label from the VT matched. Client will upload the pool and store it instead.
+14:57:47.548 W] [PR]: NACK-ing PGN request for PGN 65259 because no callback could handle it.
+14:57:48.677 I] [VT]: Stored object pool with no error.
+14:57:50.091 W] [PR]: NACK-ing PGN request for PGN 64834 because no callback could handle it.
+15:00:31.328 ### sending keys: x1q
+15:00:54.375 ### sending keys: x1q
+15:01:14.073 ### logger started (auto: PJRC 16C0:0483)
+15:01:14.887 ### port COM4 open
+15:01:16.890 ### sending keys: x1q
+15:02:48.434 ### port COM4 open
+15:02:49.630 === ISOBUS DEBUG MENU ===
+15:02:49.633 1. Full status dump
+15:02:49.633 2. Periodic summary line (OFF - press to toggle)
+15:02:49.634 3. Reset message counters
+15:02:49.634 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:02:49.635 5. Dump VT object pool as hex
+15:02:49.635 q. Exit
+15:02:49.635 === ISOBUS STATUS ===
+15:02:49.635 Address claim: CLAIMED  address=0x81
+15:02:49.635 CAN controller: error-active  TX err 0 (peak 248)  RX err 0 (peak 135)
+15:02:49.635   error-passive entries: 4983  bus-off entries: 4981  longest episode: 133103 ms
+15:02:49.635   last bus-off 418703 ms ago
+15:02:49.635 Bus load (ch0): 19.1 %
+15:02:49.635 --- Message counters ---
+15:02:49.635   PGN 129025 Position NMEA2000: 0
+15:02:49.635   PGN 129026 Speed NMEA2000:    2975
+15:02:49.635   PGN 129283 XTE NMEA2000:      1892
+15:02:49.635   PGN 65267  Position legacy:   0
+15:02:49.635   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+15:02:49.635   PGN 65535  all senders:       0   last SA=0xFF
+15:02:49.642   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+15:02:49.642              raw: nothing from 0x2A or 0x80 yet
+15:02:49.642   PGN 60160  XTE Trimble legacy:8   last SA=0x80
+15:02:49.642   PGN 64770  AISO stop:         289   last 873036 ms ago
+15:02:49.642   TOTAL:                        10991
+15:02:49.642 --- Guidance telemetry ---
+15:02:49.642   XTE:          0.00 m
+15:02:49.642   Speed:        0.00 m/s (0.00 kn)
+15:02:49.642   Quality:      0   RTK quality=4  PGN 129029 GNSS position: 2921 msgs, method=0 no GNSS  SVs=35  HDOP=0.99  last 98 ms ago
+15:02:49.642   PGN 129027 position deltas: 0
+15:02:49.642   Guidance machine info (PGN 44032): 2906 msgs, last 22 ms ago
+15:02:49.642     lockout=no/not-ready  steeringReady=no/not-ready  remoteEngage=no/not-ready  curvature=5.25 1/km
+15:02:49.642   IsRtkQuality=N
+15:02:49.648   GGA fix age:  98 ms
+15:02:49.648   VTG fix age:  6 ms
+15:02:49.648   XTE fix age:  2 ms
+15:02:49.650   Lat/Lon/Alt/Course: 53.444332 / 6.721749 / 41.8 m / 0.0 deg
+15:02:49.650 --- Virtual Terminal ---
+15:02:49.650   Connected:    Y
+15:02:49.650   State:        21/22  Connected
+15:02:49.650   VT version:  6
+15:02:49.650   VT status msgs: 212   last 854 ms ago
+15:02:49.650   Partner: addr=0x26 valid=Y  reconnect attempts=0
+15:02:49.650   VT failover: switches=0 claim requests=65
+15:02:49.650 --- Task Controller ---
+15:02:49.650   Connected:    N
+15:02:49.650   TC-GEO (with/without pos): (not connected)
+15:02:49.650   Task active:  N
+15:02:49.650   DRP deviation (DDI 513): 0 mm, last 873036 ms ago
+15:02:49.650   GNSS quality (DDI 514):  0, last 873036 ms ago
+15:02:49.650   [via stack] Value cmds to handler: 0  last DDI=(none)
+15:02:49.650   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+15:02:49.650   [on bus] Requests for our values: 0
+15:02:49.650   [on bus] Set-value commands:      0
+15:02:49.656   [on bus] Measurement commands:    0  (none)
+15:02:49.656   [on bus] Other, addressed to us:  0
+15:02:49.656   Partner: addr=0xFE valid=N  reconnect attempts=0
+15:02:49.656   Tramline setpoint (DDI 506): (not connected)
+15:02:49.656   Guidance track (DDI 507-511): (not connected)
+15:02:49.658 === ISOBUS DEBUG MENU ===
+15:02:49.658 1. Full status dump
+15:02:49.658 2. Periodic summary line (OFF - press to toggle)
+15:02:49.658 3. Reset message counters
+15:02:49.658 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:02:49.658 5. Dump VT object pool as hex
+15:02:49.660 q. Exit
+15:02:49.660 Exiting.
+15:02:49.660 --------------------------------
+15:02:49.660 -----------MeijWorks------------
+15:02:49.662 --------------------------------
+15:02:49.662 Ploughcontrol ISOBUS version 0.1
+15:02:49.662 (c) 2011 - 2026 by J.A. Woltjer 
+15:02:49.663 --------------------------------
+15:02:51.351 -------------------------------
+15:02:51.351 Tractor using following data:
+15:02:51.351 -------------------------------
+15:02:51.351 Speed calibration
+15:02:51.351 250
+15:02:51.351 -------------------------------
+15:02:51.355 Simspeed
+15:02:51.355 1.00
+15:02:51.355 -------------------------------
+15:02:51.355 Sim time
+15:02:51.355 2
+15:02:51.359 -------------------------------
+15:02:51.359 Sim mode
+15:02:51.359 1
+15:02:51.359 -------------------------------
+15:02:51.359 Invert hitch signal
+15:02:51.359 1
+15:02:51.359 -------------------------------
+15:02:51.359 Times started
+15:02:51.359 255
+15:02:51.359 --------------------------
+15:02:51.362 Using following data:
+15:02:51.362 --------------------------
+15:02:51.362 Offset calibration data
+15:02:51.362 600, 34
+15:02:51.362 461, 42
+15:02:51.362 308, 50
+15:02:51.362 --------------------------
+15:02:51.362 Number of shares
+15:02:51.362 4
+15:02:51.362 --------------------------
+15:02:51.362 error margin
+15:02:51.362 2
+15:02:51.367 --------------------------
+15:02:51.367 error ploughside
+15:02:51.367 1
+15:02:51.368 --------------------------
+15:02:51.368 Maximum correction
+15:02:51.368 50
+15:02:51.368 --------------------------
+15:02:51.369 =====================================
+15:02:51.369 Guidance source using following data:
+15:02:51.369 =====================================
+15:02:51.370 RTK Quality
+15:02:51.370 4
+15:02:51.370 -------------------------------
+15:02:51.370 Times started
+15:02:51.370 255
+15:02:51.370 --------------------------
+15:02:51.370 Using following data:
+15:02:51.370 --------------------------
+15:02:51.370 Offset calibration data
+15:02:51.370 600, 34
+15:02:51.370 461, 42
+15:02:51.370 308, 50
+15:02:51.370 --------------------------
+15:02:51.370 Number of shares
+15:02:51.370 4
+15:02:51.370 --------------------------
+15:02:51.370 error margin
+15:02:51.370 2
+15:02:51.377 --------------------------
+15:02:51.377 error ploughside
+15:02:51.377 1
+15:02:51.377 --------------------------
+15:02:51.377 Maximum correction
+15:02:51.377 50
+15:02:51.377 --------------------------
+15:02:51.377 CAN controller at start: error-active, TX err 0, RX err 0
+15:02:51.600 IsobusGuidanceChannel: claiming address address claimed: 0x81
+15:02:51.600 CAN controller after the claim: error-active, TX err 0, RX err 0
+15:02:51.602 I] [NM]: A partner with name 000000000000000lx has claimed address 2684361984 on channel 197133009.
+15:02:51.602 IsobusDebugMenu: send any character to open the status menu.
+15:02:53.748 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:02:53.780 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:02:53.780 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:02:54.026 I] [VT]: VT Server has a matching label for MW08   . It will be loaded and upload will be skipped.
+15:02:54.028 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+15:02:59.017 ### sending keys: x1q
+15:03:26.138 ### sending keys: x1q
+15:07:46.204 ### port COM4 open
+15:07:47.140 === ISOBUS DEBUG MENU ===
+15:07:47.140 1. Full status dump
+15:07:47.144 2. Periodic summary line (OFF - press to toggle)
+15:07:47.144 3. Reset message counters
+15:07:47.147 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:07:47.147 5. Dump VT object pool as hex
+15:07:47.149 q. Exit
+15:07:47.151 === ISOBUS STATUS ===
+15:07:47.151 Address claim: CLAIMED  address=0x81
+15:07:47.153 CAN controller: error-active  TX err 0 (peak 0)  RX err 0 (peak 0)
+15:07:47.153   error-passive entries: 0  bus-off entries: 0  longest episode: 0 ms
+15:07:47.155 Bus load (ch0): 18.2 %
+15:07:47.155 --- Message counters ---
+15:07:47.155   PGN 129025 Position NMEA2000: 0
+15:07:47.159   PGN 129026 Speed NMEA2000:    54
+15:07:47.160   PGN 129283 XTE NMEA2000:      54
+15:07:47.160   PGN 65267  Position legacy:   0
+15:07:47.163   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+15:07:47.163   PGN 65535  all senders:       0   last SA=0xFF
+15:07:47.169   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+15:07:47.171              raw: nothing from 0x2A or 0x80 yet
+15:07:47.172   PGN 60160  XTE Trimble legacy:2   last SA=0x26
+15:07:47.174   PGN 64770  AISO stop:         6   last 12880 ms ago
+15:07:47.174   TOTAL:                        224
+15:07:47.174 --- Guidance telemetry ---
+15:07:47.177   XTE:          0.00 m
+15:07:47.177   Speed:        0.01 m/s (0.02 kn)
+15:07:47.180   Quality:      0   RTK quality=4  PGN 129029 GNSS position: 54 msgs, method=0 no GNSS  SVs=36  HDOP=0.99  last 38 ms ago
+15:07:47.182   PGN 129027 position deltas: 0
+15:07:47.182   Guidance machine info (PGN 44032): 54 msgs, last 54 ms ago
+15:07:47.185     lockout=no/not-ready  steeringReady=no/not-ready  remoteEngage=no/not-ready  curvature=5.25 1/km
+15:07:47.188   IsRtkQuality=N
+15:07:47.189   GGA fix age:  38 ms
+15:07:47.191   VTG fix age:  42 ms
+15:07:47.191   XTE fix age:  54 ms
+15:07:47.194   Lat/Lon/Alt/Course: 53.444332 / 6.721749 / 41.8 m / 0.0 deg
+15:07:47.194 --- Virtual Terminal ---
+15:07:47.197   Connected:    Y
+15:07:47.197   State:        21/22  Connected
+15:07:47.197   VT version:  6
+15:07:47.197   VT status msgs: 8   last 478 ms ago
+15:07:47.197   Partner: addr=0x26 valid=Y  reconnect attempts=0
+15:07:47.197   VT failover: switches=0 claim requests=0
+15:07:47.203 --- Task Controller ---
+15:07:47.203   Connected:    N
+15:07:47.205   TC-GEO (with/without pos): (not connected)
+15:07:47.205   Task active:  N
+15:07:47.205   DRP deviation (DDI 513): 0 mm, last 12880 ms ago
+15:07:47.205   GNSS quality (DDI 514):  0, last 12880 ms ago
+15:07:47.210   [via stack] Value cmds to handler: 0  last DDI=(none)
+15:07:47.211   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+15:07:47.211   [on bus] Requests for our values: 0
+15:07:47.211   [on bus] Set-value commands:      0
+15:07:47.211   [on bus] Measurement commands:    0  (none)
+15:07:47.211   [on bus] Other, addressed to us:  0
+15:07:47.211   Partner: addr=0xFE valid=N  reconnect attempts=0
+15:07:47.218   Tramline setpoint (DDI 506): (not connected)
+15:07:47.218   Guidance track (DDI 507-511): (not connected)
+15:07:47.218 === ISOBUS DEBUG MENU ===
+15:07:47.222 1. Full status dump
+15:07:47.222 2. Periodic summary line (OFF - press to toggle)
+15:07:47.222 3. Reset message counters
+15:07:47.222 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:07:47.222 5. Dump VT object pool as hex
+15:07:47.226 q. Exit
+15:07:47.227 Exiting.
+15:07:47.227 === ISOBUS DEBUG MENU ===
+15:07:47.227 1. Full status dump
+15:07:47.227 2. Periodic summary line (OFF - press to toggle)
+15:07:47.227 3. Reset message counters
+15:07:47.227 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:07:47.227 5. Dump VT object pool as hex
+15:07:47.227 q. Exit
+15:07:47.235 === ISOBUS STATUS ===
+15:07:47.235 Address claim: CLAIMED  address=0x81
+15:07:47.235 CAN controller: error-active  TX err 0 (peak 0)  RX err 0 (peak 0)
+15:07:47.235   error-passive entries: 0  bus-off entries: 0  longest episode: 0 ms
+15:07:47.235 Bus load (ch0): 18.1 %
+15:07:47.235 --- Message counters ---
+15:07:47.243   PGN 129025 Position NMEA2000: 0
+15:07:47.243   PGN 129026 Speed NMEA2000:    325
+15:07:47.243   PGN 129283 XTE NMEA2000:      325
+15:07:47.243   PGN 65267  Position legacy:   0
+15:07:47.247   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+15:07:47.247   PGN 65535  all senders:       0   last SA=0xFF
+15:07:47.247   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+15:07:47.247              raw: nothing from 0x2A or 0x80 yet
+15:07:47.247   PGN 60160  XTE Trimble legacy:6   last SA=0x80
+15:07:47.247   PGN 64770  AISO stop:         33   last 39999 ms ago
+15:07:47.247   TOTAL:                        1339
+15:07:47.247 --- Guidance telemetry ---
+15:07:47.247   XTE:          0.00 m
+15:07:47.247   Speed:        0.00 m/s (0.00 kn)
+15:07:47.247   Quality:      0   RTK quality=4  PGN 129029 GNSS position: 325 msgs, method=0 no GNSS  SVs=36  HDOP=0.98  last 57 ms ago
+15:07:47.247   PGN 129027 position deltas: 0
+15:07:47.247   Guidance machine info (PGN 44032): 325 msgs, last 69 ms ago
+15:07:47.247     lockout=no/not-ready  steeringReady=no/not-ready  remoteEngage=no/not-ready  curvature=6.00 1/km
+15:07:47.259   IsRtkQuality=N
+15:07:47.259   GGA fix age:  57 ms
+15:07:47.259   VTG fix age:  61 ms
+15:07:47.259   XTE fix age:  25 ms
+15:07:47.259   Lat/Lon/Alt/Course: 53.444332 / 6.721749 / 41.8 m / 0.0 deg
+15:07:47.259 --- Virtual Terminal ---
+15:07:47.259   Connected:    Y
+15:07:47.265   State:        21/22  Connected
+15:07:47.265   VT version:  6
+15:07:47.265   VT status msgs: 36   last 237 ms ago
+15:07:47.265   Partner: addr=0x26 valid=Y  reconnect attempts=0
+15:07:47.265   VT failover: switches=0 claim requests=0
+15:07:47.265 --- Task Controller ---
+15:07:47.265   Connected:    N
+15:07:47.265   TC-GEO (with/without pos): (not connected)
+15:07:47.265   Task active:  N
+15:07:47.265   DRP deviation (DDI 513): 0 mm, last 39999 ms ago
+15:07:47.265   GNSS quality (DDI 514):  0, last 39999 ms ago
+15:07:47.275   [via stack] Value cmds to handler: 0  last DDI=(none)
+15:07:47.275   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+15:07:47.275   [on bus] Requests for our values: 0
+15:07:47.275   [on bus] Set-value commands:      0
+15:07:47.275   [on bus] Measurement commands:    0  (none)
+15:07:47.275   [on bus] Other, addressed to us:  0
+15:07:47.275   Partner: addr=0xFE valid=N  reconnect attempts=0
+15:07:47.275   Tramline setpoint (DDI 506): (not connected)
+15:07:47.275   Guidance track (DDI 507-511): (not connected)
+15:07:47.275 === ISOBUS DEBUG MENU ===
+15:07:47.275 1. Full status dump
+15:07:47.275 2. Periodic summary line (OFF - press to toggle)
+15:07:47.275 3. Reset message counters
+15:07:47.275 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:07:47.275 5. Dump VT object pool as hex
+15:07:47.275 q. Exit
+15:07:47.275 Exiting.
+15:07:47.275 --------------------------------
+15:07:47.275 -----------MeijWorks------------
+15:07:47.275 --------------------------------
+15:07:47.291 Ploughcontrol ISOBUS version 0.1
+15:07:47.292 (c) 2011 - 2026 by J.A. Woltjer 
+15:07:47.292 --------------------------------
+15:07:48.868 -------------------------------
+15:07:48.868 Tractor using following data:
+15:07:48.868 -------------------------------
+15:07:48.868 Speed calibration
+15:07:48.868 250
+15:07:48.868 -------------------------------
+15:07:48.877 Simspeed
+15:07:48.877 1.00
+15:07:48.877 -------------------------------
+15:07:48.877 Sim time
+15:07:48.881 2
+15:07:48.881 -------------------------------
+15:07:48.881 Sim mode
+15:07:48.881 1
+15:07:48.881 -------------------------------
+15:07:48.885 Invert hitch signal
+15:07:48.885 1
+15:07:48.885 -------------------------------
+15:07:48.887 Times started
+15:07:48.887 255
+15:07:48.887 --------------------------
+15:07:48.891 Using following data:
+15:07:48.891 --------------------------
+15:07:48.893 Offset calibration data
+15:07:48.894 600, 34
+15:07:48.894 461, 42
+15:07:48.896 308, 50
+15:07:48.896 --------------------------
+15:07:48.898 Number of shares
+15:07:48.898 4
+15:07:48.898 --------------------------
+15:07:48.901 error margin
+15:07:48.902 2
+15:07:48.902 --------------------------
+15:07:48.902 error ploughside
+15:07:48.902 1
+15:07:48.902 --------------------------
+15:07:48.902 Maximum correction
+15:07:48.908 50
+15:07:48.909 --------------------------
+15:07:48.909 =====================================
+15:07:48.909 Guidance source using following data:
+15:07:48.909 =====================================
+15:07:48.909 RTK Quality
+15:07:48.909 4
+15:07:48.914 -------------------------------
+15:07:48.914 Times started
+15:07:48.914 255
+15:07:48.914 --------------------------
+15:07:48.914 Using following data:
+15:07:48.917 --------------------------
+15:07:48.917 Offset calibration data
+15:07:48.917 600, 34
+15:07:48.917 461, 42
+15:07:48.917 308, 50
+15:07:48.917 --------------------------
+15:07:48.917 Number of shares
+15:07:48.917 4
+15:07:48.917 --------------------------
+15:07:48.917 error margin
+15:07:48.917 2
+15:07:48.917 --------------------------
+15:07:48.917 error ploughside
+15:07:48.917 1
+15:07:48.917 --------------------------
+15:07:48.917 Maximum correction
+15:07:48.917 50
+15:07:48.933 --------------------------
+15:07:48.934 CAN controller at start: error-active, TX err 0, RX err 0
+15:07:49.118 IsobusGuidanceChannel: claiming address address claimed: 0x81
+15:07:49.118 CAN controller after the claim: error-active, TX err 0, RX err 0
+15:07:49.118 I] [NM]: A partner with name 000000000000000lx has claimed address 2684361984 on channel 197133009.
+15:07:49.118 IsobusDebugMenu: send any character to open the status menu.
+15:07:51.343 I] [VT]: VT Server has a matching label for MW08   . It will be loaded and upload will be skipped.
+15:07:51.343 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+15:10:39.061 VT: Wider pressed
+15:10:40.312 VT: Wider pressed
+15:10:41.566 VT: Wider pressed
+15:10:42.670 VT: Narrower pressed
+15:10:43.853 VT: Narrower pressed
+15:10:45.074 VT: Narrower pressed
+15:10:46.047 VT: Calibrate pressed
+15:11:20.395 E] [VT]: Status Timeout
+15:11:20.398 VT: partner 0x26 silent -- requesting address claims to find another VT
+15:11:20.400 W] [AC]: Address violation for address 129
+15:11:20.400 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+15:11:20.402 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+15:11:20.686 I] [VT]: VT Server has a matching label for MW08   . It will be loaded and upload will be skipped.
+15:11:20.686 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+15:11:21.905 W] [VT]: Server response to a command timed out
+15:12:03.298 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:03.298 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.680 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:03.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.687 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.687 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:03.687 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.691 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:04.695 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.701 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.705 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.990 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:04.990 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.992 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.992 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.992 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:04.992 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:05.994 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:05.996 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:05.997 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:05.999 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:05.999 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:06.296 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:06.296 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:06.296 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:06.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:06.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:06.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:06.300 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:10.523 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:10.526 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:10.526 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:10.526 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:10.526 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:10.526 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:10.526 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:11.712 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:11.712 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:11.715 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:11.717 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:11.718 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:11.719 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:11.976 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:12.008 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.008 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.008 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.008 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.008 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.008 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.185 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:12.187 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.190 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.190 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.190 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.190 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.190 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.381 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:12.381 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.381 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.384 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.384 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.384 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.384 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.696 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:12.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:12.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.214 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:13.216 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.216 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.216 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.216 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.230 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.230 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.516 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:13.518 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.519 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.520 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.521 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.522 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.524 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.707 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:13.707 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.707 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.707 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.707 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.707 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:13.707 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.193 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:14.193 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.193 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.193 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.193 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.193 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.193 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.523 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.524 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.525 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.579 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:14.581 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.583 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.583 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.585 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.585 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.797 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:14.797 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.797 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.797 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.797 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.797 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:14.797 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.286 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:15.287 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.288 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.289 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.291 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.295 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.296 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.678 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:15.681 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.681 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.684 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.684 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.684 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.684 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.889 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:15.891 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.891 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.891 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.891 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:15.896 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.507 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:16.509 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.509 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.509 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.509 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.509 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.695 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:16.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:16.697 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.185 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:17.185 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.187 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.187 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.187 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.187 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.187 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.696 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:17.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.696 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.699 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.701 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.913 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:17.939 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.939 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.939 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.939 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.939 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:17.939 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:18.104 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:18.104 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:18.104 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:18.104 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:18.104 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.095 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:19.095 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.095 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.095 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.095 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.095 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.103 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.395 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.395 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.399 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.703 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:19.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.703 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.892 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:19.892 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.895 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.895 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.895 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:19.899 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.078 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:20.078 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.078 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.078 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.078 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.078 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.592 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:20.595 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.595 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.595 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.595 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.599 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.599 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.983 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.985 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:20.985 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.079 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:21.081 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.081 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.081 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.081 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.081 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.375 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:21.378 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.378 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.378 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.378 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.378 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:21.384 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:22.913 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:22.913 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:22.913 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:22.913 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:22.913 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:22.920 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.677 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:23.677 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.680 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.687 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.875 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:23.877 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.877 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.879 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.879 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.879 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:23.879 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.495 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:24.495 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.497 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.497 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.497 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.497 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.607 W] [VT]: Server response to a command timed out
+15:12:24.875 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:24.875 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.906 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.906 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.906 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.911 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:24.911 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:26.074 W] [VT]: Server response to a command timed out
+15:12:28.502 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:12:28.502 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:28.504 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:28.506 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:28.507 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:28.507 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:28.509 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:12:29.053 ### sending keys: x1q
+15:13:04.612 === ISOBUS DEBUG MENU ===
+15:13:04.612 1. Full status dump
+15:13:04.612 2. Periodic summary line (OFF - press to toggle)
+15:13:04.612 3. Reset message counters
+15:13:04.612 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:13:04.622 5. Dump VT object pool as hex
+15:13:04.624 q. Exit
+15:13:04.626 === ISOBUS STATUS ===
+15:13:04.628 Address claim: CLAIMED  address=0x81
+15:13:04.630 CAN controller: error-active  TX err 0 (peak 0)  RX err 0 (peak 0)
+15:13:04.632   error-passive entries: 0  bus-off entries: 0  longest episode: 0 ms
+15:13:04.632 Bus load (ch0): 20.5 %
+15:13:04.632 --- Message counters ---
+15:13:04.632   PGN 129025 Position NMEA2000: 0
+15:13:04.639   PGN 129026 Speed NMEA2000:    2460
+15:13:04.641   PGN 129283 XTE NMEA2000:      2428
+15:13:04.645   PGN 65267  Position legacy:   0
+15:13:04.645   PGN 65256  Speed legacy:      2461   last SA=0x1C raw=0x258
+15:13:04.645   PGN 65535  all senders:       0   last SA=0xFF
+15:13:04.650   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+15:13:04.650              raw: nothing from 0x2A or 0x80 yet
+15:13:04.650   PGN 60160  XTE Trimble legacy:80   last SA=0x80
+15:13:04.650   PGN 64770  AISO stop:         243   last 285424 ms ago
+15:13:04.650   TOTAL:                        12468
+15:13:04.650 --- Guidance telemetry ---
+15:13:04.660   XTE:          -1.58 m
+15:13:04.660   Speed:        0.65 m/s (1.26 kn)
+15:13:04.663   Quality:      4   RTK quality=4  PGN 129029 GNSS position: 2358 msgs, method=4 RTK FIXED  SVs=33  HDOP=0.91  last 33 ms ago
+15:13:04.663   PGN 129027 position deltas: 0
+15:13:04.663   Guidance machine info (PGN 44032): 2438 msgs, last 1 ms ago
+15:13:04.666     lockout=no/not-ready  steeringReady=no/not-ready  remoteEngage=no/not-ready  curvature=-2.00 1/km
+15:13:04.668   IsRtkQuality=Y
+15:13:04.668   GGA fix age:  33 ms
+15:13:04.668   VTG fix age:  37 ms
+15:13:04.673   XTE fix age:  38166 ms
+15:13:04.675   Lat/Lon/Alt/Course: 53.444309 / 6.721920 / 41.7 m / 295.4 deg
+15:13:04.675 --- Virtual Terminal ---
+15:13:04.677   Connected:    Y
+15:13:04.677   State:        21/22  Connected
+15:13:04.677   VT version:  6
+15:13:04.677   VT status msgs: 246   last 597 ms ago
+15:13:04.683   Partner: addr=0x26 valid=Y  reconnect attempts=0
+15:13:04.683   VT failover: switches=0 claim requests=1
+15:13:04.683 --- Task Controller ---
+15:13:04.683   Connected:    N
+15:13:04.690   TC-GEO (with/without pos): (not connected)
+15:13:04.690   Task active:  N
+15:13:04.695   DRP deviation (DDI 513): 0 mm, last 285424 ms ago
+15:13:04.695   GNSS quality (DDI 514):  0, last 285424 ms ago
+15:13:04.695   [via stack] Value cmds to handler: 0  last DDI=(none)
+15:13:04.699   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+15:13:04.699   [on bus] Requests for our values: 0
+15:13:04.699   [on bus] Set-value commands:      0
+15:13:04.699   [on bus] Measurement commands:    0  (none)
+15:13:04.699   [on bus] Other, addressed to us:  0
+15:13:04.699   Partner: addr=0xFE valid=N  reconnect attempts=0
+15:13:04.699   Tramline setpoint (DDI 506): (not connected)
+15:13:04.707   Guidance track (DDI 507-511): (not connected)
+15:13:04.707 === ISOBUS DEBUG MENU ===
+15:13:04.707 1. Full status dump
+15:13:04.707 2. Periodic summary line (OFF - press to toggle)
+15:13:04.707 3. Reset message counters
+15:13:04.707 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+15:13:04.707 5. Dump VT object pool as hex
+15:13:04.707 q. Exit
+15:13:04.707 Exiting.
+15:13:04.723 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.725 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.727 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.775 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:04.782 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.784 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.786 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.788 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.795 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:04.799 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.079 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:05.079 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.079 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.079 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.079 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.079 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.090 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.315 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:05.317 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.319 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.321 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.323 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.325 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.327 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.675 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:05.675 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.675 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.679 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.679 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.679 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.879 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:05.881 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.881 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.882 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.884 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.885 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:05.885 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.071 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:06.106 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.106 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.110 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.110 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.112 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.882 E] [FP]: Existing session matched new frame counter, aborting the matching session.
+15:13:06.885 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.885 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.885 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.889 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.889 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
+15:13:06.889 W] [FP]: Ignoring FP message with PGN 129029, no context available. The message may be processed when packet count returns to zero.
