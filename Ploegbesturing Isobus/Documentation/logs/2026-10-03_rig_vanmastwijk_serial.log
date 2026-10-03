@@ -1691,3 +1691,264 @@
 14:05:02.189 [ISOBUS] addr=0x81 claimed=Y load=15.0% msgs=47912 aiso=1496(1667774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1667774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2808/547ms tc=Y drp=0mm tcq=0
 14:05:03.182 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=47953 aiso=1497(1668774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1668774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2810/543ms tc=Y drp=0mm tcq=0
 14:05:04.203 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=47994 aiso=1498(1669774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1669774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2812/543ms tc=Y drp=0mm tcq=0
+14:06:24.392 ### logger started (auto: PJRC 16C0:0483)
+14:06:25.407 ### port COM4 open
+14:06:25.429 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=48035 aiso=1499(1670774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1670774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2814/543ms tc=Y drp=0mm tcq=0
+14:06:25.445 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=48076 aiso=1500(1671774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1671774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2816/543ms tc=Y drp=0mm tcq=0
+14:06:25.461 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=48117 aiso=1501(1672774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1672774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2818/543ms tc=Y drp=0mm tcq=0
+14:06:25.473 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=48158 aiso=1502(1673774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79 vtgAge=79 xteAge=1673774 xteraw=80:510302FF0D080BFF vt=Y(21/22) vtstat=2820/543ms tc=Y drp=0mm tcq=0
+14:06:26.181 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51382 aiso=1580(1751774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=77 vtgAge=77 xteAge=1751774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2976/493ms tc=Y drp=0mm tcq=0
+14:06:27.190 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51423 aiso=1581(1752774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=77 vtgAge=77 xteAge=1752774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2978/493ms tc=Y drp=0mm tcq=0
+14:06:28.201 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51464 aiso=1582(1753774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78 vtgAge=78 xteAge=1753774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2980/494ms tc=Y drp=0mm tcq=0
+14:06:29.189 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51505 aiso=1583(1754774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78 vtgAge=78 xteAge=1754774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2982/494ms tc=Y drp=0mm tcq=0
+14:06:30.200 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51546 aiso=1584(1755774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78 vtgAge=78 xteAge=1755774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2984/494ms tc=Y drp=0mm tcq=0
+14:06:31.179 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51587 aiso=1585(1756774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78 vtgAge=78 xteAge=1756774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2986/494ms tc=Y drp=0mm tcq=0
+14:06:31.587 === ISOBUS DEBUG MENU ===
+14:06:31.587 1. Full status dump
+14:06:31.587 2. Periodic summary line (ON - press to toggle)
+14:06:31.747 ### auto: 1 Hz line already ON
+14:06:31.749 3. Reset message counters
+14:06:31.749 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:06:31.749 5. Dump VT object pool as hex
+14:06:31.753 q. Exit
+14:06:31.753 Exiting.
+14:06:32.181 [ISOBUS] addr=0x81 claimed=Y load=15.0% msgs=51632 aiso=1586(1757774ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78 vtgAge=78 xteAge=1757774 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2988/490ms tc=Y drp=0mm tcq=0
+14:06:32.860 ### sending keys: x1q
+14:06:34.195 === ISOBUS DEBUG MENU ===
+14:06:34.195 1. Full status dump
+14:06:34.195 2. Periodic summary line (ON - press to toggle)
+14:06:34.195 3. Reset message counters
+14:06:34.201 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:06:34.201 5. Dump VT object pool as hex
+14:06:34.203 q. Exit
+14:06:34.203 === ISOBUS STATUS ===
+14:06:34.203 Address claim: CLAIMED  address=0x81
+14:06:34.203 CAN controller: error-active  TX err 0 (peak 144)  RX err 0 (peak 129)
+14:06:34.203   error-passive entries: 3  bus-off entries: 0  longest episode: 149561 ms
+14:06:34.203 Bus load (ch0): 14.6 %
+14:06:34.203 --- Message counters ---
+14:06:34.211   PGN 129025 Position NMEA2000: 0
+14:06:34.211   PGN 129026 Speed NMEA2000:    0
+14:06:34.211   PGN 129283 XTE NMEA2000:      172
+14:06:34.211   PGN 65267  Position legacy:   11175
+14:06:34.211   PGN 65256  Speed legacy:      11174   last SA=0x80 raw=0x0
+14:06:34.211   PGN 65535  all senders:       11175   last SA=0x80
+14:06:34.211   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+14:06:34.211              raw SA=0x80 word=0xBFF byte1=0x3 payload 510302FF0B050AFF  (35 ms ago)
+14:06:34.211   PGN 60160  XTE Trimble legacy:518   last SA=0x26
+14:06:34.211   PGN 64770  AISO stop:         1587   last 1758631 ms ago
+14:06:34.211   TOTAL:                        51668
+14:06:34.227 --- Guidance telemetry ---
+14:06:34.227   XTE:          0.00 m
+14:06:34.227   Speed:        0.00 m/s (0.00 kn)
+14:06:34.227   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+14:06:34.227   PGN 129027 position deltas: 0
+14:06:34.227   Guidance machine info (PGN 44032): 15867 msgs, last 63 ms ago
+14:06:34.227     lockout=YES/READY  steeringReady=n/a  remoteEngage=n/a  curvature=-20.50 1/km
+14:06:34.227   IsRtkQuality=N
+14:06:34.227   GGA fix age:  35 ms
+14:06:34.227   VTG fix age:  35 ms
+14:06:34.227   XTE fix age:  1758631 ms
+14:06:34.227   Lat/Lon/Alt/Course: 53.442101 / 6.755871 / 1.3 m / 120.6 deg
+14:06:34.227 --- Virtual Terminal ---
+14:06:34.227   Connected:    Y
+14:06:34.243   State:        21/22  Connected
+14:06:34.243   VT version:  4
+14:06:34.243   VT status msgs: 2990   last 347 ms ago
+14:06:34.243   Partner: addr=0x26 valid=Y  reconnect attempts=0
+14:06:34.243   VT failover: switches=1 claim requests=14
+14:06:34.243 --- Task Controller ---
+14:06:34.243   Connected:    Y
+14:06:34.243   TC-GEO (with/without pos): Y/N
+14:06:34.243   Task active:  Y
+14:06:34.243   DRP deviation (DDI 513): 0 mm, last 1758631 ms ago
+14:06:34.243   GNSS quality (DDI 514):  0, last 1758631 ms ago
+14:06:34.243   [via stack] Value cmds to handler: 0  last DDI=(none)
+14:06:34.243   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+14:06:34.243   [on bus] Requests for our values: 0
+14:06:34.243   [on bus] Set-value commands:      0
+14:06:34.243   [on bus] Measurement commands:    0  (none)
+14:06:34.259   [on bus] Other, addressed to us:  18
+14:06:34.260   Partner: addr=0xF7 valid=Y  reconnect attempts=11
+14:06:34.260   Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+14:06:34.260   Guidance track (DDI 507-511): (none yet)
+14:06:34.260 === ISOBUS DEBUG MENU ===
+14:06:34.260 1. Full status dump
+14:06:34.266 2. Periodic summary line (ON - press to toggle)
+14:06:34.267 3. Reset message counters
+14:06:34.268 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:06:34.293 5. Dump VT object pool as hex
+14:06:34.299 q. Exit
+14:06:34.299 Exiting.
+14:06:34.299 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51673 aiso=1587(1758787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1758787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2990/504ms tc=Y drp=0mm tcq=0
+14:06:34.299 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51714 aiso=1588(1759787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1759787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2992/503ms tc=Y drp=0mm tcq=0
+14:06:35.227 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51755 aiso=1589(1760787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1760787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2994/503ms tc=Y drp=0mm tcq=0
+14:06:36.200 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51796 aiso=1590(1761787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1761787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2996/503ms tc=Y drp=0mm tcq=0
+14:06:37.214 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51837 aiso=1591(1762787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1762787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=2998/503ms tc=Y drp=0mm tcq=0
+14:06:38.213 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51878 aiso=1592(1763787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1763787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3000/499ms tc=Y drp=0mm tcq=0
+14:06:39.195 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=51919 aiso=1593(1764787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1764787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3002/499ms tc=Y drp=0mm tcq=0
+14:06:40.211 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=51960 aiso=1594(1765787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1765787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3004/499ms tc=Y drp=0mm tcq=0
+14:06:41.194 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52001 aiso=1595(1766787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1766787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3006/499ms tc=Y drp=0mm tcq=0
+14:06:42.213 [ISOBUS] addr=0x81 claimed=Y load=15.0% msgs=52046 aiso=1596(1767787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1767787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3008/499ms tc=Y drp=0mm tcq=0
+14:06:43.216 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52087 aiso=1597(1768787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1768787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3010/499ms tc=Y drp=0mm tcq=0
+14:06:44.203 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52128 aiso=1598(1769787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1769787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3012/495ms tc=Y drp=0mm tcq=0
+14:06:45.223 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52169 aiso=1599(1770787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1770787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3014/495ms tc=Y drp=0mm tcq=0
+14:06:46.216 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52210 aiso=1600(1771787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91 vtgAge=91 xteAge=1771787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3016/495ms tc=Y drp=0mm tcq=0
+14:06:47.200 [ISOBUS] addr=0x81 claimed=Y load=14.8% msgs=52251 aiso=1601(1772787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1772787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3018/495ms tc=Y drp=0mm tcq=0
+14:06:48.216 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52292 aiso=1602(1773787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1773787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3020/495ms tc=Y drp=0mm tcq=0
+14:06:48.319 ### sending keys: x1q
+14:06:49.219 === ISOBUS DEBUG MENU ===
+14:06:49.219 1. Full status dump
+14:06:49.224 2. Periodic summary line (ON - press to toggle)
+14:06:49.224 3. Reset message counters
+14:06:49.224 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:06:49.228 5. Dump VT object pool as hex
+14:06:49.228 q. Exit
+14:06:49.228 === ISOBUS STATUS ===
+14:06:49.230 Address claim: CLAIMED  address=0x81
+14:06:49.230 CAN controller: error-active  TX err 0 (peak 144)  RX err 0 (peak 129)
+14:06:49.232   error-passive entries: 3  bus-off entries: 0  longest episode: 149561 ms
+14:06:49.232 Bus load (ch0): 14.5 %
+14:06:49.232 --- Message counters ---
+14:06:49.235   PGN 129025 Position NMEA2000: 0
+14:06:49.237   PGN 129026 Speed NMEA2000:    0
+14:06:49.239   PGN 129283 XTE NMEA2000:      173
+14:06:49.239   PGN 65267  Position legacy:   11329
+14:06:49.239   PGN 65256  Speed legacy:      11328   last SA=0x80 raw=0x0
+14:06:49.239   PGN 65535  all senders:       11329   last SA=0x80
+14:06:49.243   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+14:06:49.245              raw SA=0x80 word=0xBFF byte1=0x3 payload 510302FF0B050AFF  (77 ms ago)
+14:06:49.245   PGN 60160  XTE Trimble legacy:521   last SA=0x26
+14:06:49.247   PGN 64770  AISO stop:         1603   last 1774073 ms ago
+14:06:49.248   TOTAL:                        52305
+14:06:49.248 --- Guidance telemetry ---
+14:06:49.250   XTE:          0.00 m
+14:06:49.251   Speed:        0.00 m/s (0.00 kn)
+14:06:49.254   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+14:06:49.255   PGN 129027 position deltas: 0
+14:06:49.256   Guidance machine info (PGN 44032): 16022 msgs, last 1 ms ago
+14:06:49.258     lockout=YES/READY  steeringReady=n/a  remoteEngage=n/a  curvature=-20.50 1/km
+14:06:49.259   IsRtkQuality=N
+14:06:49.282   GGA fix age:  81 ms
+14:06:49.282   VTG fix age:  81 ms
+14:06:49.285   XTE fix age:  1774073 ms
+14:06:49.286   Lat/Lon/Alt/Course: 53.442101 / 6.755871 / 1.3 m / 120.6 deg
+14:06:49.287 --- Virtual Terminal ---
+14:06:49.288   Connected:    Y
+14:06:49.289   State:        21/22  Connected
+14:06:49.289   VT version:  4
+14:06:49.291   VT status msgs: 3020   last 781 ms ago
+14:06:49.291   Partner: addr=0x26 valid=Y  reconnect attempts=0
+14:06:49.291   VT failover: switches=1 claim requests=14
+14:06:49.291 --- Task Controller ---
+14:06:49.294   Connected:    Y
+14:06:49.294   TC-GEO (with/without pos): Y/N
+14:06:49.296   Task active:  Y
+14:06:49.296   DRP deviation (DDI 513): 0 mm, last 1774074 ms ago
+14:06:49.298   GNSS quality (DDI 514):  0, last 1774074 ms ago
+14:06:49.298   [via stack] Value cmds to handler: 0  last DDI=(none)
+14:06:49.301   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+14:06:49.301   [on bus] Requests for our values: 0
+14:06:49.303   [on bus] Set-value commands:      0
+14:06:49.303   [on bus] Measurement commands:    0  (none)
+14:06:49.303   [on bus] Other, addressed to us:  18
+14:06:49.305   Partner: addr=0xF7 valid=Y  reconnect attempts=11
+14:06:49.307   Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+14:06:49.307   Guidance track (DDI 507-511): (none yet)
+14:06:49.307 === ISOBUS DEBUG MENU ===
+14:06:49.307 1. Full status dump
+14:06:49.311 2. Periodic summary line (ON - press to toggle)
+14:06:49.329 3. Reset message counters
+14:06:49.332 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:06:49.332 5. Dump VT object pool as hex
+14:06:49.334 q. Exit
+14:06:49.336 Exiting.
+14:06:49.338 [ISOBUS] addr=0x81 claimed=Y load=14.6% msgs=52333 aiso=1603(1774787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=91 xteAge=1774787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3022/495ms tc=Y drp=0mm tcq=0
+14:06:50.196 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52374 aiso=1604(1775787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=91 xteAge=1775787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3024/495ms tc=Y drp=0mm tcq=0
+14:06:51.217 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52415 aiso=1605(1776787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1776787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3026/491ms tc=Y drp=0mm tcq=0
+14:06:52.200 [ISOBUS] addr=0x81 claimed=Y load=15.0% msgs=52460 aiso=1606(1777787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1777787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3028/491ms tc=Y drp=0mm tcq=0
+14:06:53.202 [ISOBUS] addr=0x81 claimed=Y load=14.6% msgs=52501 aiso=1607(1778787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1778787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3030/491ms tc=Y drp=0mm tcq=0
+14:06:54.222 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52542 aiso=1608(1779787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1779787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3032/491ms tc=Y drp=0mm tcq=0
+14:06:55.218 [ISOBUS] addr=0x81 claimed=Y load=14.6% msgs=52583 aiso=1609(1780787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1780787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3034/491ms tc=Y drp=0mm tcq=0
+14:06:56.214 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52624 aiso=1610(1781787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1781787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3036/491ms tc=Y drp=0mm tcq=0
+14:06:57.216 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52665 aiso=1611(1782787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1782787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3038/491ms tc=Y drp=0mm tcq=0
+14:06:58.226 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52706 aiso=1612(1783787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1783787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3040/487ms tc=Y drp=0mm tcq=0
+14:06:59.220 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52747 aiso=1613(1784787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1784787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3042/487ms tc=Y drp=0mm tcq=0
+14:07:00.195 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52788 aiso=1614(1785787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1785787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3044/487ms tc=Y drp=0mm tcq=0
+14:07:01.212 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52829 aiso=1615(1786787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1786787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3046/487ms tc=Y drp=0mm tcq=0
+14:07:02.197 [ISOBUS] addr=0x81 claimed=Y load=15.0% msgs=52874 aiso=1616(1787787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1787787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3048/487ms tc=Y drp=0mm tcq=0
+14:07:03.196 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52915 aiso=1617(1788787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1788787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3050/487ms tc=Y drp=0mm tcq=0
+14:07:04.204 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=52956 aiso=1618(1789787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1789787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3052/483ms tc=Y drp=0mm tcq=0
+14:07:05.196 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=52997 aiso=1619(1790787ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95 vtgAge=95 xteAge=1790787 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3054/483ms tc=Y drp=0mm tcq=0
+14:07:05.894 ### sending keys: x1q
+14:07:07.247 === ISOBUS DEBUG MENU ===
+14:07:07.247 1. Full status dump
+14:07:07.247 2. Periodic summary line (ON - press to toggle)
+14:07:07.247 3. Reset message counters
+14:07:07.247 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:07:07.253 5. Dump VT object pool as hex
+14:07:07.254 q. Exit
+14:07:07.254 === ISOBUS STATUS ===
+14:07:07.254 Address claim: CLAIMED  address=0x81
+14:07:07.254 CAN controller: error-active  TX err 0 (peak 144)  RX err 0 (peak 129)
+14:07:07.254   error-passive entries: 3  bus-off entries: 0  longest episode: 149561 ms
+14:07:07.258 Bus load (ch0): 14.5 %
+14:07:07.258 --- Message counters ---
+14:07:07.261   PGN 129025 Position NMEA2000: 0
+14:07:07.261   PGN 129026 Speed NMEA2000:    0
+14:07:07.263   PGN 129283 XTE NMEA2000:      175
+14:07:07.263   PGN 65267  Position legacy:   11505
+14:07:07.263   PGN 65256  Speed legacy:      11504   last SA=0x80 raw=0x0
+14:07:07.263   PGN 65535  all senders:       11505   last SA=0x80
+14:07:07.263   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+14:07:07.263              raw SA=0x80 word=0xBFF byte1=0x3 payload 510302FF0B050AFF  (57 ms ago)
+14:07:07.263   PGN 60160  XTE Trimble legacy:527   last SA=0x26
+14:07:07.269   PGN 64770  AISO stop:         1620   last 1791649 ms ago
+14:07:07.269   TOTAL:                        53033
+14:07:07.272 --- Guidance telemetry ---
+14:07:07.272   XTE:          0.00 m
+14:07:07.273   Speed:        0.00 m/s (0.00 kn)
+14:07:07.274   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+14:07:07.274   PGN 129027 position deltas: 0
+14:07:07.275   Guidance machine info (PGN 44032): 16197 msgs, last 77 ms ago
+14:07:07.275     lockout=YES/READY  steeringReady=n/a  remoteEngage=n/a  curvature=-21.25 1/km
+14:07:07.277   IsRtkQuality=N
+14:07:07.277   GGA fix age:  57 ms
+14:07:07.280   VTG fix age:  57 ms
+14:07:07.282   XTE fix age:  1791649 ms
+14:07:07.282   Lat/Lon/Alt/Course: 53.442101 / 6.755871 / 1.3 m / 120.6 deg
+14:07:07.283 --- Virtual Terminal ---
+14:07:07.283   Connected:    Y
+14:07:07.285   State:        21/22  Connected
+14:07:07.286   VT version:  4
+14:07:07.286   VT status msgs: 3056   last 345 ms ago
+14:07:07.288   Partner: addr=0x26 valid=Y  reconnect attempts=0
+14:07:07.288   VT failover: switches=1 claim requests=14
+14:07:07.289 --- Task Controller ---
+14:07:07.289   Connected:    Y
+14:07:07.289   TC-GEO (with/without pos): Y/N
+14:07:07.291   Task active:  Y
+14:07:07.291   DRP deviation (DDI 513): 0 mm, last 1791649 ms ago
+14:07:07.291   GNSS quality (DDI 514):  0, last 1791649 ms ago
+14:07:07.292   [via stack] Value cmds to handler: 0  last DDI=(none)
+14:07:07.292   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+14:07:07.292   [on bus] Requests for our values: 0
+14:07:07.294   [on bus] Set-value commands:      0
+14:07:07.295   [on bus] Measurement commands:    0  (none)
+14:07:07.296   [on bus] Other, addressed to us:  18
+14:07:07.297   Partner: addr=0xF7 valid=Y  reconnect attempts=11
+14:07:07.297   Tramline setpoint (DDI 506): (none yet -- no Tramline Control seen on this terminal)
+14:07:07.298   Guidance track (DDI 507-511): (none yet)
+14:07:07.299 === ISOBUS DEBUG MENU ===
+14:07:07.300 1. Full status dump
+14:07:07.301 2. Periodic summary line (ON - press to toggle)
+14:07:07.302 3. Reset message counters
+14:07:07.303 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+14:07:07.304 5. Dump VT object pool as hex
+14:07:07.306 q. Exit
+14:07:07.307 Exiting.
+14:07:07.308 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=53041 aiso=1620(1791814ms) xte=0.00m spd=0.00m/s q=0 ggaAge=22 vtgAge=22 xteAge=1791814 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3056/510ms tc=Y drp=0mm tcq=0
+14:07:07.308 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=53082 aiso=1621(1792814ms) xte=0.00m spd=0.00m/s q=0 ggaAge=22 vtgAge=22 xteAge=1792814 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3058/510ms tc=Y drp=0mm tcq=0
+14:07:08.241 [ISOBUS] addr=0x81 claimed=Y load=14.5% msgs=53123 aiso=1622(1793814ms) xte=0.00m spd=0.00m/s q=0 ggaAge=22 vtgAge=22 xteAge=1793814 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3060/510ms tc=Y drp=0mm tcq=0
+14:07:09.244 [ISOBUS] addr=0x81 claimed=Y load=14.7% msgs=53164 aiso=1623(1794814ms) xte=0.00m spd=0.00m/s q=0 ggaAge=22 vtgAge=22 xteAge=1794814 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3062/510ms tc=Y drp=0mm tcq=0
+14:07:10.230 [ISOBUS] addr=0x81 claimed=Y load=5.3% msgs=53178 aiso=1624(1795814ms) xte=0.00m spd=0.00m/s q=0 ggaAge=722 vtgAge=722 xteAge=1795814 xteraw=80:510302FF0B050AFF vt=Y(21/22) vtstat=3063/722ms tc=Y drp=0mm tcq=0

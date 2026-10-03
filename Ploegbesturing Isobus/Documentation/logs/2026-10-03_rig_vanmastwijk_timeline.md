@@ -55,3 +55,5 @@ Saturn: not used so far.
 - Second speed point for the 65256 unit bug: not taken before the end. The issue is filed once confirmed.
 
 | 14:05:04 | Plough control unplugged; serial logger stopped |
+| 14:06:34 / 14:06:49 / 14:07:11 | **Road switch test** (operator toggled road -> field -> road -> field -> road, call-outs ~14:06:40-14:07:10): PGN 44032 decoded fields **identical** in every position -- `lockout=YES/READY steeringReady=n/a remoteEngage=n/a curvature=-20.50 1/km`. Our 44032 decode does not see the road switch: either it's another field/message or the decode is wrong (cf. session 11). Needs the raw 44032 bytes (dump has none) or a capture |
+| ~14:07:20 | End: serial logger stopped. Plough control still on USB/bus |
