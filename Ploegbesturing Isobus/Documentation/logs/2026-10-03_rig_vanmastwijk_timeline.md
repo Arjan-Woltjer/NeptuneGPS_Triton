@@ -51,3 +51,7 @@ Saturn: not used so far.
 5. Session 14 groundwork: what the steering controller and InCommand send while autosteer is engaged.
 
 **Needed:** an adapter (or a new CANedge lead) for the tractor's new harness connector, on the **ISOBUS** side -- the same bus as the plough control, checked before starting (card in, LED, same bus).
+- **All Implements Stop (PGN 64770):** frames arrive at ~1 Hz the whole session (322 -> 1360 between 13:45 and 14:02), but **no Stop** since the board started (~13:37): the "last stop ... ms ago" value always equals the uptime, i.e. the stop timestamp never moved, and `gImplement->Stop()` never ran. The dump does not print the frames' state (Permit / Error / N/A) or sender -- worth adding next to #201's raw-payload work. Operator asked whether all-implements-disable was seen: whether one was triggered on the InCommand/tractor, and when, is to be noted.
+- Second speed point for the 65256 unit bug: not taken before the end. The issue is filed once confirmed.
+
+| 14:05:04 | Plough control unplugged; serial logger stopped |
