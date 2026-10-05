@@ -41,6 +41,19 @@ _7 are defines for sower
 
 #else
 
+#ifdef TEENSY40
+// Teensy 4.0 board: identical to the Teensy 4.1 production board.
+// Defines for io ports
+// Digital debounced inputs
+#define MODE_PIN_2          8
+#define LEFT_BUTTON_2       9
+#define RIGHT_BUTTON_2      10
+#define JOY_MODE_2          11
+#define JOY_LEFT_2          12
+#define JOY_RIGHT_2         13
+
+#else
+
 #ifdef TEENSYPROTO
 // Defines for io ports
 // Digital debounced inputs
@@ -77,6 +90,7 @@ _7 are defines for sower
 
 #error "no board defined"
 
+#endif
 #endif
 #endif
 #endif
