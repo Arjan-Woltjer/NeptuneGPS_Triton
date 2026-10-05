@@ -18,7 +18,14 @@
 */
 #pragma once
 
+// Board selection. Guarded so a project-level build flag (-D TEENSY40, the
+// Ploegbesturing Isobus Teensy 4.0 env) is honoured no matter which config
+// header a translation unit includes first; without any flag the Teensy 4.1
+// production board applies, exactly as before.
+#if !defined(TEENSY40) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
 #define TEENSY
+#endif
+//#define TEENSY40
 //#define TEENSYPROTO
 //#define MICRO
 //#define VOORSERIE
@@ -27,6 +34,14 @@
 #define MINSPEED_1            0.5f
 
 #ifdef TEENSY
+// Digital inputs 12V -> 5V conversion
+#define WHEEL_SPEED_PIN_1     6
+#define HITCH_PIN_1           7
+
+#else
+
+#ifdef TEENSY40
+// Teensy 4.0 board: identical to the Teensy 4.1 production board.
 // Digital inputs 12V -> 5V conversion
 #define WHEEL_SPEED_PIN_1     6
 #define HITCH_PIN_1           7
@@ -56,6 +71,7 @@
 
 #error "no board defined"
 
+#endif
 #endif
 #endif
 #endif
