@@ -72,4 +72,12 @@ inline bool GApply(const XteResult& r, GuidanceSource* g) {
     return true;
 }
 
+// The InCommand's lightbar message carries no fix quality either; and it is
+// only valid while the display is engaged on a line (see the decoder).
+inline bool GApply(const LightbarXteResult& r, GuidanceSource* g) {
+    if (!r.valid) return false;
+    g->SetXte(r.xteHundredthsMeter);
+    return true;
+}
+
 }  // namespace triton
