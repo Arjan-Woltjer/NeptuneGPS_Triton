@@ -129,7 +129,7 @@ private:
 
     // The multi-frame answer in flight: payload, how much has gone, the
     // flow-control parameters, and the pacing.
-    std::uint8_t  pending[24];
+    std::uint8_t  pending[24] = { 0 };
     std::uint8_t  pendingLength = 0;
     std::uint8_t  pendingSent = 0;
     std::uint8_t  pendingSequence = 0;

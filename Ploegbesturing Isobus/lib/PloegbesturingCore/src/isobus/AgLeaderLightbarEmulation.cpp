@@ -207,14 +207,17 @@ bool AgLeaderLightbarEmulation::PopFrame(Outgoing& out, unsigned long nowMs) {
     // Consecutive frames, paced by STmin, once the flow control came in.
     if (pendingLength > 0 && !pendingWaitingForFlowControl && pendingSent < pendingLength) {
         if (nowMs - lastConsecutiveMs < stMinMs) return false;
-        const std::uint8_t remaining = static_cast<std::uint8_t>(pendingLength - pendingSent);
-        const std::uint8_t chunk = remaining < 7 ? remaining : 7;
         out.pgn = kPgnDiagnostic;
         out.destination = pendingDestination;
-        out.frame.length = static_cast<std::uint8_t>(1 + chunk);
+        for (std::uint8_t i = 1; i < 8; i++) out.frame.data[i] = 0;
         out.frame.data[0] = static_cast<std::uint8_t>((kConsecutiveFrame << 4) | (pendingSequence & 0x0F));
-        for (std::uint8_t i = 0; i < chunk; i++) out.frame.data[1 + i] = pending[pendingSent + i];
-        for (std::uint8_t i = static_cast<std::uint8_t>(1 + chunk); i < 8; i++) out.frame.data[i] = 0;
+        // Up to seven payload bytes per consecutive frame, fewer in the last one.
+        std::uint8_t chunk = 0;
+        while (chunk < 7 && pendingSent + chunk < pendingLength) {
+            out.frame.data[1 + chunk] = pending[pendingSent + chunk];
+            chunk++;
+        }
+        out.frame.length = static_cast<std::uint8_t>(1 + chunk);
         pendingSent = static_cast<std::uint8_t>(pendingSent + chunk);
         pendingSequence++;
         lastConsecutiveMs = nowMs;
