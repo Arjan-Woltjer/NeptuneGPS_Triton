@@ -30,6 +30,7 @@
 #ifdef ISOBUS
 #include "isobus/IsobusDebugMenu.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
+#include "isobus/IsobusLightbarChannel.hpp"
 #include "isobus/IsobusVtInterface.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 #else
@@ -58,6 +59,7 @@ triton::InterfacePlough*   gInterface;
 triton::CalibrationPlough* gCalibration;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
+triton::IsobusLightbarChannel* gLightbarChannel;
 triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
@@ -131,6 +133,11 @@ void setup() {
     gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, gImplement, kIsobusCanChannel);
     gGuidanceChannel->Begin();
 
+    // A second control function that presents as an Ag Leader L160 lightbar:
+    // an InCommand only broadcasts its cross-track error (PGN 65462) once a
+    // lightbar has identified itself (#42, card log 42).
+    gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance, kIsobusCanChannel);
+    gLightbarChannel->Begin();
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
 
@@ -141,7 +148,7 @@ void setup() {
                                                   gVtInterface->GetPartner());
     gTcInterface->Begin();
 
-    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface);
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface, gLightbarChannel);
     gDebugMenu->Begin();
 #else
     // 4800 baud is the common NMEA default. No baudrate calibration/UI
@@ -168,6 +175,7 @@ void loop() {
     // the UART sentence dispatcher (serial), feeding gGuidance either way.
     gGuidanceChannel->Update();
 #ifdef ISOBUS
+    gLightbarChannel->Update();
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();

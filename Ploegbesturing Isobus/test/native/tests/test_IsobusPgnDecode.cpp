@@ -777,3 +777,77 @@ test(IsobusPgnDecode, allImplementStop_shortFrame_lengthNotOk) {
     assertFalse(r.lengthOk);
     assertEqual((int)r.state, 0xFF);
 }
+
+// --- DecodeXteAgLeaderLightbar, PGN 65462 -----------------------------------
+// Frames from card log 42 (2026-10-08), InCommand 1200 display function 0xF5.
+// The operator stood right of the track at the start and ended with 0-2 cm
+// once engaged; byte 6 bit 7 flips at every zero crossing of the magnitude.
+
+// 181.9 s: standing right of the line, 148 cm, line present, NOT engaged ->
+// nothing is committed (the display re-references the line when engaging).
+test(IsobusPgnDecode, lightbarXte_rightSideBeforeEngage_notValid) {
+    uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.valid);
+    assertTrue(r.hasLine);
+    assertFalse(r.engaged);
+    assertTrue(r.rightOfLine);
+    assertEqual((int)r.magnitudeCm, 148);
+}
+
+// 220 s: engaged, 34 cm, bit 7 clear -> 34 cm left of the line = -0.34 m.
+test(IsobusPgnDecode, lightbarXte_engagedLeft_negative) {
+    uint8_t d[8] = { 34, 0x00, 0x02, 0x00, 115, 0x00, 0x53, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertTrue(r.engaged);
+    assertFalse(r.rightOfLine);
+    assertEqual(r.xteHundredthsMeter, -34);
+    assertEqual((int)r.rawStatus, 0x53);
+}
+
+// 233.7 s: engaged, 1 cm, bit 7 set -> +0.01 m; 231.5 s: 0 cm.
+test(IsobusPgnDecode, lightbarXte_engagedRight_positiveAndZero) {
+    uint8_t right[8] = { 1, 0x00, 0x02, 0x00, 121, 0x00, 0x93, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(right, 8);
+    assertTrue(r.valid);
+    assertTrue(r.rightOfLine);
+    assertEqual(r.xteHundredthsMeter, 1);
+
+    uint8_t zero[8] = { 0, 0x00, 0x02, 0x00, 121, 0x00, 0x13, 0x04 };
+    r = DecodeXteAgLeaderLightbar(zero, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 0);
+}
+
+// 178 s: no line yet (byte 7 = 1): nothing, even though the frame is well
+// formed. Idle payload from the capture: `00 00 01 00 7F 00 22 01`.
+test(IsobusPgnDecode, lightbarXte_noLine_notValid) {
+    uint8_t d[8] = { 0x00, 0x00, 0x01, 0x00, 0x7F, 0x00, 0x22, 0x01 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.hasLine);
+    assertFalse(r.valid);
+}
+
+// Length guard and the not-available / implausible magnitudes.
+test(IsobusPgnDecode, lightbarXte_guards) {
+    uint8_t shortFrame[7] = { 0, 0, 2, 0, 127, 0, 0x93 };
+    assertFalse(DecodeXteAgLeaderLightbar(shortFrame, 7).lengthOk);
+
+    uint8_t notAvailable[8] = { 0xFF, 0xFF, 0x02, 0x00, 127, 0x00, 0x93, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(notAvailable, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.valid);
+
+    uint8_t tooFar[8] = { 0x31, 0x75, 0x02, 0x00, 127, 0x00, 0x93, 0x04 };   // 30001 cm
+    assertFalse(DecodeXteAgLeaderLightbar(tooFar, 8).valid);
+}
+
+// The decoder keeps the whole payload for the dump, valid or not.
+test(IsobusPgnDecode, lightbarXte_keepsRawPayload) {
+    uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    for (uint8_t i = 0; i < 8; i++) assertEqual((int)r.rawPayload[i], (int)d[i]);
+}

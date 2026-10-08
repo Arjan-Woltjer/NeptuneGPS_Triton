@@ -30,6 +30,7 @@
 #include <AgIsoStack.hpp>
 
 #include "IsobusGuidanceChannel.hpp"
+#include "IsobusLightbarChannel.hpp"
 #include "IsobusTcInterface.hpp"
 #include "IsobusVtInterface.hpp"
 #include "GuidanceSource.hpp"
@@ -51,7 +52,8 @@ public:
     // bring-up before they're wired in main.cpp) -- the corresponding
     // section is skipped in that case.
     IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
-                    IsobusTcInterface* tcInterface = nullptr, IsobusVtInterface* vtInterface = nullptr);
+                    IsobusTcInterface* tcInterface = nullptr, IsobusVtInterface* vtInterface = nullptr,
+                    IsobusLightbarChannel* lightbarChannel = nullptr);
 
     // Prints a one-line hint that the menu exists. Call once from setup().
     void Begin();
@@ -75,6 +77,7 @@ private:
     GuidanceSource*        guidance;
     IsobusTcInterface*     tcInterface;
     IsobusVtInterface*     vtInterface;
+    IsobusLightbarChannel* lightbarChannel;
 
     State         state = State::IDLE;
     bool          periodicEnabled = false;
