@@ -25,6 +25,7 @@ recoverable from the file.
 | `2026-09-25_session11_jd-vanos_log30_autosteer-reverse.MF4` | `AD4F266A` / 30 | 2026-09-25 | John Deere | van Os | 2729 s | 1 143 997 |
 | `2026-10-01_session13_nh-vanmastwijk_log31_join-addressed-requests-vt-off.MF4` | `AD4F266A` / 31 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 3070 s | 843 066 |
 | `2026-10-01_session13_nh-vanmastwijk_log32_after-canedge-restart.MF4` | `AD4F266A` / 32 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 136 s | 37 340 |
+| `2026-10-08_lemken_agleader-vanmastwijk_log42_ibbc-lemken-l160-xte.MF4` | `AD4F266A` / 42 | 2026-10-08 | Ag Leader kit on a CNH tractor, new harness; Lemken plough control + L160 lightbar on the IBBC, ch2 on the IBBC | van Mastwijk | 347 s | 155 482 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -347,6 +348,46 @@ later (session 23 was lost the same way in September).
   at both Raven XTE call-outs), rear hitch at 81 % throughout.
 - **Rule, again:** run `mf4_to_pcap.py --inventory` on a card session before trusting it; a bus
   without SA 0x26/0xF7/0x81 and PGN 0xE600 is not the implement bus.
+
+### Lemken plough control + L160 lightbar, 2026-10-08 -- card logs 34-42, the IBBC is a separate bus
+
+Rig: the van Mastwijk CNH with the InCommand 1200 (new harness). A Lemken ISOBUS plough control
+was on the IBBC for a demo, with an Ag Leader L160 lightbar. No Triton on the bus, no serial log.
+Timeline: `../logs/2026-10-08_lemken_l160_timeline.md`.
+
+- **Logs 34-38: empty** (channel 9 only). The CANedge lead was on the tractor's in-cab 9-pin
+  connector, first with a loose power pin, then with the bus simply absent.
+- **Log 39, 40, 41: channel 1 on the in-cab connector pair 2/4** shows only the tractor's native
+  ISOBUS: TECU 0xF0 (class broadcasts at 10 Hz), CNH VT 0x26, and in log 40 the CNH's 0xAC/0xCD.
+  No InCommand, no implement, although both were live. Pins 2/3 and 4/5 are bridged on that
+  connector, so there is no second pair to try: **on the new harness the in-cab connector does not
+  reach the IBBC.** Not archived here (OneDrive `card-AD4F266A/session-000000{39,40,41}`).
+- **Log 42: channel 2 back-probed on the IBBC (pins 8/9), channel 1 still in the cab.** 347 s,
+  155 482 frames. Channel 2 carries the InCommand's five Ag Leader CFs (VT 0x26, TC 0xF7, display
+  0xF5, 0x2B, 0xE9; all manufacturer 97, identity 28337, the same unit as session 13), the Lemken
+  box at **0xEE** (manufacturer 2047 = unassigned, class 6, "ISOBUS Plough" sw 3,14, Dutch UI,
+  "Lemken UT") and the lightbar at **0xDC** (Ag Leader, function 131, software ID
+  "ALTECH,AL L160;01.00.00.00;L160_UP_FW;01.05.00.00"). Channel 1 at the same time: TECU + CNH VT
+  only. So the InCommand's ISOBUS branch and the IBBC form one segment, and the tractor's own
+  ISOBUS is another; the InCommand's VT sits at 0x26 on its segment just like the CNH VT on the
+  other. **Every future capture of implement traffic on this rig goes on the IBBC side.**
+- **Pools harvested** (`2026-10-08_log42_lemken_iops/`): the Lemken VT pool, 21 253 bytes, from the
+  second of two uploads (the first was cut by a power cycle), walks clean to the last byte, 1006
+  objects, VT error 0; and its DDOP, 841 bytes, one device element with sections, DDIs 1/2 rate,
+  67 width, 72/73 tank, 134/135 offsets, 141 status, 160/161 section control, 226 length. Nothing
+  guidance-related in the DDOP.
+- **The L160 receives nothing periodic.** Only an ISO 15765 identification exchange with 0xF5 at
+  power-up and two Proprietary A frames. It reads a broadcast, and `xte_hunt.py` (positions from
+  0x26's 65267, scan channel 2, window 185-300 s) ranks **PGN 65462 from 0xF5** first by a wide
+  margin: bytes 0-1 = XTE magnitude in cm (149 at the start, 0-5 on the line, operator: "large,
+  then 0-2 cm after engaging"), byte 2 = 1/2 autosteer off/on, byte 4 = signed around 127 (heading
+  error?), byte 6 bit 7 toggles at zero crossing (side candidate). Sign not settled: no deliberate
+  offsets in this drive. Details in the Documentation repo,
+  `ISOBUS/research/agleader-incommand-65462-xte-2026-10-08.md`. **But it is conditional:** in logs 28 and 31 (sessions 9 and 13, old harness) the same 0xF5
+  was on our bus and never sent 65461/65462; in log 42 both start within a second of the end of the
+  L160's power-up identification exchange. So the InCommand only broadcasts them once a lightbar
+  has identified itself (or once a display setting for one is on -- untested). #42: the XTE is on
+  the ISOBUS as a global proprietary-B broadcast at 5 Hz, but something has to switch it on.
 
 ## Reading them
 
