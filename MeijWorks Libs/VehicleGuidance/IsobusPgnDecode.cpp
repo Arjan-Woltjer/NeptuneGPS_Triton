@@ -169,6 +169,35 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
 }
 
 // ------------------------------------------------------------------
+// Ag Leader InCommand lightbar cross-track error, PGN 65462 (see the header).
+// Valid only while the display has a line and autosteer is engaged: the
+// capture shows the display re-referencing to a line on the other side at the
+// moment of engaging (a 1.4 m jump in 0.6 s at 2 km/h), so a value from before
+// that moment can belong to a different line than the one being followed.
+// ------------------------------------------------------------------
+LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length) {
+    LightbarXteResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+    for (uint8_t i = 0; i < 8; i++) result.rawPayload[i] = data[i];
+
+    result.magnitudeCm = static_cast<std::uint16_t>(data[0] | (data[1] << 8));
+    result.engaged     = (data[2] == 2);
+    result.hasLine     = (data[7] == 4);
+    result.rawStatus   = data[6];
+    result.rightOfLine = (data[6] & 0x80) != 0;
+
+    // 0xFFFF is the usual "not available" and anything beyond 300 m is not a
+    // cross-track error on a field.
+    if (result.magnitudeCm == 0xFFFF || result.magnitudeCm > 30000) return result;
+    if (!result.hasLine || !result.engaged) return result;
+
+    result.valid = true;
+    result.xteHundredthsMeter = result.rightOfLine ? int(result.magnitudeCm) : -int(result.magnitudeCm);
+    return result;
+}
+
+// ------------------------------------------------------------------
 // Legacy proprietary decode, ported verbatim from VehicleGps.cpp's
 // Update(long id, const uint8_t* data, byte len).
 // ------------------------------------------------------------------

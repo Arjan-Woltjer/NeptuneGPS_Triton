@@ -48,6 +48,11 @@ static constexpr std::uint32_t kPgnGnssPositionData      = 129029;  // GNSS Posi
 static constexpr std::uint32_t kPgnPositionLegacy     = 0xFEF3;  // 65267, PDU2
 static constexpr std::uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
 static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
+// Ag Leader InCommand: cross-track error for an external lightbar, proprietary
+// B, global, 5 Hz from the display's control function (SA 0xF5, manufacturer
+// 97, function 128 instance 5 on the 2026-10-08 rig). Only sent once a
+// lightbar has identified itself -- see AgLeaderLightbarEmulation.
+static constexpr std::uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
                                                                  // proprietary PGN, source address
                                                                  // must be rechecked in the callback
 // PGN 0xFFFF is heavily overloaded across manufacturers. Two source
@@ -284,6 +289,30 @@ struct XteResult {
     bool     rawCaptured = false;
 };
 
+// PGN 65462, decoded from card log 42 (2026-10-08) against the operator's
+// account and the InCommand's own positions (Documentation
+// ISOBUS/research/agleader-incommand-65462-xte-2026-10-08.md):
+//   bytes 0-1  cross-track error magnitude, cm, little-endian
+//   byte 2     1 = autosteer off, 2 = engaged
+//   byte 4     signed, offset 127; looks like heading error in degrees (unused)
+//   byte 6     status bits; bit 7 set = right of the line (operator ground
+//              truth at the start of the drive; flips at every zero crossing)
+//   byte 7     1 until a guidance line and GPS exist, 4 after
+// The sign convention matches the John Deere decoder: positive = right of
+// the line. The side bit still waits for the deliberate-offset drive, so the
+// decode keeps the raw byte for the dump.
+struct LightbarXteResult {
+    bool          lengthOk = false;
+    bool          valid = false;        // true => SetXte(xteHundredthsMeter) should be called
+    bool          hasLine = false;      // byte 7 == 4
+    bool          engaged = false;      // byte 2 == 2
+    bool          rightOfLine = false;  // byte 6 bit 7
+    std::uint16_t magnitudeCm = 0;
+    int           xteHundredthsMeter = 0;
+    std::uint8_t  rawStatus = 0;        // byte 6
+    std::uint8_t  rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+};
+
 struct AisoResult {
     bool    lengthOk = false;
     uint8_t state = 0xFF;         // decoded 2-bit state; 0xFF = frame too short to decode
@@ -305,6 +334,7 @@ PositionResult DecodeLegacyPosition(const uint8_t* data, uint8_t length);
 SpeedResult    DecodeLegacySpeed(const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteTrimble(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
+LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length);
 
 AisoResult DecodeAllImplementStop(const uint8_t* data, uint8_t length);
 

@@ -28,7 +28,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     // Pin configuration
     // Inputs
     pinMode(PLOUGHSIDE_PIN_2, INPUT);
-#ifdef TEENSY
+#if defined(TEENSY) || defined(TEENSY40)
     digitalWrite(PLOUGHSIDE_PIN_2, HIGH);
 #else
 #ifdef TEENSYPROTO
