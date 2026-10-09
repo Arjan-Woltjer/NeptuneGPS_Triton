@@ -94,8 +94,8 @@ void ImplementSprayer::Update() {
 
     updateOutputs();
 
-    // The pump output is down -- mixer, vernevelaar or the pump switch itself
-    // -- so nothing is being sprayed and there is no actual dose to report
+    // The pump output is down -- vernevelaar or the pump switch itself --
+    // so nothing is being sprayed and there is no actual dose to report
     // (NeptuneGPS_Triton#166). A figure here reads as "delivering this", when
     // it only ever meant "could deliver this if it were running".
     //
@@ -365,8 +365,10 @@ void ImplementSprayer::updateOutputs() {
 
     // ------------------------------------------------------------------------------------------------------------------------
     // Output control logic:
-    // - Output 0 (mixer) turns on immediately when button 0 is held, off when released
-    // - Output 1 (vernevelaar) turns on when button 1 is held and output 0 has been on for at least 1000 ms, off when released
+    // - Output 0 (mixer) follows button 0 alone: on while held, off when released. It is not part of the
+    //   sprayer chain below (NeptuneGPS_Triton#208): the mixer can run without spraying and spraying can
+    //   run without the mixer. Until #208 the vernevelaar waited 1 s for it and went down with it.
+    // - Output 1 (vernevelaar) turns on when button 1 is held, off when released
     // - Output 2 (pump) turns on when button 2 is held and output 1 has been on for at least 1000 ms, off when released
     // - Output 3 is not button-driven; it's the dose-deviation buzzer, driven by updateDeviation()
     // ------------------------------------------------------------------------------------------------------------------------
@@ -379,25 +381,20 @@ void ImplementSprayer::updateOutputs() {
         setOutputDuty(outputs[0], outputs[0].pwm ? PWM_MAX_DUTY - outputs[0].value : 0);
     }
     else if (!buttons[0]->state) {
-        // Mixer off, ensure vernevelaar and pump are also off
+        // Mixer off; the vernevelaar and pump are not touched
         outputs[0].state = false;
-        outputs[1].state = false; // Ensure vernevelaar is off if mixer is off
-        outputs[2].state = false; // Ensure pump is off if mixer is off
         setOutputDuty(outputs[0], PWM_MAX_DUTY);
-        setOutputDuty(outputs[1], PWM_MAX_DUTY);
-        setOutputDuty(outputs[2], PWM_MAX_DUTY);
     }
 
     // Vernevelaar control
-    if (buttons[1]->state && !outputs[1].state
-            && outputs[0].state && now - outputs[0].timer >= 1000) { // Vernevelaar on after mixer has been on for 1000 ms
+    if (buttons[1]->state && !outputs[1].state) {
         // Vernevelaar on
         outputs[1].state = true;
         outputs[1].timer = now;
         setOutputDuty(outputs[1], outputs[1].pwm ? PWM_MAX_DUTY - outputs[1].value : 0);
     }
     else if (!buttons[1]->state) {
-        // Vernevelaar off if button released or mixer is off
+        // Vernevelaar off if button released; the pump goes with it
         outputs[1].state = false;
         outputs[2].state = false; // Ensure pump is off if vernevelaar is off
         setOutputDuty(outputs[1], PWM_MAX_DUTY);
@@ -428,7 +425,7 @@ void ImplementSprayer::updateOutputs() {
 }
 
 // Outside kDoseTolerance of the requested dose, only while the pump output is
-// actually on (mixer, vernevelaar and pump engaged -- no alarm on the headland
+// actually on (vernevelaar and pump engaged -- no alarm on the headland
 // or on the way to the field), and only after the condition has held for
 // kDeviationHoldMs: speed is a moving average, so the boundary flickers during
 // accelerations and a bare comparison would chatter the buzzer. The same hold
@@ -517,8 +514,11 @@ bool ImplementSprayer::AcquireCalibration(CalibrationOwner who) {
     if (calibrationOwner != CalibrationOwner::None && calibrationOwner != who) return false;
     if (calibrationOwner == CalibrationOwner::None) {
         // Calibration is about the pump alone. Mixer and vernevelaar go off
-        // and their state is cleared, so the interlock cascade restarts from
-        // scratch once calibration is handed back (NeptuneGPS_Triton#66).
+        // and their state is cleared, so the vernevelaar/pump interlock
+        // restarts from scratch once calibration is handed back
+        // (NeptuneGPS_Triton#66). The mixer is independent of that chain
+        // (#208) but still goes off here: while calibration is held the
+        // button logic is frozen, and a frozen-off mixer is the safe one.
         // Before this they simply kept whatever state they had, for the
         // whole of a five-run pump calibration.
         for (int i = 0; i < 3; ++i) {
