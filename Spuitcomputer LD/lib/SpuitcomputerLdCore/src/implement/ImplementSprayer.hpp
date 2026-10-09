@@ -162,7 +162,8 @@ public:
     bool doseDeviation = false;
 
     // No output may switch on within this of any other output switching on
-    // (NeptuneGPS_Triton#208): one load at a time. This is the same second
+    // (NeptuneGPS_Triton#208): one load at a time, so their inrush currents
+    // never add up. Switch-off needs no spacing. This is the same second
     // the pump has always waited after the vernevelaar; since the mixer
     // left that chain it applies between the mixer and the chain as well.
     static constexpr unsigned long kSwitchOnSpacingMs = 1000;
