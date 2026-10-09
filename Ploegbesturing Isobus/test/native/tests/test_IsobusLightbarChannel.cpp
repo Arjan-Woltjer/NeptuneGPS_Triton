@@ -24,8 +24,8 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_identifier.hpp>
-#include <can_message.hpp>
+#include <isobus/isobus/can_identifier.hpp>
+#include <isobus/isobus/can_message.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
