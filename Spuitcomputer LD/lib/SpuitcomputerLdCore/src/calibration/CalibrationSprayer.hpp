@@ -50,7 +50,8 @@ private:
         IDLE, MENU,
         ANALOG_CAPTURE, ANALOG_DOSE,
         PWM_ARM, PWM_FIND, PWM_STEP, PWM_TIMED_RUN, PWM_MEASURE,
-        EDIT_PWM_SELECT, EDIT_PWM_VALUE
+        EDIT_PWM_SELECT, EDIT_PWM_VALUE,
+        RESTORE_TABLE, RESTORE_INDEX, RESTORE_X, RESTORE_Y
     };
 
     Stream*                serial;
@@ -61,6 +62,14 @@ private:
 
     int                  analogPointIdx;
     DoseCalibrationPoint newDosePoints[NUM_DOSE_CAL_POINTS] = {};
+
+    // Menu option 0, restore a point from typed values (a unit record holds
+    // analog/dose and PWM/flow pairs; the wizards only capture live readings
+    // and option 4 only edits a flow). One table per session, point after
+    // point until q.
+    bool restorePwm = false;
+    int  restoreIdx = 0;
+    int  restoreX   = 0;
 
     // PWM calibration: analog knob finds start threshold, then NUM_PWM_STEPS
     // equally-spaced points are auto-generated. Each point runs the pump for
@@ -97,6 +106,12 @@ private:
     void printCurrentCalibration();
     void handleEditPwmSelect();
     void handleEditPwmValue();
+    void handleRestoreTable();
+    void handleRestoreIndex();
+    void handleRestoreX();
+    void handleRestoreY();
+    void promptRestoreIndex();
+    void cancelRestore();
     void printDoseData();
     void printPumpData();
     void printGpsData();
