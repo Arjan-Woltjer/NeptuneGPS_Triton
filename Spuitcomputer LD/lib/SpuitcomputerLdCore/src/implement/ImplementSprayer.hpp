@@ -26,7 +26,7 @@
 namespace triton
 {
 
-#define SPRAYER_VERSION 0.3
+#define SPRAYER_VERSION 0.4
 
 #define NUM_OUTPUTS 4
 
