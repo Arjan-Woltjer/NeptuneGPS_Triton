@@ -94,7 +94,7 @@ void IsobusDebugMenu::Update() {
 // ------------------------------------------------------------------
 // Menu
 // ------------------------------------------------------------------
-void IsobusDebugMenu::printMenu() {
+FLASHMEM void IsobusDebugMenu::printMenu() {
     serialDebug->println("=== ISOBUS DEBUG MENU ===");
     serialDebug->println("1. Full status dump");
     serialDebug->print("2. Periodic summary line (");
@@ -106,7 +106,7 @@ void IsobusDebugMenu::printMenu() {
     serialDebug->println("q. Exit");
 }
 
-void IsobusDebugMenu::handleMenu(char c) {
+FLASHMEM void IsobusDebugMenu::handleMenu(char c) {
     switch (c) {
         case '1':
             printFullDump();
@@ -164,7 +164,7 @@ void IsobusDebugMenu::handleMenu(char c) {
 // ------------------------------------------------------------------
 // Full status dump
 // ------------------------------------------------------------------
-void IsobusDebugMenu::printFullDump() {
+FLASHMEM void IsobusDebugMenu::printFullDump() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
@@ -584,7 +584,7 @@ void IsobusDebugMenu::printFullDump() {
 // ------------------------------------------------------------------
 // Periodic one-liner
 // ------------------------------------------------------------------
-void IsobusDebugMenu::printPeriodicLine() {
+FLASHMEM void IsobusDebugMenu::printPeriodicLine() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
@@ -668,7 +668,7 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->println();
 }
 
-void IsobusDebugMenu::printHexBlob(const char* label, const uint8_t* data, uint32_t length) {
+FLASHMEM void IsobusDebugMenu::printHexBlob(const char* label, const uint8_t* data, uint32_t length) {
     static const char kHex[] = "0123456789ABCDEF";
     constexpr uint32_t kBytesPerLine = 32;
 
