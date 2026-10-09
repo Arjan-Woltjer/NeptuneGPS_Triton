@@ -29,7 +29,7 @@
 #include "SerialGuidanceChannel.hpp"
 
 #define L2_MEIJWORKS     "     MeijWorks      "
-#define L2_DEVICE        "SprayComputer LD 0.2"
+#define L2_DEVICE        "SprayComputer LD 0.3"
 #define L2_COPYRIGHT     "      (c) 2026      "
 #define L2_AUTHOR        "  by J.A. Woltjer   "
 
@@ -114,7 +114,7 @@ void setup() {
   Serial.println("===============================");
   Serial.println("===========MeijWorks===========");
   Serial.println("===============================");
-  Serial.println("   SprayComputer LD 0.2");
+  Serial.println("   SprayComputer LD 0.3");
   Serial.println("(c) 2011 - 2026 by J.A. Woltjer");
   Serial.println("-------------------------------");
   Serial.println("-------------------------------");
