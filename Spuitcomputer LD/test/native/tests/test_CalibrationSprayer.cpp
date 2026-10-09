@@ -650,6 +650,114 @@ test(CalibrationSprayer, editPwm_value_validatesRange_cancels_andSaves) {
 }
 
 // ---------------------------------------------------------------------------
+// Restore a point from typed values (option 0, NeptuneGPS_Triton#208 bench):
+// a unit record holds analog/dose and PWM/flow pairs, and neither the knob
+// wizard (live reading only) nor option 4 (flow only) can put them back.
+// ---------------------------------------------------------------------------
+
+test(CalibrationSprayer, restore_option0_promptsTable_qReturnsToMenu) {
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    assertTrue(term.has("0. Restore point"));
+    line(cal, "0");
+    assertTrue(term.has("Restore which table (1=analog l/ha, 2=PWM ml/min, q to cancel): "));
+    term.clearOut();
+    line(cal, "3");
+    assertTrue(term.has("Invalid"));
+    term.clearOut();
+    line(cal, "q");
+    assertTrue(term.has("=== SPRAYER CALIBRATION ==="));
+}
+
+test(CalibrationSprayer, restore_analogPoint_validates_sorts_andSaves) {
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    line(cal, "0");
+    line(cal, "1");
+    assertTrue(term.has("Point (1-3, q to finish): "));
+    line(cal, "4");
+    assertTrue(term.has("enter 1 to 3, q to finish: "));
+    term.clearOut();
+    line(cal, "2");
+    assertTrue(term.has("Analog value (0-4095, q to cancel): "));
+    line(cal, "4096");
+    assertTrue(term.has("Invalid"));
+    term.clearOut();
+    line(cal, "1785");
+    assertTrue(term.has("Dose (1-1000 l/ha, q to cancel): "));
+    line(cal, "0");
+    assertTrue(term.has("Invalid"));
+    term.clearOut();
+    line(cal, "40");
+    assertTrue(term.has("Saved."));
+    assertTrue(term.has("Point (1-3, q to finish): "));   // straight on to the next point
+    assertEqual(cImpl.doseCalibrationPoints[1].analogValue, 1785);
+    assertEqual(cImpl.doseCalibrationPoints[1].dose, 40);
+
+    // Out-of-order entry is sorted ascending by analog value, like the wizard.
+    line(cal, "1");
+    line(cal, "3000");
+    line(cal, "60");
+    assertEqual(cImpl.doseCalibrationPoints[0].analogValue, 1785);
+    assertEqual(cImpl.doseCalibrationPoints[0].dose, 40);
+    assertEqual(cImpl.doseCalibrationPoints[1].analogValue, 3000);
+    assertEqual(cImpl.doseCalibrationPoints[1].dose, 60);
+    assertEqual(cImpl.doseCalibrationPoints[2].analogValue, 4095);
+    term.clearOut();
+    line(cal, "q");
+    assertTrue(term.has("=== CURRENT CALIBRATION ==="));
+    assertTrue(term.has("=== SPRAYER CALIBRATION ==="));
+}
+
+test(CalibrationSprayer, restore_pwmPoint_saves_sortedByFlow) {
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    line(cal, "0");
+    line(cal, "2");
+    assertTrue(term.has("Point (1-3, q to finish): "));
+    line(cal, "1");
+    assertTrue(term.has("PWM duty (0-4095, q to cancel): "));
+    line(cal, "1438");
+    assertTrue(term.has("Flow (0-4000 ml/min, q to cancel): "));
+    line(cal, "4001");
+    assertTrue(term.has("Invalid"));
+    term.clearOut();
+    line(cal, "310");
+    assertTrue(term.has("Saved."));
+    assertEqual(cImpl.pwmCalibrationPoints[0].pwm, 1438);
+    assertEqual(cImpl.pwmCalibrationPoints[0].flowMlMin, 310);
+    assertEqual((int)cImpl.numPwmCalibrationPoints, 3);
+
+    line(cal, "3");
+    line(cal, "2500");
+    line(cal, "1500");
+    assertEqual(cImpl.pwmCalibrationPoints[1].flowMlMin, 1500);
+    assertEqual(cImpl.pwmCalibrationPoints[1].pwm, 2500);
+    assertEqual(cImpl.pwmCalibrationPoints[2].flowMlMin, 2000);
+    assertEqual(cImpl.pwmCalibrationPoints[2].pwm, 2048);
+    line(cal, "q");
+}
+
+test(CalibrationSprayer, restore_qAtValuePrompt_cancelsWithoutSaving) {
+    cReset();
+    CalibrationSprayer cal(&term, &cImpl, &cChannel);
+    openMenu(cal);
+    line(cal, "0");
+    line(cal, "1");
+    line(cal, "1");
+    line(cal, "900");
+    term.clearOut();
+    line(cal, "q");                         // at the dose prompt
+    assertTrue(term.has("Cancelled."));
+    assertTrue(term.has("=== SPRAYER CALIBRATION ==="));
+    assertEqual(cImpl.doseCalibrationPoints[0].analogValue, 0);
+    assertEqual(cImpl.doseCalibrationPoints[0].dose, 50);
+}
+
+// ---------------------------------------------------------------------------
 // Line editor
 // ---------------------------------------------------------------------------
 
