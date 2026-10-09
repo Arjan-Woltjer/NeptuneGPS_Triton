@@ -139,14 +139,14 @@ test(RemoteSprayer, info_versionLineThenOk) {
     rReset();
     remote.HandleLine("INFO");
     assertEqual(sink.count(), (size_t)2);
-    assertEqual(sink.at(0).c_str(), "V:0.2,2");
+    assertEqual(sink.at(0).c_str(), "V:2.1,2");
     assertEqual(sink.at(1).c_str(), "OK");
 }
 
 test(RemoteSprayer, onConnect_sendsVersion) {
     rReset();
     remote.OnConnect();
-    assertEqual(sink.at(0).c_str(), "V:0.2,2");
+    assertEqual(sink.at(0).c_str(), "V:2.1,2");
 }
 
 // ---------------------------------------------------------------------------

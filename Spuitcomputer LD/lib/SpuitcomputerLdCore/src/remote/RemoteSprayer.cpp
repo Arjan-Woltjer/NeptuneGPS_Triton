@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// SPRAYER_VERSION is a bare numeric token (0.2); two-step stringify.
+// SPRAYER_VERSION is a bare numeric token (2.1); two-step stringify.
 #define RS_STR2(x) #x
 #define RS_STR(x)  RS_STR2(x)
 
