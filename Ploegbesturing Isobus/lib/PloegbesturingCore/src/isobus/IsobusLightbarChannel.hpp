@@ -59,6 +59,8 @@ namespace triton
 // claim is left to the stack and finishes within Update().
 class IsobusLightbarChannel {
 public:
+    // canPort is AgIsoStack's CAN port index, the one the guidance channel
+    // assigned the hardware plugin to (0) -- not the FlexCAN channel number.
     IsobusLightbarChannel(Stream* serialDebug, GuidanceSource* guidance, std::uint8_t canPort = 0);
 
     // Creates the control function (its claim completes asynchronously) and
