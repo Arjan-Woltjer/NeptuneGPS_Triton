@@ -441,6 +441,120 @@ test(ImplementSprayer, spacing_mixerWaitsForPendingPump_afterVernevelaarReengage
 }
 
 // ---------------------------------------------------------------------------
+// Priming from the aux switch (NeptuneGPS_Triton#210): IN4 held runs the
+// vernevelaar and then the pump at full duty, standing still or not, under
+// the same one-output-per-second rule. Releasing it hands the outputs back
+// to their own switches.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, prime_auxAlone_vernevelaarThenPumpAtFullDuty_standingStill) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.buttons[3].state = true;
+    impl.Update();                          // t=0: vernevelaar, no fix, no speed
+    assertFalse(impl.outputs[0].state);
+    assertTrue(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(999);
+    impl.Update();
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(1000);
+    impl.Update();                          // t=1000: pump at full duty
+    assertTrue(impl.outputs[2].state);
+    assertEqual(impl.outputs[2].value, (unsigned int)PWM_MAX_DUTY);
+    assertTrue(impl.actualLHA == ImplementSprayer::kActualDoseUndefined);
+}
+
+test(ImplementSprayer, prime_release_dropsBoth_whenOwnSwitchesOff) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.buttons[3].state = true;
+    impl.Update();
+    millisValue(1000);
+    impl.Update();
+    assertTrue(impl.outputs[1].state);
+    assertTrue(impl.outputs[2].state);
+
+    millisValue(1500);
+    iface.buttons[3].state = false;
+    impl.Update();                          // nothing else asks for them
+    assertFalse(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+}
+
+test(ImplementSprayer, prime_release_keepsSpraying_whenSwitchesHeld_doseResumes) {
+    resetAll();
+    startSpraying(1.0f, 2048);              // dosed spraying, pump on at t=2000
+    assertTrue(impl.outputs[2].value > 0u);
+    assertTrue(impl.outputs[2].value < (unsigned int)PWM_MAX_DUTY);
+
+    millisValue(2100);
+    iface.buttons[3].state = true;          // prime on top of a running pump
+    gpsSpeed(1.0f);
+    impl.Update();
+    assertTrue(impl.outputs[2].state);
+    assertEqual(impl.outputs[2].value, (unsigned int)PWM_MAX_DUTY);
+    assertTrue(impl.actualLHA == ImplementSprayer::kActualDoseUndefined);
+
+    millisValue(2200);
+    iface.buttons[3].state = false;         // switches still held: back to dosing
+    gpsSpeed(1.0f);
+    impl.Update();
+    assertTrue(impl.outputs[1].state);
+    assertTrue(impl.outputs[2].state);
+    assertTrue(impl.outputs[2].value > 0u);
+    assertTrue(impl.outputs[2].value < (unsigned int)PWM_MAX_DUTY);
+    assertTrue(impl.actualLHA != ImplementSprayer::kActualDoseUndefined);
+}
+
+test(ImplementSprayer, prime_withMixer_chainFirst_thenMixer) {
+    resetAll();
+    iface.buttons[0].state = true;
+    iface.buttons[3].state = true;
+    impl.Update();                          // t=0:    vernevelaar
+    assertFalse(impl.outputs[0].state);
+    assertTrue(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(1000);
+    impl.Update();                          // t=1000: pump
+    assertFalse(impl.outputs[0].state);
+    assertTrue(impl.outputs[2].state);
+
+    millisValue(2000);
+    impl.Update();                          // t=2000: mixer
+    assertTrue(impl.outputs[0].state);
+}
+
+test(ImplementSprayer, prime_noDeviationAlarm_whileSaturated) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    iface.analogInputs[0].value = 4095;     // a demand the pump cannot meet
+    iface.buttons[3].state = true;
+    gpsSpeed(2.0f);
+    impl.Update();
+    runUntil(5000, 2.0f);
+    assertTrue(impl.outputs[2].state);
+    assertFalse(impl.doseDeviation);
+    assertFalse(impl.outputs[3].state);
+}
+
+test(ImplementSprayer, prime_ignoredWhileCalibrationHeld) {
+    resetAll();
+    impl.outputs[2].pwm = true;
+    assertTrue(impl.AcquireCalibration(CalibrationOwner::Remote));
+    iface.buttons[3].state = true;
+    impl.Update();
+    runUntil(3000, 0.0f);
+    assertFalse(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+    assertEqual(impl.outputs[2].value, (unsigned int)0);
+    impl.ReleaseCalibration(CalibrationOwner::Remote);
+}
+
+// ---------------------------------------------------------------------------
 // CalculateDoseLHA — analog value → l/ha interpolation
 // Default calibration: {dose=50, analog=0}, {dose=100, analog=2048}, {dose=200, analog=4095}
 // ---------------------------------------------------------------------------

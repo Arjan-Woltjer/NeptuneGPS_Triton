@@ -535,8 +535,10 @@ test(RemoteSprayer, status_showsUndefinedActualAndCalibrationOwner) {
 }
 
 test(RemoteSprayer, status_inputAndOutputBits) {
-    // IN1 (mixer switch) and IN4 (aux) held: inputs 1001; the mixer output
-    // follows its switch at once, nothing else is on yet: outputs 1000.
+    // IN1 (mixer switch) and IN4 (aux = prime, NeptuneGPS_Triton#210) held:
+    // inputs 1001. Prime asks for the vernevelaar and pump; the chain is
+    // evaluated before the mixer and only one output switches on per second
+    // (#208), so after 200 ms only the vernevelaar is on: outputs 0100.
     rReset();
     rIface.buttons[0].state = true;
     rIface.buttons[3].state = true;
@@ -545,7 +547,7 @@ test(RemoteSprayer, status_inputAndOutputBits) {
     tick(200, 0.0f);
     assertEqual(sink.count(), (size_t)1);
     const std::string& s = sink.last();
-    assertTrue(s.size() > 10 && s.compare(s.size() - 10, 10, ",1001,1000") == 0);
+    assertTrue(s.size() > 10 && s.compare(s.size() - 10, 10, ",1001,0100") == 0);
 }
 
 test(RemoteSprayer, nmea_offByDefault_onDemand_rateLimited) {

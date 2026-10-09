@@ -173,6 +173,12 @@ public:
     // boot is not held back (unsigned wrap-around is intended).
     unsigned long lastSwitchOnAt = 0UL - kSwitchOnSpacingMs;
 
+    // Priming (NeptuneGPS_Triton#210): the aux switch (button 3) asks for
+    // the vernevelaar and the pump at full duty, standing still or not, so
+    // the lines can be filled before a run. Recomputed every Update(); false
+    // while calibration owns the outputs.
+    bool priming = false;
+
     // updateDeviation()'s time-in-state accumulator, clamped to
     // [0, kDeviationHoldMs]: counts up while the raw (un-held) condition
     // holds and down while it doesn't, and doseDeviation follows once it
