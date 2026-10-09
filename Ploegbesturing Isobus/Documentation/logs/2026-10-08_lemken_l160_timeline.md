@@ -15,7 +15,7 @@ the day. Analysis in `../canlogs/README.md` (2026-10-08 entry) and in the Docume
 | 40, 41 | same | 3.7 min each, same two devices (+ CNH 0xAC/0xCD claims in 40). Meter: pins 2-3 and 4-5 bridged on the in-cab connector, so no second pair exists |
 | **42** | **channel 2 back-probed on the IBBC (pins 8/9, ground 2), channel 1 still in the cab** | 347 s. ch2: InCommand's five CFs, Lemken 0xEE, L160 0xDC. ch1: TECU + CNH VT only. Lemken power-cycled twice (pool upload at ~128 s cut, complete at ~165 s); L160 claimed at 104 s and 143 s; tractor drove 192-211 s and 216-297 s at ~2 km/h, autosteer engaged at ~200 s. Operator: XTE large at first, 0-2 cm once engaged |
 
-Conclusions: the in-cab connector and the IBBC are separate buses on this harness (the InCommand's
-ISOBUS branch is on the IBBC side), which is why the Lemken pool never reached the CNH VT; the
+Conclusions: the in-cab connector and the IBBC were separate buses THAT DAY, which is why the
+Lemken pool never reached the CNH VT. **Correction 2026-10-09 (owner):** the split was not the harness. The Lemken technician had disconnected the IBBC and the InCommand's ISOBUS branch from the rest of the bus for his demo, because the tractor "sometimes eats messages". Normally everything is one bus, as logs 28/31 and the 10-03 session showed. The in-cab connector remains a valid tap on a normal day; the one-minute inventory check is what tells. Further: the
 Lemken VT pool and DDOP are harvested; and the InCommand's XTE is PGN 65462 from 0xF5, global,
 5 Hz, with the sign still to be fixed on a deliberate-offset drive.

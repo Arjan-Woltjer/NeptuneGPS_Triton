@@ -24,12 +24,12 @@ Reflash, if needed: `git fetch && git switch test/rig-lightbar-failover`, then
 
 ## Two things that are different from every earlier visit
 
-1. **The tap goes on the IBBC, not the in-cab connector.** On this harness the in-cab connector
-   (both pairs, they are bridged) carries only the tractor's own ISOBUS: TECU 0xF0 and CNH VT 0x26.
-   The InCommand's control functions and the implement are on the IBBC segment. Logs 34-41 were
-   lost or useless for that reason. CANedge channel 2 back-probed on the IBBC (CAN_H 8, CAN_L 9,
-   ground 2), channel 1 in the cab for power. After one minute, check the card: a live segment
-   writes >1 MB/min; a file under a few hundred kB is channel 9 only.
+1. **Check the bus before trusting the tap.** On 10-08 the Lemken technician had split the IBBC
+   and the InCommand branch off the tractor bus for his demo, which is why logs 39-41 from the in-cab
+   connector never showed the InCommand. On a normal day the in-cab connector is fine. After one
+   minute of logging, inventory the card (`mf4_to_pcap.py --inventory`): the InCommand's claims
+   (manufacturer 97: VT 0x80, TC 0xF7, display 0xF5) must be there, and the file must grow by
+   >1 MB/min. If not, back-probe the IBBC on channel 2 (CAN_H 8, CAN_L 9, ground 2) as on 10-08.
 2. **The real L160 stays unplugged** while our control is on the bus. Our lightbar control function
    uses the L160's NAME. Section 4 of the brief says when and how to use the real bar.
 
@@ -46,7 +46,7 @@ Reflash, if needed: `git fetch && git switch test/rig-lightbar-failover`, then
 ## What to bring back
 
 - The MF4(s): card session numbers in the timeline; archive goes to `canlogs/` with the README
-  entry naming channel 2 = IBBC.
+  entry naming which connector each channel was on.
 - Serial log + timeline in `logs/` (`2026-10-xx_session15_vanmastwijk_*`), on `test/session12` as
   before; the field laptop's Claude memory does not sync, this file and the timeline are the handover.
 - The filled checklist from the brief (section 8), in the timeline.

@@ -371,6 +371,7 @@ Timeline: `../logs/2026-10-08_lemken_l160_timeline.md`.
   only. So the InCommand's ISOBUS branch and the IBBC form one segment, and the tractor's own
   ISOBUS is another; the InCommand's VT sits at 0x26 on its segment just like the CNH VT on the
   other. **Every future capture of implement traffic on this rig goes on the IBBC side.**
+  **Correction 2026-10-09 (owner):** the split was not the harness. The Lemken technician had disconnected the IBBC and the InCommand's ISOBUS branch from the rest of the bus for his demo, because the tractor "sometimes eats messages". Normally everything is one bus, as logs 28/31 and the 10-03 session showed. The in-cab connector remains a valid tap on a normal day; the one-minute inventory check is what tells.
 - **Pools harvested** (`2026-10-08_log42_lemken_iops/`): the Lemken VT pool, 21 253 bytes, from the
   second of two uploads (the first was cut by a power cycle), walks clean to the last byte, 1006
   objects, VT error 0; and its DDOP, 841 bytes, one device element with sections, DDIs 1/2 rate,
