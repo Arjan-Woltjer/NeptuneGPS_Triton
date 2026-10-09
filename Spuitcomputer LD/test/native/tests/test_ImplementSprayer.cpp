@@ -79,6 +79,7 @@ static void resetAll() {
         impl.outputs[i].value = 0;
         impl.outputs[i].timer = 0;
     }
+    impl.lastSwitchOnAt = 0UL - ImplementSprayer::kSwitchOnSpacingMs;  // as at boot
     impl.doseLHA = 0.0f;
     impl.doseLM  = 0.0f;
 
@@ -324,6 +325,119 @@ test(ImplementSprayer, pumpWithoutMixer_onAfterVernevelaar1s) {
     impl.Update();                          // 1000 - 0 >= 1000 -> pump on, mixer never touched
     assertFalse(impl.outputs[0].state);
     assertTrue(impl.outputs[2].state);
+}
+
+// ---------------------------------------------------------------------------
+// Switch-on spacing (NeptuneGPS_Triton#208, follow-up): with the mixer off the
+// chain, two outputs could switch on in the same pass. No output may switch
+// on within kSwitchOnSpacingMs of any other output switching on, and when the
+// sprayer chain and the mixer are due at the same instant the chain goes
+// first and the mixer waits another second.
+// ---------------------------------------------------------------------------
+
+test(ImplementSprayer, spacing_mixerAndVernevelaarTogether_vernevelaarFirst) {
+    resetAll();
+    iface.buttons[0].state = true;
+    iface.buttons[1].state = true;
+    impl.Update();                          // t=0: only the vernevelaar
+    assertFalse(impl.outputs[0].state);
+    assertTrue(impl.outputs[1].state);
+
+    millisValue(999);
+    impl.Update();
+    assertFalse(impl.outputs[0].state);
+
+    millisValue(1000);
+    impl.Update();                          // one second later the mixer may follow
+    assertTrue(impl.outputs[0].state);
+    assertTrue(impl.outputs[1].state);
+}
+
+test(ImplementSprayer, spacing_allThreeTogether_vernevelaarPumpMixer) {
+    resetAll();
+    iface.buttons[0].state = true;
+    iface.buttons[1].state = true;
+    iface.buttons[2].state = true;
+    impl.Update();                          // t=0:    vernevelaar
+    assertFalse(impl.outputs[0].state);
+    assertTrue(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(1000);
+    impl.Update();                          // t=1000: pump beats the mixer
+    assertFalse(impl.outputs[0].state);
+    assertTrue(impl.outputs[2].state);
+
+    millisValue(1999);
+    impl.Update();
+    assertFalse(impl.outputs[0].state);
+
+    millisValue(2000);
+    impl.Update();                          // t=2000: mixer last
+    assertTrue(impl.outputs[0].state);
+}
+
+test(ImplementSprayer, spacing_afterMixer_vernevelaarAndPumpWait) {
+    resetAll();
+    iface.buttons[0].state = true;
+    impl.Update();                          // t=0: mixer on
+    assertTrue(impl.outputs[0].state);
+
+    millisValue(500);
+    iface.buttons[1].state = true;
+    impl.Update();                          // 500 ms after the mixer: too soon
+    assertFalse(impl.outputs[1].state);
+
+    millisValue(1000);
+    impl.Update();                          // t=1000: vernevelaar on
+    assertTrue(impl.outputs[1].state);
+
+    millisValue(1500);
+    iface.buttons[2].state = true;
+    impl.Update();                          // 500 ms after the vernevelaar: too soon
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(2000);
+    impl.Update();                          // t=2000: pump on
+    assertTrue(impl.outputs[2].state);
+}
+
+test(ImplementSprayer, spacing_mixerWaitsForPendingPump_afterVernevelaarReengaged) {
+    resetAll();
+    startSpraying(1.0f, 2048);              // all three on at t=2000
+
+    millisValue(3000);
+    iface.buttons[1].state = false;         // vernevelaar released: pump goes too
+    iface.buttons[0].state = false;         // mixer released as well
+    gpsSpeed(1.0f);
+    impl.Update();
+    assertFalse(impl.outputs[0].state);
+    assertFalse(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(4000);
+    iface.buttons[1].state = true;          // vernevelaar re-engaged, pump still held
+    gpsSpeed(1.0f);
+    impl.Update();                          // t=4000: vernevelaar on, pump due at 5000
+    assertTrue(impl.outputs[1].state);
+    assertFalse(impl.outputs[2].state);
+
+    millisValue(4500);
+    iface.buttons[0].state = true;          // mixer asked for while the pump is pending
+    gpsSpeed(1.0f);
+    impl.Update();
+    assertFalse(impl.outputs[0].state);
+
+    millisValue(5000);
+    gpsSpeed(1.0f);
+    impl.Update();                          // t=5000: the pending pump goes first
+    assertTrue(impl.outputs[2].state);
+    assertFalse(impl.outputs[0].state);
+
+    runUntil(5999, 1.0f);
+    assertFalse(impl.outputs[0].state);
+    runUntil(6000, 1.0f);                   // t=6000: mixer, a second after the pump
+    assertTrue(impl.outputs[0].state);
 }
 
 // ---------------------------------------------------------------------------
@@ -950,10 +1064,10 @@ test(ImplementSprayer, releaseCalibration_cascadeRestartsWithItsDelays) {
     runUntil(3000, 1.0f);
     impl.ReleaseCalibration(CalibrationOwner::Remote);
 
-    // Switches are still held: mixer and vernevelaar at once (the mixer is
-    // independent, #208), pump 1 s after the vernevelaar.
+    // Switches are still held: one output per second, sprayer chain first --
+    // vernevelaar at once, pump 1 s later, the independent mixer (#208) last.
     millisValue(3100); gpsSpeed(1.0f); impl.Update();
-    assertTrue(impl.outputs[0].state);
+    assertFalse(impl.outputs[0].state);
     assertTrue(impl.outputs[1].state);
     assertFalse(impl.outputs[2].state);
 
@@ -961,6 +1075,12 @@ test(ImplementSprayer, releaseCalibration_cascadeRestartsWithItsDelays) {
     assertFalse(impl.outputs[2].state);
     runUntil(4100, 1.0f);
     assertTrue(impl.outputs[2].state);
+    assertFalse(impl.outputs[0].state);
+
+    runUntil(5099, 1.0f);
+    assertFalse(impl.outputs[0].state);
+    runUntil(5100, 1.0f);
+    assertTrue(impl.outputs[0].state);
 }
 
 // ---------------------------------------------------------------------------

@@ -365,33 +365,30 @@ void ImplementSprayer::updateOutputs() {
 
     // ------------------------------------------------------------------------------------------------------------------------
     // Output control logic:
-    // - Output 0 (mixer) follows button 0 alone: on while held, off when released. It is not part of the
-    //   sprayer chain below (NeptuneGPS_Triton#208): the mixer can run without spraying and spraying can
-    //   run without the mixer. Until #208 the vernevelaar waited 1 s for it and went down with it.
     // - Output 1 (vernevelaar) turns on when button 1 is held, off when released
-    // - Output 2 (pump) turns on when button 2 is held and output 1 has been on for at least 1000 ms, off when released
+    // - Output 2 (pump) turns on when button 2 is held and output 1 is on, off when released (and with the vernevelaar)
+    // - Output 0 (mixer) follows button 0 alone: on while held, off when released. It is not part of the
+    //   sprayer chain (NeptuneGPS_Triton#208): the mixer can run without spraying and spraying can run
+    //   without the mixer. Until #208 the vernevelaar waited 1 s for it and went down with it.
     // - Output 3 is not button-driven; it's the dose-deviation buzzer, driven by updateDeviation()
+    //
+    // Switch-on spacing: whichever output it is, it may only switch on when no other output has switched
+    // on in the last kSwitchOnSpacingMs -- one load at a time. That is the second the pump has always
+    // waited after the vernevelaar. The chain is evaluated before the mixer, so when the pump and the
+    // mixer are both due in the same pass the pump goes first and the mixer waits another spacing; the
+    // mixer switching on likewise holds the vernevelaar or pump back by one spacing. Switch-off is never
+    // held back. Evaluated once per pass so a switch-on in this pass blocks the ones after it.
     // ------------------------------------------------------------------------------------------------------------------------
-
-    // Mixer control
-    if (buttons[0]->state && !outputs[0].state) {
-        // Mixer on
-        outputs[0].state = true;
-        outputs[0].timer = now;
-        setOutputDuty(outputs[0], outputs[0].pwm ? PWM_MAX_DUTY - outputs[0].value : 0);
-    }
-    else if (!buttons[0]->state) {
-        // Mixer off; the vernevelaar and pump are not touched
-        outputs[0].state = false;
-        setOutputDuty(outputs[0], PWM_MAX_DUTY);
-    }
+    const bool spacingElapsed = now - lastSwitchOnAt >= kSwitchOnSpacingMs;
+    bool switchedOnThisPass = false;
 
     // Vernevelaar control
-    if (buttons[1]->state && !outputs[1].state) {
+    if (buttons[1]->state && !outputs[1].state && spacingElapsed) {
         // Vernevelaar on
         outputs[1].state = true;
         outputs[1].timer = now;
         setOutputDuty(outputs[1], outputs[1].pwm ? PWM_MAX_DUTY - outputs[1].value : 0);
+        switchedOnThisPass = true;
     }
     else if (!buttons[1]->state) {
         // Vernevelaar off if button released; the pump goes with it
@@ -403,14 +400,33 @@ void ImplementSprayer::updateOutputs() {
 
     // Pump control
     if (buttons[2]->state && !outputs[2].state
-            && outputs[1].state && now - outputs[1].timer >= 1000) { // Pump on after vernevelaar has been on for 1000 ms
-        // Pump on
+            && outputs[1].state && spacingElapsed && !switchedOnThisPass) {
+        // Pump on, one spacing after the vernevelaar (or whatever switched on last)
         outputs[2].state = true;
         outputs[2].timer = now;
+        switchedOnThisPass = true;
     }
     else if (!buttons[2]->state) {
         // Pump off if button released
         outputs[2].state = false;
+    }
+
+    // Mixer control -- last, so a pending chain switch-on wins the pass
+    if (buttons[0]->state && !outputs[0].state && spacingElapsed && !switchedOnThisPass) {
+        // Mixer on
+        outputs[0].state = true;
+        outputs[0].timer = now;
+        setOutputDuty(outputs[0], outputs[0].pwm ? PWM_MAX_DUTY - outputs[0].value : 0);
+        switchedOnThisPass = true;
+    }
+    else if (!buttons[0]->state) {
+        // Mixer off; the vernevelaar and pump are not touched
+        outputs[0].state = false;
+        setOutputDuty(outputs[0], PWM_MAX_DUTY);
+    }
+
+    if (switchedOnThisPass) {
+        lastSwitchOnAt = now;
     }
 
     // Re-applied every loop (not just on the on-transition) so a live-updated

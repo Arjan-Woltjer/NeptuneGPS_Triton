@@ -161,6 +161,17 @@ public:
     static constexpr unsigned long kDeviationHoldMs = 1000;
     bool doseDeviation = false;
 
+    // No output may switch on within this of any other output switching on
+    // (NeptuneGPS_Triton#208): one load at a time. This is the same second
+    // the pump has always waited after the vernevelaar; since the mixer
+    // left that chain it applies between the mixer and the chain as well.
+    static constexpr unsigned long kSwitchOnSpacingMs = 1000;
+
+    // millis() of the most recent output switch-on, whichever output it
+    // was. Starts one spacing in the past so the first switch-on after
+    // boot is not held back (unsigned wrap-around is intended).
+    unsigned long lastSwitchOnAt = 0UL - kSwitchOnSpacingMs;
+
     // updateDeviation()'s time-in-state accumulator, clamped to
     // [0, kDeviationHoldMs]: counts up while the raw (un-held) condition
     // holds and down while it doesn't, and doseDeviation follows once it
