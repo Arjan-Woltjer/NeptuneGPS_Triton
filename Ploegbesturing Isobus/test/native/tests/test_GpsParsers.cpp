@@ -213,7 +213,7 @@ test(CanSerialParser, pos_lat_lon) {
     assertTrue(near(state.GetLongitude(), 5.0f, 1e-5f));
 }
 
-// $0CFEE81C,002D00020000804F*5D  course=90.0  speed=2.0 kt  alt=44.0 m
+// $0CFEE81C,002D00020000804F*5D  course=90.0  speed=2.0 km/h (1.0799 kt)  alt=44.0 m
 test(CanSerialParser, spd_course_speed_alt) {
     GuidanceSource state;
     CanSerialParser p;
@@ -221,7 +221,7 @@ test(CanSerialParser, spd_course_speed_alt) {
     p.parseTerm(1, "002D00020000804F");
     p.commitTo(&state);
     assertTrue(near(state.GetCourse(), 90.0f, 0.01f));
-    assertTrue(near(state.GetSpeed(), 2.0f, 0.01f));
+    assertTrue(near(state.GetSpeed(), 1.0799f, 0.001f));
     assertTrue(near(state.GetAltitude(), 44.0f, 0.01f));
 }
 
