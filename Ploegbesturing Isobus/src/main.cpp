@@ -145,7 +145,12 @@ void setup() {
     // A second control function that presents as an Ag Leader L160 lightbar:
     // an InCommand only broadcasts its cross-track error (PGN 65462) once a
     // lightbar has identified itself (#42, card log 42).
-    gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance, kIsobusCanChannel);
+    // AgIsoStack port 0 (the one the guidance channel registered the plugin
+    // on) -- NOT kIsobusCanChannel, which is the FlexCAN controller number and
+    // only means something to the error-register readout. On the bench the
+    // wrong one made the stack retry the claim every loop on a port it does
+    // not have, flooding the serial log (2026-10-09).
+    gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance);
     gLightbarChannel->Begin();
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
