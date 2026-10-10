@@ -39,7 +39,16 @@ bool VtFailoverPolicy::HeardRecently(uint8_t address, unsigned long nowMs, unsig
 VtFailoverPolicy::Decision VtFailoverPolicy::Evaluate(unsigned long nowMs, bool connected, uint8_t partnerAddress,
                                                       bool partnerValid) const {
     Decision decision;
-    if (connected) return decision;
+    // "Connected" comes from AgIsoStack's VT client, and that client stamps
+    // its VT-status timestamp on EVERY VT Status it sees, not only the
+    // partner's (isobus_virtual_terminal_client.cpp, the VTStatusMessage case
+    // has no sender check). With a second VT on the bus it never times out:
+    // session 15 (2026-10-10, card log 43), the InCommand went silent 16 s
+    // after being switched off and the CNH VT's 1 Hz status kept the client
+    // "connected" for five minutes, bound to a dead 0x80. So connected only
+    // counts while the partner itself has been heard within the window; the
+    // per-address table below is what knows that.
+    if (connected && (!partnerValid || HeardRecently(partnerAddress, nowMs, kPartnerSilentMs))) return decision;
 
     // Silent since the later of the grace period's start and the bound VT's
     // last status. A partner that is not address-valid has no status of its
