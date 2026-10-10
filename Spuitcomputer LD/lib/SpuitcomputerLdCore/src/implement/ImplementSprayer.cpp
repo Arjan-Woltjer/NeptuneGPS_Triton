@@ -92,11 +92,18 @@ void ImplementSprayer::Update() {
     calculateDoseLM();
     calculatePWMValues(2);  // pump output
 
+    // Priming overrides the dosed duty with full flow (NeptuneGPS_Triton#210).
+    // The switch-on itself still goes through updateOutputs() and its
+    // one-output-per-second rule; this only decides what the pump runs at.
+    priming = buttons[3]->state && !calibrationMode;
+    if (priming) outputs[2].value = PWM_MAX_DUTY;
+
     updateOutputs();
 
     // The pump output is down -- vernevelaar or the pump switch itself --
     // so nothing is being sprayed and there is no actual dose to report
-    // (NeptuneGPS_Triton#166). A figure here reads as "delivering this", when
+    // (NeptuneGPS_Triton#166). The same while priming: full flow is not a
+    // dose, and the deviation alarm must stay quiet (#210). A figure here reads as "delivering this", when
     // it only ever meant "could deliver this if it were running".
     //
     // Cleared after updateOutputs() rather than inside calculatePWMValues(),
@@ -106,7 +113,7 @@ void ImplementSprayer::Update() {
     // Deliberately the sentinel and not 0. Zero already means the pump was cut
     // *while spraying*, because demand fell below the lowest calibrated flow,
     // and the driver has to react to that one.
-    if (!outputs[2].state) actualLHA = kActualDoseUndefined;
+    if (!outputs[2].state || priming) actualLHA = kActualDoseUndefined;
 
     updateDeviation();
 }
@@ -371,6 +378,8 @@ void ImplementSprayer::updateOutputs() {
     //   sprayer chain (NeptuneGPS_Triton#208): the mixer can run without spraying and spraying can run
     //   without the mixer. Until #208 the vernevelaar waited 1 s for it and went down with it.
     // - Output 3 is not button-driven; it's the dose-deviation buzzer, driven by updateDeviation()
+    // - Button 3 (aux) is "prime" (NeptuneGPS_Triton#210): it asks for the vernevelaar and the pump as if
+    //   both their switches were held, with the pump at full duty (set in Update()). Same spacing rule.
     //
     // Switch-on spacing: whichever output it is, it may only switch on when no other output has switched
     // on in the last kSwitchOnSpacingMs -- one load at a time. That is the second the pump has always
@@ -382,16 +391,19 @@ void ImplementSprayer::updateOutputs() {
     const bool spacingElapsed = now - lastSwitchOnAt >= kSwitchOnSpacingMs;
     bool switchedOnThisPass = false;
 
+    const bool wantVernevelaar = buttons[1]->state || priming;
+    const bool wantPump        = buttons[2]->state || priming;
+
     // Vernevelaar control
-    if (buttons[1]->state && !outputs[1].state && spacingElapsed) {
+    if (wantVernevelaar && !outputs[1].state && spacingElapsed) {
         // Vernevelaar on
         outputs[1].state = true;
         outputs[1].timer = now;
         setOutputDuty(outputs[1], outputs[1].pwm ? PWM_MAX_DUTY - outputs[1].value : 0);
         switchedOnThisPass = true;
     }
-    else if (!buttons[1]->state) {
-        // Vernevelaar off if button released; the pump goes with it
+    else if (!wantVernevelaar) {
+        // Vernevelaar off if nothing asks for it; the pump goes with it
         outputs[1].state = false;
         outputs[2].state = false; // Ensure pump is off if vernevelaar is off
         setOutputDuty(outputs[1], PWM_MAX_DUTY);
@@ -399,15 +411,15 @@ void ImplementSprayer::updateOutputs() {
     }
 
     // Pump control
-    if (buttons[2]->state && !outputs[2].state
+    if (wantPump && !outputs[2].state
             && outputs[1].state && spacingElapsed && !switchedOnThisPass) {
         // Pump on, one spacing after the vernevelaar (or whatever switched on last)
         outputs[2].state = true;
         outputs[2].timer = now;
         switchedOnThisPass = true;
     }
-    else if (!buttons[2]->state) {
-        // Pump off if button released
+    else if (!wantPump) {
+        // Pump off if nothing asks for it
         outputs[2].state = false;
     }
 

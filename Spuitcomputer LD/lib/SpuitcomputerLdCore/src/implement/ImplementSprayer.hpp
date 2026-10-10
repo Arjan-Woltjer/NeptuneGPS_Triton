@@ -26,7 +26,7 @@
 namespace triton
 {
 
-#define SPRAYER_VERSION 0.3
+#define SPRAYER_VERSION 0.4
 
 #define NUM_OUTPUTS 4
 
@@ -172,6 +172,12 @@ public:
     // was. Starts one spacing in the past so the first switch-on after
     // boot is not held back (unsigned wrap-around is intended).
     unsigned long lastSwitchOnAt = 0UL - kSwitchOnSpacingMs;
+
+    // Priming (NeptuneGPS_Triton#210): the aux switch (button 3) asks for
+    // the vernevelaar and the pump at full duty, standing still or not, so
+    // the lines can be filled before a run. Recomputed every Update(); false
+    // while calibration owns the outputs.
+    bool priming = false;
 
     // updateDeviation()'s time-in-state accumulator, clamped to
     // [0, kDeviationHoldMs]: counts up while the raw (un-held) condition
