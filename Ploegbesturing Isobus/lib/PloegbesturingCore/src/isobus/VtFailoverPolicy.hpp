@@ -49,8 +49,9 @@ namespace triton
 // AgIsoStack, so the whole decision is testable without a bus.
 class VtFailoverPolicy {
 public:
-    // How long the bound VT may be silent (no VT Status Message) while we are
-    // not connected before we look elsewhere. Five times AgIsoStack's own 3 s
+    // How long the bound VT may be silent (no VT Status Message) before we
+    // look elsewhere, whether or not AgIsoStack's client still says connected
+    // (it does not tell one VT's status from another's, see Evaluate()). Five times AgIsoStack's own 3 s
     // VT status timeout: a VT that is merely rebooting or busy is given time
     // to come back first.
     static constexpr unsigned long kPartnerSilentMs = 15000UL;

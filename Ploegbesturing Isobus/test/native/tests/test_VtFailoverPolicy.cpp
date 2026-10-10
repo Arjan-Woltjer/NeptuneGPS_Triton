@@ -45,10 +45,36 @@ VtFailoverPolicy BoundToCnhThatStopsAt(unsigned long stopMs) {
 
 }  // namespace
 
-test(VtFailoverPolicy, connected_neverActs) {
+// Session 15: the client said "connected" for five minutes while the bound
+// VT was dead, because the other VT's status kept its timer fresh. The
+// policy's own per-address record is what counts: bound VT silent for a
+// minute, another VT alive -> switch, connected or not.
+test(VtFailoverPolicy, connected_butPartnerSilent_actsAnyway) {
     VtFailoverPolicy policy = BoundToCnhThatStopsAt(kT0);
     policy.OnVtStatus(kInCommand, kT0 + 60000);
+    const VtFailoverPolicy::Decision d = policy.Evaluate(kT0 + 60000, true, kCnhVt, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kInCommand);
+}
+
+test(VtFailoverPolicy, connected_partnerHeardRecently_noAction) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    for (unsigned long t = kT0; t <= kT0 + 60000; t += 1000) {
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kInCommand, t);
+    }
     assertTrue(policy.Evaluate(kT0 + 60000, true, kCnhVt, true).action == Action::None);
+    // Just inside the window still counts as heard.
+    assertTrue(policy.Evaluate(kT0 + 60000 + VtFailoverPolicy::kPartnerSilentMs - 1, true, kCnhVt, true).action == Action::None);
+}
+
+// Connected with a partner that is not address-valid: nothing of its own to
+// judge by, leave the client to it.
+test(VtFailoverPolicy, connected_invalidPartner_noAction) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    assertTrue(policy.Evaluate(kT0 + 60000, true, VtFailoverPolicy::kNoAddress, false).action == Action::None);
 }
 
 test(VtFailoverPolicy, partnerStillTalking_noAction) {
