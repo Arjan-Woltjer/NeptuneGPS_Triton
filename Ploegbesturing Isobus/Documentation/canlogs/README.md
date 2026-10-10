@@ -26,6 +26,7 @@ recoverable from the file.
 | `2026-10-01_session13_nh-vanmastwijk_log31_join-addressed-requests-vt-off.MF4` | `AD4F266A` / 31 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 3070 s | 843 066 |
 | `2026-10-01_session13_nh-vanmastwijk_log32_after-canedge-restart.MF4` | `AD4F266A` / 32 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 136 s | 37 340 |
 | `2026-10-08_lemken_agleader-vanmastwijk_log42_ibbc-lemken-l160-xte.MF4` | `AD4F266A` / 42 | 2026-10-08 | Ag Leader kit on a CNH tractor, new harness; Lemken plough control + L160 lightbar on the IBBC, ch2 on the IBBC | van Mastwijk | 347 s | 155 482 |
+| `2026-10-10_session15_vanmastwijk_log43_lightbar-ident-no-65462.MF4` | `AD4F266A` / 43 | 2026-10-10 | Ag Leader kit on a CNH tractor, one bus; our L160 emulation + InCommand | van Mastwijk | 2441 s | 656 649 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -389,6 +390,30 @@ Timeline: `../logs/2026-10-08_lemken_l160_timeline.md`.
   L160's power-up identification exchange. So the InCommand only broadcasts them once a lightbar
   has identified itself (or once a display setting for one is on -- untested). #42: the XTE is on
   the ISOBUS as a global proprietary-B broadcast at 5 Hz, but something has to switch it on.
+
+### Session 15, 2026-10-10 -- our L160 emulation identified but no 65462; failover's wrong-VT status
+
+Van Mastwijk CNH + InCommand 1200, one bus again (both VTs, TC, display 0xF5, our 0x81 + lightbar
+0xDC), channel 1 on the in-cab connector. Plough control on `test/rig-lightbar-failover` @ b73cea8.
+Serial log, timeline and the MF4 analysis: `../logs/2026-10-10_session15_vanmastwijk_*`. Clock: log
++307.5 s = 15:49:54.5 (our 0x81 claim), i.e. serial = log + 15:44:47.
+
+- **log 43**: 2441 s, 656 649 frames, archived as
+  `2026-10-10_session15_vanmastwijk_log43_lightbar-ident-no-65462.MF4`.
+- **The display identified our bar three times with answers byte-identical to the L160's and never
+  started 65462.** Difference on the wire: it also asked the bar for PGN 65242 (software ID), 64965
+  and 64653, which our stack NACKed (the L160 broadcasts 65242 unasked after its claim and ignores the
+  other two silently), and it then polled our address claim every 2.5 s for the whole session. Plus
+  pacing: the bar sends every frame 80 ms apart; we answered within 1-4 ms. Fixed in PR #207 (no
+  NACKs, 65242 answered, 80 ms pacing, software ID before the hello). Untested against the display.
+- **#188: the InCommand's VT server did NOT keep sending after power-off.** 0x80 and the four other
+  InCommand CFs went silent 16 s after the switch; the 1 Hz VT status the serial log saw for five
+  minutes was the CNH VT's (0x26). The failover's status counter/age is not filtered on the bound
+  partner. The three switches that did happen were genuine (plug pull, replug, CNH VT off by key).
+- **No PGN 129283 on the bus at all** in 40 min; the serial counter's 194 are miscounted (to file).
+- **#190:** no 0x81 claims answering requests to other CFs; 0x81 claimed 23 times, at joins and the
+  three global roll-calls. **#205:** 65256 from 0x80 against the display at 2.1 and 5.9 km/h, verified
+  on screen.
 
 ## Reading them
 

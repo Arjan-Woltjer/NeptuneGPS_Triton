@@ -93,3 +93,61 @@ END
 | 16:22:54 | Operator restarts the CNH VT. 16:23:03 CNH CFs 172 and 205 `now offline` (a genuine restart, the only offline lines of the day), reclaimed 16:23:09-16:23:15. Dump 16:23:56: partner stays 0x80, `switches=3`. Pool stays on the InCommand. |
 | 16:25:09 | CANedge stopped (operator). Card session numbers: to be read from the card at the workstation (logs 43+ expected; log 42 was 10-08). Plough control still on the bus, serial logger still running. |
 | ~16:25:07 | Plough control unplugged from the ISOBUS (bus load 0.1 %, vt=N), then from USB. Serial log ends 16:25:26, logger stopped. End of session. |
+
+## Results from the MF4 (workstation, 2026-10-10 evening)
+
+Card log 43, channel 1 on the in-cab connector, 2441 s, 656 649 frames: one bus with everything on
+it (CNH VT 0x26, InCommand VT 0x80, TC 0xF7, display function 0xF5, 0x2B, 0xE9, TECU 0xF0, CNH
+0xAC/0xCD, our 0x81 and our lightbar 0xDC). Archived as
+`../canlogs/2026-10-10_session15_vanmastwijk_log43_lightbar-ident-no-65462.MF4`. Log time = serial
+time - 15:44:47 (our 0x81 claim at log +307.5 s = 15:49:54.5).
+
+**Question 1 answered: it was not the answers.** Every one of our identification answers is
+byte-identical to the L160's in log 42, including the three multi-frame ones (first frame, the
+display's flow control `30 32 01`, our two consecutive frames with DLC 7 on the last). What differs:
+
+| | real L160 (log 42) | our emulation (log 43) |
+|---|---|---|
+| Display's first request to the bar | `00 EE 00` (address claim) once per power-up | `DA FE 00` = **PGN 65242 software identification**, 0.7 s after the display's own claims |
+| Our reply to that | claim, then the 65242 BAM 80 ms later, unsolicited | **NACK** (stack: no handler on the lightbar CF) |
+| After the seven reads | display asks `C5 FD 00` (64965 ECU id) 4x and `8D FC 00` (64653) 5x at 1 Hz; the bar **ignores** them silently; display stops after ~10 s | display asks 64965 and 64653 once each: **NACK**, **NACK** |
+| Then | display sends its Prop A `00 00 00 FF ..` 1 ms after its 0x8015 request; 65461/65462 start 0.2 s later | **no Prop A**, and the display polls `00 EE 00` to 0xDC **every 2.5 s for the rest of the session** (580 times), each answered with a NACK + a claim |
+| Pacing | every bar frame 80 ms after the previous (BAM frames, hello, answers, consecutive frames, even with STmin 1 ms) | 1-4 ms |
+| First contact order | claim, BAM (9 frames), display re-asks 0x8007 after the BAM, hello, answers | hello and answer within 5 ms of the first request |
+
+The display asked our 0x81 the same three PGNs once each (3 requests, no loop): #190's
+DiagnosticProtocol answers them there. So the lightbar CF is the only CF on this bus that NACKs the
+display, and the only one it keeps polling.
+
+Fix in PR #207 (commit after this write-up): PGN request callbacks on the lightbar CF (65242 ->
+software ID BAM; 64965, 64653 and our own claim request -> handled, no acknowledgement), software ID
+before the hello on first contact with a 720 ms hold, 80 ms pacing of every frame. Whether the
+NACKs, the missing 65242 answer, the pacing or the order was the trigger cannot be separated from
+this capture; all four are now as the bar does them.
+
+**Other capture answers (handover questions e-g):**
+
+- (e) **129283: no sender in the MF4.** 0 frames of PGN 129283 on channel 1 in 40 min; the serial
+  counter's 194 "129283" frames are something else (the counter is incremented by the 129283
+  callback -- check what AgIsoStack-plus-plus delivers there; candidate: the display's TP broadcasts
+  with a 129283 PGN field, or a PGN-callback mismatch). Issue to file.
+- (f) **InCommand off, 16:11:18-16:16:43: on the wire it went silent 16 s after the switch.** Last
+  frame from 0x80 at log +1607.3 s (16:11:34), first frame back at +2078.5 s (16:19:25); 0xF5, 0xF7,
+  0x2B and 0xE9 stopped with it. In the dark five minutes the only VT status on the bus is the **CNH
+  VT's, 0x26, 302 frames at 1 Hz**; 0x80 sent 7 and then nothing. So the serial log's "vtstat count
+  still rising, age < 1 s" was the *other* terminal's status. **#188 bug, firmware side:** the VT
+  status counter and age that the silence trigger reads are not filtered on the bound partner, so
+  as long as any VT on the bus sends status the partner is never "silent". The command timeouts
+  were right; the status-age check was looking at the wrong VT. Fix: count and age only the
+  partner's status (or, as the handover proposed, let N command timeouts also count as dead).
+- (g) **Nothing from 0xF5 to 0xDC other than the identification reads**: no Prop A, as the dump said.
+  The only non-diagnostic frames to 0xDC are 0x2B's 589 requests.
+- (b) Request spacing within an identification: 1-4 ms between our answer and the display's next read
+  (log 42: 80 ms, set by the bar). No 1 s gaps, so no timeout on a multi-frame answer.
+- (c) Our hello: to 0xF5, 4 ms after the first 0x8007 request, before the answer. L160: 0.8 s after an
+  unanswered first request, after its BAM, before the answer.
+- (d) Our 65242 BAM: once, 0.6 ms after our first claim at +332.2 s (InCommand off then), 9 frames at
+  52 ms. L160: 80 ms after each claim, 80 ms per frame. Heartbeat 65513: ours 1667 ms, 1266 frames,
+  all 0xFF; same as the bar.
+- 0xDC re-claimed 580 times (every 2.5 s) in answer to the display's polls; 0x81 claimed 23 times, at
+  joins and the three global roll-calls.
