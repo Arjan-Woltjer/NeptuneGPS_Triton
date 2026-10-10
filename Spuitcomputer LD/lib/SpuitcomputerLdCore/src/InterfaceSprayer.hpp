@@ -31,7 +31,7 @@ int  analogRead(uint8_t pin);
 namespace triton
 {
 
-#define INTERFACE_VERSION 0.2
+#define INTERFACE_VERSION 0.3
 
 #define NUM_DIGITAL_IN 4
 

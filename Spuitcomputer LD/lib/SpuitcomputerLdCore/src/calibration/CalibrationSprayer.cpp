@@ -129,7 +129,9 @@ void CalibrationSprayer::Process() {
         }
         else if (bufLen < (int)sizeof(buf) - 1) {
             bool valid;
-            if (state == State::EDIT_PWM_SELECT || state == State::EDIT_PWM_VALUE)
+            if (state == State::EDIT_PWM_SELECT || state == State::EDIT_PWM_VALUE
+                    || state == State::RESTORE_TABLE || state == State::RESTORE_INDEX
+                    || state == State::RESTORE_X || state == State::RESTORE_Y)
                 valid = (c >= '0' && c <= '9') || c == 'q' || c == 'Q';
             else if (state == State::ANALOG_DOSE || state == State::PWM_MEASURE)
                 // 'q' as well as digits: without it these two prompts cannot be
@@ -157,6 +159,10 @@ void CalibrationSprayer::processLine() {
         case State::PWM_MEASURE:     handlePwmMeasure();    break;
         case State::EDIT_PWM_SELECT: handleEditPwmSelect(); break;
         case State::EDIT_PWM_VALUE:  handleEditPwmValue();  break;
+        case State::RESTORE_TABLE:   handleRestoreTable();  break;
+        case State::RESTORE_INDEX:   handleRestoreIndex();  break;
+        case State::RESTORE_X:       handleRestoreX();      break;
+        case State::RESTORE_Y:       handleRestoreY();      break;
         default: break;
     }
 }
@@ -172,6 +178,7 @@ void CalibrationSprayer::printMenu() {
     serial->println("2. PWM output      (ml/min)");
     serial->println("3. Show current calibration");
     serial->println("4. Edit PWM point");
+    serial->println("0. Restore point   (typed analog/dose or PWM/flow)");
     serial->print("5. Analog output   (raw/dose/speed/flow/actual/dev) (");
     serial->print(doseOutputEnabled ? "ON" : "OFF");
     serial->println(" - press to toggle)");
@@ -218,6 +225,11 @@ void CalibrationSprayer::handleMenu() {
         case '3':
             printCurrentCalibration();
             printMenu();
+            break;
+        case '0':
+            printCurrentCalibration();
+            serial->print("Restore which table (1=analog l/ha, 2=PWM ml/min, q to cancel): ");
+            state = State::RESTORE_TABLE;
             break;
         case '4':
             printCurrentCalibration();
@@ -618,6 +630,113 @@ void CalibrationSprayer::handleEditPwmValue() {
     serial->println("Saved.");
     printMenu();
     state = State::MENU;
+}
+
+// ---------------------------------------------------------------------------
+// Restore a point from typed values (option 0)
+// ---------------------------------------------------------------------------
+
+void CalibrationSprayer::cancelRestore() {
+    serial->println("Cancelled.");
+    printMenu();
+    state = State::MENU;
+}
+
+void CalibrationSprayer::promptRestoreIndex() {
+    serial->print("Point (1-");
+    serial->print(restorePwm ? (int)impl->numPwmCalibrationPoints : NUM_DOSE_CAL_POINTS);
+    serial->print(", q to finish): ");
+    state = State::RESTORE_INDEX;
+}
+
+void CalibrationSprayer::handleRestoreTable() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelRestore(); return; }
+    int table;
+    if (!parseInt(&table) || (table != 1 && table != 2)) {
+        serial->print("Invalid — enter 1 or 2, q to cancel: ");
+        return;
+    }
+    restorePwm = (table == 2);
+    promptRestoreIndex();
+}
+
+void CalibrationSprayer::handleRestoreIndex() {
+    if (buf[0] == 'q' || buf[0] == 'Q') {
+        printCurrentCalibration();
+        printMenu();
+        state = State::MENU;
+        return;
+    }
+    const int n = restorePwm ? (int)impl->numPwmCalibrationPoints : NUM_DOSE_CAL_POINTS;
+    int idx;
+    if (!parseInt(&idx) || idx < 1 || idx > n) {
+        serial->print("Invalid — enter 1 to ");
+        serial->print(n);
+        serial->print(", q to finish: ");
+        return;
+    }
+    restoreIdx = idx - 1;
+    serial->print(restorePwm ? "PWM duty (0-4095, q to cancel): "
+                             : "Analog value (0-4095, q to cancel): ");
+    state = State::RESTORE_X;
+}
+
+void CalibrationSprayer::handleRestoreX() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelRestore(); return; }
+    int x;
+    if (!parseInt(&x) || x < 0 || x > PWM_MAX_DUTY) {
+        serial->print("Invalid — enter 0 to 4095, q to cancel: ");
+        return;
+    }
+    restoreX = x;
+    serial->print(restorePwm ? "Flow (0-4000 ml/min, q to cancel): "
+                             : "Dose (1-1000 l/ha, q to cancel): ");
+    state = State::RESTORE_Y;
+}
+
+void CalibrationSprayer::handleRestoreY() {
+    if (buf[0] == 'q' || buf[0] == 'Q') { cancelRestore(); return; }
+    int y;
+    if (restorePwm) {
+        if (!parseInt(&y) || y < 0 || y > 4000) {
+            serial->print("Invalid — enter 0 to 4000, q to cancel: ");
+            return;
+        }
+        impl->pwmCalibrationPoints[restoreIdx].pwm       = restoreX;
+        impl->pwmCalibrationPoints[restoreIdx].flowMlMin = y;
+        // Ascending by flow, as calculatePWMValues' segment search assumes
+        // (same ordering the wizard and the app's CAL SAVE produce).
+        const int n = impl->numPwmCalibrationPoints;
+        for (int i = 0; i < n - 1; ++i) {
+            for (int j = i + 1; j < n; ++j) {
+                if (impl->pwmCalibrationPoints[j].flowMlMin < impl->pwmCalibrationPoints[i].flowMlMin) {
+                    PwmCalibrationPoint t = impl->pwmCalibrationPoints[i];
+                    impl->pwmCalibrationPoints[i] = impl->pwmCalibrationPoints[j];
+                    impl->pwmCalibrationPoints[j] = t;
+                }
+            }
+        }
+    } else {
+        if (!parseInt(&y) || y < 1 || y > 1000) {
+            serial->print("Invalid — enter 1 to 1000, q to cancel: ");
+            return;
+        }
+        impl->doseCalibrationPoints[restoreIdx].analogValue = restoreX;
+        impl->doseCalibrationPoints[restoreIdx].dose        = y;
+        // Ascending by analog value, like finishAnalogCal().
+        for (int i = 0; i < NUM_DOSE_CAL_POINTS - 1; ++i) {
+            for (int j = i + 1; j < NUM_DOSE_CAL_POINTS; ++j) {
+                if (impl->doseCalibrationPoints[j].analogValue < impl->doseCalibrationPoints[i].analogValue) {
+                    DoseCalibrationPoint t = impl->doseCalibrationPoints[i];
+                    impl->doseCalibrationPoints[i] = impl->doseCalibrationPoints[j];
+                    impl->doseCalibrationPoints[j] = t;
+                }
+            }
+        }
+    }
+    impl->SaveCalibration();
+    serial->println("Saved.");
+    promptRestoreIndex();
 }
 
 // ---------------------------------------------------------------------------

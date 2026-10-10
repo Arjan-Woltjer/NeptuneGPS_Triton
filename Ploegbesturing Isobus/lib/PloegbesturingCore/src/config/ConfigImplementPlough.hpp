@@ -45,11 +45,71 @@ _7 are defines for sower
 #define OUTPUT_NARROW_2       20
 #define OUTPUT_WIDE_2         21
 #define OUTPUT_BYPASS_2       22
-//#define xxx_2                 23
 
 // Analog input
 #define POSITION_SENS_PIN_2   A0    // for potmeter input (input 1 connector)
 #define ROTATION_SENS_PIN_2   A1    // (input 2 connector)
+
+#else
+
+#ifdef TEENSY40
+// Teensy 4.0 board. Same pinout as the Teensy 4.1 production board above,
+// except that CAN lives on FLEXCAN1 (pins 22 TX / 23 RX), which were the
+// bypass / FET 4 outputs: those move to pins 2 and 3, and the plough-side
+// input, which was on pin 2, moves to pin 4.
+
+// Digital inputs 12V -> 5V conversion
+#define PLOUGHSIDE_PIN_2      4     // was 2 on besturing 0.1; 2 is now OUTPUT_BYPASS_2
+
+// Digital outputs
+#define OUTPUT_LED_2          33    // bottom pad on the 4.0
+
+// FET OUTPUTS (22/23 are CAN TX/RX on this board)
+#define OUTPUT_NARROW_2       20
+#define OUTPUT_WIDE_2         21
+#define OUTPUT_BYPASS_2       2
+
+// Analog input
+#define POSITION_SENS_PIN_2   A0    // for potmeter input (input 1 connector)
+#define ROTATION_SENS_PIN_2   A1    // (input 2 connector)
+
+#else
+
+#ifdef ESP32S3
+// Triton01 (ESP32-S3-WROOM-2). Numbers are ESP32 GPIO numbers; inputs behind
+// the MCP23008 I2C expander use EXPANDER_PIN(gp) from TritonIo.hpp and are
+// read through triton::ReadDigital(). Every digital input on this board is an
+// opto-coupler output with a pull-up (LOW when energised); TritonIo inverts
+// that so the firmware keeps the "true = energised" of the besturing 0.1
+// input stage.
+#include "TritonIo.hpp"
+
+// Digital inputs (DIN1-6 on the MCP23008, DIN7/8 on GPIO 47/48)
+#define PLOUGHSIDE_PIN_2      EXPANDER_PIN(3)   // DIN4
+
+// Valve outputs: one DRV8701 H-bridge per valve, PH = direction, EN = PWM.
+// Narrow and wide are the two solenoids of one valve and mutually exclusive,
+// so they share bridge 1; the bypass valve has bridge 2 to itself. Bridges 3
+// and 4 (GPIO 15/16 and 17/18) are unassigned.
+#define OUTPUT_VALVE_PH_2     11    // bridge 1 PH, see OUTPUT_NARROW_PH_LEVEL
+#define OUTPUT_VALVE_EN_2     12    // bridge 1 EN, PWM
+#define OUTPUT_BYPASS_PH_2    13    // bridge 2 PH
+#define OUTPUT_BYPASS_EN_2    14    // bridge 2 EN, PWM
+#define OUTPUT_NARROW_PH_LEVEL LOW  // PH level that fires the narrow solenoid, wide is the
+                                    // opposite; swap here or swap the two leads on the connector
+// No status LED on this board: OUTPUT_LED_2 is deliberately not defined.
+
+// DRV8701 housekeeping, shared by all four bridges
+#define MOTORDRIVER_SLEEP_PIN_2 38  // nSLEEP, HIGH = bridges enabled
+#define MOTORDRIVER_FAULT_PIN_2 21  // nFAULT, open drain, pulled up on the board, LOW = fault
+#define VALVE_CURRENT_PIN_2    7    // bridge 1 SO through a 1k/1k divider (ADC1)
+#define BYPASS_CURRENT_PIN_2   8    // bridge 2 SO through a 1k/1k divider (ADC1)
+
+// Analog input (ADC1). The board's buffers scale a 5 V sensor to 2.27 V,
+// inside the ESP32's linear range; ImplementPlough selects 10-bit reads so
+// the calibration tables keep the 0-1023 scale of the Teensy boards.
+#define POSITION_SENS_PIN_2   5     // ANA1 (input 1 connector)
+#define ROTATION_SENS_PIN_2   6     // ANA2 (input 2 connector)
 
 #else
 
@@ -115,6 +175,8 @@ _7 are defines for sower
 
 #error "no board defined"
 
+#endif
+#endif
 #endif
 #endif
 #endif

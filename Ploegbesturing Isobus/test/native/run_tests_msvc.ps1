@@ -8,6 +8,7 @@ $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\PloegbesturingCore\src"
 $guidance = "$root\..\MeijWorks Libs\VehicleGuidance"   # shared GuidanceSource + parsers, NeptuneGPS_Triton#76
+$tritonio = "$root\..\MeijWorks Libs\TritonIo"          # header-only digital-input shim (GPIO here, MCP23008 on ESP32S3)
 $implement = "$root\lib\PloegbesturingCore\src\implement"
 # The real AgIsoStack-plus-plus, compiled for the host (NeptuneGPS_Triton#98,
 # #189). Its core is portable C++17. The tree is nested: three include roots,
@@ -60,7 +61,7 @@ $aunitSources = @(
 # SalaciaFirmwareCore convention), and $lib is only for the test_*.cpp files
 # below reaching in via library-root-relative paths ("implement/
 # ImplementPlough.hpp" etc.).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /DISOBUS /DCAN_STACK_DISABLE_THREADS /I`"$aunit`" $agisostackIncludes /I`"$stubs`" /I`"$lib`" /I`"$guidance`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /DISOBUS /DCAN_STACK_DISABLE_THREADS /I`"$aunit`" $agisostackIncludes /I`"$stubs`" /I`"$lib`" /I`"$guidance`" /I`"$tritonio`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches

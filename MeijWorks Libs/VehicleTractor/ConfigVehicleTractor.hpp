@@ -18,7 +18,15 @@
 */
 #pragma once
 
+// Board selection. Guarded so a project-level build flag (-D TEENSY40, the
+// Ploegbesturing Isobus Teensy 4.0 env) is honoured no matter which config
+// header a translation unit includes first; without any flag the Teensy 4.1
+// production board applies, exactly as before.
+#if !defined(TEENSY40) && !defined(ESP32S3) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
 #define TEENSY
+#endif
+//#define TEENSY40
+//#define ESP32S3
 //#define TEENSYPROTO
 //#define MICRO
 //#define VOORSERIE
@@ -30,6 +38,23 @@
 // Digital inputs 12V -> 5V conversion
 #define WHEEL_SPEED_PIN_1     6
 #define HITCH_PIN_1           7
+
+#else
+
+#ifdef TEENSY40
+// Teensy 4.0 board: identical to the Teensy 4.1 production board.
+// Digital inputs 12V -> 5V conversion
+#define WHEEL_SPEED_PIN_1     6
+#define HITCH_PIN_1           7
+
+#else
+
+#ifdef ESP32S3
+// Triton01: the wheel-speed pulse on a direct GPIO (DIN8), the hitch behind
+// the MCP23008 (DIN5); EXPANDER_PIN() and the reads come from TritonIo.hpp.
+#include "TritonIo.hpp"
+#define WHEEL_SPEED_PIN_1     48                // DIN8
+#define HITCH_PIN_1           EXPANDER_PIN(4)   // DIN5
 
 #else
 
@@ -56,6 +81,8 @@
 
 #error "no board defined"
 
+#endif
+#endif
 #endif
 #endif
 #endif

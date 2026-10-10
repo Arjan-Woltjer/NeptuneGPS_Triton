@@ -26,31 +26,46 @@ namespace triton
 //------------
 ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) {
     // Pin configuration
-    // Inputs
-    pinMode(PLOUGHSIDE_PIN_2, INPUT);
-#ifdef TEENSY
-    digitalWrite(PLOUGHSIDE_PIN_2, HIGH);
+    // Inputs -- the pull-up follows the board's input stage: the Teensy
+    // boards want the MCU pull-up, the Arduino boards do not, and Triton01's
+    // MCP23008 brings its own (TritonIo.hpp).
+#if defined(TEENSY) || defined(TEENSY40) || defined(TEENSYPROTO)
+    triton::ConfigureDigitalInput(PLOUGHSIDE_PIN_2, true);
 #else
-#ifdef TEENSYPROTO
-    digitalWrite(PLOUGHSIDE_PIN_2, HIGH);
-#else
-    digitalWrite(PLOUGHSIDE_PIN_2, LOW);
-#endif
+    triton::ConfigureDigitalInput(PLOUGHSIDE_PIN_2, false);
 #endif
 
     // Outputs
+#if defined(ESP32S3)
+    // Triton01: DRV8701 H-bridges, PH = direction, EN = PWM. Both EN lines
+    // start low (valves off) before the shared nSLEEP wakes the bridges.
+    pinMode(OUTPUT_VALVE_PH_2, OUTPUT);
+    pinMode(OUTPUT_VALVE_EN_2, OUTPUT);
+    pinMode(OUTPUT_BYPASS_PH_2, OUTPUT);
+    pinMode(OUTPUT_BYPASS_EN_2, OUTPUT);
+    digitalWrite(OUTPUT_VALVE_EN_2, LOW);
+    digitalWrite(OUTPUT_BYPASS_EN_2, LOW);
+    pinMode(MOTORDRIVER_FAULT_PIN_2, INPUT);
+    pinMode(MOTORDRIVER_SLEEP_PIN_2, OUTPUT);
+    digitalWrite(MOTORDRIVER_SLEEP_PIN_2, HIGH);
+    // The ESP32 core defaults to 12-bit reads; 10 bits keeps the calibration
+    // tables on the 0-1023 scale of the Teensy boards.
+    analogReadResolution(10);
+#else
     pinMode(OUTPUT_WIDE_2, OUTPUT);
     pinMode(OUTPUT_NARROW_2, OUTPUT);
     pinMode(OUTPUT_BYPASS_2, OUTPUT);
     pinMode(OUTPUT_LED_2, OUTPUT);
+#endif
 
     // Analog IO
     // DEFAULT is an AVR/Teensy-3.x analogReference() constant; Teensy 4.1's
     // core doesn't define it at all (a real build-breaking gap found while
     // verifying this port against real hardware headers) -- guarded so the
     // call still fires on boards where it's meaningful, and is simply skipped
-    // on Teensy 4.1, where the ADC's default reference already applies.
-#ifdef DEFAULT
+    // on Teensy 4.1, where the ADC's default reference already applies. The
+    // ESP32 core defines DEFAULT too but has no analogReference() at all.
+#if defined(DEFAULT) && !defined(ARDUINO_ARCH_ESP32)
     analogReference(DEFAULT);
 #endif
     pinMode(POSITION_SENS_PIN_2, INPUT);
@@ -292,30 +307,50 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
 // Method for moving implement narrower
 // ------------------------------------
 void ImplementPlough::Narrower(byte pwm) {
+#if defined(ESP32S3)
+    digitalWrite(OUTPUT_VALVE_PH_2, OUTPUT_NARROW_PH_LEVEL);
+    analogWrite(OUTPUT_VALVE_EN_2, pwm);
+#else
     analogWrite(OUTPUT_WIDE_2, 0);
     analogWrite(OUTPUT_NARROW_2, pwm);
     //analogWrite(OUTPUT_BYPASS_2, pwm);
+#endif
+#ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, HIGH);
+#endif
 }
 
 // ---------------------------------
 // Method for moving implement wider
 // ---------------------------------
 void ImplementPlough::Wider(byte pwm) {
+#if defined(ESP32S3)
+    digitalWrite(OUTPUT_VALVE_PH_2, (OUTPUT_NARROW_PH_LEVEL == LOW) ? HIGH : LOW);
+    analogWrite(OUTPUT_VALVE_EN_2, pwm);
+#else
     analogWrite(OUTPUT_WIDE_2, pwm);
     analogWrite(OUTPUT_NARROW_2, 0);
     //analogWrite(OUTPUT_BYPASS_2, pwm);
+#endif
+#ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, HIGH);
+#endif
 }
 
 // ------------------------------
 // Method for stopping implement
 // ------------------------------
 void ImplementPlough::Stop() {
+#if defined(ESP32S3)
+    analogWrite(OUTPUT_VALVE_EN_2, 0);
+#else
     analogWrite(OUTPUT_WIDE_2, 0);
     analogWrite(OUTPUT_NARROW_2, 0);
     //analogWrite(OUTPUT_BYPASS_2, 0);
+#endif
+#ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, LOW);
+#endif
 }
 
 // --------------------------------------------
