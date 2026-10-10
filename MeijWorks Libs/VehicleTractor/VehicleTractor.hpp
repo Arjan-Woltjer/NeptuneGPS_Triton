@@ -22,6 +22,23 @@
 #include <EEPROM.h>
 
 #include "ConfigVehicleTractor.hpp"
+#if defined(ESP32S3)
+#include "TritonIo.hpp"   // Triton01: the hitch input sits behind the MCP23008
+#endif
+
+namespace triton
+{
+// Reads one of the tractor inputs. Triton01 goes through TritonIo (MCP23008
+// for the hitch, opto polarity for both); every other board reads the GPIO
+// directly, exactly as before, and needs nothing beyond Arduino.h.
+inline bool VehicleTractorReadInput(uint8_t pin) {
+#if defined(ESP32S3)
+    return ReadDigital(pin);
+#else
+    return digitalRead(pin) != 0;
+#endif
+}
+}  // namespace triton
 
 namespace triton
 {
@@ -75,7 +92,7 @@ public:
 
     inline void ResetWheelspeedPulses()   { wheelspeedPulses = 0; }
 
-    inline boolean GetHitch()             { return digitalRead(HITCH_PIN_1) ^ inversion; }
+    inline boolean GetHitch()             { return triton::VehicleTractorReadInput(HITCH_PIN_1) ^ inversion; }
     inline float   GetSpeedMs()           { return speed; }
     inline float   GetSpeedKmh()          { return speed * 36; }
     inline bool    GetSim()               { return sim; }

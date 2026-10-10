@@ -19,6 +19,8 @@
 #include <Wire.h>
 #include <EEPROM.h>
 
+#include "TritonIo.hpp"
+
 #include "calibration/CalibrationPlough.hpp"
 #include "GuidanceSource.hpp"
 #include "implement/ImplementPlough.hpp"
@@ -34,7 +36,11 @@
 #pragma push_macro("max")
 #undef min
 #undef max
+#if defined(ESP32S3)
+#include <isobus/hardware_integration/twai_plugin.hpp>
+#else
 #include <isobus/hardware_integration/flex_can_t4_plugin.hpp>
+#endif
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 #include "isobus/IsobusDebugMenu.hpp"
@@ -81,6 +87,16 @@ void setup() {
     // Delay to settle voltages and let LCD startup
     delay(3000);
 
+#if defined(ESP32S3)
+    // Triton01 (ESP32-S3): the EEPROM is a flash-backed emulation that must
+    // be opened before the first read (every class below reads its
+    // calibration in its constructor) and committed after writes, see loop().
+    // UART1 to the RS232 transceiver sits on GPIO-matrix pins, not the core
+    // defaults; the I2C pins go in through the LCD constructor below.
+    EEPROM.begin(256);
+    Serial1.setPins(42, 41);
+#endif
+
     // Setup serial ports
     Serial.begin(SERIALDATARATE);  // Serial for computer native usb
 
@@ -93,7 +109,11 @@ void setup() {
     gSerialDebug->println("--------------------------------");
 
     // Setup I2C LCD
+#if defined(ESP32S3)
+    gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4, 1, 2);   // SDA GPIO 1, SCL GPIO 2
+#else
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
+#endif
     gLcd->Begin();
 
     // Write message to screen
@@ -131,8 +151,21 @@ void setup() {
     // FLEXCAN3 (pins 31 TX / 30 RX), not the FlexCAN1 default (22/23) -- see
     // MeijWorks Hardware/Triton/MeijWorks besturing 0.1/Design documents/
     // teensy41-application-note.md. The Teensy 4.0 board uses FLEXCAN1 on 22/23.
+#if defined(ESP32S3)
+    // Triton01: the ESP32-S3's TWAI controller on the pins from
+    // ConfigPlough.hpp, 250 kbit/s per ISO 11783, accept-all filter. Static:
+    // TWAIPlugin keeps the three pointers and reads them in open(). 0xFF tells
+    // the guidance channel there is no FlexCAN error state to sample.
+    static twai_general_config_t gTwaiGeneral = TWAI_GENERAL_CONFIG_DEFAULT(
+        static_cast<gpio_num_t>(ISOBUS_CAN_TX_PIN), static_cast<gpio_num_t>(ISOBUS_CAN_RX_PIN), TWAI_MODE_NORMAL);
+    static twai_timing_config_t gTwaiTiming = TWAI_TIMING_CONFIG_250KBITS();
+    static twai_filter_config_t gTwaiFilter = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+    constexpr std::uint8_t kIsobusCanChannel = 0xFF;
+    auto gCanPlugin = std::make_shared<isobus::TWAIPlugin>(&gTwaiGeneral, &gTwaiTiming, &gTwaiFilter);
+#else
     constexpr std::uint8_t kIsobusCanChannel = ISOBUS_CAN_CHANNEL;
     auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(kIsobusCanChannel);
+#endif
 
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
     // until claimed), PGN callback registration, initial PGN requests.
@@ -173,6 +206,14 @@ void setup() {
 // Main loop
 // ---------
 void loop() {
+#if defined(ESP32S3)
+    // One I2C read per iteration refreshes every expander-backed input; the
+    // reads further down are then plain bit tests. EEPROM.commit() returns
+    // at once unless a write changed something.
+    triton::RefreshExpanderInputs();
+    EEPROM.commit();
+#endif
+
     // Pumps guidance data acquisition -- CAN I/O + PGN callbacks (ISOBUS) or
     // the UART sentence dispatcher (serial), feeding gGuidance either way.
     gGuidanceChannel->Update();

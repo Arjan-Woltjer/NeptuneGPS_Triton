@@ -54,6 +54,23 @@ _7 are defines for sower
 
 #else
 
+#ifdef ESP32S3
+// Triton01: all operator inputs sit behind the MCP23008 (see TritonIo.hpp).
+// GP0-GP5 are DIN1-DIN6, the six expander-side opto inputs on the board;
+// GP6 and GP7 have no input stage on Triton01 and read idle through the
+// expander pull-ups, which is where the two unused joystick inputs went.
+// DIN4 is the plough-side sensor, DIN5 the hitch (ConfigImplementPlough.hpp,
+// ConfigVehicleTractor.hpp).
+#include "TritonIo.hpp"
+#define MODE_PIN_2          EXPANDER_PIN(0)   // DIN1
+#define LEFT_BUTTON_2       EXPANDER_PIN(1)   // DIN2
+#define RIGHT_BUTTON_2      EXPANDER_PIN(2)   // DIN3
+#define JOY_MODE_2          EXPANDER_PIN(5)   // DIN6
+#define JOY_LEFT_2          EXPANDER_PIN(6)   // no input stage on Triton01
+#define JOY_RIGHT_2         EXPANDER_PIN(7)   // no input stage on Triton01
+
+#else
+
 #ifdef TEENSYPROTO
 // Defines for io ports
 // Digital debounced inputs
@@ -90,6 +107,7 @@ _7 are defines for sower
 
 #error "no board defined"
 
+#endif
 #endif
 #endif
 #endif
