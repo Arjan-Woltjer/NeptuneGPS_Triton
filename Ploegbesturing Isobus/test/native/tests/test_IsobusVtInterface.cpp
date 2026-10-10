@@ -106,6 +106,25 @@ struct IsobusVtInterfaceTestAccess {
         return vt.vtClient && vt.vtClient->get_is_initialized();
     }
 
+    // A VT Status Message from a given sender: the failover policy keys on
+    // the identifier's source address.
+    static void DeliverVtStatusFrom(IsobusVtInterface& vt, std::uint8_t source) {
+        const std::uint8_t data[8] = {
+            static_cast<std::uint8_t>(isobus::VirtualTerminalClient::Function::VTStatusMessage),
+            0x1C, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF};
+        const isobus::CANMessage message(isobus::CANMessage::Type::Receive,
+                                         isobus::CANIdentifier(0x1CE6FF00u | source),
+                                         data, 8, nullptr, nullptr, 0);
+        IsobusVtInterface::OnVtToEcuMessage(message, &vt);
+    }
+
+    static void UpdateFailover(IsobusVtInterface& vt) { vt.updateFailover(); }
+
+    static void ResetFailover(IsobusVtInterface& vt) {
+        vt.failover = VtFailoverPolicy();
+        vt.failover.Start(millis());
+    }
+
     static void ResetPendingKeys(IsobusVtInterface& vt) {
         vt.pendingWiderPress     = false;
         vt.pendingNarrowerPress  = false;
@@ -505,6 +524,85 @@ test(IsobusVtInterface, watchdog_attemptsAreOnePerTenSecondsNotOnePerLoop) {
     }
     // The outage starts at 1000; attempts land at 11000, 21000 ... 61000.
     assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)6);
+    millisValue(0);
+}
+
+// ---------------------------------------------------------------------------
+// VT failover (VtFailoverPolicy.hpp has the session 13 field case). The
+// policy's own decisions are covered in test_VtFailoverPolicy.cpp; these
+// check that the interface acts on them against the real network manager.
+// AUnit runs tests in name order, so "requests" runs before "switches",
+// while the fixture's partner is still unbound.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// An address claim, straight into the network manager's receive path, then
+// processed: the way a real VT joins the address table.
+void ClaimAddress(std::uint8_t address, std::uint64_t name) {
+    isobus::CANMessageFrame frame = {};
+    frame.identifier      = 0x18EEFF00u | address;
+    frame.isExtendedFrame = true;
+    frame.dataLength      = 8;
+    for (int i = 0; i < 8; i++) frame.data[i] = static_cast<std::uint8_t>(name >> (8 * i));
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(frame);
+    isobus::CANNetworkManager::CANNetwork.update();
+}
+
+// The two VT NAMEs from the session 13 capture, as their 64-bit values (the
+// wire bytes are little-endian: 0131C20B081D00A0 is the CNH VT).
+constexpr std::uint64_t kCnhVtName       = 0xA0001D080BC23101ULL;
+constexpr std::uint64_t kInCommandVtName = 0x80001D000C206EB1ULL;
+
+}  // namespace
+
+test(IsobusVtInterface, failover_requestsClaimsWhenNoOtherVtIsHeard) {
+    Reset();
+    IsobusVtInterfaceTestAccess::ResetFailover(Fixture());
+    // No VT on the bus at all: after the grace period the interface asks
+    // every CF to claim again, so a VT the prune evicted can be seen.
+    millisValue(VtFailoverPolicy::kPartnerSilentMs - 1);
+    IsobusVtInterfaceTestAccess::UpdateFailover(Fixture());
+    assertEqual(Fixture().GetVtClaimRequestCount(), (unsigned int)0);
+
+    millisValue(VtFailoverPolicy::kPartnerSilentMs);
+    IsobusVtInterfaceTestAccess::UpdateFailover(Fixture());
+    assertEqual(Fixture().GetVtClaimRequestCount(), (unsigned int)1);
+    assertTrue(vtDebug.Contains("requesting address claims"));
+    assertEqual(Fixture().GetVtSwitchCount(), (unsigned int)0);
+    millisValue(0);
+}
+
+test(IsobusVtInterface, failover_switchesToTheVtThatIsStillTalking) {
+    Reset();
+    // Session 13: bound to the CNH VT, the InCommand's VT also on the bus.
+    ClaimAddress(0x26, kCnhVtName);
+    ClaimAddress(0x80, kInCommandVtName);
+    assertEqual(Fixture().GetPartnerAddress(), (std::uint8_t)0x26);
+    const std::shared_ptr<isobus::PartneredControlFunction> before = Fixture().GetPartner();
+
+    IsobusVtInterfaceTestAccess::ResetFailover(Fixture());
+    millisValue(1000);
+    IsobusVtInterfaceTestAccess::DeliverVtStatusFrom(Fixture(), 0x26);
+    IsobusVtInterfaceTestAccess::DeliverVtStatusFrom(Fixture(), 0x80);
+
+    // The CNH VT stops; the InCommand keeps broadcasting at 1 Hz.
+    for (unsigned long t = 2000; t <= 1000 + VtFailoverPolicy::kPartnerSilentMs; t += 1000) {
+        millisValue(t);
+        IsobusVtInterfaceTestAccess::DeliverVtStatusFrom(Fixture(), 0x80);
+        IsobusVtInterfaceTestAccess::UpdateFailover(Fixture());
+    }
+
+    assertEqual(Fixture().GetVtSwitchCount(), (unsigned int)1);
+    assertTrue(vtDebug.Contains("switching to it"));
+    assertTrue(Fixture().GetPartner() != before);
+    // A brand-new client, initialised, on a partner that binds to the
+    // InCommand's VT -- and only to it -- once the manager runs.
+    assertTrue(IsobusVtInterfaceTestAccess::ClientIsInitialized(Fixture()));
+    isobus::CANNetworkManager::CANNetwork.update();
+    assertEqual(Fixture().GetPartnerAddress(), (std::uint8_t)0x80);
+    assertTrue(Fixture().IsPartnerAddressValid());
+    assertEqual(Fixture().GetPartner()->get_NAME().get_full_name(), kInCommandVtName);
     millisValue(0);
 }
 
