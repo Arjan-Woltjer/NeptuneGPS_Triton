@@ -43,8 +43,8 @@ DRIVE (lightbar channel live, L160 unplugged, AB line, RTK fixed; AUTO off until
 END
 - [x] E1 final dump 16:22:37 (+ 16:23:56 after the CNH VT restart)
 - [x] E2 CANedge stopped 16:25:09; card session numbers: read at the workstation (expected 43+)
-- [ ] E3 serial log + timeline committed and pushed on `test/session12`
-- [ ] E4 handover sent to the workstation session
+- [x] E3 committed and pushed on `test/session12` (4afddf8 + end-of-session commit)
+- [x] E4 handover sent to the workstation session (Remote Control) 2026-10-10 ~16:30
 
 ## Timeline
 
@@ -92,3 +92,4 @@ END
 | 16:22:37 | **Final dump.** CAN error-active, TX peak 245 / RX peak 69, 3 error-passive entries (longest 67 s, during the unplug), 0 bus-off. Bus load 14.7 %. Counters since boot (33 min): 65267/65256/65535 x13124 from 0x80; 129283 XTE NMEA2000 x194 (sender not shown, ~0.1 Hz, never decoded to an XTE: for the capture); 60160 x582, last SA 0xAC; 64770 x1887; 44032 x18878. VT partner 0x80 (v3), switches=3, claim requests=7. Lightbar: 22/22 identified, 1217 frames sent, 1 failure, 1176 heartbeats, 0 Prop A from the display, 0 x 65462. TC 0xF7 connected, TC-GEO Y/N, task active, 0 value requests/commands, 18 other addressed frames, reconnect attempts 35. |
 | 16:22:54 | Operator restarts the CNH VT. 16:23:03 CNH CFs 172 and 205 `now offline` (a genuine restart, the only offline lines of the day), reclaimed 16:23:09-16:23:15. Dump 16:23:56: partner stays 0x80, `switches=3`. Pool stays on the InCommand. |
 | 16:25:09 | CANedge stopped (operator). Card session numbers: to be read from the card at the workstation (logs 43+ expected; log 42 was 10-08). Plough control still on the bus, serial logger still running. |
+| ~16:25:07 | Plough control unplugged from the ISOBUS (bus load 0.1 %, vt=N), then from USB. Serial log ends 16:25:26, logger stopped. End of session. |
