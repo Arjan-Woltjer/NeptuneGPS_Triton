@@ -445,6 +445,14 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->print(lc.softwareIdSent ? "Y" : "N");
         serialDebug->print("  proprietary A from display=");
         serialDebug->println(em.GetProprietaryAReceived());
+        serialDebug->print("  Requests: softwareId=");
+        serialDebug->print(em.GetSoftwareIdRequests());
+        serialDebug->print(" (sent ");
+        serialDebug->print(lc.softwareIdSends);
+        serialDebug->print("x) ignored=");
+        serialDebug->print(em.GetIgnoredRequests());
+        serialDebug->print(" last ignored PGN=");
+        serialDebug->println(em.GetLastIgnoredPgn());
         serialDebug->print("  PGN 65462 XTE: frames=");
         serialDebug->print(lc.xteFrames);
         serialDebug->print(" committed=");

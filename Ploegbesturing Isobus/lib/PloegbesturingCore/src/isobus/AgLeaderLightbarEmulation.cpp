@@ -153,9 +153,11 @@ bool AgLeaderLightbarEmulation::OnDiagnosticFrame(std::uint8_t sourceAddress, co
     lastRequestMs = nowMs;
     partnerAddress = sourceAddress;
 
-    // The L160 sends its Proprietary A frame to the display before its first
-    // answer; keep that order.
+    // First contact with a display: the L160 broadcasts its software
+    // identification first (the display re-asks its first identifier after the
+    // BAM), then its Proprietary A frame, then the answers. Keep that order.
     if (!helloSent) {
+        RequestSoftwareIdentification(nowMs);
         Outgoing hello;
         hello.pgn = kPgnProprietaryA;
         hello.destination = sourceAddress;
@@ -197,16 +199,26 @@ void AgLeaderLightbarEmulation::OnProprietaryA(std::uint8_t sourceAddress) {
 }
 
 bool AgLeaderLightbarEmulation::PopFrame(Outgoing& out, unsigned long nowMs) {
+    // Nothing while the software identification BAM is going out, and never
+    // two of our frames closer than the bar sends them.
+    if (holdUntilMs != 0) {
+        if (nowMs - (holdUntilMs - kSoftwareIdHoldMs) < kSoftwareIdHoldMs) return false;
+        holdUntilMs = 0;
+    }
+    if (anyFrameSent && nowMs - lastFrameMs < kFrameSpacingMs) return false;
+
     if (queueCount > 0) {
         out = queue[queueHead];
         queueHead = static_cast<std::uint8_t>((queueHead + 1) % kQueueSize);
         queueCount--;
+        lastFrameMs = nowMs;
+        anyFrameSent = true;
         return true;
     }
 
     // Consecutive frames, paced by STmin, once the flow control came in.
     if (pendingLength > 0 && !pendingWaitingForFlowControl && pendingSent < pendingLength) {
-        if (nowMs - lastConsecutiveMs < stMinMs) return false;
+        if (nowMs - lastConsecutiveMs < stMinMs) return false;   // STmin is the floor; the 80 ms above is the bar's real pace
         out.pgn = kPgnDiagnostic;
         out.destination = pendingDestination;
         for (std::uint8_t i = 1; i < 8; i++) out.frame.data[i] = 0;
@@ -221,10 +233,30 @@ bool AgLeaderLightbarEmulation::PopFrame(Outgoing& out, unsigned long nowMs) {
         pendingSent = static_cast<std::uint8_t>(pendingSent + chunk);
         pendingSequence++;
         lastConsecutiveMs = nowMs;
+        lastFrameMs = nowMs;
+        anyFrameSent = true;
         if (pendingSent >= pendingLength) pendingLength = 0;
         return true;
     }
     return false;
+}
+
+void AgLeaderLightbarEmulation::RequestSoftwareIdentification(unsigned long nowMs) {
+    softwareIdRequests++;
+    softwareIdDue = true;
+    holdUntilMs = nowMs + kSoftwareIdHoldMs;
+    if (holdUntilMs == 0) holdUntilMs = 1;   // 0 means no hold
+}
+
+bool AgLeaderLightbarEmulation::SoftwareIdentificationDue() {
+    const bool due = softwareIdDue;
+    softwareIdDue = false;
+    return due;
+}
+
+void AgLeaderLightbarEmulation::OnIgnoredRequest(std::uint32_t pgn) {
+    ignoredRequests++;
+    lastIgnoredPgn = pgn;
 }
 
 bool AgLeaderLightbarEmulation::HeartbeatDue(unsigned long nowMs) {

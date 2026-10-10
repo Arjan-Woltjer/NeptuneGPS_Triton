@@ -42,6 +42,17 @@ namespace triton
 // with one Proprietary A frame of its own and then starts 65461/65462 within
 // 0.2 s.
 //
+// Session 15 (2026-10-10, card log 43) showed what else matters. Our answers were
+// byte-identical to the L160's, yet the display never started 65462. The
+// differences were around the answers: the display had asked us for our
+// software identification (PGN 65242), ECU identification (64965) and PGN
+// 64653, and the stack NACKed all three; the L160 broadcasts 65242 by itself
+// right after claiming and silently ignores the other two. The display then
+// polled our address claim every 2.5 s for the whole session. So this class
+// also decides when the software identification goes out (after the claim,
+// on request, and again before the hello on first contact, as the bar does),
+// and paces every frame it sends at the bar's 80 ms.
+//
 // This class holds the identifier table and the ISO 15765-2 responder state.
 // It consumes frames addressed to the lightbar control function and produces
 // frames to send; the channel moves them on and off the bus.
@@ -65,6 +76,14 @@ public:
     static constexpr std::uint32_t kPgnHeartbeat    = 0xFFE9;   // 65513, proprietary B, all 0xFF
     static constexpr std::uint32_t kPgnSoftwareIdentification = 0xFEDA;  // 65242, sent once as a BAM
     static constexpr unsigned long kHeartbeatIntervalMs = 1667;
+    // The L160 sends everything 80 ms apart: its BAM frames, its hello, each
+    // diagnostic answer and each consecutive frame (even with STmin 1 ms).
+    static constexpr unsigned long kFrameSpacingMs = 80;
+    // Its software-identification BAM is 9 frames at 80 ms; the hello and the
+    // first answer follow it.
+    static constexpr unsigned long kSoftwareIdHoldMs = 720;
+    static constexpr std::uint32_t kPgnEcuIdentification = 0xFDC5;   // 64965, ignored like the bar
+    static constexpr std::uint32_t kPgnProductIdentification = 0xFC8D;  // 64653, ignored like the bar
 
     // The values the InCommand read from the L160 on 2026-10-08, byte for
     // byte. Which of them it actually checks is unknown; the first rig test
@@ -108,6 +127,18 @@ public:
     // eight 0xFF bytes.
     bool HeartbeatDue(unsigned long nowMs);
 
+    // The display asked for PGN 65242 (or any first contact happened): the
+    // caller sends the software identification as a BAM, and this holds the
+    // diagnostic queue for the BAM's duration so the hello and the answers
+    // follow it, as the bar's do.
+    void RequestSoftwareIdentification(unsigned long nowMs);
+    bool SoftwareIdentificationDue();   // true once per request; clears the flag
+
+    // A request for a PGN the bar does not answer (64965, 64653, or its own
+    // address claim, which the stack answers with the claim itself). Counted;
+    // the caller tells the stack not to NACK.
+    void OnIgnoredRequest(std::uint32_t pgn);
+
     // Diagnostics for the debug dump.
     std::uint8_t  GetPartnerAddress() const { return partnerAddress; }
     std::uint32_t GetRequests()       const { return requests; }
@@ -117,6 +148,9 @@ public:
     bool          GetHelloSent()      const { return helloSent; }
     unsigned long GetLastRequestMs()  const { return lastRequestMs; }
     std::uint32_t GetProprietaryAReceived() const { return proprietaryAReceived; }
+    std::uint32_t GetSoftwareIdRequests() const { return softwareIdRequests; }
+    std::uint32_t GetIgnoredRequests()    const { return ignoredRequests; }
+    std::uint32_t GetLastIgnoredPgn()     const { return lastIgnoredPgn; }
 
 private:
     Identity identity;
@@ -145,6 +179,11 @@ private:
     unsigned long lastRequestMs = 0;
     unsigned long lastHeartbeatMs = 0;
     bool          heartbeatStarted = false;
+    unsigned long lastFrameMs = 0;          // pacing of everything we send
+    bool          anyFrameSent = false;
+    unsigned long holdUntilMs = 0;          // queue held while the software ID BAM goes out
+    bool          softwareIdDue = false;
+    std::uint32_t softwareIdRequests = 0, ignoredRequests = 0, lastIgnoredPgn = 0;
 
     // Builds the UDS positive response (0x62, DID, value) for one identifier
     // into `payload`; returns its length, 0 when the identifier is unknown.

@@ -28,6 +28,7 @@
 #pragma push_macro("max")
 #undef min
 #undef max
+#include <isobus/isobus/can_callbacks.hpp>
 #include <isobus/isobus/can_internal_control_function.hpp>
 #include <isobus/isobus/can_message.hpp>
 #pragma pop_macro("max")
@@ -87,6 +88,7 @@ public:
         std::uint32_t sendFailures = 0;     // stack refused, or no destination CF
         std::uint32_t heartbeats = 0;
         bool          softwareIdSent = false;
+        std::uint32_t softwareIdSends = 0;   // after the claim, on request, on first contact
     };
     inline const Counters& GetCounters() const { return counters; }
     inline void ResetCounters() { counters = Counters(); }
@@ -112,6 +114,16 @@ private:
     bool IsAddressedToUs(const isobus::CANMessage& msg) const;
     void Send(const AgLeaderLightbarEmulation::Outgoing& outgoing);
     void SendGlobal(std::uint32_t pgn, const std::uint8_t* data, std::uint32_t length);
+
+    // PGN request callbacks on the lightbar control function's own request
+    // protocol: 65242 answered with the software identification, the rest
+    // swallowed without a NACK (session 15: the stack's NACKs are what the
+    // real bar never sends).
+    static bool OnSoftwareIdRequest(std::uint32_t pgn, std::shared_ptr<isobus::ControlFunction> requester,
+                                    bool& acknowledge, isobus::AcknowledgementType& acknowledgeType, void* context);
+    static bool OnIgnoredRequest(std::uint32_t pgn, std::shared_ptr<isobus::ControlFunction> requester,
+                                 bool& acknowledge, isobus::AcknowledgementType& acknowledgeType, void* context);
+    void SendSoftwareIdentification();
 
     static void OnDiagnostic(const isobus::CANMessage& msg, void* context);
     static void OnProprietaryA(const isobus::CANMessage& msg, void* context);
