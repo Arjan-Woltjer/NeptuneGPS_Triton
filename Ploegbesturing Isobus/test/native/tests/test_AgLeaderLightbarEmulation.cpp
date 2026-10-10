@@ -34,10 +34,15 @@ bool sameFrame(const AgLeaderLightbarEmulation::Frame& f, const std::uint8_t* ex
     return std::memcmp(f.data, expected, length) == 0;
 }
 
-// Pops everything queued at `now` into `out`, returns the count.
-int drain(AgLeaderLightbarEmulation& e, AgLeaderLightbarEmulation::Outgoing* out, int max, unsigned long now) {
+// Pops everything that comes out between `now` and `now + windowMs`, stepping
+// 10 ms at a time: the emulation paces frames 80 ms apart and holds the queue
+// for the software ID BAM on first contact. Returns the count.
+int drain(AgLeaderLightbarEmulation& e, AgLeaderLightbarEmulation::Outgoing* out, int max, unsigned long now,
+          unsigned long windowMs = 2000) {
     int n = 0;
-    while (n < max && e.PopFrame(out[n], now)) n++;
+    for (unsigned long t = now; t <= now + windowMs && n < max; t += 10) {
+        while (n < max && e.PopFrame(out[n], t)) n++;
+    }
     return n;
 }
 
@@ -110,25 +115,28 @@ test(AgLeaderLightbarEmulation, stringIdentifier_firstFrameFlowControlConsecutiv
     const std::uint8_t first[8] = { 0x10, 0x13, 0x62, 0x80, 0x06, 0x41, 0x4C, 0x20 };
     assertTrue(sameFrame(out[1].frame, first, 8));
 
-    // Nothing more until the flow control arrives.
-    assertEqual(drain(e, out, 4, 150), 0);
+    // Nothing more until the flow control arrives (hello went at 820, first frame at 900).
+    assertEqual(drain(e, out, 4, 950, 0), 0);
 
     const std::uint8_t flow[8] = { 0x30, 0x32, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
-    assertTrue(e.OnDiagnosticFrame(kDisplay, flow, 8, 200));
+    assertTrue(e.OnDiagnosticFrame(kDisplay, flow, 8, 1000));
 
-    // STmin 1 ms: the first consecutive frame is held until 1 ms has passed.
-    assertEqual(drain(e, out, 4, 200), 0);
-    assertEqual(drain(e, out, 4, 201), 1);
+    // STmin 1 ms is the floor: nothing in the same millisecond, the first
+    // consecutive frame 1 ms later (the 80 ms since the first frame are over).
+    assertEqual(drain(e, out, 4, 1000, 0), 0);
+    assertEqual(drain(e, out, 4, 1001, 0), 1);
     const std::uint8_t cf1[8] = { 0x21, 0x4C, 0x31, 0x36, 0x30, 0x20, 0x00, 0x00 };
     assertTrue(sameFrame(out[0].frame, cf1, 8));
     assertEqual(out[0].pgn, AgLeaderLightbarEmulation::kPgnDiagnostic);
     assertEqual(out[0].destination, kDisplay);
 
-    assertEqual(drain(e, out, 4, 202), 1);
+    // The second consecutive frame only 80 ms after the first, the bar's pace.
+    assertEqual(drain(e, out, 4, 1010, 60), 0);
+    assertEqual(drain(e, out, 4, 1081, 0), 1);
     const std::uint8_t cf2[7] = { 0x22, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
     assertTrue(sameFrame(out[0].frame, cf2, 7));
 
-    assertEqual(drain(e, out, 4, 300), 0);
+    assertEqual(drain(e, out, 4, 1200), 0);
 }
 
 // 0x8008 carries the part number, 0x8014 the model again without the trailing
@@ -143,19 +151,19 @@ test(AgLeaderLightbarEmulation, partNumberAndModel_payloads) {
     assertEqual(drain(e, out, 4, 0), 2);
     const std::uint8_t first8008[8] = { 0x10, 0x13, 0x62, 0x80, 0x08, 0x34, 0x30, 0x30 };
     assertTrue(sameFrame(out[1].frame, first8008, 8));
-    assertTrue(e.OnDiagnosticFrame(kDisplay, flow, 8, 10));
-    assertEqual(drain(e, out, 4, 20), 1);
+    assertTrue(e.OnDiagnosticFrame(kDisplay, flow, 8, 1000));
+    assertEqual(drain(e, out, 4, 1001, 0), 1);
     const std::uint8_t cf8008[8] = { 0x21, 0x31, 0x35, 0x39, 0x35, 0x00, 0x00, 0x00 };
     assertTrue(sameFrame(out[0].frame, cf8008, 8));
-    assertEqual(drain(e, out, 4, 30), 1);
+    assertEqual(drain(e, out, 4, 1081, 0), 1);
 
     const std::uint8_t r8014[6] = { 0x05, 0x22, 0x80, 0x14, 0x01, 0x01 };
-    assertTrue(e.OnDiagnosticFrame(kDisplay, r8014, 6, 40));
-    assertEqual(drain(e, out, 4, 40), 1);
+    assertTrue(e.OnDiagnosticFrame(kDisplay, r8014, 6, 1200));
+    assertEqual(drain(e, out, 4, 1200, 0), 1);
     const std::uint8_t first8014[8] = { 0x10, 0x13, 0x62, 0x80, 0x14, 0x41, 0x4C, 0x20 };
     assertTrue(sameFrame(out[0].frame, first8014, 8));
-    assertTrue(e.OnDiagnosticFrame(kDisplay, flow, 8, 50));
-    assertEqual(drain(e, out, 4, 60), 1);
+    assertTrue(e.OnDiagnosticFrame(kDisplay, flow, 8, 1300));
+    assertEqual(drain(e, out, 4, 1301, 0), 1);
     const std::uint8_t cf8014[8] = { 0x21, 0x4C, 0x31, 0x36, 0x30, 0x00, 0x00, 0x00 };
     assertTrue(sameFrame(out[0].frame, cf8014, 8));
 }
@@ -224,4 +232,47 @@ test(AgLeaderLightbarEmulation, proprietaryAFromDisplay_counted) {
     e.OnProprietaryA(kDisplay);
     assertEqual(e.GetProprietaryAReceived(), (std::uint32_t)1);
     assertEqual(e.GetPartnerAddress(), kDisplay);
+}
+
+// Session 15 (card log 43): on first contact the bar's software identification
+// goes out first, then the hello, then the answer; nothing else leaves until the
+// BAM's 720 ms are over, and every frame is 80 ms after the previous one.
+test(AgLeaderLightbarEmulation, firstContact_softwareIdThenHoldThenHelloAndAnswer) {
+    AgLeaderLightbarEmulation e;
+    AgLeaderLightbarEmulation::Outgoing out[4];
+    const std::uint8_t request[6] = { 0x05, 0x22, 0x80, 0x07, 0x01, 0x01 };
+    assertTrue(e.OnDiagnosticFrame(kDisplay, request, 6, 1000));
+
+    assertTrue(e.SoftwareIdentificationDue());
+    assertFalse(e.SoftwareIdentificationDue());   // once per request
+    assertEqual(e.GetSoftwareIdRequests(), (std::uint32_t)1);
+
+    // Held for the BAM.
+    assertEqual(drain(e, out, 4, 1000, 700), 0);
+    // Then the hello and the answer, 80 ms apart.
+    assertEqual(drain(e, out, 4, 1720, 0), 1);
+    assertEqual(out[0].pgn, AgLeaderLightbarEmulation::kPgnProprietaryA);
+    assertEqual(drain(e, out, 4, 1730, 60), 0);
+    assertEqual(drain(e, out, 4, 1800, 0), 1);
+    assertEqual(out[0].pgn, AgLeaderLightbarEmulation::kPgnDiagnostic);
+    const std::uint8_t a8007[8] = { 0x07, 0x62, 0x80, 0x07, 0x77, 0xCF, 0xDA, 0x0E };
+    assertTrue(sameFrame(out[0].frame, a8007, 8));
+}
+
+// A later request for 65242 triggers the BAM again and holds the queue again;
+// the ignored PGNs are only counted.
+test(AgLeaderLightbarEmulation, softwareIdRequestAndIgnoredRequests) {
+    AgLeaderLightbarEmulation e;
+    assertFalse(e.SoftwareIdentificationDue());
+    e.RequestSoftwareIdentification(5000);
+    assertTrue(e.SoftwareIdentificationDue());
+    AgLeaderLightbarEmulation::Outgoing out[4];
+    assertEqual(drain(e, out, 4, 5000, 700), 0);   // nothing queued anyway, and held
+
+    e.OnIgnoredRequest(AgLeaderLightbarEmulation::kPgnEcuIdentification);
+    e.OnIgnoredRequest(AgLeaderLightbarEmulation::kPgnProductIdentification);
+    e.OnIgnoredRequest(0xEE00);
+    assertEqual(e.GetIgnoredRequests(), (std::uint32_t)3);
+    assertEqual(e.GetLastIgnoredPgn(), (std::uint32_t)0xEE00);
+    assertEqual(e.GetRequests(), (std::uint32_t)0);   // not identification requests
 }

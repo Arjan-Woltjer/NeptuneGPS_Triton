@@ -49,6 +49,12 @@ struct IsobusLightbarChannelTestAccess {
     static Callback ProprietaryA() { return IsobusLightbarChannel::OnProprietaryA; }
     static Callback Xte()          { return IsobusLightbarChannel::OnXte; }
     static void SetClaimedAddress(IsobusLightbarChannel& channel, std::uint8_t address) { channel.claimedAddress = address; }
+    static bool SoftwareIdRequest(IsobusLightbarChannel& channel, bool& ack, isobus::AcknowledgementType& type) {
+        return IsobusLightbarChannel::OnSoftwareIdRequest(0xFEDA, nullptr, ack, type, &channel);
+    }
+    static bool IgnoredRequest(IsobusLightbarChannel& channel, std::uint32_t pgn, bool& ack, isobus::AcknowledgementType& type) {
+        return IsobusLightbarChannel::OnIgnoredRequest(pgn, nullptr, ack, type, &channel);
+    }
 };
 }  // namespace triton
 
@@ -143,5 +149,28 @@ test(IsobusLightbarChannel, unclaimed_reportsNoAddress) {
     IsobusLightbarChannel channel(nullptr, &guidance);
     assertFalse(channel.IsClaimed());
     assertEqual((int)channel.GetAddress(), 0xFF);
+}
+
+// Session 15: the display's requests for 65242, 64965, 64653 and our own claim
+// must never be NACKed. The callbacks report them handled with no
+// acknowledgement; 65242 schedules the software ID BAM.
+test(IsobusLightbarChannel, requestCallbacks_handledWithoutAcknowledgement) {
+    GuidanceSource guidance;
+    IsobusLightbarChannel channel(nullptr, &guidance);
+    bool ack = true;
+    isobus::AcknowledgementType type = isobus::AcknowledgementType::Positive;
+
+    assertTrue(IsobusLightbarChannelTestAccess::SoftwareIdRequest(channel, ack, type));
+    assertFalse(ack);
+    assertEqual(channel.GetEmulation().GetSoftwareIdRequests(), (std::uint32_t)1);
+
+    ack = true;
+    assertTrue(IsobusLightbarChannelTestAccess::IgnoredRequest(channel, 0xFDC5, ack, type));
+    assertFalse(ack);
+    ack = true;
+    assertTrue(IsobusLightbarChannelTestAccess::IgnoredRequest(channel, 0xEE00, ack, type));
+    assertFalse(ack);
+    assertEqual(channel.GetEmulation().GetIgnoredRequests(), (std::uint32_t)2);
+    assertEqual(channel.GetEmulation().GetLastIgnoredPgn(), (std::uint32_t)0xEE00);
 }
 #endif  // ISOBUS

@@ -26,6 +26,7 @@
 #undef min
 #undef max
 #include <can_network_manager.hpp>
+#include <can_parameter_group_number_request_protocol.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -77,6 +78,18 @@ void IsobusLightbarChannel::Begin() {
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(AgLeaderLightbarEmulation::kPgnProprietaryA, OnProprietaryA, this);
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnXteAgLeaderLightbar,                     OnXte,          this);
 
+    // What the display asks a bar for, and what the bar does with it (card log
+    // 43 vs 42): 65242 is answered with the software identification; 64965,
+    // 64653 and the request for our own address claim get no acknowledgement at
+    // all (the claim itself answers the last one). Without these the stack NACKs
+    // all four, which the real bar never does.
+    if (auto protocol = controlFunction->get_pgn_request_protocol().lock()) {
+        protocol->register_pgn_request_callback(AgLeaderLightbarEmulation::kPgnSoftwareIdentification, OnSoftwareIdRequest, this);
+        protocol->register_pgn_request_callback(AgLeaderLightbarEmulation::kPgnEcuIdentification,      OnIgnoredRequest,    this);
+        protocol->register_pgn_request_callback(AgLeaderLightbarEmulation::kPgnProductIdentification,  OnIgnoredRequest,    this);
+        protocol->register_pgn_request_callback(0xEE00,                                                   OnIgnoredRequest,    this);
+    }
+
     serialDebug->println("Lightbar: presenting as an Ag Leader L160, claiming 0xDC");
 }
 
@@ -100,12 +113,14 @@ void IsobusLightbarChannel::Update() {
     }
 
     // The L160 broadcasts its software identification right after its claim
-    // (52 bytes, so the stack sends it as a BAM).
+    // (52 bytes, so the stack sends it as a BAM), and again whenever the
+    // emulation asks: on a display's request, and before the hello on first contact.
     if (!counters.softwareIdSent) {
-        std::uint8_t length = 0;
-        const std::uint8_t* id = AgLeaderLightbarEmulation::SoftwareIdentification(length);
-        SendGlobal(AgLeaderLightbarEmulation::kPgnSoftwareIdentification, id, length);
+        SendSoftwareIdentification();
         counters.softwareIdSent = true;
+    }
+    if (emulation.SoftwareIdentificationDue()) {
+        SendSoftwareIdentification();
     }
 
     if (emulation.HeartbeatDue(now)) {
@@ -148,9 +163,32 @@ void IsobusLightbarChannel::SendGlobal(std::uint32_t pgn, const std::uint8_t* da
     else      counters.sendFailures++;
 }
 
+void IsobusLightbarChannel::SendSoftwareIdentification() {
+    std::uint8_t length = 0;
+    const std::uint8_t* id = AgLeaderLightbarEmulation::SoftwareIdentification(length);
+    SendGlobal(AgLeaderLightbarEmulation::kPgnSoftwareIdentification, id, length);
+    counters.softwareIdSends++;
+}
+
 // ------------------------------------------------------------------
 // Callbacks -- void* context is always `this`.
 // ------------------------------------------------------------------
+bool IsobusLightbarChannel::OnSoftwareIdRequest(std::uint32_t, std::shared_ptr<ControlFunction>,
+                                                bool& acknowledge, AcknowledgementType&, void* context) {
+    auto* self = static_cast<IsobusLightbarChannel*>(context);
+    self->emulation.RequestSoftwareIdentification(millis());
+    acknowledge = false;   // the BAM is the answer
+    return true;
+}
+
+bool IsobusLightbarChannel::OnIgnoredRequest(std::uint32_t pgn, std::shared_ptr<ControlFunction>,
+                                             bool& acknowledge, AcknowledgementType&, void* context) {
+    auto* self = static_cast<IsobusLightbarChannel*>(context);
+    self->emulation.OnIgnoredRequest(pgn);
+    acknowledge = false;
+    return true;
+}
+
 void IsobusLightbarChannel::OnDiagnostic(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusLightbarChannel*>(context);
     if (!self->IsAddressedToUs(msg)) return;
