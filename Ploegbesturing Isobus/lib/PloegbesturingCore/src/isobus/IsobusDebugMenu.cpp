@@ -56,9 +56,10 @@ static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
 // Constructor / Begin
 // ------------------------------------------------------------------
 IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
-                                  IsobusTcInterface* tcInterface, IsobusVtInterface* vtInterface)
+                                  IsobusTcInterface* tcInterface, IsobusVtInterface* vtInterface,
+                                  IsobusLightbarChannel* lightbarChannel)
     : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance),
-      tcInterface(tcInterface), vtInterface(vtInterface) {
+      tcInterface(tcInterface), vtInterface(vtInterface), lightbarChannel(lightbarChannel) {
 }
 
 void IsobusDebugMenu::Begin() {
@@ -406,6 +407,68 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->println(vtInterface->GetReconnectAttemptCount());
     }
 
+    serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");
+    if (lightbarChannel == nullptr) {
+        serialDebug->println("  (not configured)");
+    } else {
+        const auto& lc = lightbarChannel->GetCounters();
+        const auto& em = lightbarChannel->GetEmulation();
+        serialDebug->print("  Address claim: ");
+        serialDebug->print(lightbarChannel->IsClaimed() ? "CLAIMED  address=0x" : "NOT CLAIMED");
+        if (lightbarChannel->IsClaimed()) serialDebug->print(lightbarChannel->GetAddress(), HEX);
+        serialDebug->println();
+        serialDebug->print("  Display partner: 0x");
+        serialDebug->print(em.GetPartnerAddress(), HEX);
+        serialDebug->print("  identification requests=");
+        serialDebug->print(em.GetRequests());
+        serialDebug->print(" answered=");
+        serialDebug->print(em.GetResponses());
+        serialDebug->print(" unknown=");
+        serialDebug->print(em.GetUnknownRequests());
+        serialDebug->print("  last DID=0x");
+        serialDebug->print(em.GetLastDid(), HEX);
+        serialDebug->print("  hello=");
+        serialDebug->println(em.GetHelloSent() ? "Y" : "N");
+        serialDebug->print("  Sent: frames=");
+        serialDebug->print(lc.framesSent);
+        serialDebug->print(" failures=");
+        serialDebug->print(lc.sendFailures);
+        serialDebug->print(" heartbeats=");
+        serialDebug->print(lc.heartbeats);
+        serialDebug->print(" softwareId=");
+        serialDebug->print(lc.softwareIdSent ? "Y" : "N");
+        serialDebug->print("  proprietary A from display=");
+        serialDebug->println(em.GetProprietaryAReceived());
+        serialDebug->print("  Requests: softwareId=");
+        serialDebug->print(em.GetSoftwareIdRequests());
+        serialDebug->print(" (sent ");
+        serialDebug->print(lc.softwareIdSends);
+        serialDebug->print("x) ignored=");
+        serialDebug->print(em.GetIgnoredRequests());
+        serialDebug->print(" last ignored PGN=");
+        serialDebug->println(em.GetLastIgnoredPgn());
+        serialDebug->print("  PGN 65462 XTE: frames=");
+        serialDebug->print(lc.xteFrames);
+        serialDebug->print(" committed=");
+        serialDebug->print(lc.xteCommitted);
+        if (lc.xteFrames > 0) {
+            serialDebug->print("  last ");
+            serialDebug->print(millis() - lc.lastXteMs);
+            serialDebug->print(" ms ago from 0x");
+            serialDebug->print(lc.lastXteSourceAddress, HEX);
+            serialDebug->print("  raw=");
+            GPrintPayloadHex(serialDebug, lc.lastXte.rawPayload);
+            serialDebug->print("  -> ");
+            serialDebug->print(lc.lastXte.magnitudeCm);
+            serialDebug->print(" cm ");
+            serialDebug->print(lc.lastXte.rightOfLine ? "right" : "left");
+            serialDebug->print(lc.lastXte.engaged ? ", engaged" : ", not engaged");
+            serialDebug->print(lc.lastXte.hasLine ? ", line" : ", no line");
+            serialDebug->print(lc.lastXte.valid ? "  (committed)" : "  (not committed)");
+        }
+        serialDebug->println();
+    }
+
     serialDebug->println("--- Task Controller ---");
     if (tcInterface == nullptr) {
         serialDebug->println("  (not configured)");
@@ -569,6 +632,18 @@ void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print(counters.lastXteJohnDeereLegacySourceAddress, HEX);
         serialDebug->print(":");
         GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
+    }
+
+    // The InCommand's lightbar XTE, raw, on the same line for the same reason
+    // as xteraw: the side bit is still unconfirmed against deliberate offsets.
+    if (lightbarChannel != nullptr && lightbarChannel->GetCounters().xteFrames > 0) {
+        const auto& lc = lightbarChannel->GetCounters();
+        serialDebug->print(" lb=");
+        serialDebug->print(lc.lastXte.magnitudeCm);
+        serialDebug->print(lc.lastXte.rightOfLine ? "R" : "L");
+        serialDebug->print(lc.lastXte.engaged ? "e" : "-");
+        serialDebug->print(":");
+        GPrintPayloadHex(serialDebug, lc.lastXte.rawPayload);
     }
 
     if (vtInterface != nullptr) {
