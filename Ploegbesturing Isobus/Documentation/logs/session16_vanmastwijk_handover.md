@@ -42,10 +42,30 @@ Reflash only from that branch: `git fetch && git switch test/rig-lightbar-failov
   Judge the rate only while `vt=Y`: 6/min is us, 24/min is the display.
 - No real L160 at the farm: the bar is never on the bus; nothing to unplug.
 
+## The CANedge now uploads by itself (since 2026-10-11 evening)
+
+The logger has LTE (KPN SIM, firmware 01.09.02) and uploads every log file to the Garage bucket at
+home when the file closes: every 5 MB or 5 minutes, and at power-off. **No card swap, no card
+reader.** The workstation pulls the bucket into the OneDrive archive every 15 minutes by itself.
+Details: Documentation `ISOBUS/canedge-lte-garage.md`.
+
+What changes at the rig:
+
+- The one-minute check becomes: after a minute, list the bucket from the field laptop
+  (`canedge_bucket_pull.py --list`, key/secret in the Documentation note's section, the script is
+  stdlib-only and runs with the venv python); a session folder with a growing file count means the
+  tap is live. A card inventory is no longer possible in the field: uploaded files leave the card.
+- To analyse in the field: `canedge_bucket_pull.py --archive <local folder>` pulls what has arrived;
+  power-cycling the logger closes and uploads the current piece first.
+- The MF4 timestamps are real now (clock from the server): no more anchoring on an address claim.
+- LTE LED is only on while uploading; dark in between is normal. If nothing appears in the bucket
+  after 10 minutes with the tractor on, the syslog on the card is still the place to look, but
+  that needs the card out, so do it only at the end.
+
 ## What to bring back
 
-MF4 (card session numbers), serial log + timeline with the brief's checklist filled in, on
-`test/session12`. Per question: (1) Prop A from display / 65462 yes-no per scenario I1-I4 with the
+The MF4s arrive in OneDrive by themselves (session numbers in the timeline); serial log + timeline with the
+brief's checklist filled in, on `test/session12`. Per question: (1) Prop A from display / 65462 yes-no per scenario I1-I4 with the
 counters; (2) `lb=` at 30 cm right and left; (3) F1-F4 times and `switches=`; (4) #213 counts; (5)
 any `failures>0` with time. If 65462 never comes, the capture of the identification exchange is the
 deliverable, and section 7 of the brief lists what to change next.

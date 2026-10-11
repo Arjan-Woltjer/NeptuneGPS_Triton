@@ -415,6 +415,16 @@ Serial log, timeline and the MF4 analysis: `../logs/2026-10-10_session15_vanmast
   three global roll-calls. **#205:** 65256 from 0x80 against the display at 2.1 and 5.9 km/h, verified
   on screen.
 
+### From 2026-10-11: the logger uploads, the card is no longer the archive
+
+The CANedge3 uploads every file over LTE to the Garage bucket at home and deletes it from the card
+(Documentation `ISOBUS/canedge-lte-garage.md`). The workstation's scheduled pull puts them in the
+OneDrive archive (`CANedge logs/card-AD4F266A/session-<n>/`, same layout as before) every 15
+minutes. Sessions are split in 5 MB / 5 minute pieces: `00000001.MF4`, `00000002.MF4`, ... in one
+session folder; `mf4_to_pcap.py` takes them all on one command line. Timestamps are real from now
+on (server clock sync), so the provenance table's date column can come from the file. Files that
+belong in this folder are still copied here by hand from the OneDrive archive.
+
 ## Reading them
 
 `mf4_to_pcap.py` -- now in the Documentation repo at
