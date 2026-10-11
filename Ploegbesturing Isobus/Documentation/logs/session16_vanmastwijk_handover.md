@@ -64,7 +64,8 @@ What changes at the rig:
 
 ## What to bring back
 
-The MF4s arrive in OneDrive by themselves (session numbers in the timeline); serial log + timeline with the
+The MF4s arrive in OneDrive by themselves, under `CANedge logs/bucket-AD4F266A/session-<n>/` (the
+logger's upload session numbers start from 1 again; note them in the timeline); serial log + timeline with the
 brief's checklist filled in, on `test/session12`. Per question: (1) Prop A from display / 65462 yes-no per scenario I1-I4 with the
 counters; (2) `lb=` at 30 cm right and left; (3) F1-F4 times and `switches=`; (4) #213 counts; (5)
 any `failures>0` with time. If 65462 never comes, the capture of the identification exchange is the
