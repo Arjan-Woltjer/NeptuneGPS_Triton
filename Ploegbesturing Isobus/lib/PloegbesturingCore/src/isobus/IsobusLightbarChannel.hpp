@@ -28,9 +28,12 @@
 #pragma push_macro("max")
 #undef min
 #undef max
+#include <vector>
 #include <isobus/isobus/can_callbacks.hpp>
 #include <isobus/isobus/can_internal_control_function.hpp>
 #include <isobus/isobus/can_message.hpp>
+#include <isobus/isobus/can_NAME_filter.hpp>
+#include <isobus/isobus/can_partnered_control_function.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -77,6 +80,15 @@ public:
     bool IsClaimed() const;
     std::uint8_t GetAddress() const;
 
+    // The InCommand's display function as the stack's partner: bound once the
+    // display has claimed, 0xFF until then.
+    bool IsDisplayPartnerBound() const;
+    std::uint8_t GetDisplayPartnerAddress() const;
+
+    // The NAME filters that pick the display function out of the InCommand's
+    // control functions. Public for the native tests.
+    static std::vector<isobus::NAMEFilter> DisplayNameFilters();
+
     struct Counters {
         std::uint32_t xteFrames = 0;        // every PGN 65462 seen
         std::uint32_t xteCommitted = 0;     // those that reached GuidanceSource
@@ -102,6 +114,7 @@ private:
     std::uint8_t    canPort;
 
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;
+    std::shared_ptr<isobus::PartneredControlFunction> displayPartner;
     AgLeaderLightbarEmulation emulation;
     Counters                  counters;
 

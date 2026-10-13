@@ -26,6 +26,8 @@
 #undef max
 #include <isobus/isobus/can_identifier.hpp>
 #include <isobus/isobus/can_message.hpp>
+#include <isobus/isobus/can_NAME.hpp>
+#include <isobus/isobus/can_NAME_filter.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -66,7 +68,47 @@ constexpr std::uint32_t kIdDiagnosticToUs = 0x18DADCF5;   // PGN 0xDA00, 0xF5 ->
 constexpr std::uint32_t kIdDiagnosticToOther = 0x18DA26F5;// 0xF5 -> 0x26
 constexpr std::uint32_t kIdProprietaryAToUs = 0x18EFDCF5;
 
+// NAMEs from session 13 (van Mastwijk), wire order B16E200C28800020 read as
+// the little-endian 64-bit value AgIsoStack's NAME takes.
+constexpr std::uint64_t kNameDisplayF5 = 0x200080280C206EB1ULL;   // InCommand display function
+constexpr std::uint64_t kNameE9        = 0x800080000C206EB1ULL;   // same unit, function 128, instance 0
+constexpr std::uint64_t kName2B        = 0x800081000C206EB1ULL;   // same unit, function 129
+constexpr std::uint64_t kNameVt80      = 0x80001D000C206EB1ULL;   // InCommand VT
+constexpr std::uint64_t kNameTcF7      = 0xA00082000C206EB1ULL;   // InCommand TC
+constexpr std::uint64_t kNameCnhVt26   = 0xA0001D080BC23101ULL;   // CNH VT
+
+// A partner binds when every filter matches (each parameter appears once).
+bool DisplayFiltersMatch(std::uint64_t rawName) {
+    const isobus::NAME name(rawName);
+    for (const auto& filter : IsobusLightbarChannel::DisplayNameFilters()) {
+        if (!filter.check_name_matches_filter(name)) return false;
+    }
+    return true;
+}
+
 }  // namespace
+
+// Session 16: the prune took 0xF5 offline for 6 s, so the display becomes the
+// channel's partner. The filter must pick the display function and nothing
+// else the InCommand (or the CNH) claims on that bus.
+test(IsobusLightbarChannel, displayPartnerFilter_matchesOnlyTheDisplayFunction) {
+    assertEqual(isobus::NAME(kNameDisplayF5).get_function_instance(), (std::uint8_t)5);   // decoding sanity
+    assertEqual(isobus::NAME(kNameDisplayF5).get_manufacturer_code(), (std::uint16_t)97);
+    assertTrue(DisplayFiltersMatch(kNameDisplayF5));
+    assertFalse(DisplayFiltersMatch(kNameE9));
+    assertFalse(DisplayFiltersMatch(kName2B));
+    assertFalse(DisplayFiltersMatch(kNameVt80));
+    assertFalse(DisplayFiltersMatch(kNameTcF7));
+    assertFalse(DisplayFiltersMatch(kNameCnhVt26));
+}
+
+// Never begun: no partner, and the dump says so.
+test(IsobusLightbarChannel, displayPartner_unboundBeforeBegin) {
+    GuidanceSource guidance;
+    IsobusLightbarChannel channel(nullptr, &guidance);
+    assertFalse(channel.IsDisplayPartnerBound());
+    assertEqual((int)channel.GetDisplayPartnerAddress(), 0xFF);
+}
 
 // 233.7 s: engaged, 1 cm right -> +0.01 m committed, counted as such.
 test(IsobusLightbarChannel, xte_engagedFrame_commits) {
