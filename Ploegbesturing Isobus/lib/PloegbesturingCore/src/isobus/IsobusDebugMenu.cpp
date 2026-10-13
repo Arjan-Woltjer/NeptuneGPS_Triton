@@ -461,8 +461,10 @@ void IsobusDebugMenu::printFullDump() {
             serialDebug->print("  -> ");
             serialDebug->print(lc.lastXte.magnitudeCm);
             serialDebug->print(" cm ");
-            serialDebug->print(lc.lastXte.rightOfLine ? "right" : "left");
-            serialDebug->print(lc.lastXte.engaged ? ", engaged" : ", not engaged");
+            serialDebug->print(lc.lastXte.rightOfLine ? "right" : (lc.lastXte.leftOfLine ? "left" : "on the line"));
+            serialDebug->print(", state ");
+            serialDebug->print(lc.lastXte.lineState);
+            serialDebug->print(lc.lastXte.engaged ? ", autosteer engaged" : ", autosteer off");
             serialDebug->print(lc.lastXte.hasLine ? ", line" : ", no line");
             serialDebug->print(lc.lastXte.valid ? "  (committed)" : "  (not committed)");
         }
@@ -640,7 +642,7 @@ void IsobusDebugMenu::printPeriodicLine() {
         const auto& lc = lightbarChannel->GetCounters();
         serialDebug->print(" lb=");
         serialDebug->print(lc.lastXte.magnitudeCm);
-        serialDebug->print(lc.lastXte.rightOfLine ? "R" : "L");
+        serialDebug->print(lc.lastXte.rightOfLine ? "R" : (lc.lastXte.leftOfLine ? "L" : "C"));
         serialDebug->print(lc.lastXte.engaged ? "e" : "-");
         serialDebug->print(":");
         GPrintPayloadHex(serialDebug, lc.lastXte.rawPayload);

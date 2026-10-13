@@ -85,9 +85,9 @@ test(IsobusLightbarChannel, xte_engagedFrame_commits) {
     assertEqual((int)c.lastXte.rawPayload[6], 0x93);
 }
 
-// 181.9 s: 148 cm right but not engaged -> counted, raw kept, nothing
-// committed; GuidanceSource keeps what it had.
-test(IsobusLightbarChannel, xte_notEngaged_countedNotCommitted) {
+// Log 42, 181.9 s: 148 cm right but line state 1 (no solution) -> counted,
+// raw kept, nothing committed; GuidanceSource keeps what it had.
+test(IsobusLightbarChannel, xte_noSolution_countedNotCommitted) {
     GuidanceSource guidance;
     guidance.SetXte(-250);
     IsobusLightbarChannel channel(nullptr, &guidance);
@@ -109,6 +109,18 @@ test(IsobusLightbarChannel, xte_leftFrame_negative) {
     const std::uint8_t d[8] = { 34, 0x00, 0x02, 0x00, 115, 0x00, 0x53, 0x04 };
     IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
     assertEqual(guidance.GetXte(), -34);
+}
+
+// Session 16, 20:57:30: 90 cm right, state 3, autosteer NOT engaged -> committed
+// (the XTE is followed whether or not the tractor steers itself).
+test(IsobusLightbarChannel, xte_state3NotEngaged_commits) {
+    GuidanceSource guidance;
+    IsobusLightbarChannel channel(nullptr, &guidance);
+    const std::uint8_t d[8] = { 0x5A, 0x00, 0x03, 0x00, 0x1B, 0x01, 0x91, 0x04 };
+    IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
+    assertEqual(guidance.GetXte(), 90);
+    assertEqual(channel.GetCounters().xteCommitted, (std::uint32_t)1);
+    assertFalse(channel.GetCounters().lastXte.engaged);
 }
 
 // A diagnostic request addressed to our claimed address reaches the
