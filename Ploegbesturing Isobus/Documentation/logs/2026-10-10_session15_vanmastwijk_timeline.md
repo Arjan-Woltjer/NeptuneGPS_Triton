@@ -127,10 +127,10 @@ this capture; all four are now as the bar does them.
 
 **Other capture answers (handover questions e-g):**
 
-- (e) **129283: no sender in the MF4.** 0 frames of PGN 129283 on channel 1 in 40 min; the serial
-  counter's 194 "129283" frames are something else (the counter is incremented by the 129283
-  callback -- check what AgIsoStack-plus-plus delivers there; candidate: the display's TP broadcasts
-  with a 129283 PGN field, or a PGN-callback mismatch). Issue to file.
+- (e) **CORRECTED 2026-10-13: 129283 IS on the wire.** 208 zero-length frames from 0xCD, 207 of them
+  within 300 ms of one of our 212 requests for 129283; the serial counter (194) is right. The
+  original "0 frames" came from comparing against `0x1F803` (= PGN 129027) instead of `0x1F903`.
+  #213, filed on that error, is closed as invalid.
 - (f) **InCommand off, 16:11:18-16:16:43: on the wire it went silent 16 s after the switch.** Last
   frame from 0x80 at log +1607.3 s (16:11:34), first frame back at +2078.5 s (16:19:25); 0xF5, 0xF7,
   0x2B and 0xE9 stopped with it. In the dark five minutes the only VT status on the bus is the **CNH

@@ -86,3 +86,72 @@ END
 | 21:02:46 | **Final dump.** CAN error-active, TX peak 152 / RX peak 4, 2 error-passive entries (longest 134 s = the time alone before plugging in), 0 bus-off. Bus load 15.3 %. 65267/65256 x12313 from 0x80 (speed raw 0x218 = 2.09 km/h while the 1 Hz said 0.00: standing still? note), 60160 x221 from 0x26, 64770 x1311, 44032 x13104 (lockout=YES/READY still, curvature -37). VT partner 0x80 (v3), switches=2, claim requests=12. Lightbar: identification 30/30 (four runs: plug-in, display cold boot, the 20:54 replug, +1), propA=3, sent 929 frames, 0 failures, heartbeats 870, softwareId asked 3x (sent 4x), ignored=544 (~25/min throughout). **65462: frames=6129, committed=3577** (the rest had byte 2 = 1 or 3). TC 0xF7 connected, TC-GEO Y/N. **#213: 129283 count 0 at start, 71 at end** (none expected on the wire). |
 | 21:03:51 | CANedge switched off (operator). Card/upload session 56 (OneDrive `CANedge logs/bucket-AD4F266A/session-00000056/`). |
 | 21:03:45 | Plough control unplugged from the bus (load 0.1 %, vt=N). Last 65462 before that: `29000B00D7006104`, **byte 2 = 0x0B**, a value not seen before (after the operator left the line/turned off guidance?). More states exist than 1/2/3; the capture has them all. Logger stopped 21:04:03. End of session. |
+
+## Results from the MF4 (workstation, 2026-10-13 evening)
+
+Capture: card/upload session 56, eight 5-minute pieces, **20:23:05 to 20:59:59.98 CEST**, real clock
+(the logger syncs over LTE now). The engage the operator called at 20:53:14 is on the wire at
+20:53:14.134, so laptop and bus agree to well under a second. **The ninth piece (21:00 to 21:03:51)
+is not in the bucket yet**: the logger was switched off before it closed, and it uploads at its next
+power-up. Pass 2, the 21:02 wheel disengage, the final dump and the `0B` frame are in that piece.
+Archived as `../canlogs/2026-10-13_session16_vanmastwijk_log56/` (the eight pieces).
+
+**(a) PGN 65462 from 0xF5, byte by byte** (5306 frames):
+
+| Byte | Values seen | Reading |
+|---|---|---|
+| 2 | 255 (24 frames), 1 (41), 2 (3156), 3 (2085) | 255 = not available (display booting, 20:47:14-19, whole frame 0xFF); 1 = display up, no line solution yet (20:47:19-28); **2 and 3 both carry a valid XTE** |
+| 6 bit 1 (0x02) | | **autosteer engaged**: set 20:53:14.134 (operator: engage 20:53:14), clear 20:56:21.294 (operator noted the disengage at 20:56:42), set 20:59:18.846, clear 20:59:49.438 (just before the headland turn) |
+| 6 bit 7 (0x80) | | right of the line |
+| 6 bit 6 (0x40) | | left of the line |
+| 6 bits 7+6 both clear | 0x11, 0x13 | **exactly on the line**: every 0 cm frame has neither bit, so "left" at 0 cm in the decoder is really "centre" (harmless, the value is 0) |
+| 6 bit 4 (0x10) | | set whenever byte 2 >= 2, clear with byte 2 = 1 |
+| 6 bit 5 (0x20) | 0x21, 0x22 | only with byte 2 = 1 (as the field notes say) |
+| 6 bit 0 (0x01) | | set once the display has a line (byte 7 = 4); 0x22 at byte 7 = 1 |
+| 7 | 0, 1, 4 | 0 = booting, 1 = no line, 4 = line present |
+
+When byte 2 changes says what it is not: it does not follow the engage. **2 -> 3 at 20:52:53.740**,
+20 s before the engage, with the magnitude jumping 3 cm L -> 137 L -> 29 R in 0.6 s; **3 -> 2 at
+20:59:58.040** in the headland turn, jumping 1 R -> 131 R -> 22 L. Both transitions coincide with the
+display re-referencing to another line or pass, while the engage (byte 6 bit 1) comes and goes
+inside a stretch of 3. Our best reading: 2 and 3 are two line-following states of the display
+(perhaps pass direction or line-lock), both valid. What 3 means exactly stays open; the decision
+for #207 does not depend on it.
+
+**(b) The "offline" of 0xE9 and 0xF5 at 20:51:09 was the stack's prune, not a lost claim.**
+0xF5 sent 11 frames/s without a gap from 20:50:58 to 20:51:22. At 20:51:08.688 the CNH 0xCD sent a
+*global* request for address claim; 0x2B, 0x81, 0xDC and 0xF0 answered within 7 ms, but **the
+InCommand's 0xE9, 0xF5, 0xF7 and 0x80 did not answer it**. They did answer the next global request,
+from 0xFE (the CNH VT restarting) at 20:51:15.502. The #190 stack prunes control functions that do
+not answer a global request (upstream #574), except partnered ones (fork patch 723fad6): 0x80 (our VT
+partner) and 0xF7 (our TC partner) are exempt, 0xE9 and 0xF5 are not, hence 6 s "offline" until
+20:51:15. Why the InCommand ignores 0xCD's request is unknown. Consequence for the lightbar channel:
+in such a window 0xF5 is not in the stack's table and an addressed reply to it would count as a
+send failure (none was needed this time, failures=0). Making 0xF5 a partnered control function of
+the lightbar channel (NAME filter manufacturer 97, function 128, instance 5) would exempt it.
+
+**(c) PGN 129283 is on the wire: 65 frames, all from 0xCD, all zero-length**, each within 300 ms of
+one of our 65 requests for 129283 (from 0x81). The plough control's counter (71 at the end, the
+rest falls after the capture) is right. Session 15 is the same: 208 frames, 207 within 300 ms of our
+212 requests. **The "no 129283 on the bus" finding of session 15 was wrong**: the analysis compared
+against `0x1F803`, which is PGN 129027; 129283 is `0x1F903`. #213 is invalid and closed; 0xCD's
+empty answers to our 129283 requests were already known from session 13.
+
+**(d) The 65 uncommitted frames after the display's cold boot** (frames 1809, committed 1744 at
+20:48:14) are exactly the 24 frames with byte 2 = 255 and the 41 with byte 2 = 1, 20:47:14 to
+20:47:28. Correct behaviour.
+
+**(e) Speed at the final dump: not answerable yet.** The dump (21:02:46) falls in the missing ninth
+piece. In the last captured minute 65256 from 0x80 and the TECU's 65096 agree (2.60 and 2.46 km/h at
+20:59:59); the ninth piece settles the standing-still reading.
+
+**(f) The replug at 20:54:47 got a full identification, twice:** seven reads 20:54:47.275-48.157, the
+display's Proprietary A at 20:54:48.743 together with a repeat read of 0x8007, then the other six
+again to 20:54:49.925. Reads in the capture: 8 at 20:40, 8 at 20:47, 14 at 20:54 = 30, matching the
+dump.
+
+**For #207, the decoder rule the capture supports** (to be decided by the owner, not yet changed):
+valid when byte 7 = 4 and byte 2 is 2 or 3 (1 and 255 never); side from byte 6 bits 7 (right) and 6
+(left), neither = 0; engaged from byte 6 bit 1. Open policy question: should the plough take the XTE
+only while the tractor's autosteer is engaged? The capture says the value is valid either way, and
+the big jumps come at byte 2 transitions (line changes), not at the engage.

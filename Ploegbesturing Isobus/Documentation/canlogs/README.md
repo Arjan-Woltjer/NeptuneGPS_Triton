@@ -27,6 +27,7 @@ recoverable from the file.
 | `2026-10-01_session13_nh-vanmastwijk_log32_after-canedge-restart.MF4` | `AD4F266A` / 32 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 136 s | 37 340 |
 | `2026-10-08_lemken_agleader-vanmastwijk_log42_ibbc-lemken-l160-xte.MF4` | `AD4F266A` / 42 | 2026-10-08 | Ag Leader kit on a CNH tractor, new harness; Lemken plough control + L160 lightbar on the IBBC, ch2 on the IBBC | van Mastwijk | 347 s | 155 482 |
 | `2026-10-10_session15_vanmastwijk_log43_lightbar-ident-no-65462.MF4` | `AD4F266A` / 43 | 2026-10-10 | Ag Leader kit on a CNH tractor, one bus; our L160 emulation + InCommand | van Mastwijk | 2441 s | 656 649 |
+| `2026-10-13_session16_vanmastwijk_log56/` (8 pieces, uploaded over LTE) | `AD4F266A` / 56 | 2026-10-13 | Ag Leader kit on a CNH tractor, one bus; L160 emulation accepted, 65462 live | van Mastwijk | 2215 s (20:23:05-20:59:59, 9th piece pending) | 572 988 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -410,7 +411,9 @@ Serial log, timeline and the MF4 analysis: `../logs/2026-10-10_session15_vanmast
   InCommand CFs went silent 16 s after the switch; the 1 Hz VT status the serial log saw for five
   minutes was the CNH VT's (0x26). The failover's status counter/age is not filtered on the bound
   partner. The three switches that did happen were genuine (plug pull, replug, CNH VT off by key).
-- **No PGN 129283 on the bus at all** in 40 min; the serial counter's 194 are miscounted (to file).
+- **PGN 129283** (corrected 2026-10-13): 208 zero-length frames from 0xCD, each answering one of our
+  requests for 129283; the serial counter is right. An earlier version of this line said "none on
+  the bus", from a wrong PGN constant (`0x1F803` = 129027); #213 closed as invalid.
 - **#190:** no 0x81 claims answering requests to other CFs; 0x81 claimed 23 times, at joins and the
   three global roll-calls. **#205:** 65256 from 0x80 against the display at 2.1 and 5.9 km/h, verified
   on screen.
@@ -426,6 +429,17 @@ card's backlog, sessions 1-51, byte-identical to the card-era archive. Sessions 
 5 MB / 5 minute pieces: `00000001-<hex>.MF4`, `00000002-<hex>.MF4`, ... in one session folder; `mf4_to_pcap.py` takes them all on one command line. Timestamps are real from now
 on (server clock sync), so the provenance table's date column can come from the file. Files that
 belong in this folder are still copied here by hand from the OneDrive archive.
+
+### Session 16, 2026-10-13 -- the InCommand accepts our L160; 65462 byte meanings
+
+First capture of the upload era: eight 5-minute pieces, real timestamps (CEST = UTC+2), taken off
+the bucket, no card. The ninth piece (21:00-21:03:51) uploads at the logger's next power-up. Plough
+control on `test/rig-lightbar-failover` @ 2a25331. Analysis: `../logs/2026-10-13_session16_vanmastwijk_timeline.md`,
+"Results from the MF4". Key results: the display identifies our bar in every order and broadcasts
+65462 at 5 Hz; byte 2 = 2 and 3 are both valid XTE (1 = no solution, 255 = n/a), byte 6 bit 1 =
+autosteer engaged, bits 7/6 = right/left, neither = on the line; the InCommand did not answer a
+global claim request from 0xCD, so the stack pruned 0xE9/0xF5 for 6 s; 129283 = 0xCD's empty
+answers to our requests.
 
 ## Reading them
 
