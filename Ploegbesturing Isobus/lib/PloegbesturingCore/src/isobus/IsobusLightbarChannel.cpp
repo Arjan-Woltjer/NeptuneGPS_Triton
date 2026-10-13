@@ -47,7 +47,25 @@ constexpr std::uint16_t kAgLeaderManufacturerCode = 97;
 constexpr std::uint8_t  kLightbarFunctionCode     = 131;
 constexpr std::uint32_t kLightbarIdentityNumber   = 100478;
 constexpr std::uint8_t  kLightbarPreferredAddress = 0xDC;
+
+// The InCommand 1200's display function, NAME B16E200C28800020 on the wire
+// (session 13, 0xF5): manufacturer 97, function 128, function instance 5,
+// industry group 2. Its sibling 0xE9 has the same manufacturer and function
+// but instance 0 and industry group 0. The identity number is left out: it
+// is the unit's serial, not the product's.
+constexpr std::uint8_t  kDisplayFunctionCode      = 128;
+constexpr std::uint8_t  kDisplayFunctionInstance  = 5;
+constexpr std::uint8_t  kDisplayIndustryGroup     = 2;
 }  // namespace
+
+std::vector<NAMEFilter> IsobusLightbarChannel::DisplayNameFilters() {
+    return {
+        NAMEFilter(NAME::NAMEParameters::ManufacturerCode, kAgLeaderManufacturerCode),
+        NAMEFilter(NAME::NAMEParameters::FunctionCode,     kDisplayFunctionCode),
+        NAMEFilter(NAME::NAMEParameters::FunctionInstance, kDisplayFunctionInstance),
+        NAMEFilter(NAME::NAMEParameters::IndustryGroup,    kDisplayIndustryGroup),
+    };
+}
 
 IsobusLightbarChannel::IsobusLightbarChannel(Stream* serialDebug, GuidanceSource* guidance, std::uint8_t canPort)
     : serialDebug(serialDebug), guidance(guidance), canPort(canPort) {
@@ -68,6 +86,13 @@ void IsobusLightbarChannel::Begin() {
     // Through the factory, like the guidance channel's: only that registers
     // the control function for the stack's address-claim state machine.
     controlFunction = CANNetworkManager::CANNetwork.create_internal_control_function(lightbarName, canPort, kLightbarPreferredAddress);
+
+    // The display as a partner, not only an address: the stack's address-claim
+    // prune spares partners (AgIsoStack fork patch #4). Session 16 (log 56): the
+    // InCommand skipped one global request for address claim, and the prune
+    // took 0xF5 out of the table for 6 s while it kept transmitting; anything
+    // addressed to it in that window would have failed in Send().
+    displayPartner = CANNetworkManager::CANNetwork.create_partnered_control_function(canPort, DisplayNameFilters());
 
     // Addressed traffic: the display's identification reads and its one
     // Proprietary A frame. Global: the cross-track error. All three go through
@@ -99,6 +124,14 @@ bool IsobusLightbarChannel::IsClaimed() const {
 
 std::uint8_t IsobusLightbarChannel::GetAddress() const {
     return IsClaimed() ? controlFunction->get_address() : 0xFF;
+}
+
+bool IsobusLightbarChannel::IsDisplayPartnerBound() const {
+    return displayPartner != nullptr && displayPartner->get_address_valid();
+}
+
+std::uint8_t IsobusLightbarChannel::GetDisplayPartnerAddress() const {
+    return IsDisplayPartnerBound() ? displayPartner->get_address() : 0xFF;
 }
 
 void IsobusLightbarChannel::Update() {
@@ -140,8 +173,9 @@ bool IsobusLightbarChannel::IsAddressedToUs(const CANMessage& msg) const {
 }
 
 void IsobusLightbarChannel::Send(const AgLeaderLightbarEmulation::Outgoing& outgoing) {
-    // The display's control function must be in the stack's table (it claimed
-    // an address, so it is); without it a PDU1 frame cannot be addressed.
+    // The display's control function must be in the stack's table; without it
+    // a PDU1 frame cannot be addressed. As our partner it stays there through
+    // a missed request for address claim (see Begin()).
     auto destination = CANNetworkManager::CANNetwork.get_control_function(canPort, outgoing.destination);
     if (destination == nullptr || controlFunction == nullptr) {
         counters.sendFailures++;

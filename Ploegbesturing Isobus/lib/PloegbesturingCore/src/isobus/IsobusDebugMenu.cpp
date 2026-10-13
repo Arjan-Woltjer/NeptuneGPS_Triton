@@ -428,7 +428,14 @@ void IsobusDebugMenu::printFullDump() {
         serialDebug->print("  last DID=0x");
         serialDebug->print(em.GetLastDid(), HEX);
         serialDebug->print("  hello=");
-        serialDebug->println(em.GetHelloSent() ? "Y" : "N");
+        serialDebug->print(em.GetHelloSent() ? "Y" : "N");
+        serialDebug->print("  stack partner=");
+        if (lightbarChannel->IsDisplayPartnerBound()) {
+            serialDebug->print("0x");
+            serialDebug->println(lightbarChannel->GetDisplayPartnerAddress(), HEX);
+        } else {
+            serialDebug->println("N");
+        }
         serialDebug->print("  Sent: frames=");
         serialDebug->print(lc.framesSent);
         serialDebug->print(" failures=");
