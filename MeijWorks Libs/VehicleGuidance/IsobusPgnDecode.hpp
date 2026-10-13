@@ -289,24 +289,31 @@ struct XteResult {
     bool     rawCaptured = false;
 };
 
-// PGN 65462, decoded from card log 42 (2026-10-08) against the operator's
-// account and the InCommand's own positions (Documentation
-// ISOBUS/research/agleader-incommand-65462-xte-2026-10-08.md):
-//   bytes 0-1  cross-track error magnitude, cm, little-endian
-//   byte 2     1 = autosteer off, 2 = engaged
-//   byte 4     signed, offset 127; looks like heading error in degrees (unused)
-//   byte 6     status bits; bit 7 set = right of the line (operator ground
-//              truth at the start of the drive; flips at every zero crossing)
-//   byte 7     1 until a guidance line and GPS exist, 4 after
-// The sign convention matches the John Deere decoder: positive = right of
-// the line. The side bit still waits for the deliberate-offset drive, so the
-// decode keeps the raw byte for the dump.
+// PGN 65462, decoded from card log 42 (2026-10-08) and settled on upload session 56
+// (session 16, 2026-10-13, van Mastwijk), against the operator's calls on the display:
+//   bytes 0-1  |cross-track error|, cm, little-endian
+//   byte 2     display state: 255 = not available (booting), 1 = no line solution,
+//              2 and 3 = valid XTE. 2 and 3 flip when the display re-references to
+//              another line or pass; they are NOT the autosteer state (session 16:
+//              3 for a whole pass, engaged or not).
+//   bytes 4-5  heading-related, unused
+//   byte 6     bit 7 = right of the line, bit 6 = left, neither = exactly on it;
+//              bit 1 = the tractor's autosteer is engaged
+//   byte 7     0 = booting, 1 = no line, 4 = line present
+// Positive = right of the line, as in the John Deere decoder. The XTE is committed
+// whether or not autosteer is engaged (owner's decision 2026-10-13): ploughing is
+// usually driven by hand, and the plough only acts on the XTE in AUTO with the hitch
+// down. A non-zero magnitude without exactly one side bit was never seen and is not
+// committed: a guessed sign would steer the wrong way.
 struct LightbarXteResult {
     bool          lengthOk = false;
     bool          valid = false;        // true => SetXte(xteHundredthsMeter) should be called
     bool          hasLine = false;      // byte 7 == 4
-    bool          engaged = false;      // byte 2 == 2
+    bool          hasSolution = false;  // byte 2 is 2 or 3
+    bool          engaged = false;      // byte 6 bit 1, reported only, not a commit condition
     bool          rightOfLine = false;  // byte 6 bit 7
+    bool          leftOfLine = false;   // byte 6 bit 6
+    std::uint8_t  lineState = 0;        // byte 2
     std::uint16_t magnitudeCm = 0;
     int           xteHundredthsMeter = 0;
     std::uint8_t  rawStatus = 0;        // byte 6
