@@ -103,13 +103,18 @@ void setup() {
     // Setup serial ports
     Serial.begin(SERIALDATARATE);  // Serial for computer native usb
 
-    // Print message to computer
+    // Print message to computer. Not on the Arduino Micro: this banner and the
+    // calibration dumps below are what pushed micro_serial past its 28 KB of
+    // flash (30.9 KB with them, 28.4 KB without), and AVR keeps every string
+    // literal in RAM as well. The LCD splash screen still shows on every board.
+#ifndef MICRO
     gSerialDebug->println("--------------------------------");
     gSerialDebug->println("-----------MeijWorks------------");
     gSerialDebug->println("--------------------------------");
-    gSerialDebug->println("Ploughcontrol ISOBUS version 0.1"); 
+    gSerialDebug->println("Ploughcontrol ISOBUS version 0.1");
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
+#endif
 
     // Setup I2C LCD
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
@@ -132,8 +137,10 @@ void setup() {
     gTractor = new triton::VehicleTractor(gSerialDebug);
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
 
+#ifndef MICRO
     gTractor->PrintCalibrationData();
     gImplement->PrintCalibrationData();
+#endif
 
     // Initialise interfaces. CalibrationPlough also loads the stored RTK
     // quality into gGuidance (GuidanceSource itself never touches EEPROM --
@@ -141,8 +148,10 @@ void setup() {
     gInterface = new triton::InterfacePlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance);
     gCalibration = new triton::CalibrationPlough(gSerialDebug, gLcd, gImplement, gTractor, gGuidance, gInterface);
 
+#ifndef MICRO
     gCalibration->PrintCalibrationData();
     gImplement->PrintCalibrationData();
+#endif
 
 #ifdef ISOBUS
     // Board-specific CAN wiring, chosen in ConfigPlough.hpp per board:

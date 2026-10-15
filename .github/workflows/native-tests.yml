@@ -114,6 +114,8 @@ jobs:
             env: teensy40_isobus
           - project: 'Ploegbesturing Isobus'
             env: teensy32_can
+          - project: 'Ploegbesturing Isobus'
+            env: micro_serial
           - project: 'Pootmachinebesturing'
             env: teensy41
           - project: 'Kilverbakbesturing'
