@@ -42,6 +42,7 @@
 #include "isobus/IsobusVtInterface.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 #else
+#include "InterfaceGuidance.hpp"
 #include "SerialGuidanceChannel.hpp"
 #ifdef CAN_ACAN
 // Teensy 3.2 ([env:teensy32_can]): the full ISOBUS build does not fit the
@@ -181,13 +182,23 @@ void setup() {
     gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface);
     gDebugMenu->Begin();
 #else
-    // 4800 baud is the common NMEA default. No baudrate calibration/UI
-    // exists in this project today (CalibrationPlough only exposes RTK
-    // quality, not GPS baud rate), so this is a fixed value, not tracked
-    // or persisted anywhere -- add a real calibration step later if a
-    // variable-baud GPS receiver ever needs it.
-    gSerialGps->begin(4800);
+    // Receiver port at the stored rate, then the blocking autodetect on the
+    // LCD, as the regular Ploegbesturing does: the receivers and the
+    // CAN-to-serial converters run anywhere from 4800 (NMEA default) to
+    // 115200 (the JD and CNH converters). A detect starts at the stored rate,
+    // so a stable installation finds it within two seconds and never writes;
+    // the index is persisted only when it changed.
+    gSerialGps->begin(triton::InterfaceGuidance::BaudFromIndex(gCalibration->GetGpsBaudIndex()));
     gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
+    {
+        triton::InterfaceGuidance detect(gLcd, gGuidanceChannel, gGuidance);
+        const byte stored = gCalibration->GetGpsBaudIndex();
+        const byte found  = detect.DetectBaudrate(stored, triton::InterfaceGuidance::kAll);
+        if (found != triton::InterfaceGuidance::kNotFound && found != stored) {
+            gCalibration->SetGpsBaudIndex(found);
+            gCalibration->CommitGuidanceCalibration();
+        }
+    }
 #ifdef CAN_ACAN
     gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);
     GCanSetup();
