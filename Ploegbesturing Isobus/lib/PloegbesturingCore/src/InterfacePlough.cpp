@@ -42,12 +42,16 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
     digitalWrite(RIGHT_BUTTON_2, LOW);
     pinMode(MODE_PIN_2, INPUT);
     digitalWrite(MODE_PIN_2, LOW);
+    // The Micro and pre-series boards have no joystick inputs, and their
+    // config headers define no JOY_ pins.
+#ifdef JOY_MODE_2
     pinMode(JOY_LEFT_2, INPUT);
     digitalWrite(JOY_LEFT_2, LOW);
     pinMode(JOY_RIGHT_2, INPUT);
     digitalWrite(JOY_RIGHT_2, LOW);
     pinMode(JOY_MODE_2, INPUT);
     digitalWrite(JOY_MODE_2, LOW);
+#endif
 
     // Mode
     mode = 2;  // MANUAL

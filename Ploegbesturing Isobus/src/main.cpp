@@ -43,6 +43,17 @@
 #include "isobus/IsobusTcInterface.hpp"
 #else
 #include "SerialGuidanceChannel.hpp"
+#ifdef CAN_ACAN
+// Teensy 3.2 ([env:teensy32_can]): the full ISOBUS build does not fit the
+// 3.2 (341 KB flash / 146 KB RAM against 256 / 64), and AgIsoStack's
+// FlexCAN plugin is Teensy 4 only. Instead the bus is read the way
+// ploegbesturing v1.20-v1.31 read it: pierremolinaro's ACAN library on the
+// 3.2's CAN0, acceptance filters for the guidance messages, and every
+// matching frame handed to CanFrameGuidanceChannel. Listen-only in effect:
+// no address claim, no VT, no TC.
+#include <ACAN.h>
+#include "CanFrameGuidanceChannel.hpp"
+#endif
 #endif
 
 // Serial ports
@@ -72,6 +83,14 @@ triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
+#ifdef CAN_ACAN
+// The receiver on the UART and the CAN frames ACAN hands GHandleCanMessage()
+// both commit into gGuidance, as in the regular Ploegbesturing build.
+triton::CanFrameGuidanceChannel* gCanChannel;
+
+static void GCanSetup();
+static void GHandleCanMessage(const CANMessage& inMessage);
+#endif
 #endif
 
 // -------------
@@ -160,6 +179,10 @@ void setup() {
     // variable-baud GPS receiver ever needs it.
     gSerialGps->begin(4800);
     gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
+#ifdef CAN_ACAN
+    gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);
+    GCanSetup();
+#endif
 #endif
 
     // Delay for splashscreen
@@ -175,6 +198,10 @@ void setup() {
 void loop() {
     // Pumps guidance data acquisition -- CAN I/O + PGN callbacks (ISOBUS) or
     // the UART sentence dispatcher (serial), feeding gGuidance either way.
+#ifdef CAN_ACAN
+    // Teensy 3.2: also the received CAN frames, through GHandleCanMessage().
+    ACAN::can0.dispatchReceivedMessage();
+#endif
     gGuidanceChannel->Update();
 #ifdef ISOBUS
     gVtInterface->Update();
@@ -204,3 +231,61 @@ void loop() {
         gCalibration->Calibrate();
     }
 }
+
+#ifdef CAN_ACAN
+// ---------------------------------
+// Setup CAN-bus for ISOBUS (Teensy 3.2)
+// ---------------------------------
+// The ACAN original of the regular Ploegbesturing's ACAN_T4 setup: the same
+// four filters ploegbesturing v1.30/v1.31 used (StarFire position and
+// speed, JD and Trimble/CNH XTE), plus the three standard NMEA2000 PGNs
+// CanFrameGuidanceChannel decodes, from any source address, so a receiver
+// that only broadcasts those is read too. ACAN::can0 is the 3.2's only
+// controller, on pins 3 TX / 4 RX.
+static void GCanSetup() {
+    ACANSettings settings(250UL * 1000UL);  // CAN bit rate 250 kbit/s
+
+    const ACANPrimaryFilter primaryFilters[]{
+        ACANPrimaryFilter(kData, kExtended, 0x00FFFFFF, 0x00FEF31C, GHandleCanMessage), // Position
+        ACANPrimaryFilter(kData, kExtended, 0x00FFFFFF, 0x00FEE81C, GHandleCanMessage), // Direction, speed
+        ACANPrimaryFilter(kData, kExtended, 0x0CFFFF2A, GHandleCanMessage),             // JD XTE
+        ACANPrimaryFilter(kData, kExtended, 0x1CEBACAA, GHandleCanMessage),             // Trimble CNH XTE
+        ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F80100, GHandleCanMessage), // 129025 position, rapid update
+        ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F80200, GHandleCanMessage), // 129026 COG/SOG, rapid update
+        ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F90300, GHandleCanMessage)  // 129283 cross track error
+    };
+
+    const uint32_t errorCode = ACAN::can0.begin(settings, primaryFilters, 7);
+
+    if (errorCode == 0) {
+        gSerialDebug->print("Bit Rate prescaler: ");
+        gSerialDebug->println(settings.mBitRatePrescaler);
+        gSerialDebug->print("Propagation Segment: ");
+        gSerialDebug->println(settings.mPropagationSegment);
+        gSerialDebug->print("Phase segment 1: ");
+        gSerialDebug->println(settings.mPhaseSegment1);
+        gSerialDebug->print("Phase segment 2: ");
+        gSerialDebug->println(settings.mPhaseSegment2);
+        gSerialDebug->print("RJW:");
+        gSerialDebug->println(settings.mRJW);
+        gSerialDebug->print("Triple Sampling: ");
+        gSerialDebug->println(settings.mTripleSampling ? "yes" : "no");
+        gSerialDebug->print("Actual bit rate: ");
+        gSerialDebug->print(settings.actualBitRate());
+        gSerialDebug->println(" bit/s");
+        gSerialDebug->print("Exact bit rate ? ");
+        gSerialDebug->println(settings.exactBitRate() ? "yes" : "no");
+        gSerialDebug->print("Sample point: ");
+        gSerialDebug->print(settings.samplePointFromBitStart());
+        gSerialDebug->println("%");
+    }
+    else {
+        gSerialDebug->print("Error can0: 0x");
+        gSerialDebug->println(errorCode, HEX);
+    }
+}
+
+static void GHandleCanMessage(const CANMessage& inMessage) {
+    gCanChannel->Update(inMessage.id, inMessage.data, inMessage.len);
+}
+#endif
