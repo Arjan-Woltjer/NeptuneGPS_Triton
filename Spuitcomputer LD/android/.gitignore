@@ -16,3 +16,6 @@ keystore.properties
 *.jks
 *.keystore
 !debug.keystore
+
+# Play Store demo video: a 2 MB binary, kept next to the listing but not committed.
+store/*.mp4
