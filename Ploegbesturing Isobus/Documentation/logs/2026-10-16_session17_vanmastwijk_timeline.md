@@ -26,13 +26,13 @@ Also expected on USB alone: CAN error-passive, bus load 0.1 %, msgs=0 (no bus ye
 
 SETUP
 - [x] S0 CANedge powered early: session 56 piece 9 uploaded **Y** (09:05), new session **57** started (piece 1 at 09:05)
-- [ ] S1 tractor on, CNH VT running, InCommand OFF (per Arjan 09:14)
-- [ ] S2 CANedge: card IN, logging LED on, **ch1 on the in-cab ISOBUS connector** (same bus as the plough), started ~09:00
+- [x] S1 tractor on, CNH VT running, InCommand OFF (per Arjan 09:14)
+- [x] S2 CANedge: logging and uploading since ~09:00 (session 57); bus tap not checked against the MF4 at the rig (workstation: confirm SA 0x81 / 0xDC in session 57)
 - [x] S3 serial logger started 09:14:49 (pid 20176) before the board was on USB
 - [x] S4 plough control on USB 09:14:53 (COM4); boot print seen Y; dump 09:18:24: 0x81 CLAIMED, 0xDC CLAIMED, failures=0, error-passive TX 128 (alone, as expected), msgs=0
 - [x] S5 **BUILD CHECK passed** 09:18:24: `Display partner: 0xFF ... hello=N  stack partner=N` -> build **2745ff4**
 - [x] S6 plough control onto the bus 09:19:27; dump 09:20:29: CAN error-active (TX peak 144), VT bound to **0x26** (v4, switches=0), **MW08 from NVM Y** (09:19:28, 1 s after the join), TC N (TC 0xF7 is the 1200's, off), `stack partner=N`, 65462 frames=0, failures=0. 129283 count 34 at +60 s
-- [ ] S7 one-minute inventory on the first session-57 piece that covers S6: SA 0x81 and PGN 0xE600 present Y/N
+- [ ] S7 one-minute inventory: not run at the rig (left for the workstation)
 
 R  REGRESSION on the new library (standing still; needs the 1200 on)
 - [x] R0 InCommand ON ~09:21:00 (Arjan "now"; claims 09:21:16, TC DDOP activated 09:21:24). Identification 8/8, propA=1, 65462 at 5 Hz, `lb=103R` = the display, pool stays on 0x26 (switches=0). Was: Serial: identification (requests=answered, unknown=0, softwareId sent), propA>=1, 65462 starts at 5 Hz, `lb=` = display. Pool **stays on 0x26** (= F2 behaviour, note it, switches=0)
@@ -43,7 +43,7 @@ D  DRIVE with the fixed decoder (only after R1; AB line, RTK fixed; AUTO stays o
 - [x] D1 **PASSED** 09:24:00-09:25:20: autosteer drive from 103R onto the line, `xte=` = `lb=` with the sign every second (1.03 -> 0.39 -> 0.05 -> 0.00, +-0.01 on the line); byte 2 = 2 throughout, 3 seen 09:25:36-37 in the turn (committed); `e` flag on from 09:24:09 (byte 6 0x93); `C` at 0 cm. Hand-drive 0.5 m off not done separately (the turn's run-off covered it, 09:26:38-44 by hand to 114L, `-` flag)
 - [x] D2 **PASSED** headland turn(s) 09:25:22-09:26:10 and 09:26:38-09:26:53: state 1 at 09:25:28-29 (2 s), 09:25:45-50 (6 s), 09:26:45-49 (5 s): `xte=` HOLDS at the last commit, xteAge grows to ~5.7 s, then follows on state 2. Engaged again 09:25:57, on the line 0Ce 09:26:10
 - [x] D3 **PASSED** (Arjan 09:34): speed on the plough and the 1200 match; standing still `spd=0.00` on the 1 Hz line
-- [ ] D4 (only if D1 passed) plough in AUTO, hitch down: follows the XTE Y/N (per Arjan's decision: follow the XTE always, autosteer on or off)
+- [ ] D4 AUTO with the hitch down: **not done** (the pass-number finding makes the current rule unsafe on the AB line and 3L+; next build)
 
 G  NEW: the InCommand's "GPS lost" during a CNH VT reboot (owner triggers it)
 - [x] G1 baseline = the R2 dump 09:34:28 (standing 103R on 1R, `xte=` = `lb=`, xteAge 0.14 s, spd 0)
@@ -63,9 +63,9 @@ F  FAILOVER on the new library (#188 + #774). Order today: F3, F4, then F1, F2 (
 
 END
 - [x] E1 final dump 09:41:45: failures=1, 65462 frames=5658 committed=4882, switches=2, propA=3, identification 30/30, ignored=527, error-passive entries 3, bus-off 2 (both in the R2 plug-out), TC restarts 5
-- [ ] E2 plough unplugged __:__:__; CANedge stopped __:__:__ (**wait for the current 5-min piece to upload first**, or it comes at the next power-up); session 57, pieces __
-- [ ] E3 commit + push on `test/session12`
-- [ ] E4 handover to the workstation Remote Control session (ListAgents; name changes)
+- [x] E2 plough unplugged ~09:42:30 (last serial line 09:42:29); **CANedge left running** (Arjan), so session 57's pieces upload by themselves
+- [x] E3 committed and pushed on `test/session12` (423f41c, then the end rows)
+- [x] E4 handover sent to the workstation Remote Control session (see the end of the timeline)
 
 ## Timeline
 
@@ -106,6 +106,8 @@ END
 | ~09:40:03 | **F1: InCommand 1200 switched off** (Arjan "turning off the 1200?" / "now"). Last GGA ~09:40:03.4, last 65462 ~09:40:06.6. 09:40:05.8 VT command timeout, 09:40:06 status timeout, 09:40:11 TC status timeout, 09:40:16 reconnect attempt 1, **09:40:18 `partner 0x80 silent, VT at 0x26 alive -- switching to it`**, MW08 from the CNH VT's NVM 09:40:19.3. **~15 s, F1 passed.** Arjan: pool back on the CNH VT. |
 | ~09:40:47 | **F2: InCommand 1200 switched on** (Arjan "turning 1200 back on"). TC restarts 2-5 every 15 s while it boots, 1x NACK 60928 09:41:08, DDOP activated 09:41:18. Arjan: GPS without RTK at first, then XTE on the plough. |
 | 09:41:45 | **F2 dump: passed.** VT 0x26, switches=2, reconnect attempts 0. Lightbar: identification 30/30 (third run), propA=**3**, softwareId asked 4x (sent 5x), **stack partner=0xF5**, 65462 frames=5658 committed=4882, `38 cm right, state 2` committed, failures=1 (unchanged since 09:23). TC 0xF7 connected after 5 restarts, TC-GEO Y. CAN error-active, error-passive 3, bus-off 2 (last 499 s ago = the R2 plug-out). |
+| 09:41:5x | Arjan: RTK fixed again. |
+| ~09:42:30 | **Plough control unplugged** (Arjan "unplugging triton now"); last serial line 09:42:29. CANedge left running so session 57 uploads in full. End of session. |
 
 ## Results (for the handover)
 
