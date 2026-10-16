@@ -32,6 +32,7 @@
 #undef max
 #include <isobus/isobus/can_NAME_filter.hpp>
 #include <isobus/isobus/can_network_manager.hpp>
+#include <isobus/isobus/can_parameter_group_number_request_protocol.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -106,7 +107,24 @@ void IsobusVtInterface::Begin() {
     // and its VirtualTerminal.ino example both use the factory form.
     // Kept as a member (not a local) so IsPartnerAddressValid()/
     // GetPartnerAddress() can surface it -- see their comment in the header.
-    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, vtNameFilters);
+    createClient(vtNameFilters);
+    failover.Start(millis());
+
+    // See the header's GetVtStatusMessageCount()/GetVtStatusMessageAgeMs()
+    // comment -- independent raw counter for the VT's own periodic status
+    // broadcast, alongside (not replacing) vtClient's internal tracking.
+    // The same listener feeds the failover policy, per sender.
+    CANNetworkManager::CANNetwork.add_global_parameter_group_number_callback(
+        static_cast<std::uint32_t>(CANLibParameterGroupNumber::VirtualTerminalToECU), OnVtToEcuMessage, this);
+}
+
+// ----------------------------------------------------------------
+// The partner and the client on it. From Begin() with a function-code-only
+// filter (the first VT on the bus), and from switchTo() with a filter pinned
+// to one VT's exact NAME.
+// ----------------------------------------------------------------
+void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
+    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, filters);
 
     vtClient = std::make_shared<VirtualTerminalClient>(partner, controlFunction);
     // Bumped MW01 -> MW02, 2026-08-10 (van Mastwijk): the pool's structure
@@ -153,12 +171,6 @@ void IsobusVtInterface::Begin() {
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     vtClient->initialize(false);
-
-    // See the header's GetVtStatusMessageCount()/GetVtStatusMessageAgeMs()
-    // comment -- independent raw counter for the VT's own periodic status
-    // broadcast, alongside (not replacing) vtClient's internal tracking.
-    CANNetworkManager::CANNetwork.add_global_parameter_group_number_callback(
-        static_cast<std::uint32_t>(CANLibParameterGroupNumber::VirtualTerminalToECU), OnVtToEcuMessage, this);
 }
 
 // ----------------------------------------------------------------
@@ -173,6 +185,81 @@ void IsobusVtInterface::Update() {
     diagnostics->update();
     vtClient->update();
     updateReconnectWatchdog();
+    updateFailover();
+}
+
+// ----------------------------------------------------------------
+// VT failover -- see VtFailoverPolicy.hpp for the field case and why a
+// request for address claim comes first.
+// ----------------------------------------------------------------
+void IsobusVtInterface::updateFailover() {
+    const unsigned long now = millis();
+    const VtFailoverPolicy::Decision decision =
+        failover.Evaluate(now, IsConnected(), GetPartnerAddress(), IsPartnerAddressValid());
+
+    switch (decision.action) {
+        case VtFailoverPolicy::Action::None:
+            break;
+
+        case VtFailoverPolicy::Action::RequestAddressClaims:
+            // Global, so every CF on the bus answers, and each answer puts
+            // its sender back in AgIsoStack's address table -- the only way
+            // a pruned VT's status ever reaches OnVtToEcuMessage again.
+            serialDebug->print("VT: partner 0x");
+            serialDebug->print(GetPartnerAddress(), HEX);
+            serialDebug->println(" silent -- requesting address claims to find another VT");
+            ParameterGroupNumberRequestProtocol::request_parameter_group_number(
+                static_cast<std::uint32_t>(CANLibParameterGroupNumber::AddressClaim), controlFunction, nullptr);
+            failover.OnRequestSent(now);
+            break;
+
+        case VtFailoverPolicy::Action::SwitchTo:
+            switchTo(decision.address);
+            break;
+    }
+}
+
+void IsobusVtInterface::switchTo(std::uint8_t address) {
+    const std::shared_ptr<ControlFunction> target = CANNetworkManager::CANNetwork.get_control_function(0, address);
+    if (!target) {
+        // Its status reached us, so it was in the table a moment ago. Wait
+        // for the next status rather than bind to nothing.
+        return;
+    }
+    const NAME name = target->get_NAME();
+
+    serialDebug->print("VT: partner 0x");
+    serialDebug->print(GetPartnerAddress(), HEX);
+    serialDebug->print(" silent, VT at 0x");
+    serialDebug->print(address, HEX);
+    serialDebug->println(" alive -- switching to it");
+
+    // Pinned to that one VT, not just "a VT": with a function-code-only
+    // filter the new partner would match the first VT in the table, which is
+    // the silent one we are leaving whenever it has the lower address.
+    const std::vector<NAMEFilter> filters = {
+        NAMEFilter(NAME::NAMEParameters::FunctionCode, static_cast<uint8_t>(NAME::Function::VirtualTerminal)),
+        NAMEFilter(NAME::NAMEParameters::IdentityNumber, name.get_identity_number()),
+        NAMEFilter(NAME::NAMEParameters::ManufacturerCode, name.get_manufacturer_code()),
+        NAMEFilter(NAME::NAMEParameters::FunctionInstance, name.get_function_instance()),
+    };
+
+    // terminate() drops the old client's PGN callbacks; deactivating the old
+    // partner takes it out of the partner list, and the network manager puts
+    // an ordinary external CF in its table slot, which the roll-call prune
+    // may evict again like any other.
+    vtClient->terminate();
+    CANNetworkManager::CANNetwork.deactivate_control_function(partner);
+    createClient(filters);
+    failover.OnSwitched(millis());
+
+    // A new VT means a fresh handshake, possibly with a full pool upload.
+    // Disarm the reconnect watchdog until it connects, exactly as at boot,
+    // so the watchdog cannot cut an upload short.
+    hasEverConnected    = false;
+    disconnectedSinceMs = 0;
+    reconnectAttempts   = 0;
+    sentInitialVtVariables = false;
 }
 
 // ----------------------------------------------------------------
@@ -377,6 +464,9 @@ void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parent
     IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
     self->vtStatusMessageCount++;
     self->lastVtStatusMessageMs = millis();
+    // Every VT's status, not only our partner's: the policy needs to know
+    // which other VT is alive.
+    self->failover.OnVtStatus(message.get_identifier().get_source_address(), self->lastVtStatusMessageMs);
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {

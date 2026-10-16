@@ -88,6 +88,9 @@ $clArgs = @(
     "`"$lib\isobus\IsobusTcInterface.cpp`""
     "`"$lib\isobus\IsobusGuidanceChannel.cpp`""
     "`"$lib\isobus\IsobusVtInterface.cpp`""
+    "`"$lib\isobus\IsobusLightbarChannel.cpp`""
+    "`"$lib\isobus\AgLeaderLightbarEmulation.cpp`""
+    "`"$lib\isobus\VtFailoverPolicy.cpp`""
     $agisostackSources
     "`"$implement\ImplementPlough.cpp`""
     "`"$lib\InterfacePlough.cpp`""

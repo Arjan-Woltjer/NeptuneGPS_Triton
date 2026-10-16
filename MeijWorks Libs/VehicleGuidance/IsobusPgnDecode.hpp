@@ -48,6 +48,11 @@ static constexpr std::uint32_t kPgnGnssPositionData      = 129029;  // GNSS Posi
 static constexpr std::uint32_t kPgnPositionLegacy     = 0xFEF3;  // 65267, PDU2
 static constexpr std::uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
 static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
+// Ag Leader InCommand: cross-track error for an external lightbar, proprietary
+// B, global, 5 Hz from the display's control function (SA 0xF5, manufacturer
+// 97, function 128 instance 5 on the 2026-10-08 rig). Only sent once a
+// lightbar has identified itself -- see AgLeaderLightbarEmulation.
+static constexpr std::uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
                                                                  // proprietary PGN, source address
                                                                  // must be rechecked in the callback
 // PGN 0xFFFF is heavily overloaded across manufacturers. Two source
@@ -284,6 +289,39 @@ struct XteResult {
     bool     rawCaptured = false;
 };
 
+// PGN 65462, decoded from card log 42 (2026-10-08) and upload sessions 56 and 57
+// (sessions 16 and 17, van Mastwijk), against the passes the operator drove and read
+// off the display (session 17, 2026-10-16):
+//   bytes 0-1  |cross-track error|, cm, little-endian; 0xFFFF = not available
+//   byte 2     |pass| + 1: the AB line sends 1, 1L and 1R send 2, 2L 3 ...; 0xFF while
+//              the display boots. NOT a validity state (session 16 read it as one).
+//   byte 3     0 (0xFF while booting)
+//   bytes 4-5  vehicle heading, whole degrees, little-endian; unused here
+//   byte 6     bit 7 = right of the line, bit 6 = left, neither = exactly on it;
+//              bit 5 = the pass is the AB line or right of it, bit 4 = left of it;
+//              bit 1 = the tractor's autosteer is engaged; bit 0 repeats byte 7 == 4
+//   byte 7     0 = booting, 1 = no line, 4 = line present: the only validity flag
+// Positive = right of the line, as in the John Deere decoder. The XTE is committed
+// whether or not autosteer is engaged (owner's decision 2026-10-13): ploughing is
+// usually driven by hand, and the plough only acts on the XTE in AUTO with the hitch
+// down. A non-zero magnitude without exactly one side bit was never seen and is not
+// committed: a guessed sign would steer the wrong way.
+struct LightbarXteResult {
+    bool          lengthOk = false;
+    bool          valid = false;        // true => SetXte(xteHundredthsMeter) should be called
+    bool          hasLine = false;      // byte 7 == 4: the only validity flag
+    bool          engaged = false;      // byte 6 bit 1, reported only, not a commit condition
+    bool          rightOfLine = false;  // byte 6 bit 7
+    bool          leftOfLine = false;   // byte 6 bit 6
+    bool          hasPass = false;      // a line and byte 2 in 1..254: pass and passLeftOfAbLine are set
+    std::uint8_t  pass = 0;             // |pass| = byte 2 - 1; 0 = the AB line itself
+    bool          passLeftOfAbLine = false;  // byte 6 bit 4 (bit 5 = the AB line or right of it)
+    std::uint16_t magnitudeCm = 0;
+    int           xteHundredthsMeter = 0;
+    std::uint8_t  rawStatus = 0;        // byte 6
+    std::uint8_t  rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+};
+
 struct AisoResult {
     bool    lengthOk = false;
     uint8_t state = 0xFF;         // decoded 2-bit state; 0xFF = frame too short to decode
@@ -305,6 +343,7 @@ PositionResult DecodeLegacyPosition(const uint8_t* data, uint8_t length);
 SpeedResult    DecodeLegacySpeed(const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteTrimble(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
+LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length);
 
 AisoResult DecodeAllImplementStop(const uint8_t* data, uint8_t length);
 

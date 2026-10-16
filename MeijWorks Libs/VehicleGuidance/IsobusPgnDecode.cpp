@@ -166,6 +166,49 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
 }
 
 // ------------------------------------------------------------------
+// Ag Leader InCommand lightbar cross-track error, PGN 65462 (see the header for
+// the byte meanings, settled on session 17's capture).
+// ------------------------------------------------------------------
+LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length) {
+    LightbarXteResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+    for (uint8_t i = 0; i < 8; i++) result.rawPayload[i] = data[i];
+
+    result.magnitudeCm = static_cast<std::uint16_t>(data[0] | (data[1] << 8));
+    result.hasLine     = (data[7] == 4);
+    result.rawStatus   = data[6];
+    result.rightOfLine = (data[6] & 0x80) != 0;
+    result.leftOfLine  = (data[6] & 0x40) != 0;
+    result.engaged     = (data[6] & 0x02) != 0;
+    if (result.hasLine && data[2] >= 1 && data[2] != 0xFF) {
+        result.hasPass          = true;
+        result.pass             = static_cast<std::uint8_t>(data[2] - 1);
+        result.passLeftOfAbLine = (data[6] & 0x10) != 0;
+    }
+
+    // 0xFFFF is the usual "not available" and anything beyond 300 m is not a
+    // cross-track error on a field. Byte 7 is the only validity: byte 2 is the
+    // pass number, and every pass carries a valid XTE (session 17).
+    if (result.magnitudeCm == 0xFFFF || result.magnitudeCm > 30000) return result;
+    if (!result.hasLine) return result;
+
+    int value;
+    if (result.magnitudeCm == 0) {
+        value = 0;                                              // on the line: neither bit
+    } else if (result.rightOfLine && !result.leftOfLine) {
+        value = int(result.magnitudeCm);
+    } else if (result.leftOfLine && !result.rightOfLine) {
+        value = -int(result.magnitudeCm);
+    } else {
+        return result;                                          // side unknown: never guess
+    }
+    result.valid = true;
+    result.xteHundredthsMeter = value;
+    return result;
+}
+
+// ------------------------------------------------------------------
 // Legacy proprietary decode, ported verbatim from VehicleGps.cpp's
 // Update(long id, const uint8_t* data, byte len).
 // ------------------------------------------------------------------
