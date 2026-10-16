@@ -116,7 +116,8 @@ When byte 2 changes says what it is not: it does not follow the engage. **2 -> 3
 display re-referencing to another line or pass, while the engage (byte 6 bit 1) comes and goes
 inside a stretch of 3. Our best reading: 2 and 3 are two line-following states of the display
 (perhaps pass direction or line-lock), both valid. What 3 means exactly stays open; the decision
-for #207 does not depend on it.
+for #207 does not depend on it. **Superseded 2026-10-16 (session 17): byte 2 = |pass| + 1, and the
+re-referencing above is the display moving to the next pass; see (e).**
 
 **(b) The "offline" of 0xE9 and 0xF5 at 20:51:09 was the stack's prune, not a lost claim.**
 0xF5 sent 11 frames/s without a gap from 20:50:58 to 20:51:22. At 20:51:08.688 the CNH 0xCD sent a
@@ -141,9 +142,15 @@ empty answers to our 129283 requests were already known from session 13.
 20:48:14) are exactly the 24 frames with byte 2 = 255 and the 41 with byte 2 = 1, 20:47:14 to
 20:47:28. Correct behaviour.
 
-**(e) Speed at the final dump: not answerable yet.** The dump (21:02:46) falls in the missing ninth
-piece. In the last captured minute 65256 from 0x80 and the TECU's 65096 agree (2.60 and 2.46 km/h at
-20:59:59); the ninth piece settles the standing-still reading.
+**(e) Speed at the final dump (answered 2026-10-16 from the ninth piece, uploaded 10-16 09:05): no
+bug, the tractor was moving.** 65256 from 0x80 is 0 up to 21:02:41 and the tractor pulls away at
+21:02:42 (0 -> 1.84 km/h within that second); at the dump, 21:02:46, it reads 2.08-2.12 km/h, so
+raw 0x218 = 2.09 km/h is right, and the dump's own speed line says 0.58 m/s (= 2.09 km/h). The
+`spd=0.00` was the 1 Hz line before the pull-away (21:02:41 0.00, 21:02:42 0.09, 21:02:43 0.60 m/s).
+The same piece explains the `0B` frame: from 21:02:42 to 21:03:15 the tractor drove across the
+field and byte 2 counted 3 -> 11, one step every ~4 s. **Byte 2 is the pass number (session 17,
+2026-10-16), not a line state**: the readings of byte 2 and bits 4/5 in (a) are superseded by the
+session 17 timeline, "Results from the MF4", 2.
 
 **(f) The replug at 20:54:47 got a full identification, twice:** seven reads 20:54:47.275-48.157, the
 display's Proprietary A at 20:54:48.743 together with a repeat read of 0x8007, then the other six

@@ -122,3 +122,86 @@ END
 | + | Anything else (prune, churn, failures>0 with time) | **(a) #207 decoder, blocks AUTO on some passes: byte 2 of 65462 is the pass number (|pass| + 1: AB line 1, 1L/1R 2, 2L 3, 3L 4), not a line state; side of AB in byte 6 bit 4 (L) / bit 5 (AB line, R). The 2745ff4 rule (commit on 2, 3) freezes `xte=` on the AB line and on 3L+.** Fix: commit when byte 7 == 4 and byte 2 != 0xFF; log the pass. (b) Lightbar `failures=1` during the 1200's first start-up (09:20:29-09:23:22), never again; serial does not say which frame. (c) 2 bus-off + 3 error-passive entries in the R2 plug-out window (session 16: 0 bus-off). (d) 3x `[VT] Server response to a command timed out` from the CNH VT while connected (09:25:15, 09:31:07) without consequences. (e) `[VT]: The VT Server is NACK-ing our VT messages` once at the R2 rejoin, recovered at once. (f) TC needed 5 restarts while the 1200 booted in F2. |
 
 Afterwards (brief section 8): results to #207 (D, G), #188 (F), #190 (R: the new library on hardware, needed before #190 merges); AgIsoStack-plus-plus #717 note if F4 or G2 shows the prune again.
+
+## Results from the MF4 (workstation, 2026-10-16)
+
+Capture: upload session 57, nine pieces, **09:04:36.5 to 09:44:14.6 CEST**, 560 438 extended frames on
+channel 1, real clock. Archived as `../canlogs/2026-10-16_session17_vanmastwijk_log57/`. Session 58
+(10:16:55-10:17:25) is a 30 s tractor start with only the TECU, the CNH VT, 0xAC and 0xCD on the bus:
+nothing of ours, not archived. Session 56's ninth piece (21:00:00-21:03:45 on 10-13) is analysed in the
+session 16 timeline, (e).
+
+**1. Inventory.** Both of our addresses are on the wire: **0x81** (NAME `a0101000afe00001`) from the join
+at 09:19:27.4 to 09:42:30.1, **0xDC** (`a00083000c21887e`) to 09:42:29.5. Senders by identity number:
+
+| Identity | Manufacturer code | Addresses (function) |
+|---|---|---|
+| 28337 (the InCommand 1200) | 97 | 0x80 (29, VT), 0xF7 (130, TC), 0xF5 (128 instance 5, display), 0xE9 (128), **0x2B (129)** |
+| 143617 (the CNH display) | 94 | 0x26 (29, VT), **0xAC (23)** |
+| 1212289 | 94 | 0xCD (33) |
+| 651679 | 94 | 0xF0 (134, TECU) |
+
+At the join, the CAN controller flushed what it had queued while the board was alone on USB: 0xDC's
+boot software-ID BAM (made at 09:14:59) went out at 09:19:27.428-.436 with **1-3 ms between packets**
+(ISO 11783-3 wants 50-200 ms for a BAM), together with repeated claims. Only after a USB-first start;
+the display was off then, so nobody listened. Low priority.
+
+**2. PGN 65462, all bytes** (sessions 56 and 57 together, 12 335 frames from 0xF5):
+
+| Byte(s) | Meaning | Evidence |
+|---|---|---|
+| 0-1 | \|XTE\| in cm, little-endian, 0xFFFF = not available | as decoded since #207 |
+| 2 | **\|pass\| + 1** (AB line = 1), 0xFF while the display boots | the field mapping of this session; and session 56 21:02:42-21:03:15, driving across the field: 3 -> 11, one step every ~4 s |
+| 3 | 0 (0xFF while booting): probably the pass number's high byte | 0 in every frame with a line |
+| 4-5 | **vehicle heading, whole degrees**, little-endian, 0-359 | against 0x80's 65256 course above 1.5 km/h (3380 frames): median -0.1 deg, 5th percentile -1.1 deg; about 1 in 20 is 180 deg off (reversing, probably) |
+| 6 bit 0 | set exactly when byte 7 = 4 | 12 140 / 12 140 |
+| 6 bit 1 | autosteer engaged; also set while the display boots (byte 7 = 1) | as session 16 |
+| 6 bits 2, 3 | never set | |
+| 6 bits 4 / 5 | **side of the pass**: bit 4 = left of the AB line, bit 5 = the AB line or right; with a line always exactly one of the two | 8 119 / 4 021, never both, never neither |
+| 6 bits 6 / 7 | vehicle left / right of the line; neither exactly when \|XTE\| = 0 | 2 539 / 8 844; 757 frames at 0 cm, all without either bit |
+| 7 | 0 booting, 1 no line (XTE 0), 4 line present | |
+
+Byte 2 with a line (byte 7 = 4): 1 x690, 2 x7872, 3 x3250, 4-11 x328. **1018 frames with a line and a
+valid XTE had byte 2 outside 2-3**, so 2745ff4's rule dropped them. Session 16's reading ("2 and 3
+valid, 1 = no solution", "bit 4 when byte 2 >= 2, bit 5 only with 1") is superseded: that field only
+drove the AB line and left-hand passes. **Validity is byte 7 = 4 (bit 0 repeats it).** A decoder that
+commits on byte 7 = 4 and \|XTE\| <= 30000 commits every one of these frames; the pass number
+(byte 2 - 1, side from bit 4/5) and the heading can be reported alongside. Decision for #207: Arjan.
+
+**3. G, the 1200's "GPS lost".**
+
+- **0xAC sends nothing but address claims on the ISOBUS** (625 claims, 61 TP data frames of zeros,
+  1 request). It shares its identity number with the CNH VT 0x26, so it is a second function of the
+  CNH display unit, and it goes off and reboots with it.
+- **0x2B, a function of the 1200, polls every node with an addressed request for address claim
+  every 2 s** (0xAC 596x, 0xCD 555x, 0xDC 470x) and asks each new node for 65242, 64965 and 64653.
+  0xAC's last answer before the switch-off is 09:35:51; from then 0x2B retries about 1.5 times a
+  second until 0xAC answers again. Same at the reboot (answers stop 09:37:3x, back 09:38:0x). That
+  is what the ISOBUS shows of the trigger; whatever the 1200 takes from 0xAC reaches it some other way.
+- **The 1200's own position stays live**: standing still, 0x80's 65267 shows 1-4 distinct values per
+  5 s at the 1e-7 deg resolution both before and during (no frozen stretch), 65256 changes as before,
+  65535 changes payload at 09:36:03-04 and 09:37:49 (`0d060b` -> `0d050b` -> `0b050a`, the DOP-like
+  triple of #20). 65462 keeps its 5 Hz. The plough was right not to hold.
+
+**4. Lightbar `failures=1` (09:20:29-09:23:22).** At 09:21:17.700 0x2B requested 65242 from 0xDC, and
+0xDC started the software-ID BAM at 09:21:17.703 (packets 52 ms apart, correct). At 09:21:17.702 the
+display's first identification read arrived; the channel sends the software ID before answering a
+read, and that second BAM was refused while the first one ran: **the one failure**. Nothing is
+missing for the display: it repeated the read at 09:21:18.119, both reads were answered (09:21:18.506
+and .587), all eight DIDs and the Proprietary A exchange completed by 09:21:19.545, and every request
+from 0x2B got its answer. Fix if wanted: skip the pre-read software ID while a BAM from 0xDC is in
+progress.
+
+**5. The R2 rejoin at 09:33:26.**
+
+- Back on the bus, **the plough's VT client carried on before it re-claimed 0x81**: Change Numeric
+  Value to 0x26 at 09:33:26.441 and .445, a working-set maintenance at .444, the claim only at .466.
+  The CNH VT answered the two commands (.450, .456) and **NACKed the working-set maintenance (PGN
+  59136) at .463**: after 29 s away it no longer had us as a client. That is the `VT Server is
+  NACK-ing our VT messages`; the stack disconnected, reconnected and loaded MW08 from NVM at .786.
+- **The three `[PR] NACK-ing PGN request for PGN 60928` are ours**: 0x81 sent NACKs (global) at
+  .502-.504 for addressed requests for address claim from 0x2B (.444) and 0xF7 (.445, .449), in the
+  same milliseconds as its claims (.490, .503, .504). The claims are the right answer; the NACKs are
+  surplus and do no harm here.
+- Follow-up candidates (no issue yet): reset the VT client when the bus was gone longer than the VT
+  status timeout, and let the stack answer a request for address claim with the claim only.

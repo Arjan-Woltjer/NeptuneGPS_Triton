@@ -27,7 +27,8 @@ recoverable from the file.
 | `2026-10-01_session13_nh-vanmastwijk_log32_after-canedge-restart.MF4` | `AD4F266A` / 32 | 2026-10-01 | Ag Leader kit on a CNH tractor | van Mastwijk | 136 s | 37 340 |
 | `2026-10-08_lemken_agleader-vanmastwijk_log42_ibbc-lemken-l160-xte.MF4` | `AD4F266A` / 42 | 2026-10-08 | Ag Leader kit on a CNH tractor, new harness; Lemken plough control + L160 lightbar on the IBBC, ch2 on the IBBC | van Mastwijk | 347 s | 155 482 |
 | `2026-10-10_session15_vanmastwijk_log43_lightbar-ident-no-65462.MF4` | `AD4F266A` / 43 | 2026-10-10 | Ag Leader kit on a CNH tractor, one bus; our L160 emulation + InCommand | van Mastwijk | 2441 s | 656 649 |
-| `2026-10-13_session16_vanmastwijk_log56/` (8 pieces, uploaded over LTE) | `AD4F266A` / 56 | 2026-10-13 | Ag Leader kit on a CNH tractor, one bus; L160 emulation accepted, 65462 live | van Mastwijk | 2215 s (20:23:05-20:59:59, 9th piece pending) | 572 988 |
+| `2026-10-13_session16_vanmastwijk_log56/` (9 pieces, uploaded over LTE) | `AD4F266A` / 56 | 2026-10-13 | Ag Leader kit on a CNH tractor, one bus; L160 emulation accepted, 65462 live | van Mastwijk | 2440 s (20:23:05-21:03:45) | 634 804 |
+| `2026-10-16_session17_vanmastwijk_log57/` (9 pieces, uploaded over LTE) | `AD4F266A` / 57 | 2026-10-16 | Ag Leader kit on a CNH tractor, one bus; rebased library, 0xF5 partner, failover F1-F4, passes AB/1L/1R/2L/3L | van Mastwijk | 2378 s (09:04:36-09:44:14) | 560 438 |
 
 Both were recorded during **Session 8** (see `HardwareTestNotes.md`). Card
 `AD4F266A` sessions 6-10 are real ISOBUS; sessions 11-23 are a different
@@ -433,13 +434,25 @@ belong in this folder are still copied here by hand from the OneDrive archive.
 ### Session 16, 2026-10-13 -- the InCommand accepts our L160; 65462 byte meanings
 
 First capture of the upload era: eight 5-minute pieces, real timestamps (CEST = UTC+2), taken off
-the bucket, no card. The ninth piece (21:00-21:03:51) uploads at the logger's next power-up. Plough
+the bucket, no card. The ninth piece (21:00-21:03:45) arrived with the logger's next power-up on
+2026-10-16 and is in the folder now. Plough
 control on `test/rig-lightbar-failover` @ 2a25331. Analysis: `../logs/2026-10-13_session16_vanmastwijk_timeline.md`,
 "Results from the MF4". Key results: the display identifies our bar in every order and broadcasts
-65462 at 5 Hz; byte 2 = 2 and 3 are both valid XTE (1 = no solution, 255 = n/a), byte 6 bit 1 =
+65462 at 5 Hz; byte 2 = 2 and 3 are both valid XTE (1 = no solution, 255 = n/a; **superseded by
+session 17: byte 2 is the pass number**), byte 6 bit 1 =
 autosteer engaged, bits 7/6 = right/left, neither = on the line; the InCommand did not answer a
 global claim request from 0xCD, so the stack pruned 0xE9/0xF5 for 6 s; 129283 = 0xCD's empty
 answers to our requests.
+
+### Session 17, 2026-10-16 -- byte 2 of 65462 is the pass number; failover on the rebased library
+
+Nine pieces, 09:04:36-09:44:14 CEST. Plough control on `test/rig-lightbar-failover` @ 2745ff4.
+Analysis: `../logs/2026-10-16_session17_vanmastwijk_timeline.md`, "Results from the MF4". Key
+results: 65462 byte 2 = |pass| + 1, bytes 4-5 = heading in degrees, byte 6 bit 4/5 = side of the
+pass, bits 6/7 = side of the line, byte 7 = 4 is the only validity; 0xAC is a function of the CNH
+display that only sends claims, and the 1200's 0x2B polls every node for its claim every 2 s (that
+polling is what notices the CNH display going away); the 1200's own position stayed live; the R2
+NACK was the CNH VT refusing our working-set maintenance sent before our re-claim.
 
 ## Reading them
 
