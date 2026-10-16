@@ -73,7 +73,13 @@ public:
     inline void SetSentenceTap(SentenceTap tap, void* context) { sentenceTap = tap; sentenceTapContext = context; }
 
 private:
+    // GUIDANCE_LEAN (the Arduino Micro build, 2.5 KB of RAM) drops the tap's
+    // two line buffers: GetLastSentence() stays empty and the tap never fires.
+#ifdef GUIDANCE_LEAN
+    static constexpr uint8_t kMaxSentence = 0;
+#else
     static constexpr uint8_t kMaxSentence = 90;
+#endif
 
     Stream*          serialDebug;
     HardwareSerial*  serialGps;

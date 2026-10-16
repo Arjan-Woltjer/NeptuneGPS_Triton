@@ -42,9 +42,13 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
     triton::ConfigureDigitalInput(LEFT_BUTTON_2, false);
     triton::ConfigureDigitalInput(RIGHT_BUTTON_2, false);
     triton::ConfigureDigitalInput(MODE_PIN_2, false);
+    // The Micro and pre-series boards have no joystick inputs, and their
+    // config headers define no JOY_ pins.
+#ifdef JOY_MODE_2
     triton::ConfigureDigitalInput(JOY_LEFT_2, false);
     triton::ConfigureDigitalInput(JOY_RIGHT_2, false);
     triton::ConfigureDigitalInput(JOY_MODE_2, false);
+#endif
 
     // Mode
     mode = 2;  // MANUAL

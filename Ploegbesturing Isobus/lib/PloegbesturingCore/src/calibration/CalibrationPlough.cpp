@@ -27,24 +27,38 @@ CalibrationPlough::CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, 
     loadGuidanceCalibration();
 }
 
-// Returns true when a stored value was found; GuidanceSource keeps its own
-// default (4, RTK fixed) otherwise. SetRtkQuality() clamps anything that is
-// not 4 or 2 back to 4, so a stale or corrupt byte cannot leak through.
+// Returns true when at least one stored value was found. An erased byte
+// (255) leaves the default: rate index 0, and GuidanceSource's own RTK
+// fixed (4). SetRtkQuality() clamps anything that is not 4 or 2 back to 4,
+// so a stale or corrupt byte cannot leak through.
 bool CalibrationPlough::loadGuidanceCalibration() {
-    const byte stored = EEPROM.read(kEepromRtkQuality);
-    if (stored == 255) return false;
-    guidance->SetRtkQuality(stored);
-    return true;
+    bool found = false;
+    const byte storedBaud = EEPROM.read(kEepromGpsBaudIndex);
+    if (storedBaud != 255) {
+        SetGpsBaudIndex(storedBaud);
+        found = true;
+    }
+    const byte storedRtk = EEPROM.read(kEepromRtkQuality);
+    if (storedRtk != 255) {
+        guidance->SetRtkQuality(storedRtk);
+        found = true;
+    }
+    return found;
 }
 
-void CalibrationPlough::commitGuidanceCalibration() {
+void CalibrationPlough::CommitGuidanceCalibration() {
+    EEPROM.write(kEepromGpsBaudIndex, gpsBaudIndex);
     EEPROM.write(kEepromRtkQuality, guidance->GetRtkQuality());
 }
 
 void CalibrationPlough::PrintCalibrationData() {
+    static const byte rates[8] = { 1, 2, 3, 4, 6, 8, 12, 24 };
     serialDebug->println("=====================================");
     serialDebug->println("Guidance source using following data:");
     serialDebug->println("=====================================");
+    serialDebug->println("Baudrate");
+    serialDebug->println(rates[gpsBaudIndex % 8] * long(4800));
+    serialDebug->println("-------------------------------");
     serialDebug->println("RTK Quality");
     serialDebug->println(guidance->GetRtkQuality());
     serialDebug->println("-------------------------------");
@@ -1051,7 +1065,7 @@ void CalibrationPlough::Calibrate() {
             // Commit data
             implement->CommitCalibration();
             tractor->CommitCalibration();
-            commitGuidanceCalibration();
+            CommitGuidanceCalibration();
 
             // Print message to LCD
             lcd->WriteBuffer(L2_CAL_DDONE, 1);

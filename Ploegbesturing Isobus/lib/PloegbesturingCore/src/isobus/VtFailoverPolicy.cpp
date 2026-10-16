@@ -17,6 +17,10 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// ISOBUS builds and the native tests only (both define ISOBUS): the serial-only
+// boards never use it, and avr-gcc (micro_serial) has no C++ standard headers.
+#ifdef ISOBUS
+
 #include "VtFailoverPolicy.hpp"
 
 namespace triton
@@ -88,3 +92,5 @@ void VtFailoverPolicy::OnSwitched(unsigned long nowMs) {
 }
 
 }  // namespace triton
+
+#endif  // ISOBUS

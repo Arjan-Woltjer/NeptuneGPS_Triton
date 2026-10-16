@@ -29,7 +29,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     // Inputs -- the pull-up follows the board's input stage: the Teensy
     // boards want the MCU pull-up, the Arduino boards do not, and Triton01's
     // MCP23008 brings its own (TritonIo.hpp).
-#if defined(TEENSY) || defined(TEENSY40) || defined(TEENSYPROTO)
+#if defined(TEENSY) || defined(TEENSY40) || defined(TEENSY32) || defined(TEENSYPROTO)
     triton::ConfigureDigitalInput(PLOUGHSIDE_PIN_2, true);
 #else
     triton::ConfigureDigitalInput(PLOUGHSIDE_PIN_2, false);

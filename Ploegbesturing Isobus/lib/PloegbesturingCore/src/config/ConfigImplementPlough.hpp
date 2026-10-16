@@ -113,6 +113,32 @@ _7 are defines for sower
 
 #else
 
+#ifdef TEENSY32
+// Teensy 3.2 board, as ploegbesturing v1.20-v1.31 (ACAN) drove it. Same
+// pins as the Teensy 4.1 production board above except the LED, which those
+// versions put on 13 -- the Teensy's own LED, but also JOY_RIGHT_2 in
+// ConfigInterfacePlough.hpp, so both stay exactly as they were. CAN is the
+// 3.2's only controller, CAN0 on pins 3 TX / 4 RX, which collides with none
+// of these.
+
+// Digital inputs 12V -> 5V conversion
+#define PLOUGHSIDE_PIN_2      2
+
+// Digital outputs
+#define OUTPUT_LED_2          13
+
+// FET OUTPUTS
+#define OUTPUT_NARROW_2       20
+#define OUTPUT_WIDE_2         21
+#define OUTPUT_BYPASS_2       22
+//#define xxx_2                 23
+
+// Analog input
+#define POSITION_SENS_PIN_2   A0    // for potmeter input (input 1 connector)
+#define ROTATION_SENS_PIN_2   A1    // (input 2 connector)
+
+#else
+
 #ifdef TEENSYPROTO
 // Digital inputs 12V -> 5V conversion
 #define PLOUGHSIDE_PIN_2      24
@@ -175,6 +201,7 @@ _7 are defines for sower
 
 #error "no board defined"
 
+#endif
 #endif
 #endif
 #endif
