@@ -247,6 +247,36 @@ test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedIsCountedByReason) {
 }
 
 // ---------------------------------------------------------------------------
+// The plough's ISOBUS NAME (#202)
+// ---------------------------------------------------------------------------
+
+// ISO 11783-1, industry group 2: device class 2 is Tillage (8 is Root
+// Harvesters -- a John Deere registered the plough as a harvester in session
+// 12), and in class 2 function 132 is Tillage Machine Control ("control of
+// outputs ... for VT or TC control, combines several control functions that
+// communicate from the same SA"). The old function 16 is the global Steering
+// Controller, steer-by-wire. Source: isobus.net "IG Specific NAME Function",
+// archived in NeptuneGPS Documentation/ISOBUS/reference/parameters-csv.
+test(IsobusGuidanceChannel, name_isATillageMachineControl) {
+    const isobus::NAME name = IsobusGuidanceChannel::BuildPloughName();
+    assertEqual((int)name.get_industry_group(), 2);
+    assertEqual((int)name.get_device_class(), 2);
+    assertEqual((int)name.get_function_code(), 132);
+}
+
+// The rest of the NAME stays as it was: changing any of it is a change of
+// identity for every terminal's stored pools (#45, #162).
+test(IsobusGuidanceChannel, name_keepsTheRestOfTheIdentity) {
+    const isobus::NAME name = IsobusGuidanceChannel::BuildPloughName();
+    assertTrue(name.get_arbitrary_address_capable());
+    assertEqual((int)name.get_manufacturer_code(), 1407);
+    assertEqual((long)name.get_identity_number(), 1L);
+    assertEqual((int)name.get_ecu_instance(), 0);
+    assertEqual((int)name.get_function_instance(), 0);
+    assertEqual((int)name.get_device_class_instance(), 0);
+}
+
+// ---------------------------------------------------------------------------
 // Legacy proprietary
 // ---------------------------------------------------------------------------
 

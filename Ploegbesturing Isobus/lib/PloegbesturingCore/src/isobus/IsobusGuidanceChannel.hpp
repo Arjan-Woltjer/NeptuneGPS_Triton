@@ -83,6 +83,8 @@ public:
     // contention window, never called again after setup()), and registers
     // every PGN callback + sends the initial PGN requests once claimed.
     void Begin();
+    // The plough's ISOBUS NAME, as Begin() claims it (#202).
+    static isobus::NAME BuildPloughName();
 
     // Call every loop() iteration -- pumps CAN I/O.
     void Update();

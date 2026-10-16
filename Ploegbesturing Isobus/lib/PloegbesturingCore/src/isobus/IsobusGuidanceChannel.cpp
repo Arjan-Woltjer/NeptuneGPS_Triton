@@ -61,22 +61,11 @@ IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug,
 }
 
 // ------------------------------------------------------------------
-// Begin -- call once from setup()
+// BuildPloughName -- the plough's ISOBUS NAME, pure so a native test can
+// pin it (#202): Begin() claims it, and terminals key their stored VT
+// pools and DDOPs on it.
 // ------------------------------------------------------------------
-void IsobusGuidanceChannel::Begin() {
-    CANHardwareInterface::set_number_of_can_channels(1);
-    CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
-    CANHardwareInterface::start();
-    canStarted = true;   // the plugin's open() has run FlexCAN_T4::begin() -- see SampleCanErrors()
-    // A baseline before we transmit anything, so an episode that starts during
-    // the address claim below is timed from when it really began, not from the
-    // first Update() after setup() -- a board alone on its bus goes
-    // error-passive within milliseconds of its first frame (bench, 2026-09-25).
-    SampleCanErrors();
-    PrintCanState("CAN controller at start: ");
-
-    CANHardwareInterface::update();
-
+NAME IsobusGuidanceChannel::BuildPloughName() {
     // ISOBUS NAME
     // ---- Our ISOBUS identity ----------------------------------------
     //
@@ -103,8 +92,16 @@ void IsobusGuidanceChannel::Begin() {
     NAME deviceName(0);
     deviceName.set_arbitrary_address_capable(true);
     deviceName.set_industry_group(2);   // Agriculture and Forestry
-    deviceName.set_device_class(8);     // Non-self-propelled work machine
-    deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::SteeringControl));  // TODO: confirm correct function
+    // ISO 11783-1, industry group 2 (#202): device class 2 is Tillage; the 8
+    // this used to claim is Root Harvesters, and a John Deere registered the
+    // plough as a harvester for it (session 12). Function 132 in class 2 is
+    // Tillage Machine Control: control of outputs including position, and for
+    // VT or TC control several control functions on one SA -- what this ECU
+    // is. The old function 16 is the global Steering Controller (steer-by-wire).
+    // Source: isobus.net "IG Specific NAME Function", archived in NeptuneGPS
+    // Documentation/ISOBUS/reference/parameters-csv.
+    deviceName.set_device_class(2);     // Tillage (primary soil tillage)
+    deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::MachineControl));  // 132, Tillage Machine Control
     // Was 64 -- belongs to a real, different manufacturer (flagged as a TODO
     // in Triton_TC_Client_Design.md sec 7, never actually fixed until now).
     // 1407 is AgIsoStack's own permitted-for-non-commercial-use code, the
@@ -131,6 +128,27 @@ void IsobusGuidanceChannel::Begin() {
     deviceName.set_ecu_instance(0);
     deviceName.set_function_instance(0);
     deviceName.set_device_class_instance(0);
+    return deviceName;
+}
+
+// ------------------------------------------------------------------
+// Begin -- call once from setup()
+// ------------------------------------------------------------------
+void IsobusGuidanceChannel::Begin() {
+    CANHardwareInterface::set_number_of_can_channels(1);
+    CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
+    CANHardwareInterface::start();
+    canStarted = true;   // the plugin's open() has run FlexCAN_T4::begin() -- see SampleCanErrors()
+    // A baseline before we transmit anything, so an episode that starts during
+    // the address claim below is timed from when it really began, not from the
+    // first Update() after setup() -- a board alone on its bus goes
+    // error-passive within milliseconds of its first frame (bench, 2026-09-25).
+    SampleCanErrors();
+    PrintCanState("CAN controller at start: ");
+
+    CANHardwareInterface::update();
+
+    const NAME deviceName = BuildPloughName();
 
     // Must go through the factory method, not a direct std::make_shared
     // construction -- only create_internal_control_function() registers the
