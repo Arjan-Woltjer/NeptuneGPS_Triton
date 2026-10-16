@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IsobusDebugMenu.hpp"
+#include "FlashMem.hpp"
 
 // The header is itself empty unless ISOBUS is defined (see its own comment) --
 // guard the body too, so this compiles to an empty translation unit instead
