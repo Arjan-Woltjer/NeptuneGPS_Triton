@@ -335,7 +335,7 @@ timeline and serial log in [`../logs/`](../logs/) (`2026-10-01_session13_*`).
 
 ### Raven terminal, 2026-10-02 -- card log 33 is the tractor's vehicle bus, NOT archived here
 
-Unplanned visit to a Raven terminal on a CNH tractor (rig/owner: see the timeline). The plough control
+Unplanned visit to a Raven terminal on a CNH tractor (owner van Veen). The plough control
 ran `test/rig-2026-10-02` (8c0cc7b); serial log and timeline in [`../logs/`](../logs/)
 (`2026-10-02_raven_*`). The CANedge logged **card session 33** (1740 s, 2 197 512 frames) for the
 whole visit, but on the **J1939 vehicle bus**: engine 0x00, retarder 0x0F, transmission 0x03, hitches

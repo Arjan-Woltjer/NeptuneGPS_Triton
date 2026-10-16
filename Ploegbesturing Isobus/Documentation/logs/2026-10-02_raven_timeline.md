@@ -5,7 +5,7 @@ every line stamped on arrival. CANedge AD4F266A card session 33 -- which turned 
 Firmware on the plough control: `test/rig-2026-10-02` @ `8c0cc7b` (#190 AgIsoStack-plus-plus,
 #191 new VT screen MW08, #188 VT failover), per the boot print (no identity in the claim
 line, old "Maximum correction", failover messages). Written for the InCommand + CNH visit
-(`2026-10-02_rig_incommand-cnh_handover.md`); no Raven brief exists. Rig/owner: fill in.
+(`2026-10-02_rig_incommand-cnh_handover.md`); no Raven brief exists. Rig: CNH tractor with Raven terminal, owner **van Veen**.
 
 | Time | Event |
 |---|---|
@@ -120,3 +120,64 @@ with nothing received. No other 0x81 is needed to explain it. Two fixes, either 
 `CANNetworkManager::send_request_for_address_claim(port)` sends with the NULL source (0xFE), which
 the violation check excludes; or the library skips the violation check for `CANMessage::Type::Transmit`
 (an upstream-worthy one-liner).
+
+## GNSS: the Raven receiver against the CANedge's own receiver (analysed 2026-10-15)
+
+Question from the owner side: RTK on this rig felt unstable, on and off sufficient. The later van Veen
+session was not logged usably, so this is the only material. Log 33 has no Raven traffic, but the
+CANedge3 logs **its own GNSS receiver** on channel 9 (11-bit ids 0x065-0x06F, ~5 Hz), and in this
+session it had a fix throughout. That is an independent standalone receiver on the same tractor at the
+same moments. Decoding: 0x065 fix type bits 0-2, SVs used bits 3-7; 0x067 position valid bit 0,
+latitude bits 1-28 (1e-6 deg, offset -90), longitude bits 29-57 (1e-6 deg, offset -180), accuracy
+bits 58-63 (m); 0x06B speed bits 1-20 (mm/s). Its own clock (0x066) is bogus; times below come from
+the CNH Time/Date anchor above. Antenna placement of the CANedge was not recorded.
+
+**Where the tractor was:** the whole session stayed inside an area of about 30 x 20 m around
+53.44429 N, 6.72173 E, on the yard by the barn. It never went into the open field.
+
+**CANedge receiver:** 3D fix from 14:45:41 (26 s after logger start) to the end, **never lost**,
+11-17 SVs used, accuracy estimate 0-1 m (3-10 m in the first 20 s). Both moves (15:03-15:06 and
+15:11-15:13) show 12-16 SVs; nothing like an outage anywhere on the yard.
+
+**Raven receiver (PGN 129029 via our serial dumps), next to the CANedge at the same moment:**
+
+| Dump (laptop time) | Raven 129029 | Raven position | CANedge | Gap |
+|---|---|---|---|---|
+| 14:57:36 | method 0 "no GNSS", 36 SVs, HDOP 0.56 | 53.444324 / 6.721748 | 3D, 12 SVs | 8.4 m |
+| 15:02:49 | method 0, 35 SVs, HDOP 0.99 | 53.444332 / 6.721749 | 3D, 12 SVs | 8.0 m |
+| 15:07:47 | method 0, 36 SVs, HDOP 0.98 | 53.444332 / 6.721749 (**unchanged**) | 3D, 16 SVs | 9.5 m |
+| 15:13:04 (asked 15:12:29) | method 4 **RTK fixed**, 33 SVs, HDOP 0.91, 0.65 m/s, 295.4 deg | 53.444309 / 6.721920 | 3D, 14 SVs, 0.54 m/s, WNW | 8.7 m at 15:12:29 |
+
+- **The Raven reported no position for at least 10 minutes after the power cycle** (ignition back on
+  14:56:15) while tracking 35-36 satellites with HDOP below 1. Its position stayed frozen between
+  15:02:49 and 15:07:47 although the tractor drove ~25 m in between (15:03:00-15:06:10). The first
+  RTK fix we saw is at ~15:12, during the second move. The operator called it unstable by the barn at
+  ~15:13:19.
+- **A receiver with 36 SVs and HDOP < 1 that reports "no GNSS" has no sky-view problem**, and the
+  standalone receiver alongside confirms the sky was good enough for a fix the whole time. The pattern
+  fits a receiver that withholds its position until it has RTK corrections (an output setting that
+  demands differential, or a correction link -- modem/NTRIP or radio -- that is slow to come up after
+  a power cycle or drops out). Such a receiver shows every correction dropout as "no GPS" instead of
+  degrading to float/DGNSS, which reads as "RTK on and off". Multipath by the barn would add to it by
+  slowing re-fixes. **Hypothesis, not a finding:** we have no age-of-corrections or reference-station
+  data, only five snapshots in 29 minutes, and no Raven traffic in the MF4.
+- **Open discrepancy, the RTK position:** the Raven's RTK-fixed position lies 3.2-3.4 m from the
+  CANedge track at its closest (15:11:53 and 15:12:15, the tractor passed that spot twice). At
+  15:12:29, when the dump was asked, the gap is 8.7 m, about 13 s of travel behind the CANedge along
+  the direction of travel. Either the dump ran ~14 s before the laptop stamp (the serial link was
+  stalling; see above), or the coordinates we held were older than the 129029 counter's "last 33 ms
+  ago" suggests (`OnGnssPositionData` refreshes the fix age on every frame but updates the position
+  only when the frame carries valid coordinates, and 129029 fast-packets were being dropped at the
+  time). Not resolvable from this material.
+
+**What the next van Veen session needs to settle it:**
+
+1. CANedge on the **ISOBUS** (inventory in the first minute: 0x26, PGN 129029). The full 129029
+   carries the age of the DGNSS corrections and the reference station; 129539 (DOPs) and 129540
+   (satellites in view with SNR), if the receiver sends them, separate sky problems from correction
+   problems.
+2. On the Raven screen, note the correction source and its status (cellular/radio signal) at every
+   fix loss, and check the receiver's settings for a "differential required" output option.
+3. One run in the open field away from the buildings, with the receiver powered for 10+ minutes
+   first.
+4. Turn on the 1 Hz periodic serial line (never on in this run).
