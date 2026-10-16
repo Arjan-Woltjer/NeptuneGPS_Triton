@@ -18,15 +18,16 @@
 */
 #include "IsobusDebugMenu.hpp"
 
-#include <vector>
-
-#include "VTObjectPool.hpp"
-
 // The header is itself empty unless ISOBUS is defined (see its own comment) --
 // guard the body too, so this compiles to an empty translation unit instead
 // of failing on undeclared isobus:: symbols when PlatformIO's LDF pulls this
-// file in on teensy41_serial anyway.
+// file in on teensy41_serial anyway. The includes sit inside the guard as
+// well: avr-gcc (micro_serial) has no <vector> at all.
 #ifdef ISOBUS
+
+#include <vector>
+
+#include "VTObjectPool.hpp"
 
 using namespace isobus;
 

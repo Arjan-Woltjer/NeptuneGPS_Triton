@@ -29,7 +29,7 @@ Requires [PlatformIO](https://platformio.org/) (`pip install platformio`).
 ```sh
 pio run -d "Spuitcomputer LD"  -e esp32dev
 pio run -d "Ploegbesturing"          -e teensy41
-pio run -d "Ploegbesturing Isobus"   -e teensy41_isobus   # or -e teensy41_serial
+pio run -d "Ploegbesturing Isobus"   -e teensy41_isobus   # or -e teensy41_serial, -e teensy40_isobus, -e esp32s3_serial (Triton01)
 ```
 
 `Ploegbesturing Isobus`'s `[env:teensy41]` is a template base that other

@@ -19,7 +19,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <cstdint>
+#include <stdint.h>  // not <cstdint>: avr-gcc has no C++ standard library (micro_serial)
 
 namespace triton
 {
@@ -30,14 +30,14 @@ namespace triton
 // registration/request calls.
 // ------------------------------------------------------------------
 // Standard NMEA2000 (confirmed broadcast by the reference Fendt 6240):
-static constexpr std::uint32_t kPgnPositionNmea2000 = 129025;  // Position, Rapid Update
-static constexpr std::uint32_t kPgnSpeedNmea2000    = 129026;  // COG & SOG, Rapid Update
-static constexpr std::uint32_t kPgnXteNmea2000      = 129283;  // Cross Track Error
+static constexpr uint32_t kPgnPositionNmea2000 = 129025;  // Position, Rapid Update
+static constexpr uint32_t kPgnSpeedNmea2000    = 129026;  // COG & SOG, Rapid Update
+static constexpr uint32_t kPgnXteNmea2000      = 129283;  // Cross Track Error
 // Added 2026-09-09 so a Raven rig is covered: Raven publishes this set on the
 // bus according to a setting on its own VT screen, and neither of the two rigs
 // captured so far broadcast any of it.
-static constexpr std::uint32_t kPgnPositionDeltaNmea2000 = 129027;  // Position Delta, High Precision Rapid Update
-static constexpr std::uint32_t kPgnGnssPositionData      = 129029;  // GNSS Position Data -- FAST PACKET, 43 bytes
+static constexpr uint32_t kPgnPositionDeltaNmea2000 = 129027;  // Position Delta, High Precision Rapid Update
+static constexpr uint32_t kPgnGnssPositionData      = 129029;  // GNSS Position Data -- FAST PACKET, 43 bytes
 
 // Legacy proprietary, ported from VehicleGps.cpp's CAN_POS_ID/CAN_SPD_ID/
 // CAN_XTE_ID/CAN_XTE_ID2 (0x0CFEF31C/0x18FEF31C, 0x0CFEE81C/0x18FEE81C,
@@ -45,14 +45,14 @@ static constexpr std::uint32_t kPgnGnssPositionData      = 129029;  // GNSS Posi
 // that only broadcasts these instead of the NMEA2000 set. PGN extracted from
 // the 29-bit CAN ID (PF>=240 -> PDU2, PGN=(PF<<8)|PS; PF<240 -> PDU1,
 // PGN=(PF<<8), PS is a destination address, not part of the PGN).
-static constexpr std::uint32_t kPgnPositionLegacy     = 0xFEF3;  // 65267, PDU2
-static constexpr std::uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
-static constexpr std::uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
+static constexpr uint32_t kPgnPositionLegacy     = 0xFEF3;  // 65267, PDU2
+static constexpr uint32_t kPgnSpeedLegacy        = 0xFEE8;  // 65256, PDU2
+static constexpr uint32_t kPgnXteJohnDeereLegacy = 0xFFFF;  // 65535, PDU2 -- heavily overloaded
 // Ag Leader InCommand: cross-track error for an external lightbar, proprietary
 // B, global, 5 Hz from the display's control function (SA 0xF5, manufacturer
 // 97, function 128 instance 5 on the 2026-10-08 rig). Only sent once a
 // lightbar has identified itself -- see AgLeaderLightbarEmulation.
-static constexpr std::uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
+static constexpr uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
                                                                  // proprietary PGN, source address
                                                                  // must be rechecked in the callback
 // PGN 0xFFFF is heavily overloaded across manufacturers. Two source
@@ -76,8 +76,8 @@ static constexpr std::uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
 // 1DF9031C, SA 0x1C) alongside its position/speed PGNs -- that path is
 // handled by DecodeXteNmea2000() below, which needs no source-address
 // filter because the PGN is not overloaded.
-static constexpr std::uint8_t  kSourceAddressJohnDeere     = 0x2A;
-static constexpr std::uint8_t  kSourceAddressAgLeaderRaven = 0x80;
+static constexpr uint8_t  kSourceAddressJohnDeere     = 0x2A;
+static constexpr uint8_t  kSourceAddressAgLeaderRaven = 0x80;
 
 // PGN 0xFFFF does not carry one message: data[0] is a message selector, and a
 // single source address sends several different messages under it. 0x77 is the
@@ -90,18 +90,18 @@ static constexpr std::uint8_t  kSourceAddressAgLeaderRaven = 0x80;
 // seven distinct selectors respectively. Ag Leader/Raven (0x80) sends 0x51,
 // which issue #20's closing analysis identified as a DOP-like triple rather
 // than cross-track error at all -- so on that rig this PGN carries no XTE.
-static constexpr std::uint8_t  kMessageSelectorXte         = 0x77;
-static constexpr std::uint32_t kPgnXteTrimbleLegacy = 0xEB00;  // 60160, PDU1 -- legacy filter required
+static constexpr uint8_t  kMessageSelectorXte         = 0x77;
+static constexpr uint32_t kPgnXteTrimbleLegacy = 0xEB00;  // 60160, PDU1 -- legacy filter required
                                                                  // destination address 0xAC (fixed); our
                                                                  // claimed SA is dynamic, so whether this
                                                                  // is actually delivered needs real-bus
                                                                  // verification (see plan's open risk)
-static constexpr std::uint8_t  kSourceAddressTrimble = 0xAA;
+static constexpr uint8_t  kSourceAddressTrimble = 0xAA;
 
 // AISO (All Implement Stop Operations) -- DBC arbitration ID 2365391614 =
 // 0x8CFD02FE with the SocketCAN EFF flag (0x80000000) masked off ->
 // 0x0CFD02FE: PF=0xFD (253, PDU2) -> PGN=(0xFD<<8)|0x02=0xFD02=64770.
-static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
+static constexpr uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 
 // PGN 44032 (0xAC00, PDU1) -- Agricultural Guidance Machine Info, the standard
 // ISO 11783-7 guidance channel. Broadcast at 10 Hz by the tractor ECU on every
@@ -114,7 +114,7 @@ static constexpr std::uint32_t kPgnAllImplementStop = 0xFD02;  // 64770, PDU2
 // be the same category error the design doc warns about for DDI 513, so
 // nothing here reaches the control path; it is read for diagnostics and for
 // the interlock states, which say *why* guidance is or is not happening.
-static constexpr std::uint32_t kPgnGuidanceMachineInfo = 0xAC00;  // 44032, PDU1
+static constexpr uint32_t kPgnGuidanceMachineInfo = 0xAC00;  // 44032, PDU1
 
 // ------------------------------------------------------------------
 // Decode results. Each carries a `valid` flag: whether IsobusGuidanceChannel
@@ -162,7 +162,7 @@ struct PositionResult {
 // those frames. Classify() reports them as DeviceDescriptor precisely so the
 // caller knows not to.
 // ------------------------------------------------------------------
-enum class ProcessDataKind : std::uint8_t {
+enum class ProcessDataKind : uint8_t {
     TechnicalCapabilities,  // 0
     DeviceDescriptor,       // 1  -- high nibble is a sub-command, not an element
     RequestValue,           // 2  -- the TC asking us for a value
@@ -173,12 +173,12 @@ enum class ProcessDataKind : std::uint8_t {
     Other,
 };
 
-ProcessDataKind ClassifyProcessDataCommand(std::uint8_t byte0);
+ProcessDataKind ClassifyProcessDataCommand(uint8_t byte0);
 
 // DDI carried in bytes 2-3, little-endian. Only meaningful for the kinds where
 // bytes 2-3 really are a DDI -- RequestValue, SetValue and Measurement.
-inline std::uint16_t ProcessDataDdi(const std::uint8_t* data) {
-    return static_cast<std::uint16_t>(data[2] | (data[3] << 8));
+inline uint16_t ProcessDataDdi(const uint8_t* data) {
+    return static_cast<uint16_t>(data[2] | (data[3] << 8));
 }
 
 struct SpeedResult {
@@ -209,13 +209,13 @@ struct SpeedResult {
 // (PGN_129027_positionDeltaRapidUpd).
 struct PositionDeltaResult {
     bool  lengthOk = false;
-    std::uint8_t sid = 0;
+    uint8_t sid = 0;
     float timeDeltaSeconds = 0.0f;   // 0.005 s per bit
     float latitudeDeltaDeg = 0.0f;   // 2.77778e-09 deg per bit, signed 24-bit
     float longitudeDeltaDeg = 0.0f;
 };
 
-PositionDeltaResult DecodePositionDeltaNmea2000(const std::uint8_t* data, std::uint8_t length);
+PositionDeltaResult DecodePositionDeltaNmea2000(const uint8_t* data, uint8_t length);
 
 // PGN 129029, **fast packet, 43 bytes**. The comprehensive GNSS message, and
 // the only one on any of these buses that carries a GNSS quality indicator.
@@ -240,30 +240,30 @@ struct GnssPositionDataResult {
     bool  hasAltitude = false;
     float altitudeMeters = 0.0f;
     bool  hasQuality = false;
-    std::uint8_t method = 0xFF;      // field 8; 4 = RTK fixed
-    std::uint8_t typeOfSystem = 0xFF;
-    std::uint8_t numberOfSvs = 0xFF;
+    uint8_t method = 0xFF;      // field 8; 4 = RTK fixed
+    uint8_t typeOfSystem = 0xFF;
+    uint8_t numberOfSvs = 0xFF;
     bool  hasHdop = false;
     float hdop = 0.0f;
 };
 
-GnssPositionDataResult DecodeGnssPositionData(const std::uint8_t* data, std::uint8_t length);
+GnssPositionDataResult DecodeGnssPositionData(const uint8_t* data, uint8_t length);
 
 struct GuidanceMachineInfoResult {
     bool  lengthOk = false;
     bool  hasCurvature = false;      // false when the field reads its 0xFFFF sentinel
     float curvaturePerKm = 0.0f;     // km^-1, signed; meaningful only when hasCurvature
-    std::uint16_t rawCurvature = 0;  // diagnostic, pre-scale
+    uint16_t rawCurvature = 0;  // diagnostic, pre-scale
     // Default to 3 = "not available", so an undersized or absent frame reads as
     // unknown rather than as a confident "not locked out / not ready".
-    std::uint8_t mechanicalLockout     = 3;
-    std::uint8_t steeringReadiness     = 3;
-    std::uint8_t steeringInputPosition = 3;
-    std::uint8_t limitStatus           = 7;
-    std::uint8_t remoteEngageSwitch    = 3;
+    uint8_t mechanicalLockout     = 3;
+    uint8_t steeringReadiness     = 3;
+    uint8_t steeringInputPosition = 3;
+    uint8_t limitStatus           = 7;
+    uint8_t remoteEngageSwitch    = 3;
 };
 
-GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const std::uint8_t* data, std::uint8_t length);
+GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const uint8_t* data, uint8_t length);
 
 struct XteResult {
     bool     lengthOk = false;   // true once the length guard passed
@@ -314,12 +314,12 @@ struct LightbarXteResult {
     bool          rightOfLine = false;  // byte 6 bit 7
     bool          leftOfLine = false;   // byte 6 bit 6
     bool          hasPass = false;      // a line and byte 2 in 1..254: pass and passLeftOfAbLine are set
-    std::uint8_t  pass = 0;             // |pass| = byte 2 - 1; 0 = the AB line itself
+    uint8_t  pass = 0;             // |pass| = byte 2 - 1; 0 = the AB line itself
     bool          passLeftOfAbLine = false;  // byte 6 bit 4 (bit 5 = the AB line or right of it)
-    std::uint16_t magnitudeCm = 0;
+    uint16_t magnitudeCm = 0;
     int           xteHundredthsMeter = 0;
-    std::uint8_t  rawStatus = 0;        // byte 6
-    std::uint8_t  rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    uint8_t  rawStatus = 0;        // byte 6
+    uint8_t  rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 };
 
 struct AisoResult {
