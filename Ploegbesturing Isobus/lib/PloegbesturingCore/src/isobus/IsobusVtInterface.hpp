@@ -34,13 +34,13 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_internal_control_function.hpp>
-#include <can_message.hpp>
-#include <can_partnered_control_function.hpp>
-#include <can_stack_logger.hpp>
-#include <event_dispatcher.hpp>
-#include <isobus_diagnostic_protocol.hpp>
-#include <isobus_virtual_terminal_client.hpp>
+#include <isobus/isobus/can_internal_control_function.hpp>
+#include <isobus/isobus/can_message.hpp>
+#include <isobus/isobus/can_partnered_control_function.hpp>
+#include <isobus/isobus/can_stack_logger.hpp>
+#include <isobus/utility/event_dispatcher.hpp>
+#include <isobus/isobus/isobus_diagnostic_protocol.hpp>
+#include <isobus/isobus/isobus_virtual_terminal_client.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 

@@ -28,10 +28,11 @@
 #undef min
 #undef max
 #include <cstddef>
+#include <string>
 #include <vector>
 
-#include <can_hardware_plugin.hpp>
-#include <can_message_frame.hpp>
+#include <isobus/hardware_integration/can_hardware_plugin.hpp>
+#include <isobus/isobus/can_message_frame.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -47,6 +48,8 @@ public:
     std::vector<isobus::CANMessageFrame> rx;
     std::vector<isobus::CANMessageFrame> tx;
 
+    // Required since AgIsoStack-plus-plus added it to CANHardwarePlugin (#189).
+    std::string get_name() const override { return "FakeCanPlugin"; }
     bool get_is_valid() const override { return isOpen; }
     void open() override  { isOpen = true; }
     void close() override { isOpen = false; }
