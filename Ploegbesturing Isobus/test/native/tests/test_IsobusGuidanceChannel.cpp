@@ -501,6 +501,19 @@ test(IsobusGuidanceChannel, gnssPositionData_shortFrameIsCountedAndCommitsNothin
 }
 
 // ---------------------------------------------------------------------------
+// Our NAME's identity number (#45)
+// ---------------------------------------------------------------------------
+
+// From the board's 24-bit Teensy serial: its low 21 bits, the width of the
+// NAME's identity field, so the mapping stays traceable by hand.
+test(IsobusGuidanceChannel, identityNumber_isTheSerialsLow21Bits) {
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(1234567UL), (uint32_t)1234567UL);  // under 2^21: unchanged
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(0xABCDEFUL), (uint32_t)0x0BCDEFUL);
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(0x1FFFFFUL), (uint32_t)0x1FFFFFUL);
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(0x200000UL), (uint32_t)0);
+}
+
+// ---------------------------------------------------------------------------
 // Re-requesting the guidance PGNs (#153)
 // ---------------------------------------------------------------------------
 
