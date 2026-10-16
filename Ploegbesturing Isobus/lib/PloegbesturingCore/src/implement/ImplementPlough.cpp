@@ -149,8 +149,8 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
         // amount of shares
         shares = 4;
 
-        // maximum correction
-        maxCorrection = 50;
+        // maximum correction, per share
+        maxCorrectionPerShare = kDefaultMaxCorrectionPerShareMm;
 
 #ifdef DEBUG
         this->serialDebug->println("No calibration data found");
@@ -218,12 +218,15 @@ void ImplementPlough::setSetpoint() {
     // calculate proportional gain (kp should be 1)
     int pe = xte * (float(kp) / 100);
 
-    // maximise correction to set maximum
-    if (pe <= -maxCorrection) {
-        pe = -maxCorrection;
+    // maximise correction to set maximum. The limit is in mm (#163) and the
+    // setpoint in whole cm, so a limit with a half centimetre rounds down --
+    // never more correction than set.
+    const int maxCorrectionCm = GetMaxCorrection() / 10;
+    if (pe <= -maxCorrectionCm) {
+        pe = -maxCorrectionCm;
     }
-    else if (pe >= maxCorrection) {
-        pe = maxCorrection;
+    else if (pe >= maxCorrectionCm) {
+        pe = maxCorrectionCm;
     }
 
     // calculate setpoint
@@ -558,13 +561,15 @@ boolean ImplementPlough::readCalibrationData() {
         }
 
 
-        //Read maximum correction
-        if (EEPROM.read(60) < 10) {
-            // Read maximum correction
-            maxCorrection = EEPROM.read(60);
+        // Read maximum correction per share, in mm (#163). It used to be the
+        // plough's total in cm, accepted only under 10, so anything the
+        // operator set from 10 cm up became 50 cm at every boot.
+        if (EEPROM.read(60) >= kLowestMaxCorrectionPerShareMm &&
+            EEPROM.read(60) <= kHighestMaxCorrectionPerShareMm) {
+            maxCorrectionPerShare = EEPROM.read(60);
         }
         else {
-            maxCorrection = 50;  //default to 4
+            maxCorrectionPerShare = kDefaultMaxCorrectionPerShareMm;
         }
 
         //Read swap 1 or 0
@@ -652,8 +657,10 @@ FLASHMEM void ImplementPlough::PrintCalibrationData() {
     serialDebug->println(swap);
     serialDebug->println("--------------------------");
 
-    serialDebug->println("Maximum correction");
-    serialDebug->println(maxCorrection);
+    serialDebug->println("Maximum correction per share (mm)");
+    serialDebug->println(maxCorrectionPerShare);
+    serialDebug->println("Maximum correction (mm)");
+    serialDebug->println(GetMaxCorrection());
     serialDebug->println("--------------------------");
 }
 
@@ -676,7 +683,7 @@ void ImplementPlough::writeCalibrationData() {
     EEPROM.write(54, autoPwm); //54
     EEPROM.write(56, kp);       //56
     EEPROM.write(58, error);    //58
-    EEPROM.write(60, maxCorrection);   //60
+    EEPROM.write(60, maxCorrectionPerShare);   //60, mm per share (#163)
     EEPROM.write(62, swap);     //62
     EEPROM.write(64, shares);   //64
 
