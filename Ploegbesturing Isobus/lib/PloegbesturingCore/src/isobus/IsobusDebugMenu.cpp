@@ -52,6 +52,13 @@ static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
     }
 }
 
+// The display's pass as its own screen labels it: "0" for the AB line, then
+// "1L", "1R", "2L" ... (PGN 65462 byte 2 and byte 6 bit 4, session 17).
+static void GPrintLightbarPass(Stream* out, const LightbarXteResult& xte) {
+    out->print(xte.pass);
+    if (xte.pass > 0) out->print(xte.passLeftOfAbLine ? "L" : "R");
+}
+
 // ------------------------------------------------------------------
 // Constructor / Begin
 // ------------------------------------------------------------------
@@ -469,8 +476,10 @@ void IsobusDebugMenu::printFullDump() {
             serialDebug->print(lc.lastXte.magnitudeCm);
             serialDebug->print(" cm ");
             serialDebug->print(lc.lastXte.rightOfLine ? "right" : (lc.lastXte.leftOfLine ? "left" : "on the line"));
-            serialDebug->print(", state ");
-            serialDebug->print(lc.lastXte.lineState);
+            if (lc.lastXte.hasPass) {
+                serialDebug->print(", pass ");
+                GPrintLightbarPass(serialDebug, lc.lastXte);
+            }
             serialDebug->print(lc.lastXte.engaged ? ", autosteer engaged" : ", autosteer off");
             serialDebug->print(lc.lastXte.hasLine ? ", line" : ", no line");
             serialDebug->print(lc.lastXte.valid ? "  (committed)" : "  (not committed)");
@@ -651,6 +660,10 @@ void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print(lc.lastXte.magnitudeCm);
         serialDebug->print(lc.lastXte.rightOfLine ? "R" : (lc.lastXte.leftOfLine ? "L" : "C"));
         serialDebug->print(lc.lastXte.engaged ? "e" : "-");
+        if (lc.lastXte.hasPass) {
+            serialDebug->print("p");
+            GPrintLightbarPass(serialDebug, lc.lastXte);
+        }
         serialDebug->print(":");
         GPrintPayloadHex(serialDebug, lc.lastXte.rawPayload);
     }

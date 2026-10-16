@@ -289,17 +289,18 @@ struct XteResult {
     bool     rawCaptured = false;
 };
 
-// PGN 65462, decoded from card log 42 (2026-10-08) and settled on upload session 56
-// (session 16, 2026-10-13, van Mastwijk), against the operator's calls on the display:
-//   bytes 0-1  |cross-track error|, cm, little-endian
-//   byte 2     display state: 255 = not available (booting), 1 = no line solution,
-//              2 and 3 = valid XTE. 2 and 3 flip when the display re-references to
-//              another line or pass; they are NOT the autosteer state (session 16:
-//              3 for a whole pass, engaged or not).
-//   bytes 4-5  heading-related, unused
+// PGN 65462, decoded from card log 42 (2026-10-08) and upload sessions 56 and 57
+// (sessions 16 and 17, van Mastwijk), against the passes the operator drove and read
+// off the display (session 17, 2026-10-16):
+//   bytes 0-1  |cross-track error|, cm, little-endian; 0xFFFF = not available
+//   byte 2     |pass| + 1: the AB line sends 1, 1L and 1R send 2, 2L 3 ...; 0xFF while
+//              the display boots. NOT a validity state (session 16 read it as one).
+//   byte 3     0 (0xFF while booting)
+//   bytes 4-5  vehicle heading, whole degrees, little-endian; unused here
 //   byte 6     bit 7 = right of the line, bit 6 = left, neither = exactly on it;
-//              bit 1 = the tractor's autosteer is engaged
-//   byte 7     0 = booting, 1 = no line, 4 = line present
+//              bit 5 = the pass is the AB line or right of it, bit 4 = left of it;
+//              bit 1 = the tractor's autosteer is engaged; bit 0 repeats byte 7 == 4
+//   byte 7     0 = booting, 1 = no line, 4 = line present: the only validity flag
 // Positive = right of the line, as in the John Deere decoder. The XTE is committed
 // whether or not autosteer is engaged (owner's decision 2026-10-13): ploughing is
 // usually driven by hand, and the plough only acts on the XTE in AUTO with the hitch
@@ -308,12 +309,13 @@ struct XteResult {
 struct LightbarXteResult {
     bool          lengthOk = false;
     bool          valid = false;        // true => SetXte(xteHundredthsMeter) should be called
-    bool          hasLine = false;      // byte 7 == 4
-    bool          hasSolution = false;  // byte 2 is 2 or 3
+    bool          hasLine = false;      // byte 7 == 4: the only validity flag
     bool          engaged = false;      // byte 6 bit 1, reported only, not a commit condition
     bool          rightOfLine = false;  // byte 6 bit 7
     bool          leftOfLine = false;   // byte 6 bit 6
-    std::uint8_t  lineState = 0;        // byte 2
+    bool          hasPass = false;      // a line and byte 2 in 1..254: pass and passLeftOfAbLine are set
+    std::uint8_t  pass = 0;             // |pass| = byte 2 - 1; 0 = the AB line itself
+    bool          passLeftOfAbLine = false;  // byte 6 bit 4 (bit 5 = the AB line or right of it)
     std::uint16_t magnitudeCm = 0;
     int           xteHundredthsMeter = 0;
     std::uint8_t  rawStatus = 0;        // byte 6
