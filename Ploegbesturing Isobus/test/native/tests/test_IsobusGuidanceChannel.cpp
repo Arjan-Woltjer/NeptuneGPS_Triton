@@ -37,6 +37,9 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+#include <chrono>
+
+#include "TestBus.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
 
 using namespace aunit;
@@ -274,6 +277,79 @@ test(IsobusGuidanceChannel, name_keepsTheRestOfTheIdentity) {
     assertEqual((int)name.get_ecu_instance(), 0);
     assertEqual((int)name.get_function_instance(), 0);
     assertEqual((int)name.get_device_class_instance(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Requests addressed to us (#23)
+// ---------------------------------------------------------------------------
+
+// A request for address claim addressed to us must get our address claim and
+// nothing else. AgIsoStack's address-claim code answers it with the claim
+// (ISO 11783-5); its PGN request protocol, finding no callback for PGN 60928,
+// also sent a NACK -- "I don't support address claiming" -- in the same
+// millisecond (3 at the session 17 replug, from 0x81). End to end on the fake
+// bus: a control function of our own claims 0x3E for real (the claim takes
+// ~250 ms of wall-clock time inside AgIsoStack), gets the plough's request
+// handlers, and is asked for its claim by 0x2B, the InCommand's inventory
+// function that sends exactly this every 2 s.
+test(IsobusGuidanceChannel, claimRequest_isAnsweredWithTheClaimAndNoNack) {
+    FakeCanPlugin* bus = SharedTestBus();
+
+    isobus::NAME name(0);
+    name.set_arbitrary_address_capable(true);
+    name.set_industry_group(2);
+    name.set_device_class(6);
+    name.set_function_code(static_cast<std::uint8_t>(isobus::NAME::Function::RateControl));
+    name.set_identity_number(5);
+    name.set_manufacturer_code(1407);
+    static std::shared_ptr<isobus::InternalControlFunction> icf;
+    if (!icf) icf = isobus::CANNetworkManager::CANNetwork.create_internal_control_function(name, 0, 0x3E);
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    while (!icf->get_address_valid() && std::chrono::steady_clock::now() < deadline) {
+        isobus::CANHardwareInterface::update();
+    }
+    assertTrue(icf->get_address_valid());
+    assertEqual((int)icf->get_address(), 0x3E);
+    IsobusGuidanceChannel::RegisterRequestHandlers(icf);
+
+    // Straight into the network manager's receive path, as the VT tests'
+    // ClaimAddress() does; what we send comes back out on the fake bus.
+    // 0x2B claims first, with its NAME from the session 17 capture: AgIsoStack
+    // only acknowledges (or NACKs) a request from a control function it knows.
+    isobus::CANMessageFrame claim = {};
+    claim.identifier      = 0x18EEFF2Bu;
+    claim.isExtendedFrame = true;
+    claim.dataLength      = 8;
+    const std::uint64_t inCommand2B = 0x800081000C206EB1ULL;
+    for (int i = 0; i < 8; i++) claim.data[i] = static_cast<std::uint8_t>(inCommand2B >> (8 * i));
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(claim);
+    isobus::CANNetworkManager::CANNetwork.update();
+
+    bus->Clear();
+    isobus::CANMessageFrame request = {};
+    request.identifier      = 0x18EA3E2Bu;                  // PGN 59904, 0x2B -> 0x3E
+    request.isExtendedFrame = true;
+    request.dataLength      = 3;
+    request.data[0] = 0x00; request.data[1] = 0xEE; request.data[2] = 0x00;   // asks for PGN 60928
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(request);
+    for (int i = 0; i < 50; i++) {
+        isobus::CANNetworkManager::CANNetwork.update();
+        isobus::CANHardwareInterface::update();
+    }
+
+    bool claimed = false, nacked = false;
+    for (const auto& frame : bus->tx) {
+        if ((frame.identifier & 0xFF) != 0x3E) continue;
+        if (((frame.identifier >> 8) & 0xFFFF) == 0xEEFF) claimed = true;
+        const bool isAck = ((frame.identifier >> 16) & 0xFF) == 0xE8;
+        if (isAck && frame.dataLength >= 8 && frame.data[0] == 0x01 &&
+            frame.data[5] == 0x00 && frame.data[6] == 0xEE && frame.data[7] == 0x00) {
+            nacked = true;
+        }
+    }
+    assertTrue(claimed);
+    assertFalse(nacked);
 }
 
 // ---------------------------------------------------------------------------

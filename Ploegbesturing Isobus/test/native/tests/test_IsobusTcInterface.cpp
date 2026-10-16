@@ -45,6 +45,7 @@
 #pragma pop_macro("min")
 
 #include "FakeCanPlugin.hpp"
+#include "TestBus.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 
 using namespace aunit;
@@ -123,11 +124,9 @@ IsobusTcInterface* tcInterface = nullptr;
 IsobusTcInterface& Fixture() {
     if (tcInterface == nullptr) {
         EEPROM.eepromReset();
-        auto plugin = std::make_shared<FakeCanPlugin>();
-        tcPlugin = plugin.get();
-        isobus::CANHardwareInterface::set_number_of_can_channels(1);
-        isobus::CANHardwareInterface::assign_can_channel_frame_handler(0, plugin);
-        isobus::CANHardwareInterface::start();
+        // The binary's one fake bus: started here or by whichever test needed
+        // it first (TestBus.hpp).
+        tcPlugin = SharedTestBus();
 
         // The identity main.cpp claims, near enough: what matters here is that
         // a real InternalControlFunction exists, because buildDdop() reads its
