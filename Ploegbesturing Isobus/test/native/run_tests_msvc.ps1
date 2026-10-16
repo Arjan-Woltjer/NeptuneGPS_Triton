@@ -96,6 +96,7 @@ $clArgs = @(
     "`"$lib\InterfacePlough.cpp`""
     "`"$lib\calibration\CalibrationPlough.cpp`""
     "`"$lib\isobus\VTObjectPool.cpp`""
+    "`"$lib\isobus\VTImages.generated.cpp`""
     "`"$guidance\NmeaParser.cpp`""
     "`"$guidance\TrimbleParser.cpp`""
     "`"$guidance\CanSerialParser.cpp`""
