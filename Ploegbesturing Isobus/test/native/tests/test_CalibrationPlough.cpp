@@ -1,8 +1,9 @@
 /*
   test_CalibrationPlough - Tests for the persistence side of the plough's
-  calibration wizard: the RTK quality byte it owns since #82 is read at
-  construction, an erased or corrupt byte falls back, and the debug dump
-  reports the live value (NeptuneGPS_Triton#88).
+  calibration wizard: the RTK quality byte it owns since #82 and the receiver
+  rate index the serial builds' boot autodetect stores are read at
+  construction, an erased or corrupt byte falls back, CommitGuidanceCalibration
+  writes both, and the debug dump reports the live values (NeptuneGPS_Triton#88).
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -48,7 +49,67 @@ static void resetAll() {
 }
 
 test(CalibrationPlough, eepromSlot_isTheOneVehicleGpsUsed) {
+    assertEqual(CalibrationPlough::kEepromGpsBaudIndex, 10);
     assertEqual(CalibrationPlough::kEepromRtkQuality, 11);
+}
+
+test(CalibrationPlough, erasedEeprom_keepsRateIndex0) {
+    resetAll();
+    ImplementPlough impl(nullptr, &calGuidance);
+    InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
+    CalibrationPlough cal(nullptr, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    assertEqual((int)cal.GetGpsBaudIndex(), 0);
+}
+
+test(CalibrationPlough, storedByte10_restoresRateIndex) {
+    resetAll();
+    EEPROM.write(CalibrationPlough::kEepromGpsBaudIndex, 7);   // 4800 x 24 = 115200
+    ImplementPlough impl(nullptr, &calGuidance);
+    InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
+    CalibrationPlough cal(nullptr, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    assertEqual((int)cal.GetGpsBaudIndex(), 7);
+}
+
+test(CalibrationPlough, storedByte10_corrupt_wrapsModuloEight) {
+    resetAll();
+    EEPROM.write(CalibrationPlough::kEepromGpsBaudIndex, 9);   // wraps to 1
+    ImplementPlough impl(nullptr, &calGuidance);
+    InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
+    CalibrationPlough cal(nullptr, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    assertEqual((int)cal.GetGpsBaudIndex(), 1);
+    cal.SetGpsBaudIndex(200);
+    assertEqual((int)cal.GetGpsBaudIndex(), 0);
+}
+
+test(CalibrationPlough, commit_writesRateIndexAndQuality_andBootReadsThemBack) {
+    resetAll();
+    ImplementPlough impl(nullptr, &calGuidance);
+    InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
+    CalibrationPlough cal(nullptr, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    cal.SetGpsBaudIndex(7);
+    calGuidance.SetRtkQuality(2);
+    cal.CommitGuidanceCalibration();
+    assertEqual((int)EEPROM.read(CalibrationPlough::kEepromGpsBaudIndex), 7);
+    assertEqual((int)EEPROM.read(CalibrationPlough::kEepromRtkQuality), 2);
+
+    // A board coming back up reads exactly what was committed.
+    calGuidance = GuidanceSource();
+    ImplementPlough impl2(nullptr, &calGuidance);
+    InterfacePlough iface2(nullptr, &calLcd, &impl2, &calTractor, &calGuidance);
+    CalibrationPlough again(nullptr, &calLcd, &impl2, &calTractor, &calGuidance, &iface2);
+    assertEqual((int)again.GetGpsBaudIndex(), 7);
+    assertEqual((int)calGuidance.GetRtkQuality(), 2);
+}
+
+test(CalibrationPlough, printCalibrationData_reportsTheLiveRate) {
+    resetAll();
+    EEPROM.write(CalibrationPlough::kEepromGpsBaudIndex, 7);
+    CalCaptureStream dbg;
+    ImplementPlough impl(nullptr, &calGuidance);
+    InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
+    CalibrationPlough cal(&dbg, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    cal.PrintCalibrationData();
+    assertTrue(dbg.has("Baudrate\n115200\n"));
 }
 
 test(CalibrationPlough, erasedEeprom_keepsGuidanceDefaultRtkFixed) {
@@ -89,6 +150,7 @@ test(CalibrationPlough, constructor_doesNotWriteEeprom) {
     ImplementPlough impl(nullptr, &calGuidance);
     InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
     CalibrationPlough cal(nullptr, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    assertEqual((int)EEPROM.read(CalibrationPlough::kEepromGpsBaudIndex), 255);
     assertEqual((int)EEPROM.read(CalibrationPlough::kEepromRtkQuality), 255);
 }
 

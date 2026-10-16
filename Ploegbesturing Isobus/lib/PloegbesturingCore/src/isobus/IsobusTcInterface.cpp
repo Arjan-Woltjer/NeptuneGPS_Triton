@@ -33,10 +33,10 @@
 #pragma push_macro("max")
 #undef min
 #undef max
-#include <can_NAME_filter.hpp>
-#include <can_network_manager.hpp>
-#include <isobus_standard_data_description_indices.hpp>
-#include <isobus_task_controller_client_objects.hpp>
+#include <isobus/isobus/can_NAME_filter.hpp>
+#include <isobus/isobus/can_network_manager.hpp>
+#include <isobus/isobus/isobus_standard_data_description_indices.hpp>
+#include <isobus/isobus/isobus_task_controller_client_objects.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -325,22 +325,22 @@ void IsobusTcInterface::buildDdop() {
     // the tramline DDIs in a dedicated function element -- here alongside
     // 513/514, which already live on Ploughbody.
     ddop->add_device_property("Tramline Control Level", kTramlineControlLevelsSupported,
-                               static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlLevel),
+                               static_cast<std::uint16_t>(DataDescriptionIndex::SupportedTrackControlLevels),
                                NULL_OBJECT_ID, kObjTramlineLevel);
     // Settable: the TC writes this one to us, same direction as 513/514.
     ddop->add_device_process_data("Setpoint Tramline Control Level",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTrackControlLevel),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTramlineSetpointLevel);
     // Written to us by the TC, like everything else here except 505. Nothing
     // computes anything behind them yet -- see kTramlineControlLevelsSupported
     // -- so a read of 515 answers with our real state, which is "manual/off".
     ddop->add_device_process_data("Tramline Sequence Number",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackSequenceNumber),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTramlineSequence);
     ddop->add_device_process_data("Tramline Control State",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTramlineState);
     // Guidance-track information the TC pushes to us. Latched for the debug
@@ -352,19 +352,19 @@ void IsobusTcInterface::buildDdop() {
     // legitimately reject, which would be indistinguishable from the tramline
     // handshake failing -- the exact question this DDOP exists to answer.
     ddop->add_device_process_data("Unique A-B Guidance Ref Line ID",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::UniqueGuidanceReferenceLineID),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjAbLineId);
     ddop->add_device_process_data("Actual Track Number",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualTrackNumber),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualGuidanceTrackNumber),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjActualTrack);
     ddop->add_device_process_data("Track Number to the Right",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheRight),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheRight),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTrackRight);
     ddop->add_device_process_data("Track Number to the Left",
-                                   static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheLeft),
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheLeft),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTrackLeft);
 
@@ -600,7 +600,7 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastQualityUpdate = millis();
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel):  // 506
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTrackControlLevel):  // 506
             // The Tramline Control probe's answer (GitHub issue #21). Latched
             // separately from lastValueCommandDdi, which any later DDI would
             // overwrite -- the whole point of the probe is that this arrived
@@ -612,7 +612,7 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastTramlineSetpointMs  = millis();
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber):  // 507
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackSequenceNumber):  // 507
             // Starts at 1 and increments per sequence, so 0 stays a usable
             // "never seen" marker.
             self->tramlineSequenceNumber = processVariableValue;
@@ -620,32 +620,32 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastGuidanceTrackMs    = millis();
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState):  // 515
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState):  // 515
             // What the TC asked us to be. What we actually are is answered in
             // OnValueRequest, and it is not this.
             self->commandedTrackControlState = processVariableValue;
             self->trackControlStateSeen      = true;
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID):  // 508
+        case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueGuidanceReferenceLineID):  // 508
             self->abLineId            = processVariableValue;
             self->guidanceTrackSeen   = true;
             self->lastGuidanceTrackMs = millis();
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualTrackNumber):  // 509
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualGuidanceTrackNumber):  // 509
             self->actualTrackNumber   = processVariableValue;
             self->guidanceTrackSeen   = true;
             self->lastGuidanceTrackMs = millis();
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheRight):  // 510
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheRight):  // 510
             self->trackNumberRight    = processVariableValue;
             self->guidanceTrackSeen   = true;
             self->lastGuidanceTrackMs = millis();
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheLeft):  // 511
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheLeft):  // 511
             self->trackNumberLeft     = processVariableValue;
             self->guidanceTrackSeen   = true;
             self->lastGuidanceTrackMs = millis();
@@ -691,7 +691,7 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
             processVariableValue = self->tcGnssQuality;
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineSequenceNumber):  // 507
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackSequenceNumber):  // 507
             processVariableValue = self->tramlineSequenceNumber;
             break;
 
@@ -700,28 +700,28 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
         // stay there until something actually performs track control -- see
         // kTramlineControlLevelsSupported. Answering with the commanded value
         // instead would be a lie the TC has no way to detect.
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TramlineControlState):  // 515
+        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState):  // 515
             processVariableValue = kReportedTrackControlState;
             break;
 
         // Echoes of what the TC last wrote to us.
-        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTramlineControlLevel):  // 506
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTrackControlLevel):  // 506
             processVariableValue = self->tramlineSetpointSeen ? self->tramlineSetpointLevel : 0;
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueABGuidanceReferenceLineID):
+        case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueGuidanceReferenceLineID):
             processVariableValue = self->abLineId;
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualTrackNumber):
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualGuidanceTrackNumber):
             processVariableValue = self->actualTrackNumber;
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheRight):
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheRight):
             processVariableValue = self->trackNumberRight;
             break;
 
-        case static_cast<std::uint16_t>(DataDescriptionIndex::TrackNumberToTheLeft):
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheLeft):
             processVariableValue = self->trackNumberLeft;
             break;
 
