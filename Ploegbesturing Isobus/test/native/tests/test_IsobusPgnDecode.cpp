@@ -172,13 +172,25 @@ test(IsobusPgnDecode, legacyPosition_shortFrame_notFixPresent) {
 
 // --- DecodeLegacySpeed ---------------------------------------------------------
 
-test(IsobusPgnDecode, legacySpeed_validRaw_dividesBy256) {
-    // val = (d[3]<<8)|d[2] = 512 -> 2.0 knots.
+test(IsobusPgnDecode, legacySpeed_validRaw_isKmhPer256) {
+    // J1939 SPN 517: val = (d[3]<<8)|d[2] = 512 -> 2.0 km/h = 1.0799 knots.
     uint8_t d[8] = { 0, 0, 0x00, 0x02, 0, 0, 0, 0 };
     auto r = DecodeLegacySpeed(d, 8);
     assertTrue(r.lengthOk);
     assertTrue(r.valid);
-    assertTrue(near(r.speedKnots, 2.0f, 0.001f));
+    assertTrue(near(r.speedKnots, 1.0799f, 0.001f));
+}
+
+// Real frame, Ag Leader InCommand 1200 on a CNH, 2026-10-03 (#204): raw 0x021D
+// = 541 -> 2.113 km/h, which the InCommand itself displayed as 2.1 km/h. Read
+// as knots it came out as 3.9 km/h. 1013 StarFire/TECU pairs in card log 30
+// agree (ratio 1.03 as km/h, 1.90 as knots).
+test(IsobusPgnDecode, legacySpeed_inCommandFrame_matchesTerminalKmh) {
+    uint8_t d[8] = { 0xFF, 0xFF, 0x1D, 0x02, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.valid);
+    assertTrue(near(r.speedKnots * 1.852f, 2.113f, 0.001f));   // km/h
+    assertTrue(near(r.speedKnots, 1.1411f, 0.001f));
 }
 
 // --- PGN 65256 is course + speed + altitude -- GitHub issue #37 ------------
@@ -187,13 +199,13 @@ test(IsobusPgnDecode, legacySpeed_validRaw_dividesBy256) {
 
 // Cross-validation against known_good_sentences fixture
 // "$0CFEE81C,002D00020000804F", which test_GpsParsers asserts CanSerialParser
-// decodes as course=90.0deg speed=2.0kn alt=44.0m. Agreeing here means all
-// three scales match math verified against real hardware years ago.
+// decodes as course=90.0deg speed=2.0km/h (1.0799 kn) alt=44.0m. Agreeing
+// here means both decoders read the same J1939 scales (#37, #204).
 test(IsobusPgnDecode, legacySpeed_allThreeFields_matchSerialParserFixture) {
     uint8_t d[8] = { 0x00, 0x2D, 0x00, 0x02, 0x00, 0x00, 0x80, 0x4F };
     auto r = DecodeLegacySpeed(d, 8);
     assertTrue(r.valid);
-    assertTrue(near(r.speedKnots, 2.0f, 0.001f));
+    assertTrue(near(r.speedKnots, 1.0799f, 0.001f));
     assertTrue(r.hasCourse);
     assertTrue(near(r.courseDeg, 90.0f, 0.01f));
     assertTrue(r.hasAltitude);
@@ -206,7 +218,7 @@ test(IsobusPgnDecode, legacySpeed_realBusPayload_decodesCourseAndAltitude) {
     uint8_t d[8] = { 0x49, 0x3B, 0x01, 0x00, 0xFB, 0x63, 0x42, 0x4E };
     auto r = DecodeLegacySpeed(d, 8);
     assertTrue(r.valid);
-    assertTrue(near(r.speedKnots, 0.0039f, 0.001f));
+    assertTrue(near(r.speedKnots, 0.0021f, 0.0005f));   // 1/256 km/h
     assertTrue(r.hasCourse);
     assertTrue(near(r.courseDeg, 118.57f, 0.01f));
     assertTrue(r.hasAltitude);

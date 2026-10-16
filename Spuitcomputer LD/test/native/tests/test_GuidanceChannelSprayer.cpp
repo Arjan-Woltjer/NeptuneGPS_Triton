@@ -136,12 +136,13 @@ test(GuidanceChannelSprayer, trimble_frame_commits_only_with_good_outer_checksum
     assertEqual(g.GetXte(), 5);
 }
 
+// PGN 65256 speed is 1/256 km/h (J1939 SPN 517, #204): 2.0 km/h = 1.0799 kt.
 test(GuidanceChannelSprayer, can_serial_legacy_speed_line) {
     GuidanceSource g; GpsPort port; SerialGuidanceChannel ch(nullptr, &port, &g);
     port.Feed(nmea("0CFEE81C,002D00020000804F"));
     assertTrue(ch.Update());
     assertTrue(near(g.GetCourse(), 90.0f, 0.01f));
-    assertTrue(near(g.GetSpeed(), 2.0f, 0.01f));
+    assertTrue(near(g.GetSpeed(), 1.0799f, 0.001f));
     assertTrue(near(g.GetAltitude(), 44.0f, 0.01f));
 }
 
