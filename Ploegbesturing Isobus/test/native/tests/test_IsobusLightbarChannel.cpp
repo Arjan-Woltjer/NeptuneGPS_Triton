@@ -127,21 +127,36 @@ test(IsobusLightbarChannel, xte_engagedFrame_commits) {
     assertEqual((int)c.lastXte.rawPayload[6], 0x93);
 }
 
-// Log 42, 181.9 s: 148 cm right but line state 1 (no solution) -> counted,
-// raw kept, nothing committed; GuidanceSource keeps what it had.
-test(IsobusLightbarChannel, xte_noSolution_countedNotCommitted) {
+// Log 42, 181.9 s: 148 cm right with byte 2 = 1 -- the AB line (session 17),
+// not "no solution" -> committed.
+test(IsobusLightbarChannel, xte_abLine_commits) {
     GuidanceSource guidance;
     guidance.SetXte(-250);
     IsobusLightbarChannel channel(nullptr, &guidance);
     const std::uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
     IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
 
+    assertEqual(guidance.GetXte(), 148);
+    const auto& c = channel.GetCounters();
+    assertEqual(c.xteFrames, (std::uint32_t)1);
+    assertEqual(c.xteCommitted, (std::uint32_t)1);
+    assertFalse(c.lastXte.engaged);
+}
+
+// Session 17, 09:21:25.650: the display up without a line yet (byte 7 = 1) ->
+// counted, raw kept, nothing committed; GuidanceSource keeps what it had.
+test(IsobusLightbarChannel, xte_noLine_countedNotCommitted) {
+    GuidanceSource guidance;
+    guidance.SetXte(-250);
+    IsobusLightbarChannel channel(nullptr, &guidance);
+    const std::uint8_t d[8] = { 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x22, 0x01 };
+    IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
+
     assertEqual(guidance.GetXte(), -250);
     const auto& c = channel.GetCounters();
     assertEqual(c.xteFrames, (std::uint32_t)1);
     assertEqual(c.xteCommitted, (std::uint32_t)0);
-    assertEqual((int)c.lastXte.magnitudeCm, 148);
-    assertFalse(c.lastXte.engaged);
+    assertEqual((int)c.lastXte.rawPayload[7], 0x01);
 }
 
 // 220 s: 34 cm left -> -0.34 m.

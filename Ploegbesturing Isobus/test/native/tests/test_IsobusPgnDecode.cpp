@@ -791,18 +791,20 @@ test(IsobusPgnDecode, allImplementStop_shortFrame_lengthNotOk) {
 }
 
 // --- DecodeXteAgLeaderLightbar, PGN 65462 -----------------------------------
-// Frames from upload session 56 (session 16, 2026-10-13, InCommand 1200 display
-// function 0xF5), times CEST. The XTE is committed on line state 2 and 3, engaged
-// or not (owner's decision 2026-10-13).
+// Frames from upload sessions 56 and 57 (sessions 16 and 17, InCommand 1200 display
+// function 0xF5), times CEST. The XTE is committed whenever byte 7 = 4, engaged or
+// not (owner's decisions 2026-10-13 and 2026-10-16).
 
-// 20:57:30.072, by hand 90 cm right of the line, autosteer NOT engaged, state 3:
-// the frame the old rule (state == 2 only) dropped for a whole pass.
-test(IsobusPgnDecode, lightbarXte_state3NotEngaged_commits) {
+// Session 16, 20:57:30.072, by hand 90 cm right of the line, autosteer NOT engaged,
+// on 2L (byte 2 = 3, byte 6 bit 4).
+test(IsobusPgnDecode, lightbarXte_pass2NotEngaged_commits) {
     uint8_t d[8] = { 0x5A, 0x00, 0x03, 0x00, 0x1B, 0x01, 0x91, 0x04 };
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
     assertFalse(r.engaged);
-    assertEqual((int)r.lineState, 3);
+    assertTrue(r.hasPass);
+    assertEqual((int)r.pass, 2);
+    assertTrue(r.passLeftOfAbLine);
     assertEqual(r.xteHundredthsMeter, 90);
 }
 
@@ -825,12 +827,13 @@ test(IsobusPgnDecode, lightbarXte_leftIsByte6Bit6) {
     assertEqual(r.xteHundredthsMeter, -137);
 }
 
-// 20:59:58.040, line state 2 after the headland turn, 131 cm right.
-test(IsobusPgnDecode, lightbarXte_state2_commits) {
+// Session 16, 20:59:58.040, onto 1L after the headland turn, 131 cm right.
+test(IsobusPgnDecode, lightbarXte_pass1Left_commits) {
     uint8_t d[8] = { 0x83, 0x00, 0x02, 0x00, 0x66, 0x01, 0x91, 0x04 };
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
-    assertEqual((int)r.lineState, 2);
+    assertEqual((int)r.pass, 1);
+    assertTrue(r.passLeftOfAbLine);
     assertEqual(r.xteHundredthsMeter, 131);
 }
 
@@ -850,19 +853,92 @@ test(IsobusPgnDecode, lightbarXte_displayBooting_notValid) {
     uint8_t d[8] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.lengthOk);
+    assertFalse(r.hasPass);
     assertFalse(r.valid);
 }
 
-// 20:47:20.018, display up, no line yet (state 1, byte 7 = 1); and log 42's
-// state-1 frame with a line present: neither is committed.
-test(IsobusPgnDecode, lightbarXte_noSolution_notValid) {
+// Display up, no line yet (byte 7 = 1): session 16 20:47:20.018 and session 17
+// 09:21:25.650 send the same frame. Not committed.
+test(IsobusPgnDecode, lightbarXte_noLine_notValid) {
     uint8_t noLine[8] = { 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x22, 0x01 };
-    assertFalse(DecodeXteAgLeaderLightbar(noLine, 8).valid);
-    uint8_t state1[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
-    auto r = DecodeXteAgLeaderLightbar(state1, 8);
-    assertTrue(r.hasLine);
-    assertFalse(r.hasSolution);
+    auto r = DecodeXteAgLeaderLightbar(noLine, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.hasLine);
+    assertFalse(r.hasPass);
     assertFalse(r.valid);
+}
+
+// --- Session 17 (2026-10-16, upload session 57): byte 2 is the pass number ---
+// Byte 2 = |pass| + 1, so the AB line sends 1 and the third pass out sends 4.
+// The 2745ff4 rule (commit on byte 2 = 2 or 3) dropped both; byte 7 = 4 is the
+// only validity.
+
+// 09:27:10.499, on the AB line, autosteer engaged and converging, 34 cm right.
+// The old rule froze the XTE here for 75 s.
+test(IsobusPgnDecode, lightbarXte_abLineEngaged_commits) {
+    uint8_t d[8] = { 0x22, 0x00, 0x01, 0x00, 0x2E, 0x01, 0xA3, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertTrue(r.engaged);
+    assertEqual(r.xteHundredthsMeter, 34);
+    assertTrue(r.hasPass);
+    assertEqual((int)r.pass, 0);
+    assertFalse(r.passLeftOfAbLine);
+}
+
+// 09:27:22.901, on the AB line, exactly on it, engaged.
+test(IsobusPgnDecode, lightbarXte_abLineOnTheLine_zero) {
+    uint8_t d[8] = { 0x00, 0x00, 0x01, 0x00, 0x2E, 0x01, 0x23, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 0);
+}
+
+// Log 42 (2026-10-08), 181.9 s: 148 cm right with byte 2 = 1. Once read as
+// "no solution", it is the AB line.
+test(IsobusPgnDecode, lightbarXte_log42AbLine_commits) {
+    uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 148);
+}
+
+// 09:28:31.861, overshooting onto 3L (byte 2 = 4), 2 cm left.
+test(IsobusPgnDecode, lightbarXte_pass3Left_commits) {
+    uint8_t d[8] = { 0x02, 0x00, 0x04, 0x00, 0x68, 0x00, 0x51, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, -2);
+    assertEqual((int)r.pass, 3);
+    assertTrue(r.passLeftOfAbLine);
+}
+
+// 1R and 1L send the same byte 2 (2); only byte 6 bit 4/5 tells them apart.
+// 09:31:58.162 on 1R, 103 cm right; 09:31:13.583 on 1L, 1 cm left.
+test(IsobusPgnDecode, lightbarXte_pass1RightAndLeft_commit) {
+    uint8_t right[8] = { 0x67, 0x00, 0x02, 0x00, 0x98, 0x00, 0xA1, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(right, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 103);
+    assertEqual((int)r.pass, 1);
+    assertFalse(r.passLeftOfAbLine);
+    uint8_t left[8] = { 0x01, 0x00, 0x02, 0x00, 0x95, 0x00, 0x51, 0x04 };
+    auto l = DecodeXteAgLeaderLightbar(left, 8);
+    assertTrue(l.valid);
+    assertEqual(l.xteHundredthsMeter, -1);
+    assertEqual((int)l.pass, 1);
+    assertTrue(l.passLeftOfAbLine);
+}
+
+// Session 16, 21:03:45.381: the last frame of that session, byte 2 = 0x0B after
+// driving across the field, i.e. pass 10. 41 cm left.
+test(IsobusPgnDecode, lightbarXte_pass10_commits) {
+    uint8_t d[8] = { 0x29, 0x00, 0x0B, 0x00, 0xD7, 0x00, 0x61, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, -41);
+    assertEqual((int)r.pass, 10);
+    assertFalse(r.passLeftOfAbLine);
 }
 
 // A non-zero magnitude with no side bit, or with both, was never seen: not
