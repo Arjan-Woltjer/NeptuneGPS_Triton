@@ -103,7 +103,7 @@ void CanSerialParser::parseTerm(byte termNumber, const char* term) {
 
             val = ((unsigned long)hexToInt(term[6]) << 12) | ((unsigned long)hexToInt(term[7]) << 8)
                 | ((unsigned long)hexToInt(term[4]) << 4) | hexToInt(term[5]);
-            newSpeed = float(val) / 256;
+            newSpeed = float(val) / 256 / 1.852f;   // SPN 517 is 1/256 km/h; stored as knots (#204)
 
             val = ((unsigned long)hexToInt(term[14]) << 12) | ((unsigned long)hexToInt(term[15]) << 8)
                 | ((unsigned long)hexToInt(term[12]) << 4) | hexToInt(term[13]);
