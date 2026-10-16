@@ -23,11 +23,26 @@
 // Defines for serial ports
 #define SERIALDATARATE    115200    // Serial USB
 
-// Defines for boardtype
-#define TEENSY      //Teensy on productionboard
+// Defines for boardtype. TEENSY40 is selected from platformio.ini
+// ([env:teensy40_isobus] passes -D TEENSY40) rather than edited in here, so
+// one tree builds both Teensy boards. Without any board flag the Teensy 4.1
+// production board (besturing 0.1) is the default, exactly as before.
+#if !defined(TEENSY40) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
+#define TEENSY      //Teensy 4.1 on productionboard (besturing 0.1)
+#endif
+//#define TEENSY40    // Teensy 4.0 board: CAN on FLEXCAN1 (22/23), see ConfigImplementPlough.hpp
 //#define TEENSYPROTO // Teensy 3.5 or 3.6 on protoboard
 //#define MICRO       // Arduino Micro
 //#define VOORSERIE   // Arduino Uno pre-series board
+
+// ISOBUS CAN peripheral per board, as an AgIsoStack FlexCANT4Plugin channel
+// number: 0 = FLEXCAN1 (pins 22 TX / 23 RX), 1 = FLEXCAN2 (1 / 0),
+// 2 = FLEXCAN3 (31 / 30). Consumed by main.cpp.
+#ifdef TEENSY40
+#define ISOBUS_CAN_CHANNEL  0   // FLEXCAN1: pins 22 TX / 23 RX
+#else
+#define ISOBUS_CAN_CHANNEL  2   // FLEXCAN3: pins 31 TX / 30 RX, bodge-wired on besturing 0.1
+#endif
 
 //#define ROTATION
 //#define PWM_MAN

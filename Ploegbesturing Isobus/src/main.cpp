@@ -28,6 +28,15 @@
 #include "VehicleTractor.hpp"
 
 #ifdef ISOBUS
+// The FlexCAN plugin used to arrive through the AgIsoStack.hpp umbrella the
+// Arduino packaging generated; AgIsoStack-plus-plus has no umbrella (#189).
+#pragma push_macro("min")
+#pragma push_macro("max")
+#undef min
+#undef max
+#include <isobus/hardware_integration/flex_can_t4_plugin.hpp>
+#pragma pop_macro("max")
+#pragma pop_macro("min")
 #include "isobus/IsobusDebugMenu.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
 #include "isobus/IsobusVtInterface.hpp"
@@ -117,12 +126,12 @@ void setup() {
     gImplement->PrintCalibrationData();
 
 #ifdef ISOBUS
-    // Board-specific CAN wiring: besturing 0.1's CAN transceiver is bodge-wired
-    // to FLEXCAN3 (Teensy pins 31 TX / 30 RX), not the FlexCAN1 default (22/23)
-    // -- see MeijWorks Hardware/Triton/MeijWorks besturing 0.1/Design documents/
-    // teensy41-application-note.md. Constructed here, next to gSerialGps below,
-    // so a future board revision only needs this one line changed.
-    constexpr std::uint8_t kIsobusCanChannel = 2;   // FLEXCAN3
+    // Board-specific CAN wiring, chosen in ConfigPlough.hpp per board:
+    // besturing 0.1 (Teensy 4.1) has its CAN transceiver bodge-wired to
+    // FLEXCAN3 (pins 31 TX / 30 RX), not the FlexCAN1 default (22/23) -- see
+    // MeijWorks Hardware/Triton/MeijWorks besturing 0.1/Design documents/
+    // teensy41-application-note.md. The Teensy 4.0 board uses FLEXCAN1 on 22/23.
+    constexpr std::uint8_t kIsobusCanChannel = ISOBUS_CAN_CHANNEL;
     auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(kIsobusCanChannel);
 
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
