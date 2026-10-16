@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfacePlough.hpp"
+#include "PloughGates.hpp"
+#include "TritonIo.hpp"
 
 namespace triton
 {
@@ -35,22 +37,17 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
                                  tractor(tractor),
                                  guidance(guidance) {
     // Pin assignments and configuration
-    // Schmitt triggered inputs
-    pinMode(LEFT_BUTTON_2, INPUT);
-    digitalWrite(LEFT_BUTTON_2, LOW);
-    pinMode(RIGHT_BUTTON_2, INPUT);
-    digitalWrite(RIGHT_BUTTON_2, LOW);
-    pinMode(MODE_PIN_2, INPUT);
-    digitalWrite(MODE_PIN_2, LOW);
+    // Schmitt triggered inputs (GPIO on the Teensy/Arduino boards, the
+    // MCP23008 expander on Triton01 -- TritonIo.hpp hides the difference)
+    triton::ConfigureDigitalInput(LEFT_BUTTON_2, false);
+    triton::ConfigureDigitalInput(RIGHT_BUTTON_2, false);
+    triton::ConfigureDigitalInput(MODE_PIN_2, false);
     // The Micro and pre-series boards have no joystick inputs, and their
     // config headers define no JOY_ pins.
 #ifdef JOY_MODE_2
-    pinMode(JOY_LEFT_2, INPUT);
-    digitalWrite(JOY_LEFT_2, LOW);
-    pinMode(JOY_RIGHT_2, INPUT);
-    digitalWrite(JOY_RIGHT_2, LOW);
-    pinMode(JOY_MODE_2, INPUT);
-    digitalWrite(JOY_MODE_2, LOW);
+    triton::ConfigureDigitalInput(JOY_LEFT_2, false);
+    triton::ConfigureDigitalInput(JOY_RIGHT_2, false);
+    triton::ConfigureDigitalInput(JOY_MODE_2, false);
 #endif
 
     // Mode
@@ -89,8 +86,8 @@ void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed, bool v
     // ------
     // Manual
     // ------
-    if (!digitalRead(MODE_PIN_2) ||
-        //digitalRead(JOY_MODE_2) ||
+    if (!triton::ReadDigital(MODE_PIN_2) ||
+        //triton::ReadDigital(JOY_MODE_2) ||
         tractor->GetHitch()) {
         // set mode to manual
         mode = 2;
@@ -103,12 +100,8 @@ void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed, bool v
     // ----
     // Hold
     // ----
-    else if (millis() - guidance->GetGgaTimestamp() > 2000 ||
-             millis() - guidance->GetVtgTimestamp() > 2000 ||
-             millis() - guidance->GetXteTimestamp() > 2000 ||
-             !guidance->IsRtkQuality() ||
-             !guidance->MinSpeed()
-            ) {
+    // (PloughGates.hpp: the same two checks drive the VT's indicators.)
+    else if (!GpsReadyToSteer(*guidance, millis()) || !SpeedReadyToSteer(*guidance)) {
         // set mode to hold
         mode = 1;
 
@@ -414,7 +407,7 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
     // of from a stale timestamp (that matters most after Calibrate(), which
     // blocks for as long as the operator takes to walk the wizard).
     // Check for left/right button presses
-    if ((digitalRead(LEFT_BUTTON_2)) && (digitalRead(RIGHT_BUTTON_2))) {
+    if ((triton::ReadDigital(LEFT_BUTTON_2)) && (triton::ReadDigital(RIGHT_BUTTON_2))) {
         if (millis() - button1Timer >= delay1 * 4) {
             button1Flag = true;
             buttons = 2;
@@ -431,7 +424,7 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
         buttons = 2;
         return 2;
     }
-    else if (digitalRead(LEFT_BUTTON_2)) { // || digitalRead(JOY_LEFT_2)){
+    else if (triton::ReadDigital(LEFT_BUTTON_2)) { // || triton::ReadDigital(JOY_LEFT_2)){
         if (millis() - button2Timer >= delay2) {
             button2Flag = true;
             buttons = -1;
@@ -448,7 +441,7 @@ short int InterfacePlough::CheckButtons(byte delay1, byte delay2, bool vtWiderPr
         buttons = -1;
         return -1;
     }
-    else if (digitalRead(RIGHT_BUTTON_2)) { // || digitalRead(JOY_RIGHT_2)){
+    else if (triton::ReadDigital(RIGHT_BUTTON_2)) { // || triton::ReadDigital(JOY_RIGHT_2)){
         if (millis() - button2Timer >= delay2) {
             button2Flag = true;
             buttons = 1;

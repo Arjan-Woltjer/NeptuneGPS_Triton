@@ -172,13 +172,25 @@ test(IsobusPgnDecode, legacyPosition_shortFrame_notFixPresent) {
 
 // --- DecodeLegacySpeed ---------------------------------------------------------
 
-test(IsobusPgnDecode, legacySpeed_validRaw_dividesBy256) {
-    // val = (d[3]<<8)|d[2] = 512 -> 2.0 knots.
+test(IsobusPgnDecode, legacySpeed_validRaw_isKmhPer256) {
+    // J1939 SPN 517: val = (d[3]<<8)|d[2] = 512 -> 2.0 km/h = 1.0799 knots.
     uint8_t d[8] = { 0, 0, 0x00, 0x02, 0, 0, 0, 0 };
     auto r = DecodeLegacySpeed(d, 8);
     assertTrue(r.lengthOk);
     assertTrue(r.valid);
-    assertTrue(near(r.speedKnots, 2.0f, 0.001f));
+    assertTrue(near(r.speedKnots, 1.0799f, 0.001f));
+}
+
+// Real frame, Ag Leader InCommand 1200 on a CNH, 2026-10-03 (#204): raw 0x021D
+// = 541 -> 2.113 km/h, which the InCommand itself displayed as 2.1 km/h. Read
+// as knots it came out as 3.9 km/h. 1013 StarFire/TECU pairs in card log 30
+// agree (ratio 1.03 as km/h, 1.90 as knots).
+test(IsobusPgnDecode, legacySpeed_inCommandFrame_matchesTerminalKmh) {
+    uint8_t d[8] = { 0xFF, 0xFF, 0x1D, 0x02, 0xFF, 0xFF, 0xFF, 0xFF };
+    auto r = DecodeLegacySpeed(d, 8);
+    assertTrue(r.valid);
+    assertTrue(near(r.speedKnots * 1.852f, 2.113f, 0.001f));   // km/h
+    assertTrue(near(r.speedKnots, 1.1411f, 0.001f));
 }
 
 // --- PGN 65256 is course + speed + altitude -- GitHub issue #37 ------------
@@ -187,13 +199,13 @@ test(IsobusPgnDecode, legacySpeed_validRaw_dividesBy256) {
 
 // Cross-validation against known_good_sentences fixture
 // "$0CFEE81C,002D00020000804F", which test_GpsParsers asserts CanSerialParser
-// decodes as course=90.0deg speed=2.0kn alt=44.0m. Agreeing here means all
-// three scales match math verified against real hardware years ago.
+// decodes as course=90.0deg speed=2.0km/h (1.0799 kn) alt=44.0m. Agreeing
+// here means both decoders read the same J1939 scales (#37, #204).
 test(IsobusPgnDecode, legacySpeed_allThreeFields_matchSerialParserFixture) {
     uint8_t d[8] = { 0x00, 0x2D, 0x00, 0x02, 0x00, 0x00, 0x80, 0x4F };
     auto r = DecodeLegacySpeed(d, 8);
     assertTrue(r.valid);
-    assertTrue(near(r.speedKnots, 2.0f, 0.001f));
+    assertTrue(near(r.speedKnots, 1.0799f, 0.001f));
     assertTrue(r.hasCourse);
     assertTrue(near(r.courseDeg, 90.0f, 0.01f));
     assertTrue(r.hasAltitude);
@@ -206,7 +218,7 @@ test(IsobusPgnDecode, legacySpeed_realBusPayload_decodesCourseAndAltitude) {
     uint8_t d[8] = { 0x49, 0x3B, 0x01, 0x00, 0xFB, 0x63, 0x42, 0x4E };
     auto r = DecodeLegacySpeed(d, 8);
     assertTrue(r.valid);
-    assertTrue(near(r.speedKnots, 0.0039f, 0.001f));
+    assertTrue(near(r.speedKnots, 0.0021f, 0.0005f));   // 1/256 km/h
     assertTrue(r.hasCourse);
     assertTrue(near(r.courseDeg, 118.57f, 0.01f));
     assertTrue(r.hasAltitude);
@@ -776,4 +788,183 @@ test(IsobusPgnDecode, allImplementStop_shortFrame_lengthNotOk) {
     auto r = DecodeAllImplementStop(d, 7);
     assertFalse(r.lengthOk);
     assertEqual((int)r.state, 0xFF);
+}
+
+// --- DecodeXteAgLeaderLightbar, PGN 65462 -----------------------------------
+// Frames from upload sessions 56 and 57 (sessions 16 and 17, InCommand 1200 display
+// function 0xF5), times CEST. The XTE is committed whenever byte 7 = 4, engaged or
+// not (owner's decisions 2026-10-13 and 2026-10-16).
+
+// Session 16, 20:57:30.072, by hand 90 cm right of the line, autosteer NOT engaged,
+// on 2L (byte 2 = 3, byte 6 bit 4).
+test(IsobusPgnDecode, lightbarXte_pass2NotEngaged_commits) {
+    uint8_t d[8] = { 0x5A, 0x00, 0x03, 0x00, 0x1B, 0x01, 0x91, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertFalse(r.engaged);
+    assertTrue(r.hasPass);
+    assertEqual((int)r.pass, 2);
+    assertTrue(r.passLeftOfAbLine);
+    assertEqual(r.xteHundredthsMeter, 90);
+}
+
+// 20:53:14.134, the engage itself: byte 6 bit 1 set, 114 cm right.
+test(IsobusPgnDecode, lightbarXte_engageIsByte6Bit1) {
+    uint8_t d[8] = { 0x72, 0x00, 0x03, 0x00, 0x2F, 0x01, 0x93, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertTrue(r.engaged);
+    assertEqual(r.xteHundredthsMeter, 114);
+}
+
+// 20:52:53.740, 137 cm left (byte 6 bit 6), not engaged.
+test(IsobusPgnDecode, lightbarXte_leftIsByte6Bit6) {
+    uint8_t d[8] = { 0x89, 0x00, 0x03, 0x00, 0x18, 0x01, 0x51, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertTrue(r.leftOfLine);
+    assertFalse(r.rightOfLine);
+    assertEqual(r.xteHundredthsMeter, -137);
+}
+
+// Session 16, 20:59:58.040, onto 1L after the headland turn, 131 cm right.
+test(IsobusPgnDecode, lightbarXte_pass1Left_commits) {
+    uint8_t d[8] = { 0x83, 0x00, 0x02, 0x00, 0x66, 0x01, 0x91, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.pass, 1);
+    assertTrue(r.passLeftOfAbLine);
+    assertEqual(r.xteHundredthsMeter, 131);
+}
+
+// 20:53:36.331, exactly on the line: neither side bit, 0 cm, engaged.
+test(IsobusPgnDecode, lightbarXte_onTheLine_zero) {
+    uint8_t d[8] = { 0x00, 0x00, 0x03, 0x00, 0x2D, 0x01, 0x13, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertFalse(r.rightOfLine);
+    assertFalse(r.leftOfLine);
+    assertTrue(r.engaged);
+    assertEqual(r.xteHundredthsMeter, 0);
+}
+
+// 20:47:15.141, the display booting: everything 0xFF, byte 7 = 0.
+test(IsobusPgnDecode, lightbarXte_displayBooting_notValid) {
+    uint8_t d[8] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.hasPass);
+    assertFalse(r.valid);
+}
+
+// Display up, no line yet (byte 7 = 1): session 16 20:47:20.018 and session 17
+// 09:21:25.650 send the same frame. Not committed.
+test(IsobusPgnDecode, lightbarXte_noLine_notValid) {
+    uint8_t noLine[8] = { 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x22, 0x01 };
+    auto r = DecodeXteAgLeaderLightbar(noLine, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.hasLine);
+    assertFalse(r.hasPass);
+    assertFalse(r.valid);
+}
+
+// --- Session 17 (2026-10-16, upload session 57): byte 2 is the pass number ---
+// Byte 2 = |pass| + 1, so the AB line sends 1 and the third pass out sends 4.
+// The 2745ff4 rule (commit on byte 2 = 2 or 3) dropped both; byte 7 = 4 is the
+// only validity.
+
+// 09:27:10.499, on the AB line, autosteer engaged and converging, 34 cm right.
+// The old rule froze the XTE here for 75 s.
+test(IsobusPgnDecode, lightbarXte_abLineEngaged_commits) {
+    uint8_t d[8] = { 0x22, 0x00, 0x01, 0x00, 0x2E, 0x01, 0xA3, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertTrue(r.engaged);
+    assertEqual(r.xteHundredthsMeter, 34);
+    assertTrue(r.hasPass);
+    assertEqual((int)r.pass, 0);
+    assertFalse(r.passLeftOfAbLine);
+}
+
+// 09:27:22.901, on the AB line, exactly on it, engaged.
+test(IsobusPgnDecode, lightbarXte_abLineOnTheLine_zero) {
+    uint8_t d[8] = { 0x00, 0x00, 0x01, 0x00, 0x2E, 0x01, 0x23, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 0);
+}
+
+// Log 42 (2026-10-08), 181.9 s: 148 cm right with byte 2 = 1. Once read as
+// "no solution", it is the AB line.
+test(IsobusPgnDecode, lightbarXte_log42AbLine_commits) {
+    uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 148);
+}
+
+// 09:28:31.861, overshooting onto 3L (byte 2 = 4), 2 cm left.
+test(IsobusPgnDecode, lightbarXte_pass3Left_commits) {
+    uint8_t d[8] = { 0x02, 0x00, 0x04, 0x00, 0x68, 0x00, 0x51, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, -2);
+    assertEqual((int)r.pass, 3);
+    assertTrue(r.passLeftOfAbLine);
+}
+
+// 1R and 1L send the same byte 2 (2); only byte 6 bit 4/5 tells them apart.
+// 09:31:58.162 on 1R, 103 cm right; 09:31:13.583 on 1L, 1 cm left.
+test(IsobusPgnDecode, lightbarXte_pass1RightAndLeft_commit) {
+    uint8_t right[8] = { 0x67, 0x00, 0x02, 0x00, 0x98, 0x00, 0xA1, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(right, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, 103);
+    assertEqual((int)r.pass, 1);
+    assertFalse(r.passLeftOfAbLine);
+    uint8_t left[8] = { 0x01, 0x00, 0x02, 0x00, 0x95, 0x00, 0x51, 0x04 };
+    auto l = DecodeXteAgLeaderLightbar(left, 8);
+    assertTrue(l.valid);
+    assertEqual(l.xteHundredthsMeter, -1);
+    assertEqual((int)l.pass, 1);
+    assertTrue(l.passLeftOfAbLine);
+}
+
+// Session 16, 21:03:45.381: the last frame of that session, byte 2 = 0x0B after
+// driving across the field, i.e. pass 10. 41 cm left.
+test(IsobusPgnDecode, lightbarXte_pass10_commits) {
+    uint8_t d[8] = { 0x29, 0x00, 0x0B, 0x00, 0xD7, 0x00, 0x61, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, -41);
+    assertEqual((int)r.pass, 10);
+    assertFalse(r.passLeftOfAbLine);
+}
+
+// A non-zero magnitude with no side bit, or with both, was never seen: not
+// committed, because a guessed sign steers the wrong way.
+test(IsobusPgnDecode, lightbarXte_sideUnknown_notValid) {
+    uint8_t neither[8] = { 0x05, 0x00, 0x03, 0x00, 0x2D, 0x01, 0x11, 0x04 };
+    assertFalse(DecodeXteAgLeaderLightbar(neither, 8).valid);
+    uint8_t both[8] = { 0x05, 0x00, 0x03, 0x00, 0x2D, 0x01, 0xD1, 0x04 };
+    assertFalse(DecodeXteAgLeaderLightbar(both, 8).valid);
+}
+
+// Length guard and the not-available / implausible magnitudes.
+test(IsobusPgnDecode, lightbarXte_guards) {
+    uint8_t shortFrame[7] = { 0, 0, 2, 0, 127, 0, 0x93 };
+    assertFalse(DecodeXteAgLeaderLightbar(shortFrame, 7).lengthOk);
+    uint8_t notAvailable[8] = { 0xFF, 0xFF, 0x02, 0x00, 127, 0x00, 0x93, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(notAvailable, 8);
+    assertTrue(r.lengthOk);
+    assertFalse(r.valid);
+    uint8_t tooFar[8] = { 0x31, 0x75, 0x02, 0x00, 127, 0x00, 0x93, 0x04 };   // 30001 cm
+    assertFalse(DecodeXteAgLeaderLightbar(tooFar, 8).valid);
+}
+
+// The decoder keeps the whole payload for the dump, valid or not.
+test(IsobusPgnDecode, lightbarXte_keepsRawPayload) {
+    uint8_t d[8] = { 0x89, 0x00, 0x03, 0x00, 0x18, 0x01, 0x51, 0x04 };
+    auto r = DecodeXteAgLeaderLightbar(d, 8);
+    for (uint8_t i = 0; i < 8; i++) assertEqual((int)r.rawPayload[i], (int)d[i]);
 }

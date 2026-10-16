@@ -26,6 +26,9 @@ namespace triton
 // unit with no dependency on the shared data model. 1 knot = 0.51444444 m/s
 // exactly; both must stay numerically identical.
 static constexpr float kMetersPerSecondPerKnot = 0.51444444f;
+// J1939 SPN 517 (PGN 65256) is in km/h; GuidanceSource stores knots.
+// 1 knot = 1.852 km/h exactly.
+static constexpr float kKmhPerKnot = 1.852f;
 
 // Shared plausibility guard for both position decoders. The legacy encoding
 // carries no documented "not available" sentinel, so a range check is the
@@ -162,6 +165,49 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
     // IsRtkQuality() interlock unconditionally.
     result.valid = true;
     result.xteHundredthsMeter = int(rawXte);
+    return result;
+}
+
+// ------------------------------------------------------------------
+// Ag Leader InCommand lightbar cross-track error, PGN 65462 (see the header for
+// the byte meanings, settled on session 17's capture).
+// ------------------------------------------------------------------
+LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length) {
+    LightbarXteResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+    for (uint8_t i = 0; i < 8; i++) result.rawPayload[i] = data[i];
+
+    result.magnitudeCm = static_cast<uint16_t>(data[0] | (data[1] << 8));
+    result.hasLine     = (data[7] == 4);
+    result.rawStatus   = data[6];
+    result.rightOfLine = (data[6] & 0x80) != 0;
+    result.leftOfLine  = (data[6] & 0x40) != 0;
+    result.engaged     = (data[6] & 0x02) != 0;
+    if (result.hasLine && data[2] >= 1 && data[2] != 0xFF) {
+        result.hasPass          = true;
+        result.pass             = static_cast<uint8_t>(data[2] - 1);
+        result.passLeftOfAbLine = (data[6] & 0x10) != 0;
+    }
+
+    // 0xFFFF is the usual "not available" and anything beyond 300 m is not a
+    // cross-track error on a field. Byte 7 is the only validity: byte 2 is the
+    // pass number, and every pass carries a valid XTE (session 17).
+    if (result.magnitudeCm == 0xFFFF || result.magnitudeCm > 30000) return result;
+    if (!result.hasLine) return result;
+
+    int value;
+    if (result.magnitudeCm == 0) {
+        value = 0;                                              // on the line: neither bit
+    } else if (result.rightOfLine && !result.leftOfLine) {
+        value = int(result.magnitudeCm);
+    } else if (result.leftOfLine && !result.rightOfLine) {
+        value = -int(result.magnitudeCm);
+    } else {
+        return result;                                          // side unknown: never guess
+    }
+    result.valid = true;
+    result.xteHundredthsMeter = value;
     return result;
 }
 
@@ -321,7 +367,7 @@ SpeedResult DecodeLegacySpeed(const uint8_t* data, uint8_t length) {
     // wire format; this one read only the middle one and discarded the rest,
     // leaving GetCourse()/GetAltitude() permanently 0.0 on the ISOBUS build
     // (GitHub issue #37). Scales cross-validate against known_good_sentences
-    // fixture "0CFEE81C,002D00020000804F" -> 90.0 deg / 2.0 kn / 44.0 m.
+    // fixture "0CFEE81C,002D00020000804F" -> 90.0 deg / 2.0 km/h / 44.0 m.
     unsigned long val = (unsigned long)((uint16_t(data[3]) << 8) | data[2]);
     result.rawValue = uint16_t(val);
     // 0xFFFF = "speed not available", matching DecodeSpeedNmea2000's guard --
@@ -332,7 +378,12 @@ SpeedResult DecodeLegacySpeed(const uint8_t* data, uint8_t length) {
     // once (the whole frame is 0xFF), but that is one case, not the rule.
     if (val != 0xFFFF) {
         result.valid = true;
-        result.speedKnots = float(val) / 256.0f;
+        // J1939-71 SPN 517, Navigation-Based Vehicle Speed: 1/256 km/h per
+        // bit, not knots. It was read as knots since the serial-bridge days,
+        // so every legacy speed was 1.852x too high (#204: an InCommand showed
+        // 2.1 km/h for raw 541, and 1013 StarFire/TECU pairs in card log 30
+        // agree with km/h to 3 %).
+        result.speedKnots = float(val) / 256.0f / kKmhPerKnot;
     }
 
     const uint16_t rawCourse = uint16_t((data[1] << 8) | data[0]);

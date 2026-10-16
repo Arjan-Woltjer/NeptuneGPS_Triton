@@ -72,7 +72,7 @@ test(CanFrameGuidanceChannel, legacy_position) {
     assertEqual(g.GetGgaTimestamp(), (unsigned long)1234);
 }
 
-// $0CFEE81C,002D00020000804F -> course 90.0, speed 2.0 kt, altitude 44.0 m
+// $0CFEE81C,002D00020000804F -> course 90.0, speed 2.0 km/h (1.0799 kt), altitude 44.0 m
 test(CanFrameGuidanceChannel, legacy_speed_course_altitude) {
     GuidanceSource g;
     CanFrameGuidanceChannel ch(&g);
@@ -80,9 +80,25 @@ test(CanFrameGuidanceChannel, legacy_speed_course_altitude) {
     millisValue(50);
     assertTrue(ch.Update(0x18FEE81C, d, 8));   // the other priority the filter mask admits
     assertTrue(near(g.GetCourse(), 90.0f));
-    assertTrue(near(g.GetSpeed(), 2.0f));
+    assertTrue(near(g.GetSpeed(), 1.0799f, 0.001f));
+    assertTrue(near(g.GetSpeedMs(), 2.0f / 3.6f, 0.001f));
     assertTrue(near(g.GetAltitude(), 44.0f));
     assertEqual(g.GetVtgTimestamp(), (unsigned long)50);
+}
+
+// InCommand frame from 2026-10-03 (#204): 2.113 km/h = 0.587 m/s, so the
+// 0.5 m/s minimum-speed gate is open at a real 2.1 km/h and closed at 1 km/h.
+test(CanFrameGuidanceChannel, legacy_speed_kmh_feeds_min_speed_gate) {
+    GuidanceSource g;
+    CanFrameGuidanceChannel ch(&g);
+    const uint8_t moving[8] = { 0xFF, 0xFF, 0x1D, 0x02, 0xFF, 0xFF, 0xFF, 0xFF };
+    assertTrue(ch.Update(kIdLegacySpeed, moving, 8));
+    assertTrue(near(g.GetSpeedMs(), 0.587f, 0.001f));
+    assertTrue(g.MinSpeed());
+    const uint8_t slow[8] = { 0xFF, 0xFF, 0x00, 0x01, 0xFF, 0xFF, 0xFF, 0xFF };   // 256 -> 1.0 km/h
+    assertTrue(ch.Update(kIdLegacySpeed, slow, 8));
+    assertTrue(near(g.GetSpeedMs(), 1.0f / 3.6f, 0.001f));
+    assertFalse(g.MinSpeed());
 }
 
 test(CanFrameGuidanceChannel, legacy_speed_not_available_is_skipped) {
