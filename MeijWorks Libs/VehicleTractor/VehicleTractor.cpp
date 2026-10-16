@@ -33,6 +33,12 @@ VehicleTractor::VehicleTractor(Stream* serialDebug)
     serialDebug->println("-------------------------------");
 #endif
 
+#if defined(ESP32S3)
+    // Triton01: hitch behind the MCP23008, wheel-speed pulse on a GPIO with
+    // the MCU pull-up, both through TritonIo so the reads below stay generic.
+    triton::ConfigureDigitalInput(WHEEL_SPEED_PIN_1, true);
+    triton::ConfigureDigitalInput(HITCH_PIN_1, false);
+#else
     pinMode(WHEEL_SPEED_PIN_1, INPUT);
     pinMode(HITCH_PIN_1, INPUT);
 
@@ -42,6 +48,7 @@ VehicleTractor::VehicleTractor(Stream* serialDebug)
 #else
     digitalWrite(WHEEL_SPEED_PIN_1, LOW);
     digitalWrite(HITCH_PIN_1, LOW);
+#endif
 #endif
 
     updateAge = millis();
@@ -54,7 +61,7 @@ VehicleTractor::VehicleTractor(Stream* serialDebug)
 
 void VehicleTractor::Update(byte mode) {
     if (mode != 4) {
-        if (wheelspeedPulse != digitalRead(WHEEL_SPEED_PIN_1)) {
+        if (wheelspeedPulse != triton::VehicleTractorReadInput(WHEEL_SPEED_PIN_1)) {
             wheelspeedPulses++;
             wheelspeedPulse = !wheelspeedPulse;
         }
@@ -77,7 +84,7 @@ void VehicleTractor::Update(byte mode) {
 }
 
 unsigned int VehicleTractor::CalibrateSpeed(int buttons) {
-    if (wheelspeedPulse != digitalRead(WHEEL_SPEED_PIN_1)) {
+    if (wheelspeedPulse != triton::VehicleTractorReadInput(WHEEL_SPEED_PIN_1)) {
         wheelspeedPulses++;
         wheelspeedPulse = !wheelspeedPulse;
     }

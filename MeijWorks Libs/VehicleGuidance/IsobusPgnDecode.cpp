@@ -26,6 +26,9 @@ namespace triton
 // unit with no dependency on the shared data model. 1 knot = 0.51444444 m/s
 // exactly; both must stay numerically identical.
 static constexpr float kMetersPerSecondPerKnot = 0.51444444f;
+// J1939 SPN 517 (PGN 65256) is in km/h; GuidanceSource stores knots.
+// 1 knot = 1.852 km/h exactly.
+static constexpr float kKmhPerKnot = 1.852f;
 
 // Shared plausibility guard for both position decoders. The legacy encoding
 // carries no documented "not available" sentinel, so a range check is the
@@ -166,25 +169,68 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
 }
 
 // ------------------------------------------------------------------
+// Ag Leader InCommand lightbar cross-track error, PGN 65462 (see the header for
+// the byte meanings, settled on session 17's capture).
+// ------------------------------------------------------------------
+LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length) {
+    LightbarXteResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+    for (uint8_t i = 0; i < 8; i++) result.rawPayload[i] = data[i];
+
+    result.magnitudeCm = static_cast<uint16_t>(data[0] | (data[1] << 8));
+    result.hasLine     = (data[7] == 4);
+    result.rawStatus   = data[6];
+    result.rightOfLine = (data[6] & 0x80) != 0;
+    result.leftOfLine  = (data[6] & 0x40) != 0;
+    result.engaged     = (data[6] & 0x02) != 0;
+    if (result.hasLine && data[2] >= 1 && data[2] != 0xFF) {
+        result.hasPass          = true;
+        result.pass             = static_cast<uint8_t>(data[2] - 1);
+        result.passLeftOfAbLine = (data[6] & 0x10) != 0;
+    }
+
+    // 0xFFFF is the usual "not available" and anything beyond 300 m is not a
+    // cross-track error on a field. Byte 7 is the only validity: byte 2 is the
+    // pass number, and every pass carries a valid XTE (session 17).
+    if (result.magnitudeCm == 0xFFFF || result.magnitudeCm > 30000) return result;
+    if (!result.hasLine) return result;
+
+    int value;
+    if (result.magnitudeCm == 0) {
+        value = 0;                                              // on the line: neither bit
+    } else if (result.rightOfLine && !result.leftOfLine) {
+        value = int(result.magnitudeCm);
+    } else if (result.leftOfLine && !result.rightOfLine) {
+        value = -int(result.magnitudeCm);
+    } else {
+        return result;                                          // side unknown: never guess
+    }
+    result.valid = true;
+    result.xteHundredthsMeter = value;
+    return result;
+}
+
+// ------------------------------------------------------------------
 // Legacy proprietary decode, ported verbatim from VehicleGps.cpp's
 // Update(long id, const uint8_t* data, byte len).
 // ------------------------------------------------------------------
 namespace {
 // Sign-extend a little-endian 24-bit field.
-std::int32_t GSigned24(const std::uint8_t* p) {
-    std::int32_t v = static_cast<std::int32_t>(p[0] | (p[1] << 8) | (p[2] << 16));
-    if (v & 0x00800000) v |= static_cast<std::int32_t>(0xFF000000);
+int32_t GSigned24(const uint8_t* p) {
+    int32_t v = static_cast<int32_t>(uint32_t(p[0]) | (uint32_t(p[1]) << 8) | (uint32_t(p[2]) << 16));
+    if (v & 0x00800000) v |= static_cast<int32_t>(0xFF000000);
     return v;
 }
 
-std::int64_t GSigned64(const std::uint8_t* p) {
-    std::uint64_t v = 0;
+int64_t GSigned64(const uint8_t* p) {
+    uint64_t v = 0;
     for (int i = 7; i >= 0; i--) v = (v << 8) | p[i];   // little-endian
-    return static_cast<std::int64_t>(v);
+    return static_cast<int64_t>(v);
 }
 }  // namespace
 
-PositionDeltaResult DecodePositionDeltaNmea2000(const std::uint8_t* data, std::uint8_t length) {
+PositionDeltaResult DecodePositionDeltaNmea2000(const uint8_t* data, uint8_t length) {
     PositionDeltaResult result;
     if (length < 8) return result;
     result.lengthOk = true;
@@ -195,7 +241,7 @@ PositionDeltaResult DecodePositionDeltaNmea2000(const std::uint8_t* data, std::u
     return result;
 }
 
-GnssPositionDataResult DecodeGnssPositionData(const std::uint8_t* data, std::uint8_t length) {
+GnssPositionDataResult DecodeGnssPositionData(const uint8_t* data, uint8_t length) {
     GnssPositionDataResult result;
     // 43 bytes is the fixed part; a frame carrying reference-station entries is
     // longer, which is fine -- everything read here sits below byte 43.
@@ -206,8 +252,8 @@ GnssPositionDataResult DecodeGnssPositionData(const std::uint8_t* data, std::uin
     // entirely (53 deg is ~5.3e17, well past a float's mantissa), so reduce in
     // integer arithmetic first: /1e8 leaves units of 1e-8 deg, which is far
     // finer than the float GuidanceSource stores anyway.
-    const std::int64_t rawLat = GSigned64(&data[7]);
-    const std::int64_t rawLon = GSigned64(&data[15]);
+    const int64_t rawLat = GSigned64(&data[7]);
+    const int64_t rawLon = GSigned64(&data[15]);
     const float lat = static_cast<float>(rawLat / 100000000LL) * 1e-8f;
     const float lon = static_cast<float>(rawLon / 100000000LL) * 1e-8f;
     if (GIsPlausibleLatLon(lat, lon)) {
@@ -224,8 +270,8 @@ GnssPositionDataResult DecodeGnssPositionData(const std::uint8_t* data, std::uin
     }
 
     // Field 7 is the low nibble, field 8 -- the quality -- the high nibble.
-    result.typeOfSystem = static_cast<std::uint8_t>(data[31] & 0x0F);
-    const std::uint8_t method = static_cast<std::uint8_t>((data[31] >> 4) & 0x0F);
+    result.typeOfSystem = static_cast<uint8_t>(data[31] & 0x0F);
+    const uint8_t method = static_cast<uint8_t>((data[31] >> 4) & 0x0F);
     result.method = method;
     // 15 is the not-available code for a 4-bit field. Anything else is a real
     // statement about the fix, including 0 = "no GNSS", which must reach
@@ -234,7 +280,7 @@ GnssPositionDataResult DecodeGnssPositionData(const std::uint8_t* data, std::uin
     result.hasQuality = (method != 0x0F);
 
     result.numberOfSvs = data[33];
-    const std::uint16_t rawHdop = static_cast<std::uint16_t>(data[34] | (data[35] << 8));
+    const uint16_t rawHdop = static_cast<uint16_t>(data[34] | (data[35] << 8));
     if (rawHdop != 0xFFFF) {
         result.hasHdop = true;
         result.hdop = rawHdop * 0.01f;
@@ -242,27 +288,27 @@ GnssPositionDataResult DecodeGnssPositionData(const std::uint8_t* data, std::uin
     return result;
 }
 
-GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const std::uint8_t* data, std::uint8_t length) {
+GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const uint8_t* data, uint8_t length) {
     GuidanceMachineInfoResult result;
     if (length < 8) return result;
     result.lengthOk = true;
 
-    const std::uint16_t raw = static_cast<std::uint16_t>(data[0] | (data[1] << 8));
+    const uint16_t raw = static_cast<uint16_t>(data[0] | (data[1] << 8));
     result.rawCurvature = raw;
     if (raw != 0xFFFF) {
         result.hasCurvature = true;
         result.curvaturePerKm = (raw * 0.25f) - 8032.0f;
     }
 
-    result.mechanicalLockout     = static_cast<std::uint8_t>((data[2] >> 0) & 0x03);
-    result.steeringReadiness     = static_cast<std::uint8_t>((data[2] >> 2) & 0x03);
-    result.steeringInputPosition = static_cast<std::uint8_t>((data[2] >> 4) & 0x03);
-    result.limitStatus           = static_cast<std::uint8_t>((data[3] >> 5) & 0x07);
-    result.remoteEngageSwitch    = static_cast<std::uint8_t>((data[4] >> 6) & 0x03);
+    result.mechanicalLockout     = static_cast<uint8_t>((data[2] >> 0) & 0x03);
+    result.steeringReadiness     = static_cast<uint8_t>((data[2] >> 2) & 0x03);
+    result.steeringInputPosition = static_cast<uint8_t>((data[2] >> 4) & 0x03);
+    result.limitStatus           = static_cast<uint8_t>((data[3] >> 5) & 0x07);
+    result.remoteEngageSwitch    = static_cast<uint8_t>((data[4] >> 6) & 0x03);
     return result;
 }
 
-ProcessDataKind ClassifyProcessDataCommand(std::uint8_t byte0) {
+ProcessDataKind ClassifyProcessDataCommand(uint8_t byte0) {
     switch (byte0 & 0x0F) {
         case 0:  return ProcessDataKind::TechnicalCapabilities;
         case 1:  return ProcessDataKind::DeviceDescriptor;
@@ -321,8 +367,8 @@ SpeedResult DecodeLegacySpeed(const uint8_t* data, uint8_t length) {
     // wire format; this one read only the middle one and discarded the rest,
     // leaving GetCourse()/GetAltitude() permanently 0.0 on the ISOBUS build
     // (GitHub issue #37). Scales cross-validate against known_good_sentences
-    // fixture "0CFEE81C,002D00020000804F" -> 90.0 deg / 2.0 kn / 44.0 m.
-    unsigned long val = (unsigned long)((data[3] << 8) | data[2]);
+    // fixture "0CFEE81C,002D00020000804F" -> 90.0 deg / 2.0 km/h / 44.0 m.
+    unsigned long val = (unsigned long)((uint16_t(data[3]) << 8) | data[2]);
     result.rawValue = uint16_t(val);
     // 0xFFFF = "speed not available", matching DecodeSpeedNmea2000's guard --
     // confirmed on hardware 2026-08-08: without this, an unavailable
@@ -332,7 +378,12 @@ SpeedResult DecodeLegacySpeed(const uint8_t* data, uint8_t length) {
     // once (the whole frame is 0xFF), but that is one case, not the rule.
     if (val != 0xFFFF) {
         result.valid = true;
-        result.speedKnots = float(val) / 256.0f;
+        // J1939-71 SPN 517, Navigation-Based Vehicle Speed: 1/256 km/h per
+        // bit, not knots. It was read as knots since the serial-bridge days,
+        // so every legacy speed was 1.852x too high (#204: an InCommand showed
+        // 2.1 km/h for raw 541, and 1013 StarFire/TECU pairs in card log 30
+        // agree with km/h to 3 %).
+        result.speedKnots = float(val) / 256.0f / kKmhPerKnot;
     }
 
     const uint16_t rawCourse = uint16_t((data[1] << 8) | data[0]);
@@ -375,7 +426,7 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
     // (GitHub issue #20). Matches this header's documented convention that
     // diagnostic fields populate whenever the length guard passed,
     // independent of `valid`.
-    unsigned long val = (unsigned long)((data[4] << 8) | data[3]);
+    unsigned long val = (unsigned long)((uint16_t(data[4]) << 8) | data[3]);
     result.rawWord = uint16_t(val);
     result.rawByte1 = data[1];
     for (uint8_t i = 0; i < 8; i++) {
@@ -443,7 +494,7 @@ XteResult DecodeLegacyXteTrimble(uint8_t sourceAddress, const uint8_t* data, uin
 
     if (data[0] == 2 && data[5] == 7) {
         union { unsigned long a; float b; } tofloat;
-        tofloat.a = ((unsigned long)data[1] << 24) | ((unsigned long)data[2] << 16) | (data[3] << 8) | data[4];
+        tofloat.a = ((unsigned long)data[1] << 24) | ((unsigned long)data[2] << 16) | ((unsigned long)data[3] << 8) | data[4];
         result.valid = true;
         result.hasQuality = true;
         result.xteHundredthsMeter = int(tofloat.b * 100);

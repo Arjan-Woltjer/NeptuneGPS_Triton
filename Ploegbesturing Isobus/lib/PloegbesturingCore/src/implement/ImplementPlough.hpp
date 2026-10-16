@@ -24,6 +24,7 @@
 #include "GuidanceSource.hpp"
 
 #include "../config/ConfigImplementPlough.hpp"
+#include "TritonIo.hpp"
 
 namespace triton
 {
@@ -140,7 +141,7 @@ public:
     // Getters
     // -------
     inline bool GetSide() {
-        return digitalRead(PLOUGHSIDE_PIN_2) ^ swap;
+        return triton::ReadDigital(PLOUGHSIDE_PIN_2) ^ swap;
     }
 
     inline short int GetPosition() {

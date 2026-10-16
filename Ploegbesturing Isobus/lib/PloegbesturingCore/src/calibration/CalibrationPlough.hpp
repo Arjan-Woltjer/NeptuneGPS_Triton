@@ -47,26 +47,36 @@ public:
 
     void Calibrate();
 
-    // The RTK quality the operator picked in the wizard is the one
-    // GuidanceSource value that persists. GuidanceSource is a shared data
-    // model with no storage of its own (NeptuneGPS_Triton#78), so this class
-    // owns its EEPROM byte: read into the source at construction, written
-    // back by the wizard's Save step. Byte 11 is the slot VehicleGps used for
-    // the same value, so a board coming from that firmware keeps its setting.
-    static constexpr int kEepromRtkQuality = 11;
+    // The two guidance values this board persists, as in the regular
+    // Ploegbesturing. GuidanceSource is a shared data model with no storage
+    // of its own (NeptuneGPS_Triton#78), so this class owns their EEPROM
+    // bytes: the RTK quality the wizard sets, and the receiver rate index the
+    // boot autodetect (InterfaceGuidance) finds on the serial builds. Both sit
+    // where VehicleGps kept them, so a board coming from that firmware keeps
+    // its settings. Read at construction, written by the wizard's Save step
+    // and by main.cpp after a detect found a different rate.
+    static constexpr int kEepromGpsBaudIndex = 10;
+    static constexpr int kEepromRtkQuality   = 11;
+
+    byte GetGpsBaudIndex() const   { return gpsBaudIndex; }
+    void SetGpsBaudIndex(byte idx) { gpsBaudIndex = idx % 8; }
+    void CommitGuidanceCalibration();
 
     void PrintCalibrationData();
 
 private:
-    bool loadGuidanceCalibration();
-    void commitGuidanceCalibration();
-
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
     VehicleTractor*        tractor;
     GuidanceSource*  guidance;
     InterfacePlough*       interface;
+
+    // 4800 x {1,2,3,4,6,8,12,24}; index 0 (4800, the common NMEA default)
+    // until a detect or a stored byte says otherwise.
+    byte gpsBaudIndex = 0;
+
+    bool loadGuidanceCalibration();
 };
 
 }  // namespace triton

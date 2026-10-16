@@ -46,6 +46,12 @@ bool CanSerialParser::claimsSentenceType(const char* header) {
     // is a fast-packet message spread over seven frames, and one bridge line
     // holds only its first fragment, so it is left unclaimed rather than
     // mis-decoded; the same receivers broadcast 129025 for position.
+    //
+    // Not under GUIDANCE_LEAN (the Arduino Micro build): the decoders behind
+    // it are 2 KB the Micro's 28 KB of flash cannot spare, and the JD and
+    // CNH CAN-to-serial converters the Micro boards use forward only the
+    // legacy identifiers below.
+#ifndef GUIDANCE_LEAN
     if (termIsHex(header, 8) && header[8] == '\0') {
         uint32_t id = 0;
         for (byte i = 0; i < 8; i++) id = (id << 4) | hexToInt(header[i]);
@@ -56,6 +62,7 @@ bool CanSerialParser::claimsSentenceType(const char* header) {
             return true;
         }
     }
+#endif
 
     // Legacy JD proprietary frames, by exact identifier as VehicleGps did.
     if (strcmp(header, "0CFEF31C") == 0 || strcmp(header, "18FEF31C") == 0) {
@@ -103,7 +110,7 @@ void CanSerialParser::parseTerm(byte termNumber, const char* term) {
 
             val = ((unsigned long)hexToInt(term[6]) << 12) | ((unsigned long)hexToInt(term[7]) << 8)
                 | ((unsigned long)hexToInt(term[4]) << 4) | hexToInt(term[5]);
-            newSpeed = float(val) / 256;
+            newSpeed = float(val) / 256 / 1.852f;   // SPN 517 is 1/256 km/h; stored as knots (#204)
 
             val = ((unsigned long)hexToInt(term[14]) << 12) | ((unsigned long)hexToInt(term[15]) << 8)
                 | ((unsigned long)hexToInt(term[12]) << 4) | hexToInt(term[13]);
@@ -159,7 +166,9 @@ void CanSerialParser::commitTo(GuidanceSource* state) {
 
     switch (type) {
         case NMEA2000:
+#ifndef GUIDANCE_LEAN
             CanFrameGuidanceChannel::Decode(frameId, frameData, sizeof(frameData), state);
+#endif
             break;
         case CAN_POS:
             state->SetPosition(newLat, newLon);
