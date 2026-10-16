@@ -86,14 +86,14 @@ jobs:
         run: ./gradlew --no-daemon bundleRelease
 
       - name: Upload bundle
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: spraycomputer-release-aab-${{ env.SPRAYCOMPUTER_VERSION_NAME }}
           path: "Spuitcomputer LD/android/app/build/outputs/bundle/release/app-release.aab"
           if-no-files-found: error
 
       - name: Upload R8 mapping
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: spraycomputer-release-mapping-${{ env.SPRAYCOMPUTER_VERSION_NAME }}
           path: "Spuitcomputer LD/android/app/build/outputs/mapping/release/mapping.txt"
