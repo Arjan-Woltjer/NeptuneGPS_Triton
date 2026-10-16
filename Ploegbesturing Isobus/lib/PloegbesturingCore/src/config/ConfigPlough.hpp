@@ -27,10 +27,11 @@
 // ([env:teensy40_isobus] passes -D TEENSY40) rather than edited in here, so
 // one tree builds both Teensy boards. Without any board flag the Teensy 4.1
 // production board (besturing 0.1) is the default, exactly as before.
-#if !defined(TEENSY40) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
+#if !defined(TEENSY40) && !defined(ESP32S3) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
 #define TEENSY      //Teensy 4.1 on productionboard (besturing 0.1)
 #endif
 //#define TEENSY40    // Teensy 4.0 board: CAN on FLEXCAN1 (22/23), see ConfigImplementPlough.hpp
+//#define ESP32S3     // Triton01: ESP32-S3-WROOM-2, DRV8701 bridges, MCP23008 inputs (esp32s3_serial env)
 //#define TEENSYPROTO // Teensy 3.5 or 3.6 on protoboard
 //#define MICRO       // Arduino Micro
 //#define VOORSERIE   // Arduino Uno pre-series board
@@ -42,6 +43,14 @@
 #define ISOBUS_CAN_CHANNEL  0   // FLEXCAN1: pins 22 TX / 23 RX
 #else
 #define ISOBUS_CAN_CHANNEL  2   // FLEXCAN3: pins 31 TX / 30 RX, bodge-wired on besturing 0.1
+#endif
+
+// Triton01 puts ISOBUS on the ESP32-S3's TWAI controller (classic CAN, which
+// is all ISO 11783 asks for), through AgIsoStack-plus-plus's TWAIPlugin; the
+// FlexCAN channel above does not apply there. See main.cpp.
+#ifdef ESP32S3
+#define ISOBUS_CAN_TX_PIN   3
+#define ISOBUS_CAN_RX_PIN   4
 #endif
 
 //#define ROTATION
