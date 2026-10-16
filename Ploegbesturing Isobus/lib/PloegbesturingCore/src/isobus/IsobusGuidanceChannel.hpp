@@ -51,6 +51,7 @@
 #include "../implement/ImplementPlough.hpp"
 #include "CanErrorMonitor.hpp"
 #include "GuidanceSource.hpp"
+#include "IsobusPgnDecode.hpp"   // kXteReject*, sizing MessageCounters (#201)
 
 namespace triton
 {
@@ -129,6 +130,17 @@ public:
         uint32_t xteJohnDeereCarrier                   = 0;
         uint32_t lastXteJohnDeereCarrierMs             = 0;
         uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
+
+        // PGN 129283, every frame (#201): the last one's sender, length and
+        // bytes, and per-frame outcomes indexed by kXteReject* (index 0 =
+        // committed). The bare count above was all the dump had, and on the
+        // van Mastwijk rig it counted 0xCD's empty answers to our requests as
+        // if they were XTE.
+        uint8_t  lastXteNmea2000SourceAddress = 0xFF;
+        uint8_t  lastXteNmea2000Length        = 0;
+        uint8_t  lastXteNmea2000Payload[8]    = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        uint32_t lastXteNmea2000Ms            = 0;
+        uint32_t xteNmea2000Outcome[kXteRejectReasons] = { 0, 0, 0, 0, 0 };
 
         // PGN 44032, the standard ISO 11783-7 guidance channel. Diagnostics
         // only and deliberately so: it carries curvature, not cross-track

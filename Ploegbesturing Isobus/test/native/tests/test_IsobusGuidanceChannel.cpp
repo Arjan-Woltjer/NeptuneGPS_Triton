@@ -199,6 +199,53 @@ test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedCommitsNothing) {
     assertEqual(Channel().GetMessageCounters().xteNmea2000, (uint32_t)1);
 }
 
+// #201: the dump keeps the last 129283 frame -- sender, length, bytes -- and
+// counts the outcome per frame, so "the screen says 220 cm, what does the frame
+// say" is one line at the rig, and a count of rejected frames says why.
+
+// Sessions 13-17 (van Mastwijk): the CNH 0xCD answers each of our requests for
+// 129283 with a zero-length frame. Counted as 129283 traffic, it read as an
+// XTE source on the bus; recorded, it is plainly an empty answer.
+test(IsobusGuidanceChannel, nmea2000Xte_emptyAnswerIsRecordedAsALengthReject) {
+    Reset();
+    gcGuidance.SetXte(999);
+    Deliver(IsobusGuidanceChannelTestAccess::XteNmea2000(), 0xCD, {});
+    const auto& c = Channel().GetMessageCounters();
+    assertEqual(gcGuidance.GetXte(), 999);
+    assertEqual(c.xteNmea2000, (uint32_t)1);
+    assertEqual((int)c.lastXteNmea2000SourceAddress, 0xCD);
+    assertEqual((int)c.lastXteNmea2000Length, 0);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectLength], (uint32_t)1);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNone], (uint32_t)0);
+}
+
+// A committed frame (2.25 m, the value the Raven showed on 2026-10-02) is kept
+// byte for byte with its sender, and counted as committed.
+test(IsobusGuidanceChannel, nmea2000Xte_keepsTheLastFrameForTheDump) {
+    Reset();
+    const std::vector<std::uint8_t> frame = { 0x01, 0x00, 0xE1, 0x00, 0x00, 0x00, 0xFF, 0xFF };
+    millisValue(5000);
+    Deliver(IsobusGuidanceChannelTestAccess::XteNmea2000(), 0x1C, frame);
+    const auto& c = Channel().GetMessageCounters();
+    millisValue(0);
+    assertEqual(gcGuidance.GetXte(), 225);
+    assertEqual((int)c.lastXteNmea2000SourceAddress, 0x1C);
+    assertEqual((int)c.lastXteNmea2000Length, 8);
+    for (int i = 0; i < 8; i++) assertEqual((int)c.lastXteNmea2000Payload[i], (int)frame[i]);
+    assertEqual(c.lastXteNmea2000Ms, (uint32_t)5000);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNone], (uint32_t)1);
+}
+
+// Navigation Terminated is counted under its own reason, not as committed.
+test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedIsCountedByReason) {
+    Reset();
+    Deliver(IsobusGuidanceChannelTestAccess::XteNmea2000(), 0x1C,
+            { 0x00, 0x40, 0x7B, 0x00, 0x00, 0x00, 0xFF, 0xFF });
+    const auto& c = Channel().GetMessageCounters();
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNavigationTerminated], (uint32_t)1);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNone], (uint32_t)0);
+}
+
 // ---------------------------------------------------------------------------
 // Legacy proprietary
 // ---------------------------------------------------------------------------
