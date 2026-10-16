@@ -305,10 +305,20 @@ void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context
 
 void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
-    self->counters.xteNmea2000++;
+    auto& c = self->counters;
+    c.xteNmea2000++;
 
+    // Keep the frame as it arrived, whatever the decoder makes of it (#201).
     const auto& d = msg.get_data();
-    GApply(DecodeXteNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
+    const uint8_t length = static_cast<uint8_t>(msg.get_data_length());
+    c.lastXteNmea2000SourceAddress = msg.get_identifier().get_source_address();
+    c.lastXteNmea2000Length = length;
+    for (uint8_t i = 0; i < 8; i++) c.lastXteNmea2000Payload[i] = (i < length) ? d[i] : 0;
+    c.lastXteNmea2000Ms = millis();
+
+    const XteResult result = DecodeXteNmea2000(d.data(), length);
+    if (result.rejectReason < kXteRejectReasons) c.xteNmea2000Outcome[result.rejectReason]++;
+    GApply(result, self->guidance);
 }
 
 void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* context) {
