@@ -43,6 +43,7 @@
 #undef min
 #undef max
 #include <isobus/hardware_integration/can_hardware_plugin.hpp>
+#include <isobus/isobus/can_callbacks.hpp>
 #include <isobus/isobus/can_internal_control_function.hpp>
 #include <isobus/isobus/can_message.hpp>
 #pragma pop_macro("max")
@@ -82,6 +83,10 @@ public:
     // contention window, never called again after setup()), and registers
     // every PGN callback + sends the initial PGN requests once claimed.
     void Begin();
+    // Request callbacks for our internal control function, registered by
+    // Begin() once the address is claimed. Static so a host test can install
+    // them on a control function of its own (#23).
+    static void RegisterRequestHandlers(const std::shared_ptr<isobus::InternalControlFunction>& icf);
 
     // Call every loop() iteration -- pumps CAN I/O.
     void Update();
@@ -220,6 +225,8 @@ private:
     static void OnPositionNmea2000(const isobus::CANMessage& msg, void* context);
     static void OnSpeedNmea2000(const isobus::CANMessage& msg, void* context);
     static void OnXteNmea2000(const isobus::CANMessage& msg, void* context);
+    static bool OnAddressClaimRequest(std::uint32_t pgn, std::shared_ptr<isobus::ControlFunction> requester,
+                                      bool& acknowledge, isobus::AcknowledgementType& type, void* context);
     static void OnLegacyPosition(const isobus::CANMessage& msg, void* context);
     static void OnLegacySpeed(const isobus::CANMessage& msg, void* context);
     static void OnLegacyXteJohnDeere(const isobus::CANMessage& msg, void* context);

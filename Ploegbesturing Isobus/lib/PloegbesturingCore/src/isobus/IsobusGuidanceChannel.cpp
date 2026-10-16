@@ -158,6 +158,7 @@ void IsobusGuidanceChannel::Begin() {
 
     serialDebug->print("address claimed: 0x");
     serialDebug->println(controlFunction->get_address(), HEX);
+    RegisterRequestHandlers(controlFunction);   // #23: answer claim requests with the claim only
     PrintCanState("CAN controller after the claim: ");
 
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000,   OnPositionNmea2000,   this);
@@ -301,6 +302,30 @@ void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context
     // COG travels in the same frame as SOG and was once read past (#37).
     const auto& d = msg.get_data();
     GApply(DecodeSpeedNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
+}
+
+// ------------------------------------------------------------------
+// Request callbacks (#23)
+// ------------------------------------------------------------------
+// AgIsoStack answers a request for address claim addressed to us twice: its
+// address-claim code re-sends our claim, which is the ISO 11783-5 answer, and
+// its PGN request protocol -- finding no callback for PGN 60928 -- also sends a
+// NACK, "I don't support this PGN", from a control function that just claimed
+// with it. Claiming the PGN here, handled and without an acknowledgement,
+// leaves the claim as the only answer. The lightbar channel's control function
+// has done the same since #207 (its OnIgnoredRequest).
+void IsobusGuidanceChannel::RegisterRequestHandlers(const std::shared_ptr<InternalControlFunction>& icf) {
+    if (!icf) return;
+    if (auto protocol = icf->get_pgn_request_protocol().lock()) {
+        protocol->register_pgn_request_callback(static_cast<std::uint32_t>(CANLibParameterGroupNumber::AddressClaim),
+                                                OnAddressClaimRequest, nullptr);
+    }
+}
+
+bool IsobusGuidanceChannel::OnAddressClaimRequest(std::uint32_t, std::shared_ptr<ControlFunction>,
+                                                  bool& acknowledge, AcknowledgementType&, void*) {
+    acknowledge = false;   // the network manager's claim is the answer
+    return true;
 }
 
 void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) {
