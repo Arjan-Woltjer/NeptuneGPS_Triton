@@ -22,6 +22,7 @@
 #include <EEPROM.h>
 
 #include "GuidanceSource.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementPlough.hpp"
 #include "TritonIo.hpp"
@@ -90,11 +91,8 @@ private:
     // PID variables
     byte kp;
 
-    // Timers for end shutoff
-    unsigned short int shutoffTime;
-    bool                shutoffWide;
-    bool                shutoffNarrow;
-    unsigned long       shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     Stream*     serialDebug;

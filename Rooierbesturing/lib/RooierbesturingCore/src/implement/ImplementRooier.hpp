@@ -22,6 +22,7 @@
 #include <EEPROM.h>
 
 #include "../config/ConfigImplementRooier.hpp"
+#include "EndShutoff.hpp"
 
 namespace triton
 {
@@ -87,14 +88,9 @@ private:
     int targetL;
     int targetR;
 
-    // Timers for end shutoff (per side)
-    unsigned int  shutoffTime;
-    bool          shutoffWideL;
-    bool          shutoffWideR;
-    bool          shutoffNarrowL;
-    bool          shutoffNarrowR;
-    unsigned long shutoffTimerL;
-    unsigned long shutoffTimerR;
+    // End-of-travel latch per side (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoffL;
+    EndShutoff endShutoffR;
 
     //-------------------------------------------------------------
     // private member functions implemented in ImplementRooier.cpp
@@ -104,7 +100,7 @@ private:
     void computeTargets();
     int  computeTarget(int actualHeight, float& integral, float& lastError);
     bool adjustSide(int actual, int target, byte pwm, byte outputUp, byte outputDown,
-                     int& lastHeight, bool& shutoffWide, bool& shutoffNarrow, unsigned long& shutoffTimer);
+                     int& lastHeight, EndShutoff& endShutoff);
 
     void adjustSetpoint(int correction);
 
