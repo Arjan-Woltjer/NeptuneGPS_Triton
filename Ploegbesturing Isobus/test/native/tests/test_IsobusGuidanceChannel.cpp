@@ -22,7 +22,10 @@
 #ifdef ISOBUS
 
 // Standard headers first: the Arduino stub behind AUnit.h defines min/max as
-// macros, and GCC's <vector> uses std::min/max with three arguments.
+// macros, and GCC's <vector> uses std::min/max with three arguments (and
+// GCC's <chrono> and <memory>, via <limits>, numeric_limits<>::min()/max()).
+#include <chrono>
+#include <memory>
 #include <vector>
 
 #include <AUnit.h>
@@ -36,8 +39,6 @@
 #include <isobus/isobus/can_message.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
-
-#include <chrono>
 
 #include "TestBus.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
