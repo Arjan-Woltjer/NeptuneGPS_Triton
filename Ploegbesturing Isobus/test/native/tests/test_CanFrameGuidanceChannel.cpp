@@ -132,6 +132,20 @@ test(CanFrameGuidanceChannel, john_deere_other_selector_is_ignored) {
     assertEqual(g.GetXte(), -42);
 }
 
+// The InCommand's GNSS status (selector 0x51 from 0x80): byte 2 = 2 is RTK
+// fixed. The fix quality is committed, nothing else.
+test(CanFrameGuidanceChannel, agleader_gnss_status_sets_quality) {
+    GuidanceSource g;
+    CanFrameGuidanceChannel ch(&g);
+    const uint8_t fixed[8] = { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF };
+    assertTrue(ch.Update(0x0CFFFF80, fixed, 8));
+    assertTrue(g.IsRtkQuality());
+    assertEqual(g.GetXteTimestamp(), (unsigned long)0);
+    const uint8_t converging[8] = { 0x51, 0x03, 0x01, 0xFF, 0x0A, 0x05, 0x08, 0xFF };
+    assertTrue(ch.Update(0x0CFFFF80, converging, 8));
+    assertFalse(g.IsRtkQuality());
+}
+
 test(CanFrameGuidanceChannel, john_deere_pgn_from_other_source_is_ignored) {
     GuidanceSource g;
     CanFrameGuidanceChannel ch(&g);
