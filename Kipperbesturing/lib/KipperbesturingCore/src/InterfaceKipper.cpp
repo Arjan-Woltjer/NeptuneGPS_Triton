@@ -47,10 +47,7 @@ InterfaceKipper::InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implemen
     // call would measure elapsed time against garbage memory. Seeded to
     // millis(), same fix already applied to every sibling InterfaceX.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes
     this->lcd = lcd;
@@ -169,59 +166,9 @@ void InterfaceKipper::writeValue(int value, byte row, byte col) {
 // Method for checking buttons
 // ---------------------------
 int InterfaceKipper::CheckButtons(byte delay1, byte delay2) {
-    if (button1Flag) {
-        button1Timer = millis();
-        button1Flag = false;
-    }
-
-    if (button2Flag) {
-        button2Timer = millis();
-        button2Flag = false;
-    }
-
-    // Check for left/right button presses
-    if (digitalRead(LEFT_BUTTON_4) && digitalRead(RIGHT_BUTTON_4)) {
-        if (millis() - button1Timer >= delay1 * 4) {  // delay * 4 because of byte type
-            button1Flag = true;
-            buttons = 2;
-            return 2;
-        }
-        else {
-            button2Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(LEFT_BUTTON_4)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = -1;
-            return -1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(RIGHT_BUTTON_4)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = 1;
-            return 1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else {
-        button1Flag = true;
-        button2Flag = true;
-        buttons = 0;
-        return 0;
-    }
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+    buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_4), digitalRead(RIGHT_BUTTON_4), delay1, delay2, millis());
+    return buttons;
 }
 
 }  // namespace triton
