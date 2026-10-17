@@ -106,8 +106,9 @@ bool VehicleTractor::readCalibrationData() {
         if (simtime > 10) {
             simtime = 10;
         }
-        sim       = EEPROM.read(26);
-        inversion = EEPROM.read(28);
+        // Yes/no settings are stored as 1 or 0; anything else is "no"
+        sim       = EEPROM.read(26) == 1;
+        inversion = EEPROM.read(28) == 1;
         return true;
     }
     return false;

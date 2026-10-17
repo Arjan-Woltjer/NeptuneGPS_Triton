@@ -30,8 +30,5 @@
 //#define VOORSERIE   // Arduino Uno pre-series board
 
 //#define ROTATION
-//#define PWM_MAN
-//#define PWM_AUTO
-//#define PID_KP
 //#define SPEED_L
 //#define DEBUG
