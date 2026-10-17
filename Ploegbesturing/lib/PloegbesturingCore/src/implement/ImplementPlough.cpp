@@ -18,6 +18,7 @@
 */
 #include "ImplementPlough.hpp"
 #include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -329,43 +330,8 @@ short int ImplementPlough::getActualPosition() {
     // Read analog input
     short int readRaw = analogRead(POSITION_SENS_PIN_2);
     float actualPosition;
-    short int i = 0;
-
-    if (positionCalibrationData[0] < positionCalibrationData[1]) {
-        if (readRaw < positionCalibrationData[1]) {
-            i = 1;
-        }
-        else {
-            i = 2;
-        }
-    }
-    else {
-        if (readRaw < positionCalibrationData[1]) {
-            i = 2;
-        }
-        else {
-            i = 1;
-        }
-    }
-
-    // Interpolate calibration data
-    float a = readRaw - positionCalibrationData[i - 1];
-    float b = positionCalibrationData[i] - positionCalibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading, which a
-    // disconnected or seized position potentiometer produces directly: the
-    // wizard latches analogRead() at each step without checking the captures
-    // differ. The result would be inf or NaN, and narrowing either to short int
-    // below is undefined behaviour -- so this cannot be left to the caller.
-    // Fall back to the segment's own start point, the nearest defensible value.
-    if (b == 0.0f) {
-        actualPosition = d;
-    }
-    else {
-        actualPosition = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAroundMiddle(positionCalibrationData, readRaw);
+    actualPosition = Interpolation::Evaluate(positionCalibrationData, positionCalibrationPoints, i, readRaw);
 
     return actualPosition * shares;
 }
@@ -378,33 +344,8 @@ short int ImplementPlough::getActualRotation() {
     // Read analog input
     short int readRaw = analogRead(ROTATION_SENS_PIN_2);
     short int actualRotation;
-    short int i = 0;
-
-    if (rotationCalibrationData[0] < rotationCalibrationData[1]) {
-        if (readRaw < rotationCalibrationData[1]) {
-            i = 1;
-        }
-        else {
-            i = 2;
-        }
-    }
-    else {
-        if (readRaw < rotationCalibrationData[1]) {
-            i = 2;
-        }
-        else {
-            i = 1;
-        }
-    }
-
-    // Interpolate calibration data
-    float a = readRaw - rotationCalibrationData[i - 1];
-    float b = rotationCalibrationData[i] - rotationCalibrationData[i - 1];
-    float c = rotationCalibrationPoints[i] - rotationCalibrationPoints[i - 1];
-    float d = rotationCalibrationPoints[i - 1];
-
-    // Calculate actual implement offset
-    actualRotation = (((a * c) / b) + d);
+    const int i = Interpolation::SegmentAroundMiddle(rotationCalibrationData, readRaw);
+    actualRotation = Interpolation::Evaluate(rotationCalibrationData, rotationCalibrationPoints, i, readRaw);
 
     return actualRotation;
 }

@@ -18,6 +18,7 @@
 */
 #include "ImplementKipper.hpp"
 #include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -233,30 +234,8 @@ void ImplementKipper::Adjust(int direction) {
 int ImplementKipper::getActualSteer() {
     // Read analog input
     int readRaw = analogRead(STEER_SENS_PIN_4);
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > steerCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - steerCalibrationData[i - 1];
-    float b = steerCalibrationData[i] - steerCalibrationData[i - 1];
-    float c = steerCalibrationPoints[i] - steerCalibrationPoints[i - 1];
-    float d = steerCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading -- same
-    // degenerate-calibration guard already established in every sibling
-    // getActualX(). Not present in the legacy source.
-    if (b == 0.0f) {
-        return int(d);
-    }
-    return int(((a * c) / b) + d);
+    const int i = Interpolation::SegmentAscending(steerCalibrationData, 3, readRaw);
+    return int(Interpolation::Evaluate(steerCalibrationData, steerCalibrationPoints, i, readRaw));
 }
 
 //------------------------------------------
@@ -265,27 +244,8 @@ int ImplementKipper::getActualSteer() {
 int ImplementKipper::getActualAngle() {
     // Read analog input
     int readRaw = analogRead(ANGLE_SENS_PIN_4);
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > angleCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - angleCalibrationData[i - 1];
-    float b = angleCalibrationData[i] - angleCalibrationData[i - 1];
-    float c = angleCalibrationPoints[i] - angleCalibrationPoints[i - 1];
-    float d = angleCalibrationPoints[i - 1];
-
-    if (b == 0.0f) {
-        return int(d);
-    }
-    return int(((a * c) / b) + d);
+    const int i = Interpolation::SegmentAscending(angleCalibrationData, 3, readRaw);
+    return int(Interpolation::Evaluate(angleCalibrationData, angleCalibrationPoints, i, readRaw));
 }
 
 // ---------------------------

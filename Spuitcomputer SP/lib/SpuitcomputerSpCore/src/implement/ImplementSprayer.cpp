@@ -19,6 +19,7 @@
 #include "ImplementSprayer.hpp"
 #include "../config/LanguageSprayer.hpp"
 #include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -361,36 +362,9 @@ void ImplementSprayer::calculateAlarm(byte mode) {
 // ---------------------------------
 void ImplementSprayer::calculateSetpointPwm() {
     int readRaw = (flowCalibration / 500.0f) * (setpointFlow / 40);  // cc per 100s
-    int i = 0;
     int setpoint = 0;
-
-    // Loop through calibrationdata
-    while (i < 11 && readRaw > pwmCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - pwmCalibrationData[i - 1];
-    float b = pwmCalibrationData[i] - pwmCalibrationData[i - 1];
-    float c = pwmCalibrationPoints[i] - pwmCalibrationPoints[i - 1];
-    float d = pwmCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points captured the same flow-pulse
-    // count (the pump maxed out before the 12-point sweep finished, or
-    // corrupt EEPROM) -- same class of guard already added to
-    // ImplementPlough/ImplementPlanter's position interpolation. Falling
-    // back to the segment's own start point avoids narrowing an inf/NaN to
-    // int (undefined behaviour).
-    if (b == 0.0f) {
-        setpoint = d;
-    }
-    else {
-        setpoint = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(pwmCalibrationData, 12, readRaw);
+    setpoint = Interpolation::Evaluate(pwmCalibrationData, pwmCalibrationPoints, i, readRaw);
 
     if (setpoint > 255) {
         setpointPwm = 255;
