@@ -477,6 +477,25 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
     return result;
 }
 
+GnssStatusResult DecodeGnssStatusAgLeader(uint8_t sourceAddress, const uint8_t* data, uint8_t length) {
+    GnssStatusResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+
+    // Same overloaded PGN as above: the selector means this only from 0x80.
+    if (sourceAddress != kSourceAddressAgLeaderRaven) return result;
+    if (data[0] != kMessageSelectorGnssStatusAgLeader) return result;
+
+    result.valid = true;
+    result.fixMode = data[2];
+    switch (data[2]) {
+        case 2:  result.quality = 4; break;   // RTK fixed
+        case 1:  result.quality = 1; break;   // a fix, not RTK fixed
+        default: result.quality = 0; break;
+    }
+    return result;
+}
+
 XteResult DecodeLegacyXteTrimble(uint8_t sourceAddress, const uint8_t* data, uint8_t length) {
     XteResult result;
     if (length != 8) return result;
