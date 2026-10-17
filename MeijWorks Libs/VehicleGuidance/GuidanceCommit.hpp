@@ -80,4 +80,13 @@ inline bool GApply(const LightbarXteResult& r, GuidanceSource* g) {
     return true;
 }
 
+// ...so on that rig the fix quality comes from the InCommand's own GNSS status
+// message, on its own. It stamps no fix age: the age gates stay on the
+// position, speed and cross-track messages that carry the values.
+inline bool GApply(const GnssStatusResult& r, GuidanceSource* g) {
+    if (!r.valid) return false;
+    g->SetQuality(r.quality);
+    return true;
+}
+
 }  // namespace triton

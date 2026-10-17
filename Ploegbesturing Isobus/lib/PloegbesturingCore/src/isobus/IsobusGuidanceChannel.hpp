@@ -128,6 +128,11 @@ public:
         uint8_t  lastXteJohnDeereLegacyPayloadSourceAddress = 0xFF;
         uint32_t xteJohnDeereCarrier                   = 0;
         uint32_t lastXteJohnDeereCarrierMs             = 0;
+        // The InCommand's GNSS status on the same PGN (0x80, selector 0x51):
+        // the fix quality on a bus without 129029.
+        uint32_t agLeaderGnssStatus                    = 0;
+        uint8_t  lastAgLeaderGnssFixMode               = 0;
+        uint32_t lastAgLeaderGnssStatusMs              = 0;
         uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
 
         // PGN 44032, the standard ISO 11783-7 guidance channel. Diagnostics

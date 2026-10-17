@@ -497,6 +497,34 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
     assertFalse(r.valid);
 }
 
+// --- DecodeGnssStatusAgLeader (PGN 65535 selector 0x51 from 0x80) ---
+// Frames as captured in CANedge sessions 57 and 61, one per fix mode.
+test(IsobusPgnDecode, gnssStatusAgLeader_fixModeToQuality) {
+    uint8_t fixed[8]      = { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF };
+    uint8_t converging[8] = { 0x51, 0x03, 0x01, 0xFF, 0x0A, 0x05, 0x08, 0xFF };
+    uint8_t booting[8]    = { 0x51, 0x01, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF };
+    auto r = DecodeGnssStatusAgLeader(0x80, fixed, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.fixMode, 2);
+    assertEqual((int)r.quality, 4);
+    r = DecodeGnssStatusAgLeader(0x80, converging, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.quality, 1);
+    r = DecodeGnssStatusAgLeader(0x80, booting, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.quality, 0);
+}
+
+// Overloaded PGN: only 0x80, only selector 0x51, only 8 bytes.
+test(IsobusPgnDecode, gnssStatusAgLeader_rejectsOtherSendersSelectorsAndLengths) {
+    uint8_t d[8] = { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF };
+    assertFalse(DecodeGnssStatusAgLeader(0x2A, d, 8).valid);
+    assertFalse(DecodeGnssStatusAgLeader(0x80, d, 7).valid);
+    assertFalse(DecodeGnssStatusAgLeader(0x80, d, 7).lengthOk);
+    uint8_t xte[8] = { 0x77, 0x15, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
+    assertFalse(DecodeGnssStatusAgLeader(0x80, xte, 8).valid);
+}
+
 // --- DecodeGnssPositionData (PGN 129029) and DecodePositionDeltaNmea2000 ---
 // Added so a Raven rig is covered -- it publishes this set per a setting on
 // its own VT screen. **Neither PGN has ever been seen on a real bus here**, so
