@@ -63,6 +63,8 @@ private:
     // writeValue() was factored out of InterfaceRooier::UpdateScreen()).
     // Returns false if the step was declined (value left unchanged).
     bool adjustValue(const char* title, const char* prompt, int* value, int minValue, int maxValue);
+    // The same accept/decline step for a yes/no setting: + = yes, - = no.
+    bool adjustYesNo(const char* title, bool* value);
 };
 
 }  // namespace triton
