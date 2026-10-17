@@ -22,4 +22,9 @@ class VehicleTractor {
     // on, the wizard is never run.
     bool ResetCalibration() { return false; }
     void CommitCalibration() {}
+    // The wizard's hitch-inversion step. `hitch` above is GetHitch()'s result
+    // after the inversion, so this is not applied to it.
+    bool inversion = false;
+    bool GetInversion() { return inversion; }
+    void SetInversion(bool value) { inversion = value; }
 };

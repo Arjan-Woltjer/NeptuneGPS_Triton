@@ -106,6 +106,69 @@ bool CalibrationRooier::adjustValue(const char* title, const char* prompt, int* 
     }
 }
 
+bool CalibrationRooier::adjustYesNo(const char* title, bool* value) {
+    lcd->WriteBuffer(title, 0);
+    lcd->WriteBuffer(L8_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L8_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L8_BLANK, 3);
+
+    lcd->WriteScreen(-1);
+
+    while (interface->CheckButtons(0, 0) != 0) {
+    }
+
+    while (true) {
+        int buttons = interface->CheckButtons(0, 0);
+
+        if (buttons == -1) {
+            lcd->WriteBuffer(L8_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L8_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            delay(1000);
+            return false;
+        }
+        else if (buttons == 1) {
+            lcd->WriteBuffer(L8_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L8_CAL_ENTER, 2);
+
+            bool temp = *value;
+            lcd->WriteBuffer(temp ? L8_CAL_YES : L8_CAL_NO, 3);
+
+            lcd->WriteScreen(-1);
+
+            while (interface->CheckButtons(0, 0) != 0) {
+            }
+
+            while (true) {
+                lcd->WriteScreen(1);
+                interface->CheckButtons(0, 255);
+
+                if (interface->GetButtons() == 1) {
+                    temp = true;
+                }
+                else if (interface->GetButtons() == -1) {
+                    temp = false;
+                }
+                else if (interface->GetButtons() == 2) {
+                    break;
+                }
+
+                lcd->WriteBuffer(temp ? L8_CAL_YES : L8_CAL_NO, 3);
+            }
+
+            *value = temp;
+
+            lcd->WriteBuffer(L8_CAL_DONE, 1);
+            lcd->WriteBuffer(L8_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            delay(1000);
+            return true;
+        }
+    }
+}
+
 // --------------------------------
 // Method for calibrating implement
 // --------------------------------
@@ -249,6 +312,14 @@ void CalibrationRooier::Calibrate() {
     int pwmAuto = implement->GetPwmAuto();
     if (adjustValue(L8_CAL_PWM_A, L8_CAL_PWM_A_AD, &pwmAuto, 0, 255)) {
         implement->SetPwmAuto(byte(pwmAuto));
+    }
+
+    // ----------------------
+    // Hitch signal inversion
+    // ----------------------
+    bool inversion = tractor->GetInversion();
+    if (adjustYesNo(L8_CAL_INVERSION, &inversion)) {
+        tractor->SetInversion(inversion);
     }
 
     // ----------------------

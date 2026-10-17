@@ -57,6 +57,9 @@
 
 #define L_CAL_ON        "                 aan"
 #define L_CAL_OFF       "                 uit"
+#define L_CAL_YES       "                  ja"
+#define L_CAL_NO        "                 nee"
+#define L_CAL_INVERSION "Inverteer hefsignaal"
 
 #define L_MEN_SIM       "Simulatie menu      "
 #define L_MEN_SPEED     "Snelheidscalibratie "
@@ -156,6 +159,9 @@
 
 #define L_CAL_ON        "                  on"
 #define L_CAL_OFF       "                 off"
+#define L_CAL_YES       "                 yes"
+#define L_CAL_NO        "                  no"
+#define L_CAL_INVERSION "Invert hitch signal "
 
 #define L_MEN_SIM       "Simulation menu     "
 #define L_MEN_SPEED     "Speed calibration   "

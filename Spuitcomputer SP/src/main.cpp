@@ -52,7 +52,10 @@ void setup() {
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
     gLcd->Begin();
 
-    gTractor = new triton::VehicleTractor(&Serial);
+    // The hitch signal is inverted on the sprayer by default -- it used to be
+    // a hard-wired !GetHitch() in InterfaceSprayer -- and is now the
+    // calibration wizard's hitch-inversion setting like on the other machines.
+    gTractor = new triton::VehicleTractor(&Serial, true);
 
     gImplement = new triton::ImplementSprayer(gTractor);
     gInterface = new triton::InterfaceSprayer(gLcd, gImplement, gTractor);
