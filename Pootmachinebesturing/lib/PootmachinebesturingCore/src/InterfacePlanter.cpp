@@ -60,10 +60,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
     // memory); seeded to millis() now, matching ImplementPlanter's own
     // timers.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes
     this->serialDebug = serialDebug;
@@ -97,10 +94,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
 
     // Button flag and timer -- same fix as the 5-arg constructor above.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes. No guidance source supplied by this overload -- see
     // the constructor-selection comment in InterfacePlanter.hpp; Update()
@@ -275,59 +269,9 @@ void InterfacePlanter::UpdateScreen(boolean rewrite) {
 // Method for checking buttons
 // ---------------------------
 int InterfacePlanter::CheckButtons(byte delay1, byte delay2) {
-    if (button1Flag) {
-        button1Timer = millis();
-        button1Flag = false;
-    }
-
-    if (button2Flag) {
-        button2Timer = millis();
-        button2Flag = false;
-    }
-
-    // Check for left/right button presses
-    if (digitalRead(LEFT_BUTTON_3) && digitalRead(RIGHT_BUTTON_3)) {
-        if (millis() - button1Timer >= delay1 * 4) {  // delay * 4 because of byte type
-            button1Flag = true;
-            buttons = 2;
-            return 2;
-        }
-        else {
-            button2Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(LEFT_BUTTON_3)) {  // || digitalRead(JOY_LEFT_3)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = -1;
-            return -1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(RIGHT_BUTTON_3)) {  // || digitalRead(JOY_RIGHT_3)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = 1;
-            return 1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else {
-        button1Flag = true;
-        button2Flag = true;
-        buttons = 0;
-        return 0;
-    }
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+    buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_3), digitalRead(RIGHT_BUTTON_3), delay1, delay2, millis());
+    return buttons;
 }
 
 }  // namespace triton
