@@ -118,10 +118,10 @@ void InterfaceKipper::Update() {
 // --------------------------
 void InterfaceKipper::UpdateScreen(boolean rewrite) {
     if (rewrite) {
-        lcd->WriteBuffer(L4_OFFSET, 0);
-        lcd->WriteBuffer(L4_A_STEER, 1);
-        lcd->WriteBuffer(L4_SETPOINT, 2);
-        lcd->WriteBuffer(L4_ANGLE, 3);
+        lcd->WriteBuffer(L_OFFSET, 0);
+        lcd->WriteBuffer(L_A_STEER, 1);
+        lcd->WriteBuffer(L_SETPOINT, 2);
+        lcd->WriteBuffer(L_ANGLE, 3);
 
         lcd->WriteScreen(-1);
     }

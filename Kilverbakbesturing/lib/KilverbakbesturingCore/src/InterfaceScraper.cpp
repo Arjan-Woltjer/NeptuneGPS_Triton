@@ -144,16 +144,16 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
     // Update screen
     if (rewrite) {
         // Regel 0
-        lcd->WriteBuffer(L5_HEIGHT_R, 0);
+        lcd->WriteBuffer(L_HEIGHT_R, 0);
 
         // Regel 1
-        lcd->WriteBuffer(L5_HEIGHT, 1);
+        lcd->WriteBuffer(L_HEIGHT, 1);
 
         // Regel 2
-        lcd->WriteBuffer(L5_DISTANCE, 2);
+        lcd->WriteBuffer(L_DISTANCE, 2);
 
         // Regel 3
-        lcd->WriteBuffer(L5_SLOPE, 3);
+        lcd->WriteBuffer(L_SLOPE, 3);
 
         lcd->WriteScreen(-1);
     }

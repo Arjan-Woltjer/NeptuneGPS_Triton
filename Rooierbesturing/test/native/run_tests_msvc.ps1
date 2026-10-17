@@ -12,7 +12,8 @@ $includes = @(
     'lib\RooierbesturingCore\src',
     '..\MeijWorks Libs\EepromStore',
     '..\MeijWorks Libs\Interpolation',
-    '..\MeijWorks Libs\LcdNumber'
+    '..\MeijWorks Libs\LcdNumber',
+    '..\MeijWorks Libs\TritonText'
 )
 $sources = @(
     'lib\RooierbesturingCore\src\implement\ImplementRooier.cpp',

@@ -13,7 +13,8 @@ $includes = @(
     '..\MeijWorks Libs\VehicleGuidance',
     '..\MeijWorks Libs\EepromStore',
     '..\MeijWorks Libs\Interpolation',
-    '..\MeijWorks Libs\LcdNumber'
+    '..\MeijWorks Libs\LcdNumber',
+    '..\MeijWorks Libs\TritonText'
 )
 $sources = @(
     'lib\PloegbesturingCore\src\implement\ImplementPlough.cpp',
