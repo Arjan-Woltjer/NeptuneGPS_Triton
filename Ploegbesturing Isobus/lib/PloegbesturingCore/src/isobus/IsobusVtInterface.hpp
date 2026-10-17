@@ -146,9 +146,11 @@ public:
 
     // VT failover counters -- see VtFailoverPolicy.hpp. Switches: times the
     // client was rebuilt onto another VT. Requests: global requests for
-    // address claim sent while looking for one.
+    // address claim sent while looking for one. Rejoins: returns to the bus
+    // after time away, each starting the policy's rejoin grace.
     unsigned int  GetVtSwitchCount() const { return failover.GetSwitchCount(); }
     unsigned int  GetVtClaimRequestCount() const { return failover.GetRequestCount(); }
+    unsigned int  GetVtRejoinCount() const { return failover.GetRejoinCount(); }
 
     // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
     // release, cleared by the call itself (edge-triggered, matching a

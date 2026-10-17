@@ -36,6 +36,17 @@ void VtFailoverPolicy::OnVtStatus(uint8_t source, unsigned long nowMs) {
     heard[source]        = true;
 }
 
+void VtFailoverPolicy::OnBusTraffic(unsigned long nowMs) {
+    // Not from boot: the first traffic ever heard has no gap before it.
+    if (heardTraffic && nowMs - lastTrafficMs > kPartnerSilentMs) {
+        rejoinMs = nowMs;
+        rejoined = true;
+        rejoinCount++;
+    }
+    lastTrafficMs = nowMs;
+    heardTraffic  = true;
+}
+
 bool VtFailoverPolicy::HeardRecently(uint8_t address, unsigned long nowMs, unsigned long windowMs) const {
     return heard[address] && (nowMs - lastStatusMs[address]) <= windowMs;
 }
@@ -53,6 +64,9 @@ VtFailoverPolicy::Decision VtFailoverPolicy::Evaluate(unsigned long nowMs, bool 
     // counts while the partner itself has been heard within the window; the
     // per-address table below is what knows that.
     if (connected && (!partnerValid || HeardRecently(partnerAddress, nowMs, kPartnerSilentMs))) return decision;
+
+    // Back on the bus after time away: the bound VT's silence was ours.
+    if (rejoined && nowMs - rejoinMs < kRejoinGraceMs) return decision;
 
     // Silent since the later of the grace period's start and the bound VT's
     // last status. A partner that is not address-valid has no status of its
