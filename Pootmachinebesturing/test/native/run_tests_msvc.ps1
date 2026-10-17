@@ -15,7 +15,8 @@ $includes = @(
     '..\MeijWorks Libs\Interpolation',
     '..\MeijWorks Libs\LcdNumber',
     '..\MeijWorks Libs\TritonText',
-    '..\MeijWorks Libs\EndShutoff'
+    '..\MeijWorks Libs\EndShutoff',
+    '..\MeijWorks Libs\ButtonPair'
 )
 $sources = @(
     'lib\PootmachinebesturingCore\src\implement\ImplementPlanter.cpp',

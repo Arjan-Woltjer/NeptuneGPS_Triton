@@ -53,10 +53,7 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
     // first call would measure elapsed time against garbage memory); seeded
     // to millis() now, matching how ImplementPlough seeds its own timers.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes
     this->serialDebug = serialDebug;
@@ -223,59 +220,9 @@ void InterfacePlough::UpdateScreen(boolean rewrite) {
 // Method for checking buttons
 // ---------------------------
 short int InterfacePlough::CheckButtons(byte delay1, byte delay2) {
-    if (button1Flag) {
-        button1Timer = millis();
-        button1Flag = false;
-    }
-
-    if (button2Flag) {
-        button2Timer = millis();
-        button2Flag = false;
-    }
-
-    // Check for left/right button presses
-    if (digitalRead(LEFT_BUTTON_2) && digitalRead(RIGHT_BUTTON_2)) {
-        if (millis() - button1Timer >= delay1 * 4) {
-            button1Flag = true;
-            buttons = 2;
-            return 2;
-        }
-        else {
-            button2Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(LEFT_BUTTON_2)) { // || digitalRead(JOY_LEFT_2)){
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = -1;
-            return -1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(RIGHT_BUTTON_2)) { // || digitalRead(JOY_RIGHT_2)){
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = 1;
-            return 1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else {
-        button1Flag = true;
-        button2Flag = true;
-        buttons = 0;
-        return 0;
-    }
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+    buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_2), digitalRead(RIGHT_BUTTON_2), delay1, delay2, millis());
+    return buttons;
 }
 
 }  // namespace triton
