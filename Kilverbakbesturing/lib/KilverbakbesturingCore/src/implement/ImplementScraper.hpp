@@ -23,6 +23,7 @@
 
 #include "GuidanceGeometry.hpp"
 #include "GuidanceSource.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementScraper.hpp"
 
@@ -99,11 +100,8 @@ private:
     // PID variables
     byte kp;
 
-    // Timers for end shutoff
-    unsigned int  shutoffTime;
-    bool          shutoffWide;
-    bool          shutoffNarrow;
-    unsigned long shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     GuidanceSource* guidance;
