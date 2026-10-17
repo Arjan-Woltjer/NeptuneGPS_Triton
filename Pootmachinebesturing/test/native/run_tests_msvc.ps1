@@ -12,7 +12,8 @@ $includes = @(
     'lib\PootmachinebesturingCore\src',
     '..\MeijWorks Libs\VehicleGuidance',
     '..\MeijWorks Libs\EepromStore',
-    '..\MeijWorks Libs\Interpolation'
+    '..\MeijWorks Libs\Interpolation',
+    '..\MeijWorks Libs\LcdNumber'
 )
 $sources = @(
     'lib\PootmachinebesturingCore\src\implement\ImplementPlanter.cpp',
