@@ -124,30 +124,17 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
         rotationCalibrationData[2] = 700;
 #endif
 
-        // PID constant
-        kp = 100;
-
-        // pwm values for manual and auto
-#ifdef PWM_MAN
-        manPwm = 90;
-#else
-        manPwm = 255;
-#endif
-
-#ifdef PWM_AUTO
-        autoPwm = 70;
-#else
-        autoPwm = 255;
-#endif
-
-        // error margin
-        error = 2;
+        // deadband
+        deadband = kDefaultDeadband;
 
         // side_swap
         swap = false;
 
+        // no bypass valve
+        bypass = false;
+
         // amount of shares
-        shares = 4;
+        shares = kDefaultShares;
 
         // maximum correction, per share
         maxCorrectionPerShare = kDefaultMaxCorrectionPerShareMm;
@@ -215,8 +202,8 @@ void ImplementPlough::Update(byte mode, short int buttons) {
 // Method for setting setpoint
 // ---------------------------
 void ImplementPlough::setSetpoint() {
-    // calculate proportional gain (kp should be 1)
-    int pe = xte * (float(kp) / 100);
+    // bang-bang control: the correction is the cross-track error itself
+    int pe = xte;
 
     // maximise correction to set maximum. The limit is in mm (#163) and the
     // setpoint in whole cm, so a limit with a half centimetre rounds down --
@@ -243,23 +230,23 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
     switch (mode) {
         case 0:
             actualPosition = position;
-            pwm = autoPwm;
+            pwm = kValvePwm;
             break;
         case 1:
             actualPosition = setpoint;
-            pwm = autoPwm;
+            pwm = kValvePwm;
             break;
         case 2:
         case 3:
-            actualPosition = setpoint - (direction * (error + 1));
+            actualPosition = setpoint - (direction * (deadband + 1));
             lastPosition = setpoint; // to counter shutoff when in manual mode
-            pwm = manPwm;
+            pwm = kValvePwm;
     }
 
-    // ---------------------------
-    // Adjust tree including error
-    // ---------------------------
-    if (actualPosition < setpoint - error && (!shutoffNarrow || (mode >= 2))) {
+    // ------------------------------
+    // Adjust tree including deadband
+    // ------------------------------
+    if (actualPosition < setpoint - deadband && (!shutoffNarrow || (mode >= 2))) {
         // Setpoint < actual position
         Narrower(pwm);
 
@@ -278,7 +265,7 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
             shutoffWide = false;
         }
     }
-    else if (actualPosition > setpoint + error && (!shutoffWide || (mode >= 2))) {
+    else if (actualPosition > setpoint + deadband && (!shutoffWide || (mode >= 2))) {
         // Setpoint < actual position
         Wider(pwm);
 
@@ -317,8 +304,8 @@ void ImplementPlough::Narrower(byte pwm) {
 #else
     analogWrite(OUTPUT_WIDE_2, 0);
     analogWrite(OUTPUT_NARROW_2, pwm);
-    //analogWrite(OUTPUT_BYPASS_2, pwm);
 #endif
+    driveBypass(bypass ? pwm : 0);
 #ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, HIGH);
 #endif
@@ -334,8 +321,8 @@ void ImplementPlough::Wider(byte pwm) {
 #else
     analogWrite(OUTPUT_WIDE_2, pwm);
     analogWrite(OUTPUT_NARROW_2, 0);
-    //analogWrite(OUTPUT_BYPASS_2, pwm);
 #endif
+    driveBypass(bypass ? pwm : 0);
 #ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, HIGH);
 #endif
@@ -350,10 +337,24 @@ void ImplementPlough::Stop() {
 #else
     analogWrite(OUTPUT_WIDE_2, 0);
     analogWrite(OUTPUT_NARROW_2, 0);
-    //analogWrite(OUTPUT_BYPASS_2, 0);
 #endif
+    driveBypass(0);
 #ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, LOW);
+#endif
+}
+
+// ----------------------------------------------------------------------
+// Bypass valve: with one fitted it is driven with the narrower/wider
+// valve and closed at Stop; without one the output stays off. Triton01
+// drives it through its own H-bridge, PH fixed, EN carrying the duty.
+// ----------------------------------------------------------------------
+void ImplementPlough::driveBypass(byte pwm) {
+#if defined(ESP32S3)
+    digitalWrite(OUTPUT_BYPASS_PH_2, LOW);
+    analogWrite(OUTPUT_BYPASS_EN_2, pwm);
+#else
+    analogWrite(OUTPUT_BYPASS_2, pwm);
 #endif
 }
 
@@ -491,10 +492,12 @@ boolean ImplementPlough::readCalibrationData() {
 #ifdef ROTATION
         EEPROM.read(46) != 255 ||
 #endif
+        // 52/54/56 held PWM manual/auto and KP, no longer used; a board
+        // that has them written still counts as calibrated.
         EEPROM.read(52) != 255 || EEPROM.read(54) != 255 ||
         EEPROM.read(56) != 255 || EEPROM.read(58) != 255 ||
         EEPROM.read(60) != 255 || EEPROM.read(62) != 255 ||
-        EEPROM.read(64) != 255) {
+        EEPROM.read(64) != 255 || EEPROM.read(68) != 255) {
 
         // Read from eeprom highbyte, then lowbyte, and combine into words
         short int storedPosition[3];
@@ -533,31 +536,12 @@ boolean ImplementPlough::readCalibrationData() {
         }
 
 
-#ifdef PWM_MAN
-        manPwm = EEPROM.read(52);
-#else
-        manPwm = 254;
-#endif
-
-#ifdef PWM_AUTO
-        autoPwm = EEPROM.read(54);
-#else
-        autoPwm = 254;
-#endif
-
-#ifdef PID_KP
-        kp = EEPROM.read(56);
-#else
-        kp = 100;
-#endif
-
-        //Read error max == 10 cm
-        if (EEPROM.read(58) < 10) {
-            // Read error
-            error = EEPROM.read(58);
+        // Read deadband, the same 2-10 cm the calibration wizard allows
+        if (EEPROM.read(58) >= kLowestDeadband && EEPROM.read(58) <= kHighestDeadband) {
+            deadband = EEPROM.read(58);
         }
         else {
-            error = 2;  //default to 2
+            deadband = kDefaultDeadband;
         }
 
 
@@ -581,13 +565,20 @@ boolean ImplementPlough::readCalibrationData() {
             swap = false;  //default to 0
         }
 
-        //Read number of shares
-        if (EEPROM.read(64) < 10) {
-            // Read number of shares
+        // Read number of shares, the same 2-10 the calibration wizard allows
+        if (EEPROM.read(64) >= kLowestShares && EEPROM.read(64) <= kHighestShares) {
             shares = EEPROM.read(64);
         }
         else {
-            shares = 4;  //default to 4
+            shares = kDefaultShares;
+        }
+
+        // Read bypass valve fitted, 1 or 0
+        if (EEPROM.read(68) < 2) {
+            bypass = EEPROM.read(68);
+        }
+        else {
+            bypass = false;
         }
 
     }
@@ -631,30 +622,16 @@ FLASHMEM void ImplementPlough::PrintCalibrationData() {
     serialDebug->println(shares);
     serialDebug->println("--------------------------");
 
-#ifdef PID_KP
-    serialDebug->println("kp");
-    serialDebug->println(-kp);
-    serialDebug->println("--------------------------");
-#endif
-
-#ifdef PWM_AUTO
-    serialDebug->println("PWM auto");
-    serialDebug->println(autoPwm);
-    serialDebug->println("--------------------------");
-#endif
-
-#ifdef PWM_MAN
-    serialDebug->println("PWM manual");
-    serialDebug->println(manPwm);
-    serialDebug->println("--------------------------");
-#endif
-
-    serialDebug->println("error margin");
-    serialDebug->println(error);
+    serialDebug->println("Deadband (cm)");
+    serialDebug->println(deadband);
     serialDebug->println("--------------------------");
 
     serialDebug->println("error ploughside");
     serialDebug->println(swap);
+    serialDebug->println("--------------------------");
+
+    serialDebug->println("Bypass valve");
+    serialDebug->println(bypass);
     serialDebug->println("--------------------------");
 
     serialDebug->println("Maximum correction per share (mm)");
@@ -679,13 +656,12 @@ void ImplementPlough::writeCalibrationData() {
 #endif
     }
 
-    EEPROM.write(52, manPwm);  //52
-    EEPROM.write(54, autoPwm); //54
-    EEPROM.write(56, kp);       //56
-    EEPROM.write(58, error);    //58
+    // 52, 54, 56 (PWM manual/auto, KP) are no longer written
+    EEPROM.write(58, deadband); //58, cm
     EEPROM.write(60, maxCorrectionPerShare);   //60, mm per share (#163)
     EEPROM.write(62, swap);     //62
     EEPROM.write(64, shares);   //64
+    EEPROM.write(68, bypass);   //68, bypass valve fitted
 
 #ifdef DEBUG
     serialDebug->println("Calibration data written");
