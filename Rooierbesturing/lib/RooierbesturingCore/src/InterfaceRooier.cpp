@@ -133,10 +133,10 @@ void InterfaceRooier::Update() {
 void InterfaceRooier::UpdateScreen(boolean rewrite) {
     // Update screen
     if (rewrite) {
-        lcd->WriteBuffer(L8_REFERENCE, 0);
-        lcd->WriteBuffer(L8_POS_L, 1);
-        lcd->WriteBuffer(L8_POS_R, 2);
-        lcd->WriteBuffer(L8_BLANK, 3);
+        lcd->WriteBuffer(L_REFERENCE, 0);
+        lcd->WriteBuffer(L_POS_L, 1);
+        lcd->WriteBuffer(L_POS_R, 2);
+        lcd->WriteBuffer(L_BLANK, 3);
 
         lcd->WriteScreen(-1);
     }

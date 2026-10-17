@@ -29,34 +29,18 @@
 
 #define NEDERLANDS
 
+#include "TritonText.hpp"
+
 // ---------------
 // Taal NEDERLANDS
 // ---------------
 #if defined NEDERLANDS
 
-#define L_BLANK         "                    "
-
-#define L_MEIJWORKS     "     MeijWorks      "
 #define L_DEVICE        "Sprayercontrol  v1.4"
-#define L_COPYRIGHT     "      (c) 2026      "
-#define L_AUTHOR        "  by J.A. Woltjer   "
 
 #define L_FLOW          "Afgifte:        L/Ha"
 #define L_MEASURE       "Gemeten:        L/Ha"
 #define L_SPEED         "Snelheid:       KM/h"
-#define L_SETPOINT      "Setpoint:           "
-
-#define L_CAL_ACCEPT    "+ : accepteren      "
-#define L_CAL_DECLINE   "- : annuleren       "
-
-#define L_CAL_DONE      "voltooid            "
-#define L_CAL_DECLINED  "geannuleerd         "
-
-#define L_CAL_ADJUST    "+ / - : verstellen  "
-#define L_CAL_ENTER     "Beide : accepteren  "
-
-#define L_CAL_ON        "                 aan"
-#define L_CAL_OFF       "                 uit"
 
 #define L_MEN_SIM       "Simulatie menu      "
 #define L_MEN_SPEED     "Snelheidscalibratie "
@@ -72,7 +56,6 @@
 #define L_CAL_SIMT      "Wijzig sim tijd     "
 #define L_CAL_SIMT_AD   "Huidig:          sec"
 
-#define L_CAL_SPEED     "Snelheids calibratie"
 #define L_CAL_SPEED_AD  "Pulsen:             "
 
 #define L_CAL_SPEED_100 "100m uitgemeten     "
@@ -93,28 +76,7 @@
 #define L_CAL_PWM       "PWM calibratie      "
 #define L_CAL_PWM_AD    "Volume/omw:       cc"
 
-#define L_CAL_KP        "PID wijzig KP       "
-#define L_CAL_KP_AD     "KP:                 "
-
-#define L_CAL_KI        "PID wijzig KI       "
-#define L_CAL_KI_AD     "KI:                 "
-
-#define L_CAL_KD        "PID wijzig KD       "
-#define L_CAL_KD_AD     "KD:                 "
-
-#define L_CAL_QUAL      "Corrigeer RTK ident."
-#define L_CAL_QUAL_AD   "Quality:            "
-
-#define L_CAL_GPS       "GPS autodetect      "
-#define L_CAL_GPS_DONE  "geslaagd            "
-#define L_CAL_GPS_FAIL  "mislukt...          "
-#define L_CAL_GPS_M1    "Check kabels en     "
-#define L_CAL_GPS_M2    "nmea output         "
-
 #define L_CAL_COMPLETE  "Calibratie opslaan  "
-#define L_CAL_NOSAVE    "Data NIET opgeslagen"
-#define L_CAL_DDONE     "geslaagd            "
-#define L_CAL_SAVE      "Data is opgeslagen  "
 
 #define L_CAL_EXIT      "Menu verlaten       "
 #define L_CAL_BYE       "BYE                 "
@@ -133,29 +95,11 @@
 // ever been selected. Replaced with a real translation of the NEDERLANDS
 // block above, matching how LanguagePlanter.hpp's equivalent gap was filled.
 
-#define L_BLANK         "                    "
-
-#define L_MEIJWORKS     "     MeijWorks      "
 #define L_DEVICE        "Sprayercontrol  v1.4"
-#define L_COPYRIGHT     "      (c) 2026      "
-#define L_AUTHOR        "  by J.A. Woltjer   "
 
 #define L_FLOW          "Output:         L/Ha"
 #define L_MEASURE       "Measured:       L/Ha"
 #define L_SPEED         "Speed:          KM/h"
-#define L_SETPOINT      "Setpoint:           "
-
-#define L_CAL_ACCEPT    "+ : accept          "
-#define L_CAL_DECLINE   "- : cancel          "
-
-#define L_CAL_DONE      "complete            "
-#define L_CAL_DECLINED  "cancelled           "
-
-#define L_CAL_ADJUST    "+ / - : to adjust   "
-#define L_CAL_ENTER     "Both  : to accept   "
-
-#define L_CAL_ON        "                  on"
-#define L_CAL_OFF       "                 off"
 
 #define L_MEN_SIM       "Simulation menu     "
 #define L_MEN_SPEED     "Speed calibration   "
@@ -171,7 +115,6 @@
 #define L_CAL_SIMT      "Adjust sim time     "
 #define L_CAL_SIMT_AD   "Current:         sec"
 
-#define L_CAL_SPEED     "Speed calibration   "
 #define L_CAL_SPEED_AD  "Pulses:             "
 
 #define L_CAL_SPEED_100 "100m measured out   "
@@ -192,28 +135,7 @@
 #define L_CAL_PWM       "PWM calibration     "
 #define L_CAL_PWM_AD    "Volume/rev:       cc"
 
-#define L_CAL_KP        "PID adjust KP       "
-#define L_CAL_KP_AD     "KP:                 "
-
-#define L_CAL_KI        "PID adjust KI       "
-#define L_CAL_KI_AD     "KI:                 "
-
-#define L_CAL_KD        "PID adjust KD       "
-#define L_CAL_KD_AD     "KD:                 "
-
-#define L_CAL_QUAL      "Correct RTK ident.  "
-#define L_CAL_QUAL_AD   "Quality:            "
-
-#define L_CAL_GPS       "GPS autodetect      "
-#define L_CAL_GPS_DONE  "passed              "
-#define L_CAL_GPS_FAIL  "failed...           "
-#define L_CAL_GPS_M1    "Check cabling and   "
-#define L_CAL_GPS_M2    "nmea output         "
-
 #define L_CAL_COMPLETE  "Save calibration    "
-#define L_CAL_NOSAVE    "Data NOT saved      "
-#define L_CAL_DDONE     "done                "
-#define L_CAL_SAVE      "Data saved          "
 
 #define L_CAL_EXIT      "Exit menu           "
 #define L_CAL_BYE       "BYE                 "
