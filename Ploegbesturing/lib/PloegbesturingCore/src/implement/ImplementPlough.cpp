@@ -18,6 +18,7 @@
 */
 #include "ImplementPlough.hpp"
 #include "EepromStore.hpp"
+#include "EndShutoff.hpp"
 #include "Interpolation.hpp"
 
 namespace triton
@@ -80,10 +81,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     setpoint = 0;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_2;
-    shutoffNarrow = false;
-    shutoffWide = false;
-    shutoffTimer = millis();
+    endShutoff.Begin(SHUTOFF_2, millis());
 
     // Update timer
     updateAge = millis();
@@ -232,50 +230,26 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
     // ------------------------------
     // Adjust tree including deadband
     // ------------------------------
-    if (actualPosition < setpoint - deadband && (!shutoffNarrow || (mode >= 2))) {
+    if (actualPosition < setpoint - deadband && (!endShutoff.Latched(EndShutoff::kNarrower) || (mode >= 2))) {
         // Setpoint < actual position
         Narrower(pwm);
 
         // End shutoff
-        if (actualPosition != lastPosition) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffWide) {
-            shutoffNarrow = false;
-            shutoffWide = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = true;
-            shutoffWide = false;
-        }
+        endShutoff.Moving(EndShutoff::kNarrower, actualPosition != lastPosition, millis());
     }
-    else if (actualPosition > setpoint + deadband && (!shutoffWide || (mode >= 2))) {
+    else if (actualPosition > setpoint + deadband && (!endShutoff.Latched(EndShutoff::kWider) || (mode >= 2))) {
         // Setpoint < actual position
         Wider(pwm);
 
         // End shutoff
-        if (actualPosition != lastPosition) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffNarrow) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = false;
-            shutoffWide = true;
-        }
+        endShutoff.Moving(EndShutoff::kWider, actualPosition != lastPosition, millis());
     }
     else {
         // Setpoint reached
         Stop();
 
         // Reset shutoff timer
-        shutoffTimer = millis();
+        endShutoff.Stopped(millis());
     }
     lastPosition = actualPosition;
 }

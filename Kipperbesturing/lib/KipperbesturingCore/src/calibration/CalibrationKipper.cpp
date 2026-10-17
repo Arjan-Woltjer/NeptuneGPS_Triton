@@ -33,9 +33,9 @@ CalibrationKipper::CalibrationKipper(InterfaceI2CLCD* lcd, ImplementKipper* impl
 // -------------------------------------------------------------------------
 bool CalibrationKipper::adjustValue(const char* title, const char* prompt, int* value, int minValue, int maxValue) {
     lcd->WriteBuffer(title, 0);
-    lcd->WriteBuffer(L4_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L4_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L4_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -47,9 +47,9 @@ bool CalibrationKipper::adjustValue(const char* title, const char* prompt, int* 
 
         if (buttons == -1) {
             lcd->WriteBuffer(title, 0);
-            lcd->WriteBuffer(L4_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L4_BLANK, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
             delay(1000);
@@ -57,8 +57,8 @@ bool CalibrationKipper::adjustValue(const char* title, const char* prompt, int* 
         }
         else if (buttons == 1) {
             lcd->WriteBuffer(title, 0);
-            lcd->WriteBuffer(L4_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L4_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
             lcd->WriteBuffer(prompt, 3);
 
             lcd->WriteScreen(-1);
@@ -100,8 +100,8 @@ bool CalibrationKipper::adjustValue(const char* title, const char* prompt, int* 
             *value = temp;
 
             lcd->WriteBuffer(title, 0);
-            lcd->WriteBuffer(L4_CAL_DONE, 1);
-            lcd->WriteBuffer(L4_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
             lcd->WriteBuffer(prompt, 3);
 
             lcd->WriteScreen(-1);
@@ -123,10 +123,10 @@ void CalibrationKipper::Calibrate() {
     // ----------------
     // Steer calibration
     // ----------------
-    lcd->WriteBuffer(L4_CAL_STEER, 0);
-    lcd->WriteBuffer(L4_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L4_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L4_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_STEER, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -137,20 +137,20 @@ void CalibrationKipper::Calibrate() {
         int buttons = interface->CheckButtons(0, 0);
 
         if (buttons == -1) {
-            lcd->WriteBuffer(L4_CAL_STEER, 0);
-            lcd->WriteBuffer(L4_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L4_BLANK, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_STEER, 0);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
             delay(1000);
             break;
         }
         else if (buttons == 1) {
-            lcd->WriteBuffer(L4_CAL_STEER, 0);
-            lcd->WriteBuffer(L4_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L4_CAL_ENTER, 2);
-            lcd->WriteBuffer(L4_CAL_STEER_AD, 3);
+            lcd->WriteBuffer(L_CAL_STEER, 0);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_STEER_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -194,10 +194,10 @@ void CalibrationKipper::Calibrate() {
                 }
             }
 
-            lcd->WriteBuffer(L4_CAL_STEER, 0);
-            lcd->WriteBuffer(L4_CAL_DONE, 1);
-            lcd->WriteBuffer(L4_BLANK, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_STEER, 0);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
             delay(1000);
@@ -208,10 +208,10 @@ void CalibrationKipper::Calibrate() {
     // ----------------
     // Angle calibration
     // ----------------
-    lcd->WriteBuffer(L4_CAL_ANGLE, 0);
-    lcd->WriteBuffer(L4_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L4_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L4_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_ANGLE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -222,20 +222,20 @@ void CalibrationKipper::Calibrate() {
         int buttons = interface->CheckButtons(0, 0);
 
         if (buttons == -1) {
-            lcd->WriteBuffer(L4_CAL_ANGLE, 0);
-            lcd->WriteBuffer(L4_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L4_BLANK, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_ANGLE, 0);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
             delay(1000);
             break;
         }
         else if (buttons == 1) {
-            lcd->WriteBuffer(L4_CAL_ANGLE, 0);
-            lcd->WriteBuffer(L4_BLANK, 1);
-            lcd->WriteBuffer(L4_CAL_ENTER, 2);
-            lcd->WriteBuffer(L4_CAL_ANGLE_AD, 3);
+            lcd->WriteBuffer(L_CAL_ANGLE, 0);
+            lcd->WriteBuffer(L_BLANK, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ANGLE_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -269,10 +269,10 @@ void CalibrationKipper::Calibrate() {
                 }
             }
 
-            lcd->WriteBuffer(L4_CAL_ANGLE, 0);
-            lcd->WriteBuffer(L4_CAL_DONE, 1);
-            lcd->WriteBuffer(L4_BLANK, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_ANGLE, 0);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
             delay(1000);
@@ -284,17 +284,17 @@ void CalibrationKipper::Calibrate() {
     // PID gain adjust
     // ---------------
     int kp = implement->GetKP();
-    if (adjustValue(L4_CAL_KP, L4_CAL_KP_AD, &kp, 0, 255)) {
+    if (adjustValue(L_CAL_KP, L_CAL_KP_AD, &kp, 0, 255)) {
         implement->SetKP(byte(kp));
     }
 
     int ki = implement->GetKI();
-    if (adjustValue(L4_CAL_KI, L4_CAL_KI_AD, &ki, 0, 255)) {
+    if (adjustValue(L_CAL_KI, L_CAL_KI_AD, &ki, 0, 255)) {
         implement->SetKI(byte(ki));
     }
 
     int kd = implement->GetKD();
-    if (adjustValue(L4_CAL_KD, L4_CAL_KD_AD, &kd, 0, 255)) {
+    if (adjustValue(L_CAL_KD, L_CAL_KD_AD, &kd, 0, 255)) {
         implement->SetKD(byte(kd));
     }
 
@@ -302,17 +302,17 @@ void CalibrationKipper::Calibrate() {
     // Adjust offset
     // ------------
     int offset = implement->GetOffset();
-    if (adjustValue(L4_CAL_OFFSET, L4_CAL_OFFSET_AD, &offset, -20, 20)) {
+    if (adjustValue(L_CAL_OFFSET, L_CAL_OFFSET_AD, &offset, -20, 20)) {
         implement->SetOffset(offset);
     }
 
     // ----------------------
     // Store calibration data
     // ----------------------
-    lcd->WriteBuffer(L4_CAL_COMPLETE, 0);
-    lcd->WriteBuffer(L4_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L4_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L4_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -323,10 +323,10 @@ void CalibrationKipper::Calibrate() {
         int buttons = interface->CheckButtons(0, 0);
 
         if (buttons == -1) {
-            lcd->WriteBuffer(L4_CAL_COMPLETE, 0);
-            lcd->WriteBuffer(L4_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L4_CAL_NOSAVE, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_CAL_NOSAVE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -339,10 +339,10 @@ void CalibrationKipper::Calibrate() {
             implement->CommitCalibration();
             tractor->CommitCalibration();
 
-            lcd->WriteBuffer(L4_CAL_COMPLETE, 0);
-            lcd->WriteBuffer(L4_CAL_DDONE, 1);
-            lcd->WriteBuffer(L4_CAL_SAVE, 2);
-            lcd->WriteBuffer(L4_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+            lcd->WriteBuffer(L_CAL_DDONE, 1);
+            lcd->WriteBuffer(L_CAL_SAVE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 

@@ -12,7 +12,9 @@ $includes = @(
     'lib\SpuitcomputerSpCore\src',
     '..\MeijWorks Libs\EepromStore',
     '..\MeijWorks Libs\Interpolation',
-    '..\MeijWorks Libs\LcdNumber'
+    '..\MeijWorks Libs\LcdNumber',
+    '..\MeijWorks Libs\TritonText',
+    '..\MeijWorks Libs\ButtonPair'
 )
 $sources = @(
     'lib\SpuitcomputerSpCore\src\implement\ImplementSprayer.cpp',

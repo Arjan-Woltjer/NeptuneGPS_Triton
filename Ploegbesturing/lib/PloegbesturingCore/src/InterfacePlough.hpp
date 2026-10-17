@@ -21,6 +21,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "VehicleTractor.hpp"
 #include "GuidanceSource.hpp"
+#include "ButtonPair.hpp"
 
 #include "config/ConfigInterfacePlough.hpp"
 #include "implement/ImplementPlough.hpp"
@@ -40,10 +41,7 @@ private:
 
     // Button flag and timer
     short int     buttons;
-    bool          button1Flag;
-    bool          button2Flag;
-    unsigned long button1Timer;
-    unsigned long button2Timer;
+    ButtonPair    buttonPair;
 
     // Objects
     Stream*          serialDebug;

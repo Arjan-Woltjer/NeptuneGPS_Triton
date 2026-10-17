@@ -18,6 +18,7 @@
 */
 #include "ImplementScraper.hpp"
 #include "EepromStore.hpp"
+#include "EndShutoff.hpp"
 #include "Interpolation.hpp"
 
 namespace triton
@@ -66,10 +67,7 @@ ImplementScraper::ImplementScraper(GuidanceSource* guidance) {
     setpoint = 0;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_5;
-    shutoffNarrow = false;
-    shutoffWide = false;
-    shutoffTimer = millis();
+    endShutoff.Begin(SHUTOFF_5, millis());
 
     // Update timer
     updateAge = millis();
@@ -253,50 +251,26 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     //---------------------------
     // Setpoint < actual position
     //---------------------------
-    if (actualPosition < setpoint - error && !shutoffNarrow) {
+    if (actualPosition < setpoint - error && !endShutoff.Latched(EndShutoff::kNarrower)) {
         analogWrite(OUTPUT_WIDE_5, 0);
         analogWrite(OUTPUT_NARROW_5, 255);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
         // End shutoff
-        if (actualPosition != lastPosition) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffWide) {
-            shutoffNarrow = false;
-            shutoffWide = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = true;
-            shutoffWide = false;
-        }
+        endShutoff.Moving(EndShutoff::kNarrower, actualPosition != lastPosition, millis());
     }
     //---------------------------
     // Setpoint > actual position
     //---------------------------
-    else if (actualPosition > setpoint + error && !shutoffWide) {
+    else if (actualPosition > setpoint + error && !endShutoff.Latched(EndShutoff::kWider)) {
         analogWrite(OUTPUT_WIDE_5, 255);
         analogWrite(OUTPUT_NARROW_5, 0);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
         // End shutoff
-        if (actualPosition != lastPosition) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffNarrow) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = false;
-            shutoffWide = true;
-        }
+        endShutoff.Moving(EndShutoff::kWider, actualPosition != lastPosition, millis());
     }
     //-----------------
     // Setpoint reached
@@ -305,7 +279,7 @@ void ImplementScraper::Adjust(byte mode, int direction) {
         Stop();
 
         // Reset shutoff timer
-        shutoffTimer = millis();
+        endShutoff.Stopped(millis());
     }
     lastPosition = actualPosition;
 #endif

@@ -74,10 +74,10 @@ void setup() {
 
     // Write message to screen
     // Messages in LanguageKipper.hpp
-    gLcd->WriteBuffer(L4_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L4_DEVICE, 1);
-    gLcd->WriteBuffer(L4_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L4_AUTHOR, 3);
+    gLcd->WriteBuffer(L_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L_DEVICE, 1);
+    gLcd->WriteBuffer(L_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L_AUTHOR, 3);
 
     gLcd->WriteScreen(-1);
 
