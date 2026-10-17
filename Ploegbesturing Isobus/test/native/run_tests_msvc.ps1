@@ -22,7 +22,8 @@ $includes = @(
     '..\MeijWorks Libs\EepromStore',
     '..\MeijWorks Libs\Interpolation',
     '..\MeijWorks Libs\LcdNumber',
-    '..\MeijWorks Libs\TritonText'
+    '..\MeijWorks Libs\TritonText',
+    '..\MeijWorks Libs\EndShutoff'
 )
 $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',

@@ -23,6 +23,7 @@
 
 #include "GuidanceSource.hpp"
 #include "VehicleTractor.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementPlanter.hpp"
 
@@ -99,11 +100,8 @@ private:
     float D;
     byte  kd;
 
-    // Timers for end shutoff
-    unsigned int  shutoffTime;
-    bool          shutoffWide;
-    bool          shutoffNarrow;
-    unsigned long shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     Stream*         serialDebug;

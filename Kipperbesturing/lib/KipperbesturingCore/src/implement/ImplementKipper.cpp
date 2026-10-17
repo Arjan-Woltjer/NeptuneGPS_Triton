@@ -18,6 +18,7 @@
 */
 #include "ImplementKipper.hpp"
 #include "EepromStore.hpp"
+#include "EndShutoff.hpp"
 #include "Interpolation.hpp"
 
 namespace triton
@@ -113,10 +114,7 @@ ImplementKipper::ImplementKipper(VehicleTractor* tractor) {
     D = 0;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_4;
-    shutoffWide = false;
-    shutoffNarrow = false;
-    shutoffTimer = millis();
+    endShutoff.Begin(SHUTOFF_4, millis());
 
     // Update timer
     updateAge = millis();
@@ -168,50 +166,26 @@ void ImplementKipper::Adjust(int direction) {
     //---------------------------
     // Actual steer < setpoint
     //---------------------------
-    if (actualSteer < setpoint && !shutoffNarrow) {
+    if (actualSteer < setpoint && !endShutoff.Latched(EndShutoff::kNarrower)) {
         digitalWrite(OUTPUT_WIDE_4, LOW);
         digitalWrite(OUTPUT_NARROW_4, HIGH);
 
         digitalWrite(OUTPUT_LED_4, HIGH);
 
         // End shutoff
-        if (steer != lastSteer) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffWide) {
-            shutoffNarrow = false;
-            shutoffWide = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = true;
-            shutoffWide = false;
-        }
+        endShutoff.Moving(EndShutoff::kNarrower, steer != lastSteer, millis());
     }
     //---------------------------
     // Actual steer > setpoint
     //---------------------------
-    else if (actualSteer > setpoint && !shutoffWide) {
+    else if (actualSteer > setpoint && !endShutoff.Latched(EndShutoff::kWider)) {
         digitalWrite(OUTPUT_WIDE_4, HIGH);
         digitalWrite(OUTPUT_NARROW_4, LOW);
 
         digitalWrite(OUTPUT_LED_4, HIGH);
 
         // End shutoff
-        if (steer != lastSteer) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffNarrow) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = false;
-            shutoffWide = true;
-        }
+        endShutoff.Moving(EndShutoff::kWider, steer != lastSteer, millis());
     }
     //-----------------
     // Setpoint reached
@@ -223,7 +197,7 @@ void ImplementKipper::Adjust(int direction) {
         digitalWrite(OUTPUT_BYPASS_4, LOW);
 
         digitalWrite(OUTPUT_LED_4, LOW);
-        shutoffTimer = millis();
+        endShutoff.Stopped(millis());
     }
     lastSteer = steer;
 }

@@ -69,13 +69,8 @@ ImplementRooier::ImplementRooier() {
     lastErrorR = 0.0f;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_8;
-    shutoffWideL = false;
-    shutoffWideR = false;
-    shutoffNarrowL = false;
-    shutoffNarrowR = false;
-    shutoffTimerL = millis();
-    shutoffTimerR = millis();
+    endShutoffL.Begin(SHUTOFF_8, millis());
+    endShutoffR.Begin(SHUTOFF_8, millis());
 
     // Update timer
     updateAge = millis();
@@ -233,9 +228,9 @@ void ImplementRooier::Adjust(byte mode, int direction) {
     }
 
     bool drivingL = adjustSide(actualL, targetL, pwm, OUTPUT_UP_L_8, OUTPUT_DOWN_L_8,
-                                lastHeightL, shutoffWideL, shutoffNarrowL, shutoffTimerL);
+                                lastHeightL, endShutoffL);
     bool drivingR = adjustSide(actualR, targetR, pwm, OUTPUT_UP_R_8, OUTPUT_DOWN_R_8,
-                                lastHeightR, shutoffWideR, shutoffNarrowR, shutoffTimerR);
+                                lastHeightR, endShutoffR);
 
     digitalWrite(OUTPUT_LED_8, (drivingL || drivingR) ? HIGH : LOW);
 }
@@ -244,54 +239,30 @@ void ImplementRooier::Adjust(byte mode, int direction) {
 // Method for driving a single side's shutoff-latch bang-bang
 // ----------------------------------------------------------
 bool ImplementRooier::adjustSide(int actual, int target, byte pwm, byte outputUp, byte outputDown,
-                                  int& lastHeight, bool& shutoffWide, bool& shutoffNarrow, unsigned long& shutoffTimer) {
+                                  int& lastHeight, EndShutoff& endShutoff) {
     bool driving = false;
 
     //---------------------------
     // Actual below target -> up
     //---------------------------
-    if (actual < target - error && !shutoffNarrow) {
+    if (actual < target - error && !endShutoff.Latched(EndShutoff::kNarrower)) {
         analogWrite(outputUp, pwm);
         analogWrite(outputDown, 0);
         driving = true;
 
         // End shutoff
-        if (actual != lastHeight) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffWide) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = true;
-            shutoffWide = false;
-        }
+        endShutoff.Moving(EndShutoff::kNarrower, actual != lastHeight, millis());
     }
     //-----------------------------
     // Actual above target -> down
     //-----------------------------
-    else if (actual > target + error && !shutoffWide) {
+    else if (actual > target + error && !endShutoff.Latched(EndShutoff::kWider)) {
         analogWrite(outputDown, pwm);
         analogWrite(outputUp, 0);
         driving = true;
 
         // End shutoff
-        if (actual != lastHeight) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffNarrow) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = false;
-            shutoffWide = true;
-        }
+        endShutoff.Moving(EndShutoff::kWider, actual != lastHeight, millis());
     }
     //----------------
     // Target reached
@@ -300,7 +271,7 @@ bool ImplementRooier::adjustSide(int actual, int target, byte pwm, byte outputUp
         analogWrite(outputUp, 0);
         analogWrite(outputDown, 0);
 
-        shutoffTimer = millis();
+        endShutoff.Stopped(millis());
     }
 
     lastHeight = actual;

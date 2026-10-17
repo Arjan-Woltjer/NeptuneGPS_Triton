@@ -18,6 +18,7 @@
 */
 #include "ImplementPlanter.hpp"
 #include "EepromStore.hpp"
+#include "EndShutoff.hpp"
 #include "Interpolation.hpp"
 
 namespace triton
@@ -92,10 +93,7 @@ ImplementPlanter::ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor,
     D = 0;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_3;
-    shutoffWide = false;
-    shutoffNarrow = false;
-    shutoffTimer = millis();
+    endShutoff.Begin(SHUTOFF_3, millis());
 
     // Update timer. updateFlag was never initialized here in the legacy
     // code either -- Update()'s "at least 250ms elapsed AND updateFlag"
@@ -358,44 +356,20 @@ void ImplementPlanter::Adjust(byte mode, int direction) {
         //---------------------------
         // Setpoint < actual position
         //---------------------------
-        if (actualPosition < setpoint && !shutoffNarrow) {
+        if (actualPosition < setpoint && !endShutoff.Latched(EndShutoff::kNarrower)) {
             Left(pwm);
 
             // End shutoff
-            if (actualPosition != lastPosition) {
-                shutoffTimer = millis();
-            }
-
-            if (shutoffWide) {
-                shutoffNarrow = false;
-                shutoffWide = false;
-            }
-
-            if (millis() - shutoffTimer > shutoffTime) {
-                shutoffNarrow = true;
-                shutoffWide = false;
-            }
+            endShutoff.Moving(EndShutoff::kNarrower, actualPosition != lastPosition, millis());
         }
         //---------------------------
         // Setpoint > actual position
         //---------------------------
-        else if (actualPosition > setpoint && !shutoffWide) {
+        else if (actualPosition > setpoint && !endShutoff.Latched(EndShutoff::kWider)) {
             Right(pwm);
 
             // End shutoff
-            if (actualPosition != lastPosition) {
-                shutoffTimer = millis();
-            }
-
-            if (shutoffNarrow) {
-                shutoffWide = false;
-                shutoffNarrow = false;
-            }
-
-            if (millis() - shutoffTimer > shutoffTime) {
-                shutoffNarrow = false;
-                shutoffWide = true;
-            }
+            endShutoff.Moving(EndShutoff::kWider, actualPosition != lastPosition, millis());
         }
         //-----------------
         // Setpoint reached
@@ -403,7 +377,7 @@ void ImplementPlanter::Adjust(byte mode, int direction) {
         else {
             Stop();
 
-            shutoffTimer = millis();
+            endShutoff.Stopped(millis());
         }
         lastPosition = actualPosition;
     }
