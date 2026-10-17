@@ -7,6 +7,8 @@ $root    = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $aunit   = "$root\.pio\libdeps\native\AUnit\src"
 $stubs   = "$root\test\native\support"
 $lib     = "$root\lib\SpuitcomputerSpCore\src"
+$eepromstore = "$root\..\MeijWorks Libs\EepromStore"  # header-only typed EEPROM encode/decode, NeptuneGPS_Triton#177
+$interpolation = "$root\..\MeijWorks Libs\Interpolation"  # header-only calibration lookup, NeptuneGPS_Triton#177
 $calibration = "$root\lib\SpuitcomputerSpCore\src\calibration"
 $implement = "$root\lib\SpuitcomputerSpCore\src\implement"
 $test    = "$root\test\native\tests"
@@ -49,7 +51,7 @@ $aunitSources = @(
 # GET_TEST(__VA_ARGS__, TEST2, TEST1)(__VA_ARGS__), which MSVC's legacy
 # (default) preprocessor expands wrong (see Ploegbesturing's/Pootmachinebesturing's
 # platformio.ini/test README for the same issue, hit there first).
-$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`""
+$commonFlags = "/std:c++17 /Zc:preprocessor /EHsc /nologo /W1 /DEPOXY_DUINO=1 /I`"$aunit`" /I`"$stubs`" /I`"$lib`" /I`"$eepromstore`" /I`"$interpolation`""
 
 # ---- combined native test binary --------------------------------------------
 # One binary for every test_*.cpp under test/native/tests/ -- matches

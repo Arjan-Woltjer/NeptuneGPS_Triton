@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ImplementPlanter.hpp"
+#include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -201,35 +203,8 @@ int ImplementPlanter::getActualPosition() {
     // Read analog input
     int readRaw = analogRead(POSITION_SENS_PIN_3);
     int actualPosition;
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > positionCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - positionCalibrationData[i - 1];
-    float b = positionCalibrationData[i] - positionCalibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading, which a
-    // disconnected or seized position potentiometer produces directly: the
-    // wizard latches analogRead() at each step without checking the captures
-    // differ. The result would be inf or NaN, and narrowing either to int
-    // below is undefined behaviour -- so this cannot be left to the caller.
-    // Fall back to the segment's own start point, the nearest defensible value.
-    if (b == 0.0f) {
-        actualPosition = d;
-    }
-    else {
-        actualPosition = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(positionCalibrationData, 3, readRaw);
+    actualPosition = Interpolation::Evaluate(positionCalibrationData, positionCalibrationPoints, i, readRaw);
 
     return actualPosition;
 }
@@ -241,30 +216,8 @@ int ImplementPlanter::getActualXte() {
     // Read analog input
     int readRaw = analogRead(XTE_SENS_PIN_3);
     int actualXte;
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > xteCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - xteCalibrationData[i - 1];
-    float b = xteCalibrationData[i] - xteCalibrationData[i - 1];
-    float c = xteCalibrationPoints[i] - xteCalibrationPoints[i - 1];
-    float d = xteCalibrationPoints[i - 1];
-
-    // Same degenerate-calibration guard as getActualPosition() above.
-    if (b == 0.0f) {
-        actualXte = d;
-    }
-    else {
-        actualXte = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(xteCalibrationData, 3, readRaw);
+    actualXte = Interpolation::Evaluate(xteCalibrationData, xteCalibrationPoints, i, readRaw);
 
     return actualXte;
 }
@@ -530,8 +483,8 @@ bool ImplementPlanter::readCalibrationData() {
         for (int i = 0; i < 3; i++) {
             int k = 2 * i;
             // 100 - 101 and 110 - 111
-            storedPosition[i] = word(EEPROM.read(k + 70), EEPROM.read(k + 71));
-            storedXte[i] = word(EEPROM.read(k + 76), EEPROM.read(k + 77));
+            storedPosition[i] = EepromStore::ReadUint16Be(k + 70);
+            storedXte[i] = EepromStore::ReadUint16Be(k + 76);
         }
 
         // These feed the divisor in getActualPosition()/getActualXte(), and
@@ -574,12 +527,12 @@ bool ImplementPlanter::readCalibrationData() {
         kd = EEPROM.read(90);
 
         if (EEPROM.read(92) < 255 || EEPROM.read(93) < 255) {
-            // Read offset (2 bytes). Signed, so it goes through readInt()
+            // Read offset (2 bytes). Signed, so it goes through EepromStore::ReadInt16Le()
             // rather than word(), which is unsigned and turned every stored
             // negative offset into a large positive number that failed the
             // range check below and reset the offset to 0 on every boot
             // (NeptuneGPS_Triton#100). Same helper ImplementPlough uses.
-            offset = readInt(92);
+            offset = EepromStore::ReadInt16Le(92);
             if (offset > 20 || offset < -20) {
                 offset = 0;
             }
@@ -612,10 +565,8 @@ void ImplementPlanter::writeCalibrationData() {
     // Write each byte separately to the memory first the data then the points
     for (int i = 0; i < 3; i++) {
         int k = 2 * i;
-        EEPROM.write(k + 70, highByte(positionCalibrationData[i]));  // 70, 72, 74
-        EEPROM.write(k + 71, lowByte(positionCalibrationData[i]));   // 71, 73, 75
-        EEPROM.write(k + 76, highByte(xteCalibrationData[i]));       // 76, 78, 80
-        EEPROM.write(k + 77, lowByte(xteCalibrationData[i]));        // 77, 79, 81
+        EepromStore::WriteUint16Be(k + 70, positionCalibrationData[i]);  // 70, 72, 74
+        EepromStore::WriteUint16Be(k + 76, xteCalibrationData[i]);       // 76, 78, 80
     }
 
     EEPROM.write(82, manPwm);   // 82
@@ -625,7 +576,7 @@ void ImplementPlanter::writeCalibrationData() {
     EEPROM.write(88, ki);  // 88
     EEPROM.write(90, kd);  // 90
 
-    writeInt(offset, 92);  // 92 - 93, signed; see readCalibrationData()
+    EepromStore::WriteInt16Le(92, offset);  // 92 - 93, signed; see readCalibrationData()
 
     byte settings = 0;
 
@@ -714,41 +665,6 @@ void ImplementPlanter::PrintCalibrationData() {
     serialDebug->println("Plantingelement Sensor Inverted");
     serialDebug->println(invertPlantingelementSensor);
     serialDebug->println("-------------------------------");
-}
-
-// ---------------------------------------
-// Method for reading int data from EEPROM
-// ---------------------------------------
-// Signed 16-bit, byte for byte in host order. Every signed value this class
-// persists goes through here and writeInt() below rather than through
-// word()/highByte(), which are unsigned and silently lose the sign
-// (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
-// stored its own offset this way.
-short int ImplementPlanter::readInt(uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-
-    for (short int i = 0; i < 2; i++) {
-        data.b[i] = EEPROM.read(addr + i);
-    }
-    return data.i;
-}
-
-// -------------------------------------
-// Method for writing int data to EEPROM
-// -------------------------------------
-void ImplementPlanter::writeInt(short int x, uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-
-    data.i = x;
-    for (short int i = 0; i < 2; i++) {
-        EEPROM.write(addr + i, data.b[i]);
-    }
 }
 
 }  // namespace triton

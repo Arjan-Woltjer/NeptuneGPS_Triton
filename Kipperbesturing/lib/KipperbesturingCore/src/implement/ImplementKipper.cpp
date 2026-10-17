@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ImplementKipper.hpp"
+#include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -232,30 +234,8 @@ void ImplementKipper::Adjust(int direction) {
 int ImplementKipper::getActualSteer() {
     // Read analog input
     int readRaw = analogRead(STEER_SENS_PIN_4);
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > steerCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - steerCalibrationData[i - 1];
-    float b = steerCalibrationData[i] - steerCalibrationData[i - 1];
-    float c = steerCalibrationPoints[i] - steerCalibrationPoints[i - 1];
-    float d = steerCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading -- same
-    // degenerate-calibration guard already established in every sibling
-    // getActualX(). Not present in the legacy source.
-    if (b == 0.0f) {
-        return int(d);
-    }
-    return int(((a * c) / b) + d);
+    const int i = Interpolation::SegmentAscending(steerCalibrationData, 3, readRaw);
+    return int(Interpolation::Evaluate(steerCalibrationData, steerCalibrationPoints, i, readRaw));
 }
 
 //------------------------------------------
@@ -264,27 +244,8 @@ int ImplementKipper::getActualSteer() {
 int ImplementKipper::getActualAngle() {
     // Read analog input
     int readRaw = analogRead(ANGLE_SENS_PIN_4);
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > angleCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - angleCalibrationData[i - 1];
-    float b = angleCalibrationData[i] - angleCalibrationData[i - 1];
-    float c = angleCalibrationPoints[i] - angleCalibrationPoints[i - 1];
-    float d = angleCalibrationPoints[i - 1];
-
-    if (b == 0.0f) {
-        return int(d);
-    }
-    return int(((a * c) / b) + d);
+    const int i = Interpolation::SegmentAscending(angleCalibrationData, 3, readRaw);
+    return int(Interpolation::Evaluate(angleCalibrationData, angleCalibrationPoints, i, readRaw));
 }
 
 // ---------------------------
@@ -370,8 +331,8 @@ bool ImplementKipper::readCalibrationData() {
         // Read from eeprom highbyte, then lowbyte, and combine into words
         for (int i = 0; i < 3; i++) {
             int k = 2 * i;
-            steerCalibrationData[i] = word(EEPROM.read(k + 100), EEPROM.read(k + 101));
-            angleCalibrationData[i] = word(EEPROM.read(k + 110), EEPROM.read(k + 111));
+            steerCalibrationData[i] = EepromStore::ReadUint16Be(k + 100);
+            angleCalibrationData[i] = EepromStore::ReadUint16Be(k + 110);
         }
 
         kp = EEPROM.read(120);
@@ -379,12 +340,12 @@ bool ImplementKipper::readCalibrationData() {
         kd = EEPROM.read(140);
 
         if (EEPROM.read(180) < 255 || EEPROM.read(181) < 255) {
-            // Read offset (2 bytes). Signed, so it goes through readInt()
+            // Read offset (2 bytes). Signed, so it goes through EepromStore::ReadInt16Le()
             // rather than word(), which is unsigned and turned every stored
             // negative offset into a large positive number that failed the
             // range check below and reset the offset to 0 on every boot
             // (NeptuneGPS_Triton#100). Same helper ImplementPlough uses.
-            offset = readInt(180);
+            offset = EepromStore::ReadInt16Le(180);
             if (offset > 20 || offset < -20) {
                 offset = 0;
             }
@@ -449,17 +410,15 @@ void ImplementKipper::writeCalibrationData() {
     // Write each byte separately to the memory first the data then the points
     for (int i = 0; i < 3; i++) {
         int k = 2 * i;
-        EEPROM.write(k + 100, highByte(steerCalibrationData[i]));
-        EEPROM.write(k + 101, lowByte(steerCalibrationData[i]));
-        EEPROM.write(k + 110, highByte(angleCalibrationData[i]));
-        EEPROM.write(k + 111, lowByte(angleCalibrationData[i]));
+        EepromStore::WriteUint16Be(k + 100, steerCalibrationData[i]);
+        EepromStore::WriteUint16Be(k + 110, angleCalibrationData[i]);
     }
 
     EEPROM.write(120, kp);
     EEPROM.write(130, ki);
     EEPROM.write(140, kd);
 
-    writeInt(offset, 180);  // 180 - 181, signed; see readCalibrationData()
+    EepromStore::WriteInt16Le(180, offset);  // 180 - 181, signed; see readCalibrationData()
 
 #ifdef DEBUG
     Serial.println("Calibration data written");
@@ -471,48 +430,11 @@ void ImplementKipper::writeCalibrationData() {
 // ---------------------------------------------
 void ImplementKipper::wipeCalibrationData() {
     // Write 255 into all memory registers
-    for (int i = 1; i < 255; i++) {
-        EEPROM.write(i, 255);
-    }
+    EepromStore::Fill(1, 255, 255);
 
 #ifdef DEBUG
     Serial.println("Calibration data wiped");
 #endif
-}
-
-// ---------------------------------------
-// Method for reading int data from EEPROM
-// ---------------------------------------
-// Signed 16-bit, byte for byte in host order. Every signed value this class
-// persists goes through here and writeInt() below rather than through
-// word()/highByte(), which are unsigned and silently lose the sign
-// (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
-// stored its own offset this way.
-short int ImplementKipper::readInt(uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-
-    for (short int i = 0; i < 2; i++) {
-        data.b[i] = EEPROM.read(addr + i);
-    }
-    return data.i;
-}
-
-// -------------------------------------
-// Method for writing int data to EEPROM
-// -------------------------------------
-void ImplementKipper::writeInt(short int x, uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-
-    data.i = x;
-    for (short int i = 0; i < 2; i++) {
-        EEPROM.write(addr + i, data.b[i]);
-    }
 }
 
 }  // namespace triton
