@@ -35,10 +35,12 @@
 #pragma push_macro("max")
 #undef min
 #undef max
+#include <isobus/hardware_integration/can_hardware_interface.hpp>
 #include <isobus/isobus/can_network_manager.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+#include "FakeCanPlugin.hpp"
 #include "isobus/IsobusVtInterface.hpp"
 #include "isobus/VTObjectPool.hpp"
 
@@ -554,7 +556,54 @@ void ClaimAddress(std::uint8_t address, std::uint64_t name) {
 constexpr std::uint64_t kCnhVtName       = 0xA0001D080BC23101ULL;
 constexpr std::uint64_t kInCommandVtName = 0x80001D000C206EB1ULL;
 
+// The fake bus the stack writes to. test_IsobusTcInterface.cpp's fixture
+// normally started it already (AUnit runs IsobusTcInterface_* first); if
+// not, start one here. Either way it is the one FakeCanPlugin on channel 0.
+FakeCanPlugin* Bus() {
+    if (!isobus::CANHardwareInterface::is_running()) {
+        isobus::CANHardwareInterface::set_number_of_can_channels(1);
+        isobus::CANHardwareInterface::assign_can_channel_frame_handler(0, std::make_shared<FakeCanPlugin>());
+        isobus::CANHardwareInterface::start();
+    }
+    return static_cast<FakeCanPlugin*>(
+        isobus::CANHardwareInterface::get_assigned_can_channel_frame_handler(0).get());
+}
+
 }  // namespace
+
+// #199: the failover's request for address claim used to carry our own source
+// address. AgIsoStack feeds a transmitted request for the claim PGN back into
+// its receive path, saw our own SA on it and logged "Address violation" --
+// and defended the address with an extra claim, on every request (12 in
+// session 16, 28 in session 17). From the NULL address (0xFE), which the
+// violation check skips and ISO 11783-5 allows for this request, the same
+// global request asks every CF to claim without tripping it.
+test(IsobusVtInterface, failover_claimRequestGoesOutFromTheNullAddress) {
+    Reset();
+    FakeCanPlugin* bus = Bus();
+    bus->Clear();
+    IsobusVtInterfaceTestAccess::ResetFailover(Fixture());
+    millisValue(VtFailoverPolicy::kPartnerSilentMs);
+    IsobusVtInterfaceTestAccess::UpdateFailover(Fixture());
+    isobus::CANHardwareInterface::update();
+
+    bool sentFromNull = false;
+    bool sentFromOwnAddress = false;
+    for (const auto& frame : bus->tx) {
+        const std::uint32_t pgnAndDestination = (frame.identifier >> 8) & 0xFFFF;
+        const bool isClaimRequest = pgnAndDestination == 0xEAFF && frame.dataLength >= 3 &&
+                                    frame.data[0] == 0x00 && frame.data[1] == 0xEE && frame.data[2] == 0x00;
+        if (!isClaimRequest) continue;
+        if ((frame.identifier & 0xFF) == 0xFE) sentFromNull = true;
+        else sentFromOwnAddress = true;
+    }
+    // Back to 0 before asserting: AUnit's runner timeout reads the mocked
+    // millis(), so a failing assert that skipped this would time out every
+    // test after this one.
+    millisValue(0);
+    assertTrue(sentFromNull);
+    assertFalse(sentFromOwnAddress);
+}
 
 test(IsobusVtInterface, failover_requestsClaimsWhenNoOtherVtIsHeard) {
     Reset();

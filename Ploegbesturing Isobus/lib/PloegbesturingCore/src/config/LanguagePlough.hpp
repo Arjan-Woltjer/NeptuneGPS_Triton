@@ -79,8 +79,8 @@
 #define L2_CAL_MARGIN    "Wijzig foutmarge    "
 #define L2_CAL_MARGIN_AD "Foutmarge :       cm"
 
-#define L2_CAL_MAXCOR    "Wijzig max correctie"
-#define L2_CAL_MAXCOR_AD "Max. corr.:       cm"
+#define L2_CAL_MAXCOR    "Wijzig corr./schaar "
+#define L2_CAL_MAXCOR_AD "Corr./schaar:     mm"
 
 #define L2_CAL_SWAP      "Wijzig ploegzijde   "
 #define L2_CAL_SWAP_AD   "Ploegt naar:        "
@@ -166,8 +166,8 @@
 #define L2_CAL_MARGIN    "Adjust error margin "
 #define L2_CAL_MARGIN_AD "Margin :          cm"
 
-#define L2_CAL_MAXCOR    "Adj. max. correction"
-#define L2_CAL_MAXCOR_AD "Max. corr.:       cm"
+#define L2_CAL_MAXCOR    "Adj. max corr./share"
+#define L2_CAL_MAXCOR_AD "Corr./share:      mm"
 
 #define L2_CAL_SWAP      "Change ploughside   "
 #define L2_CAL_SWAP_AD   "Side:               "

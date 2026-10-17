@@ -22,7 +22,10 @@
 #ifdef ISOBUS
 
 // Standard headers first: the Arduino stub behind AUnit.h defines min/max as
-// macros, and GCC's <vector> uses std::min/max with three arguments.
+// macros, and GCC's <vector> uses std::min/max with three arguments (and
+// GCC's <chrono> and <memory>, via <limits>, numeric_limits<>::min()/max()).
+#include <chrono>
+#include <memory>
 #include <vector>
 
 #include <AUnit.h>
@@ -37,6 +40,7 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+#include "TestBus.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
 
 using namespace aunit;
@@ -197,6 +201,156 @@ test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedCommitsNothing) {
             { 0x00, 0x40, 0x7B, 0x00, 0x00, 0x00, 0xFF, 0xFF });
     assertEqual(gcGuidance.GetXte(), 999);
     assertEqual(Channel().GetMessageCounters().xteNmea2000, (uint32_t)1);
+}
+
+// #201: the dump keeps the last 129283 frame -- sender, length, bytes -- and
+// counts the outcome per frame, so "the screen says 220 cm, what does the frame
+// say" is one line at the rig, and a count of rejected frames says why.
+
+// Sessions 13-17 (van Mastwijk): the CNH 0xCD answers each of our requests for
+// 129283 with a zero-length frame. Counted as 129283 traffic, it read as an
+// XTE source on the bus; recorded, it is plainly an empty answer.
+test(IsobusGuidanceChannel, nmea2000Xte_emptyAnswerIsRecordedAsALengthReject) {
+    Reset();
+    gcGuidance.SetXte(999);
+    Deliver(IsobusGuidanceChannelTestAccess::XteNmea2000(), 0xCD, {});
+    const auto& c = Channel().GetMessageCounters();
+    assertEqual(gcGuidance.GetXte(), 999);
+    assertEqual(c.xteNmea2000, (uint32_t)1);
+    assertEqual((int)c.lastXteNmea2000SourceAddress, 0xCD);
+    assertEqual((int)c.lastXteNmea2000Length, 0);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectLength], (uint32_t)1);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNone], (uint32_t)0);
+}
+
+// A committed frame (2.25 m, the value the Raven showed on 2026-10-02) is kept
+// byte for byte with its sender, and counted as committed.
+test(IsobusGuidanceChannel, nmea2000Xte_keepsTheLastFrameForTheDump) {
+    Reset();
+    const std::vector<std::uint8_t> frame = { 0x01, 0x00, 0xE1, 0x00, 0x00, 0x00, 0xFF, 0xFF };
+    millisValue(5000);
+    Deliver(IsobusGuidanceChannelTestAccess::XteNmea2000(), 0x1C, frame);
+    const auto& c = Channel().GetMessageCounters();
+    millisValue(0);
+    assertEqual(gcGuidance.GetXte(), 225);
+    assertEqual((int)c.lastXteNmea2000SourceAddress, 0x1C);
+    assertEqual((int)c.lastXteNmea2000Length, 8);
+    for (int i = 0; i < 8; i++) assertEqual((int)c.lastXteNmea2000Payload[i], (int)frame[i]);
+    assertEqual(c.lastXteNmea2000Ms, (uint32_t)5000);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNone], (uint32_t)1);
+}
+
+// Navigation Terminated is counted under its own reason, not as committed.
+test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedIsCountedByReason) {
+    Reset();
+    Deliver(IsobusGuidanceChannelTestAccess::XteNmea2000(), 0x1C,
+            { 0x00, 0x40, 0x7B, 0x00, 0x00, 0x00, 0xFF, 0xFF });
+    const auto& c = Channel().GetMessageCounters();
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNavigationTerminated], (uint32_t)1);
+    assertEqual(c.xteNmea2000Outcome[kXteRejectNone], (uint32_t)0);
+}
+
+// ---------------------------------------------------------------------------
+// The plough's ISOBUS NAME (#202)
+// ---------------------------------------------------------------------------
+
+// ISO 11783-1, industry group 2: device class 2 is Tillage (8 is Root
+// Harvesters -- a John Deere registered the plough as a harvester in session
+// 12), and in class 2 function 132 is Tillage Machine Control ("control of
+// outputs ... for VT or TC control, combines several control functions that
+// communicate from the same SA"). The old function 16 is the global Steering
+// Controller, steer-by-wire. Source: isobus.net "IG Specific NAME Function",
+// archived in NeptuneGPS Documentation/ISOBUS/reference/parameters-csv.
+test(IsobusGuidanceChannel, name_isATillageMachineControl) {
+    const isobus::NAME name = IsobusGuidanceChannel::BuildPloughName();
+    assertEqual((int)name.get_industry_group(), 2);
+    assertEqual((int)name.get_device_class(), 2);
+    assertEqual((int)name.get_function_code(), 132);
+}
+
+// The rest of the NAME stays as it was: changing any of it is a change of
+// identity for every terminal's stored pools (#45, #162).
+test(IsobusGuidanceChannel, name_keepsTheRestOfTheIdentity) {
+    const isobus::NAME name = IsobusGuidanceChannel::BuildPloughName();
+    assertTrue(name.get_arbitrary_address_capable());
+    assertEqual((int)name.get_manufacturer_code(), 1407);
+    assertEqual((long)name.get_identity_number(), 1L);
+    assertEqual((int)name.get_ecu_instance(), 0);
+    assertEqual((int)name.get_function_instance(), 0);
+    assertEqual((int)name.get_device_class_instance(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Requests addressed to us (#23)
+// ---------------------------------------------------------------------------
+
+// A request for address claim addressed to us must get our address claim and
+// nothing else. AgIsoStack's address-claim code answers it with the claim
+// (ISO 11783-5); its PGN request protocol, finding no callback for PGN 60928,
+// also sent a NACK -- "I don't support address claiming" -- in the same
+// millisecond (3 at the session 17 replug, from 0x81). End to end on the fake
+// bus: a control function of our own claims 0x3E for real (the claim takes
+// ~250 ms of wall-clock time inside AgIsoStack), gets the plough's request
+// handlers, and is asked for its claim by 0x2B, the InCommand's inventory
+// function that sends exactly this every 2 s.
+test(IsobusGuidanceChannel, claimRequest_isAnsweredWithTheClaimAndNoNack) {
+    FakeCanPlugin* bus = SharedTestBus();
+
+    isobus::NAME name(0);
+    name.set_arbitrary_address_capable(true);
+    name.set_industry_group(2);
+    name.set_device_class(6);
+    name.set_function_code(static_cast<std::uint8_t>(isobus::NAME::Function::RateControl));
+    name.set_identity_number(5);
+    name.set_manufacturer_code(1407);
+    static std::shared_ptr<isobus::InternalControlFunction> icf;
+    if (!icf) icf = isobus::CANNetworkManager::CANNetwork.create_internal_control_function(name, 0, 0x3E);
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    while (!icf->get_address_valid() && std::chrono::steady_clock::now() < deadline) {
+        isobus::CANHardwareInterface::update();
+    }
+    assertTrue(icf->get_address_valid());
+    assertEqual((int)icf->get_address(), 0x3E);
+    IsobusGuidanceChannel::RegisterRequestHandlers(icf);
+
+    // Straight into the network manager's receive path, as the VT tests'
+    // ClaimAddress() does; what we send comes back out on the fake bus.
+    // 0x2B claims first, with its NAME from the session 17 capture: AgIsoStack
+    // only acknowledges (or NACKs) a request from a control function it knows.
+    isobus::CANMessageFrame claim = {};
+    claim.identifier      = 0x18EEFF2Bu;
+    claim.isExtendedFrame = true;
+    claim.dataLength      = 8;
+    const std::uint64_t inCommand2B = 0x800081000C206EB1ULL;
+    for (int i = 0; i < 8; i++) claim.data[i] = static_cast<std::uint8_t>(inCommand2B >> (8 * i));
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(claim);
+    isobus::CANNetworkManager::CANNetwork.update();
+
+    bus->Clear();
+    isobus::CANMessageFrame request = {};
+    request.identifier      = 0x18EA3E2Bu;                  // PGN 59904, 0x2B -> 0x3E
+    request.isExtendedFrame = true;
+    request.dataLength      = 3;
+    request.data[0] = 0x00; request.data[1] = 0xEE; request.data[2] = 0x00;   // asks for PGN 60928
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(request);
+    for (int i = 0; i < 50; i++) {
+        isobus::CANNetworkManager::CANNetwork.update();
+        isobus::CANHardwareInterface::update();
+    }
+
+    bool claimed = false, nacked = false;
+    for (const auto& frame : bus->tx) {
+        if ((frame.identifier & 0xFF) != 0x3E) continue;
+        if (((frame.identifier >> 8) & 0xFFFF) == 0xEEFF) claimed = true;
+        const bool isAck = ((frame.identifier >> 16) & 0xFF) == 0xE8;
+        if (isAck && frame.dataLength >= 8 && frame.data[0] == 0x01 &&
+            frame.data[5] == 0x00 && frame.data[6] == 0xEE && frame.data[7] == 0x00) {
+            nacked = true;
+        }
+    }
+    assertTrue(claimed);
+    assertFalse(nacked);
 }
 
 // ---------------------------------------------------------------------------
