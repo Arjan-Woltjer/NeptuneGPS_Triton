@@ -25,8 +25,8 @@
 
 // Defines for boardtype. Every board but the default is selected from
 // platformio.ini rather than edited in here, so one tree builds them all:
-// [env:teensy40_isobus] passes -D TEENSY40, [env:teensy32_can] -D TEENSY32
-// and [env:micro_serial] -D MICRO. Without any board flag the Teensy 4.1
+// [env:teensy40], [env:teensy40_can] and [env:teensy40_isobus] pass -D TEENSY40,
+// [env:teensy32_can] -D TEENSY32 and [env:micro_serial] -D MICRO. Without any board flag the Teensy 4.1
 // production board (besturing 0.1) is the default, exactly as before.
 #if !defined(TEENSY40) && !defined(TEENSY32) && !defined(ESP32S3) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
 #define TEENSY      //Teensy 4.1 on productionboard (besturing 0.1)
@@ -38,9 +38,9 @@
 //#define MICRO       // Arduino Micro: serial guidance only, no CAN controller
 //#define VOORSERIE   // Arduino Uno pre-series board
 
-// ISOBUS CAN peripheral per board, as an AgIsoStack FlexCANT4Plugin channel
-// number: 0 = FLEXCAN1 (pins 22 TX / 23 RX), 1 = FLEXCAN2 (1 / 0),
-// 2 = FLEXCAN3 (31 / 30). Consumed by main.cpp.
+// CAN peripheral per board, as an AgIsoStack FlexCANT4Plugin channel number:
+// 0 = FLEXCAN1 (pins 22 TX / 23 RX), 1 = FLEXCAN2 (1 / 0), 2 = FLEXCAN3
+// (31 / 30). Consumed by main.cpp for ISOBUS and for plain CAN (ACAN_T4) alike.
 #ifdef TEENSY40
 #define ISOBUS_CAN_CHANNEL  0   // FLEXCAN1: pins 22 TX / 23 RX
 #else
