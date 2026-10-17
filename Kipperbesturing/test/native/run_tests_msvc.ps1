@@ -12,7 +12,8 @@ $includes = @(
     'lib\KipperbesturingCore\src',
     '..\MeijWorks Libs\EepromStore',
     '..\MeijWorks Libs\Interpolation',
-    '..\MeijWorks Libs\LcdNumber'
+    '..\MeijWorks Libs\LcdNumber',
+    '..\MeijWorks Libs\TritonText'
 )
 $sources = @(
     'lib\KipperbesturingCore\src\implement\ImplementKipper.cpp',

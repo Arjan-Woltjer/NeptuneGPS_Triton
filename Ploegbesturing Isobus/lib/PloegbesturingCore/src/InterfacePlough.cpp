@@ -139,19 +139,19 @@ void InterfacePlough::UpdateScreen(bool rewrite) {
     // Update screen
     if (rewrite) {
         // Regel 0
-        lcd->WriteBuffer(L2_POS, 0);
+        lcd->WriteBuffer(L_POS, 0);
 
         // Regel 1
-        lcd->WriteBuffer(L2_A_POS, 1);
+        lcd->WriteBuffer(L_A_POS, 1);
 
         // Regel 2
-        lcd->WriteBuffer(L2_XTE, 2);
+        lcd->WriteBuffer(L_XTE, 2);
 
 #ifdef ROTATION
         // Regel 3
-        lcd->WriteBuffer(L2_ROTATION, 3);
+        lcd->WriteBuffer(L_ROTATION, 3);
 #else
-        lcd->WriteBuffer(L2_BLANK, 3);
+        lcd->WriteBuffer(L_BLANK, 3);
 #endif
 
         lcd->WriteScreen(-1);
