@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfacePlough.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -139,9 +140,6 @@ void InterfacePlough::Update() {
 // Method for updating screen
 // --------------------------
 void InterfacePlough::UpdateScreen(boolean rewrite) {
-    short int temp = 0;
-    short int temp2 = 0;
-
     // Update screen
     if (rewrite) {
         // Regel 0
@@ -164,170 +162,18 @@ void InterfacePlough::UpdateScreen(boolean rewrite) {
     }
 
     // Regel 0
-    temp2 = implement->GetOffset();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 16);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 16);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 0, 17);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 0, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 19);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 0, 16);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 17);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 17);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 0, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 19);
-    }
-    else {
-        lcd->WriteBuffer(' ', 0, 16);
-        lcd->WriteBuffer(' ', 0, 17);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 18);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 18);
-        }
-        lcd->WriteBuffer(temp + '0', 0, 19);
-    }
+    LcdWriteNumber(lcd, implement->GetOffset(), 0, 16, 4);
 
     // Regel 1
-    temp2 = implement->GetPosition();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 16);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 16);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 1, 17);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 1, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 19);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 1, 16);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 17);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 17);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 1, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 19);
-    }
-    else {
-        lcd->WriteBuffer(' ', 1, 16);
-        lcd->WriteBuffer(' ', 1, 17);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 18);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 18);
-        }
-        lcd->WriteBuffer(temp + '0', 1, 19);
-    }
+    LcdWriteNumber(lcd, implement->GetPosition(), 1, 16, 4);
 
 
     // Regel 2
-    temp2 = guidance->GetXte();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 16);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 16);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 2, 17);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 19);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 2, 16);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 17);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 17);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 2, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 19);
-    }
-    else {
-        lcd->WriteBuffer(' ', 2, 16);
-        lcd->WriteBuffer(' ', 2, 17);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 18);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 18);
-        }
-        lcd->WriteBuffer(temp + '0', 2, 19);
-    }
+    LcdWriteNumber(lcd, guidance->GetXte(), 2, 16, 4);
 
 #ifdef ROTATION
     // Regel  3
-    temp2 = implement->GetRotation();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 3, 9);
-        }
-        else {
-            lcd->WriteBuffer(' ', 3, 9);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 3, 10);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 3, 11);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 12);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 3, 9);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 3, 10);
-        }
-        else {
-            lcd->WriteBuffer(' ', 3, 10);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 3, 11);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 12);
-    }
-    else {
-        lcd->WriteBuffer(' ', 3, 9);
-        lcd->WriteBuffer(' ', 3, 10);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 3, 11);
-        }
-        else {
-            lcd->WriteBuffer(' ', 3, 11);
-        }
-        lcd->WriteBuffer(temp + '0', 3, 12);
-    }
+    LcdWriteNumber(lcd, implement->GetRotation(), 3, 9, 4);
 #endif
 
     if (implement->GetSide()) {

@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfaceScraper.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -158,60 +159,7 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
     }
 
     // Regel 0
-    temp2 = implement->GetRefHeight();
-    temp = abs(temp2);
-
-    if (temp > 9999) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 5);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 5);
-        }
-        lcd->WriteBuffer(temp / 10000 + '0', 0, 6);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 0, 7);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 9);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 11);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 0, 5);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 6);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 6);
-        }
-        lcd->WriteBuffer(temp / 1000 + '0', 0, 7);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 9);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 11);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 0, 5);
-        lcd->WriteBuffer(' ', 0, 6);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 7);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 7);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 9);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 11);
-    }
+    LcdWriteNumber(lcd, implement->GetRefHeight(), 0, 5, 7, 2, ',');
 
     // Regel 0
     temp2 = implement->GetOffset();
@@ -235,110 +183,10 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
     }
 
     // Regel 1
-    temp2 = implement->GetHeight();
-    temp = abs(temp2);
-
-    if (temp > 9999) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 12);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 12);
-        }
-        lcd->WriteBuffer(temp / 10000 + '0', 1, 13);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 1, 14);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 1, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 18);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 1, 12);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 13);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 13);
-        }
-        lcd->WriteBuffer(temp / 1000 + '0', 1, 14);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 1, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 18);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 1, 12);
-        lcd->WriteBuffer(' ', 1, 13);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 14);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 14);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 1, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 18);
-    }
+    LcdWriteNumber(lcd, implement->GetHeight(), 1, 12, 7, 2, ',');
 
     // Regel 2
-    temp2 = implement->GetDistance();
-    temp = abs(temp2);
-
-    if (temp > 9999) {
-        lcd->WriteBuffer(temp / 10000 + '0', 2, 14);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 2, 15);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(temp / 1000 + '0', 2, 15);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(' ', 2, 15);
-        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(' ', 2, 15);
-        lcd->WriteBuffer(' ', 2, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(' ', 2, 15);
-        lcd->WriteBuffer(' ', 2, 16);
-        lcd->WriteBuffer(' ', 2, 17);
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
+    LcdWriteNumber(lcd, implement->GetDistance(), 2, 14, 5);
 
     // Regel 3
     temp2 = implement->GetSlope();

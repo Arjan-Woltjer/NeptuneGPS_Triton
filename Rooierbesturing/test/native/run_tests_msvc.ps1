@@ -11,7 +11,8 @@ $root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $includes = @(
     'lib\RooierbesturingCore\src',
     '..\MeijWorks Libs\EepromStore',
-    '..\MeijWorks Libs\Interpolation'
+    '..\MeijWorks Libs\Interpolation',
+    '..\MeijWorks Libs\LcdNumber'
 )
 $sources = @(
     'lib\RooierbesturingCore\src\implement\ImplementRooier.cpp',
