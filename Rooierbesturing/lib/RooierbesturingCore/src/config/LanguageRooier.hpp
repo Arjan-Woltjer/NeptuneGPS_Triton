@@ -80,6 +80,10 @@
 #define L8_CAL_PWM_A     "Wijzig PWM automaat "
 #define L8_CAL_PWM_A_AD  "PWM automaat:       "
 
+#define L8_CAL_INVERSION "Inverteer hefsignaal"
+#define L8_CAL_YES       "                  ja"
+#define L8_CAL_NO        "                 nee"
+
 #define L8_CAL_COMPLETE  "Calibratie afronden "
 #define L8_CAL_NOSAVE    "Data NIET opgeslagen"
 #define L8_CAL_DDONE     "geslaagd            "
@@ -138,6 +142,10 @@
 
 #define L8_CAL_PWM_A     "PWM adjust auto     "
 #define L8_CAL_PWM_A_AD  "PWM auto:           "
+
+#define L8_CAL_INVERSION "Invert hitch signal "
+#define L8_CAL_YES       "                 yes"
+#define L8_CAL_NO        "                  no"
 
 #define L8_CAL_COMPLETE  "Finish calibration  "
 #define L8_CAL_NOSAVE    "Data NOT saved      "
