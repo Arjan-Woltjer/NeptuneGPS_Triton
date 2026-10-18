@@ -223,8 +223,14 @@ public:
     }
 #endif
 
+    // The width's range depends on the number of shares, so a width the new
+    // range doesn't hold goes to the middle, as readOffset() does at boot
+    // (#238). Not written: readOffset() gives the same value after a reboot.
     inline void SetShares(byte value) {
         shares = value;
+        if (offset > shares * 60 || offset < shares * 20) {
+            offset = shares * 40;
+        }
     }
 
     inline void SetMaxCorrectionPerShare(byte value) {

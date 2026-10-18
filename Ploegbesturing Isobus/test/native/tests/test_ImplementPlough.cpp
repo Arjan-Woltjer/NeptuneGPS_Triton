@@ -280,6 +280,33 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
     assertEqual(impl.GetOffset(), (short int)160);
 }
 
+// The width's range follows the number of shares (shares*20 .. shares*60). A
+// width the new range doesn't hold goes to the middle at once, the same as
+// readOffset() at boot, instead of only after a reboot (#238).
+test(ImplementPlough, setShares_widthBelowNewRange_goesToTheMiddle) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);       // 4 shares, width 160
+    impl.SetShares(10);                                  // range 200-600
+    assertEqual(impl.GetOffset(), (short int)400);
+}
+
+test(ImplementPlough, setShares_widthAboveNewRange_goesToTheMiddle) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(200);
+    impl.Update(0, 80);                                  // 160 + 80 = 240, the maximum on 4 shares
+    assertEqual(impl.GetOffset(), (short int)240);
+    impl.SetShares(2);                                   // range 40-120
+    assertEqual(impl.GetOffset(), (short int)80);
+}
+
+test(ImplementPlough, setShares_widthInsideNewRange_isKept) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetShares(5);                                   // range 100-300 holds 160
+    assertEqual(impl.GetOffset(), (short int)160);
+}
+
 // ---------------------------------------------------------------------------
 // SetSetpoint (private, exercised through Update()) -- the correction is the
 // XTE itself (bang-bang, gain 1) and max-correction clamping (50 mm per share
