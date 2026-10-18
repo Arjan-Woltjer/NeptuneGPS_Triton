@@ -282,8 +282,11 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
 // Method for moving implement narrower
 // ------------------------------------
 void ImplementPlough::Narrower(byte pwm) {
-    analogWrite(OUTPUT_WIDE_2, 0);
-    analogWrite(OUTPUT_NARROW_2, pwm);
+    // digitalWrite, not analogWrite: pins 20/21 have no PWM on Teensy 4.x, where
+    // analogWrite does nothing, so the valves never opened (#242). They only
+    // switch fully on or off.
+    digitalWrite(OUTPUT_WIDE_2, LOW);
+    digitalWrite(OUTPUT_NARROW_2, pwm ? HIGH : LOW);
     driveBypass(bypass ? pwm : 0);
     analogWrite(OUTPUT_LED_2, 255);
 }
@@ -292,8 +295,8 @@ void ImplementPlough::Narrower(byte pwm) {
 // Method for moving implement wider
 // ---------------------------------
 void ImplementPlough::Wider(byte pwm) {
-    analogWrite(OUTPUT_WIDE_2, pwm);
-    analogWrite(OUTPUT_NARROW_2, 0);
+    digitalWrite(OUTPUT_WIDE_2, pwm ? HIGH : LOW);
+    digitalWrite(OUTPUT_NARROW_2, LOW);
     driveBypass(bypass ? pwm : 0);
     analogWrite(OUTPUT_LED_2, 255);
 }
@@ -302,8 +305,8 @@ void ImplementPlough::Wider(byte pwm) {
 // Method for stopping implement
 // ------------------------------
 void ImplementPlough::Stop() {
-    analogWrite(OUTPUT_WIDE_2, 0);
-    analogWrite(OUTPUT_NARROW_2, 0);
+    digitalWrite(OUTPUT_WIDE_2, LOW);
+    digitalWrite(OUTPUT_NARROW_2, LOW);
     driveBypass(0);
     analogWrite(OUTPUT_LED_2, 0);
 }

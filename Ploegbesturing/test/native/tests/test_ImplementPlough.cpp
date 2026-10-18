@@ -124,16 +124,16 @@ test(ImplementPlough, adjust_manualMode_directionPositive_narrows) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, 1);  // actualPosition = 0 - 1*3 = -3 < setpoint(0)-error(2)=-2
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
 test(ImplementPlough, adjust_manualMode_directionNegative_widens) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, -1);  // actualPosition = 0 - (-1)*3 = 3 > setpoint(0)+error(2)=2
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 255);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
 }
 
 test(ImplementPlough, adjust_manualMode_directionZero_stops) {
@@ -141,11 +141,11 @@ test(ImplementPlough, adjust_manualMode_directionZero_stops) {
     ImplementPlough impl(nullptr, &mockGuidance);
     // Leave a nonzero value in place first so Stop() zeroing it is observable.
     impl.Adjust(2, 1);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     impl.Adjust(2, 0);  // actualPosition = 0 - 0*3 = 0, within [setpoint-error, setpoint+error]
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -180,16 +180,16 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
     // setpoint stays at its untouched default (0); error=2 -> position(-92) is
     // far below setpoint-error(-2), so every call below takes the "Narrower" branch.
     impl.Adjust(0, 0);  // 1st call: lastPosition(0) != actualPosition(-92) -> shutoffTimer resets to millis()=0
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     impl.Adjust(0, 0);  // 2nd call, same millis(): actualPosition unchanged -> shutoffTimer NOT reset; still narrows
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     // Advance past shutoffTime (3000 ms per SHUTOFF_2). This call still narrows
     // (the block runs before the shutoff check latches shutoffNarrow=true).
     millisValue(3001);
     impl.Adjust(0, 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     // shutoffNarrow is now latched. In auto mode (mode<2), the latch's
     // (!shutoffNarrow || mode>=2) guard is now false -> falls through to Stop(),
@@ -197,8 +197,8 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
     analogWrite(OUTPUT_NARROW_2, 255);  // re-seed a nonzero value so Stop() zeroing it is observable
     millisValue(3002);
     impl.Adjust(0, 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -643,7 +643,7 @@ test(ImplementPlough, bypass_notFitted_outputStaysOff) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, 1);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
     impl.Adjust(2, -1);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
