@@ -62,12 +62,11 @@ public:
                     VehicleTractor* tractor,
                     GuidanceSource* guidance);
 
-    // vtWiderPressed/vtNarrowerPressed/vtCalibratePressed: consume-once
-    // signals from an IsobusVtInterface's VT soft keys (see that class's
-    // header comment). Each maps onto one of CheckButtons()' three physical
-    // outcomes -- -1 (LEFT), +1 (RIGHT), 2 (both held, the calibration
-    // trigger main.cpp acts on) -- but through its own branch rather than the
-    // physical branch's hold debounce; CheckButtons()' body explains why.
+    // vtWiderPressed/vtNarrowerPressed/vtCalibratePressed: an IsobusVtInterface's
+    // VT soft keys (see that class's header comment). Wider and Narrower are
+    // held levels (#245) that go through the LEFT (-1) and RIGHT (+1) buttons'
+    // own hold-to-repeat; Calibrate is a one-call tap that gives 2, the
+    // calibration trigger main.cpp acts on, without the both-held combo's hold.
     // Defaulted so non-ISOBUS builds and any other caller can omit them --
     // this class stays framework-agnostic, no AgIsoStack/ISOBUS dependency.
     void Update(bool vtWiderPressed = false, bool vtNarrowerPressed = false, bool vtCalibratePressed = false);

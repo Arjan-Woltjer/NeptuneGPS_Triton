@@ -140,7 +140,44 @@ long FirstMismatch(bool withJoystick, bool withVt) {
 
 test(ButtonPair, plain_matchesTheCopies) { assertEqual(FirstMismatch(false, false), -1L); }
 test(ButtonPair, joystick_matchesTheCopies) { assertEqual(FirstMismatch(true, false), -1L); }
-test(ButtonPair, vtSoftKeys_matchTheCopy) { assertEqual(FirstMismatch(false, true), -1L); }
+
+// A held VT Wider/Narrower key is a level since #245 and must give exactly what
+// the cab button in the same slot gives: the same hold-to-repeat timing, in
+// every mode. The first step where they differ, or -1.
+long FirstVtMismatch() {
+    unsigned long seed = 9001;
+    auto next = [&seed]() { seed = seed * 1103515245UL + 12345UL; return (seed >> 16) & 0x7FFF; };
+    for (int run = 0; run < 100; run++) {
+        unsigned long now = next();
+        ButtonPair cab, vt;
+        cab.Begin(now);
+        vt.Begin(now);
+        const unsigned char delay1 = run % 2 ? 255 : 50, delay2 = run % 3 ? 200 : 0;
+        for (long step = 0; step < 500; step++) {
+            now += next() % 400;
+            const unsigned r = next();
+            const bool wider = r & 1, narrower = r & 2;   // the VT never reports both as the combo
+            const int expected = cab.Check(wider && !narrower, narrower && !wider, delay1, delay2, now);
+            const int actual = vt.Check(false, false, delay1, delay2, now, false, false, false,
+                                        wider && !narrower, narrower && !wider);
+            if (expected != actual) {
+                return run * 1000L + step;
+            }
+        }
+    }
+    return -1;
+}
+
+test(ButtonPair, vtSoftKeys_heldLikeTheCabButtons) { assertEqual(FirstVtMismatch(), -1L); }
+
+test(ButtonPair, vtWiderHeld_repeatsEveryDelay2) {
+    ButtonPair b;
+    b.Begin(0);
+    assertEqual(b.Check(false, false, 255, 200, 199, false, false, false, true, false), 0);   // not yet
+    assertEqual(b.Check(false, false, 255, 200, 200, false, false, false, true, false), -1);
+    assertEqual(b.Check(false, false, 255, 200, 300, false, false, false, true, false), 0);   // timer re-seeded at 300
+    assertEqual(b.Check(false, false, 255, 200, 500, false, false, false, true, false), -1);
+}
 
 // The behaviour itself.
 test(ButtonPair, bothHeldReportsTwoAfterDelay1TimesFour) {
