@@ -30,8 +30,9 @@ Highest-value areas, roughly in order:
   the open characteristic is limited to read-only commands and telemetry.
   A way to run the pump or rewrite the calibration without the passkey is a
   vulnerability.
-- `MeijWorks Libs/VehicleGps` — the NMEA/Trimble/CAN parser. Every byte it
-  handles is untrusted input from a serial line.
+- `MeijWorks Libs/VehicleGuidance` — the NMEA/Trimble/CAN parsers (`NmeaParser`,
+  `TrimbleParser`, `CanSerialParser`, `IsobusPgnDecode`). Every byte they
+  handle is untrusted input from a serial line or a bus.
 - The dosing and steering paths in `ImplementSprayer` and `ImplementPlough`,
   particularly anything that stops them failing closed when guidance is lost.
 - Persisted calibration in EEPROM and NVS, which feeds both of the above.
