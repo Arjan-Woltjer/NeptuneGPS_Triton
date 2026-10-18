@@ -443,6 +443,15 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
     }
 
     GApply(result, self->guidance);
+
+    // The InCommand's GNSS status shares this PGN: the only fix quality on
+    // its bus, which has no 129029 (session 18, D4).
+    auto status = DecodeGnssStatusAgLeader(sourceAddress, d.data(), static_cast<uint8_t>(msg.get_data_length()));
+    if (GApply(status, self->guidance)) {
+        self->counters.agLeaderGnssStatus++;
+        self->counters.lastAgLeaderGnssFixMode = status.fixMode;
+        self->counters.lastAgLeaderGnssStatusMs = millis();
+    }
 }
 
 // The standard ISO 11783-7 guidance channel, broadcast at 10 Hz by the tractor
@@ -471,9 +480,11 @@ void IsobusGuidanceChannel::OnPositionDeltaNmea2000(const CANMessage& msg, void*
 // **it is the only message on any bus captured so far that carries a GNSS
 // quality indicator.** Without it, an ISOBUS build can only get quality from
 // the John Deere legacy XTE decoder (source address 0x2A) or the Trimble one
-// (0xAA). On a rig with neither -- the Ag Leader/CNH of session 9 -- quality
-// is structurally stuck at 0, IsRtkQuality() can never become true, and
-// InterfacePlough stays in HOLD no matter what else works.
+// (0xAA). On a rig with neither, quality is structurally stuck at 0,
+// IsRtkQuality() can never become true, and InterfacePlough stays in HOLD no
+// matter what else works. The Ag Leader/CNH rig of sessions 9-18 was that rig
+// until its InCommand's GNSS status (65535 selector 0x51) was decoded: see
+// OnLegacyXteJohnDeere().
 void IsobusGuidanceChannel::OnGnssPositionData(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
     self->counters.gnssPositionData++;
