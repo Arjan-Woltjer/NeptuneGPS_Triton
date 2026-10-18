@@ -12,7 +12,8 @@ $includes = @(
     'lib\KilverbakbesturingCore\src',
     '..\MeijWorks Libs\VehicleGuidance',
     '..\MeijWorks Libs\EepromStore',
-    '..\MeijWorks Libs\Interpolation'
+    '..\MeijWorks Libs\Interpolation',
+    '..\MeijWorks Libs\LcdNumber'
 )
 $sources = @(
     'lib\KilverbakbesturingCore\src\implement\ImplementScraper.cpp',

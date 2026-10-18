@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfaceRooier.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -169,29 +170,7 @@ void InterfaceRooier::UpdateScreen(boolean rewrite) {
 }
 
 void InterfaceRooier::writeValue(int value, byte row) {
-    int temp = abs(value);
-
-    if (temp > 99) {
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, 15);
-        lcd->WriteBuffer(temp / 100 + '0', row, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', row, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', row, 18);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', row, 15);
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, 16);
-        lcd->WriteBuffer(temp / 10 + '0', row, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', row, 18);
-    }
-    else {
-        lcd->WriteBuffer(' ', row, 15);
-        lcd->WriteBuffer(' ', row, 16);
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, 17);
-        lcd->WriteBuffer(temp + '0', row, 18);
-    }
+    LcdWriteNumber(lcd, value, row, 15, 4);
 }
 
 // ---------------------------

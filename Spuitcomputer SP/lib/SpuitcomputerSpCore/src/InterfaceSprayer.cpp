@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfaceSprayer.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -104,7 +105,6 @@ void InterfaceSprayer::Update() {
 // Method for updating screen
 // --------------------------
 void InterfaceSprayer::UpdateScreen(boolean rewrite) {
-    int temp = 0;
     int temp2 = 0;
 
     // Update screen
@@ -125,167 +125,33 @@ void InterfaceSprayer::UpdateScreen(boolean rewrite) {
     }
 
     // Regel 0
-    temp = implement->GetDose();
-
-    if (temp > 99) {
-        lcd->WriteBuffer(temp / 100 + '0', 0, 12);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 0, 13);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 14);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 0, 12);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 13);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 14);
-    }
-    else {
-        lcd->WriteBuffer(' ', 0, 12);
-        lcd->WriteBuffer(' ', 0, 13);
-        lcd->WriteBuffer(temp + '0', 0, 14);
-    }
+    LcdWriteNumber(lcd, implement->GetDose(), 0, 12, 3);
 
 #ifdef TEENSYPROTO
     // Remote pump-selection panel (see ImplementSprayer::Update()'s Serial1
     // bitmask read) shows how many of the pumps are currently selected on.
     // Dead on teensy41 -- TEENSYPROTO is a historical protoboard variant.
-    temp = implement->GetPumpsOn();
+    int temp = implement->GetPumpsOn();
     lcd->WriteBuffer(temp + '0', 0, 9);
 #endif
 
     // Regel 1
-    temp = implement->GetActualDose();
-
-    if (temp > 99) {
-        lcd->WriteBuffer(temp / 100 + '0', 1, 12);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 1, 13);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 14);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 1, 12);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 13);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 14);
-    }
-    else {
-        lcd->WriteBuffer(' ', 1, 12);
-        lcd->WriteBuffer(' ', 1, 13);
-        lcd->WriteBuffer(temp + '0', 1, 14);
-    }
+    LcdWriteNumber(lcd, implement->GetActualDose(), 1, 12, 3);
 
     // Regel 2
-    temp2 = tractor->GetSpeedKmh();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 10);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 10);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 2, 11);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 12);
-        temp = temp % 10;
-        lcd->WriteBuffer('.', 2, 13);
-        lcd->WriteBuffer(temp + '0', 2, 14);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 2, 10);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 11);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 11);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 2, 12);
-        temp = temp % 10;
-        lcd->WriteBuffer('.', 2, 13);
-        lcd->WriteBuffer(temp + '0', 2, 14);
-    }
-    else {
-        lcd->WriteBuffer(' ', 2, 10);
-        lcd->WriteBuffer(' ', 2, 11);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 12);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 12);
-        }
-        lcd->WriteBuffer('.', 2, 13);
-        lcd->WriteBuffer(temp + '0', 2, 14);
-    }
+    LcdWriteNumber(lcd, tractor->GetSpeedKmh(), 2, 10, 5, 1, '.', false);
 
     // Regel 3 -- alternates between volume sprayed and area covered every
     // 5 seconds (ImplementSprayer::updateFlag flips on that cadence).
     if (implement->GetFlag()) {
         temp2 = implement->GetVolume();
-        temp = abs(temp2);
         lcd->WriteBuffer("Volume:        L    ", 3);
     }
     else {
         temp2 = (tractor->GetDistance() * implement->GetWidth()) / 10;
-        temp = abs(temp2);
         lcd->WriteBuffer("HA:            H    ", 3);
     }
-
-    if (temp2 < 0) {
-        lcd->WriteBuffer('-', 3, 7);
-    }
-    if (temp > 9999) {
-        lcd->WriteBuffer(temp / 10000 + '0', 3, 8);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 3, 9);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 3, 10);
-        temp = temp % 100;
-        lcd->WriteBuffer('.', 3, 11);
-        lcd->WriteBuffer(temp / 10 + '0', 3, 12);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 13);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 3, 8);
-        lcd->WriteBuffer(temp / 1000 + '0', 3, 9);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 3, 10);
-        temp = temp % 100;
-        lcd->WriteBuffer('.', 3, 11);
-        lcd->WriteBuffer(temp / 10 + '0', 3, 12);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 13);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 3, 8);
-        lcd->WriteBuffer(' ', 3, 9);
-        lcd->WriteBuffer(temp / 100 + '0', 3, 10);
-        temp = temp % 100;
-        lcd->WriteBuffer('.', 3, 11);
-        lcd->WriteBuffer(temp / 10 + '0', 3, 12);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 13);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 3, 8);
-        lcd->WriteBuffer(' ', 3, 9);
-        lcd->WriteBuffer(' ', 3, 10);
-        lcd->WriteBuffer('.', 3, 11);
-        lcd->WriteBuffer(temp / 10 + '0', 3, 12);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 13);
-    }
-    else {
-        lcd->WriteBuffer(' ', 3, 8);
-        lcd->WriteBuffer(' ', 3, 9);
-        lcd->WriteBuffer(' ', 3, 10);
-        lcd->WriteBuffer('.', 3, 11);
-        lcd->WriteBuffer('0', 3, 12);
-        lcd->WriteBuffer(temp + '0', 3, 13);
-    }
+    LcdWriteNumber(lcd, temp2, 3, 7, 7, 2, '.', false);
 
     switch (mode) {
         case 0:  // AUTO

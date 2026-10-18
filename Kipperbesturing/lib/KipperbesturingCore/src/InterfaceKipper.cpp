@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfaceKipper.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -161,29 +162,7 @@ void InterfaceKipper::UpdateScreen(boolean rewrite) {
 }
 
 void InterfaceKipper::writeValue(int value, byte row, byte col) {
-    int temp = abs(value);
-
-    if (temp > 99) {
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, col);
-        lcd->WriteBuffer(temp / 100 + '0', row, col + 1);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', row, col + 2);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', row, col + 3);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', row, col);
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, col + 1);
-        lcd->WriteBuffer(temp / 10 + '0', row, col + 2);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', row, col + 3);
-    }
-    else {
-        lcd->WriteBuffer(' ', row, col);
-        lcd->WriteBuffer(' ', row, col + 1);
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, col + 2);
-        lcd->WriteBuffer(temp + '0', row, col + 3);
-    }
+    LcdWriteNumber(lcd, value, row, col, 4);
 }
 
 // ---------------------------

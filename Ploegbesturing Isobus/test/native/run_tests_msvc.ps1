@@ -20,7 +20,8 @@ $includes = @(
     '..\MeijWorks Libs\VehicleGuidance',
     '..\MeijWorks Libs\TritonIo',
     '..\MeijWorks Libs\EepromStore',
-    '..\MeijWorks Libs\Interpolation'
+    '..\MeijWorks Libs\Interpolation',
+    '..\MeijWorks Libs\LcdNumber'
 )
 $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',
