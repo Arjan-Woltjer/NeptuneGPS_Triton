@@ -137,6 +137,23 @@ test(IsobusPgnDecode, xteNmea2000_shortFrame_lengthNotOk) {
     assertFalse(r.lengthOk);
 }
 
+// #201: why a frame was not committed, one reason per case, for the debug dump.
+// The zero-length frame is what the CNH 0xCD sends back for each of our
+// requests for 129283 (sessions 13-17, van Mastwijk).
+test(IsobusPgnDecode, xteNmea2000_rejectReason_namesEachCase) {
+    uint8_t ok[6]          = { 0, 0x00, 0x7B, 0x00, 0x00, 0x00 };
+    uint8_t terminated[6]  = { 0, 0x40, 0x7B, 0x00, 0x00, 0x00 };
+    uint8_t notAvail[6]    = { 0, 0x00, 0xFF, 0xFF, 0xFF, 0x7F };
+    uint8_t error[6]       = { 0, 0x00, 0xFE, 0xFF, 0xFF, 0x7F };
+    uint8_t shortFrame[5]  = { 0, 0, 0, 0, 0 };
+    assertEqual((int)DecodeXteNmea2000(ok, 6).rejectReason, (int)kXteRejectNone);
+    assertEqual((int)DecodeXteNmea2000(nullptr, 0).rejectReason, (int)kXteRejectLength);
+    assertEqual((int)DecodeXteNmea2000(shortFrame, 5).rejectReason, (int)kXteRejectLength);
+    assertEqual((int)DecodeXteNmea2000(terminated, 6).rejectReason, (int)kXteRejectNavigationTerminated);
+    assertEqual((int)DecodeXteNmea2000(notAvail, 6).rejectReason, (int)kXteRejectNotAvailable);
+    assertEqual((int)DecodeXteNmea2000(error, 6).rejectReason, (int)kXteRejectError);
+}
+
 // --- DecodeLegacyPosition -----------------------------------------------------
 
 test(IsobusPgnDecode, legacyPosition_fullFrame_fixPresent) {

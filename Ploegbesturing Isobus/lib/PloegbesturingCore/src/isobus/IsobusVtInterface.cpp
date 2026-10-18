@@ -32,7 +32,6 @@
 #undef max
 #include <isobus/isobus/can_NAME_filter.hpp>
 #include <isobus/isobus/can_network_manager.hpp>
-#include <isobus/isobus/can_parameter_group_number_request_protocol.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -205,11 +204,16 @@ void IsobusVtInterface::updateFailover() {
             // Global, so every CF on the bus answers, and each answer puts
             // its sender back in AgIsoStack's address table -- the only way
             // a pruned VT's status ever reaches OnVtToEcuMessage again.
+            // Sent from the NULL address (0xFE), which ISO 11783-5 allows for
+            // this request (#199): AgIsoStack feeds a transmitted request for
+            // the claim PGN back into its receive path, and from our own SA
+            // that tripped its address-violation check -- a logged violation
+            // and an extra defending claim per request. The stack still
+            // answers the request with our own claim, as it should.
             serialDebug->print("VT: partner 0x");
             serialDebug->print(GetPartnerAddress(), HEX);
             serialDebug->println(" silent -- requesting address claims to find another VT");
-            ParameterGroupNumberRequestProtocol::request_parameter_group_number(
-                static_cast<std::uint32_t>(CANLibParameterGroupNumber::AddressClaim), controlFunction, nullptr);
+            CANNetworkManager::CANNetwork.send_request_for_address_claim(controlFunction->get_can_port());
             failover.OnRequestSent(now);
             break;
 

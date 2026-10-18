@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IsobusDebugMenu.hpp"
+#include "FlashMem.hpp"
 
 // The header is itself empty unless ISOBUS is defined (see its own comment) --
 // guard the body too, so this compiles to an empty translation unit instead
@@ -45,6 +46,17 @@ static constexpr unsigned long kPeriodicIntervalMs = 1000UL;
 // the field variable-width and ruin offline column alignment when deriving a
 // payload layout from a capture (GitHub issue #20) -- 0x03 must read as "03",
 // not "3", or byte boundaries shift.
+// The first `length` bytes as zero-padded hex, "-" for none (#201: 129283
+// frames come in shorter than 8 bytes, down to 0).
+static void GPrintBytesHex(Stream* out, const uint8_t* payload, uint8_t length) {
+    static const char kHexDigits[] = "0123456789ABCDEF";
+    if (length == 0) { out->print("-"); return; }
+    for (uint8_t i = 0; i < length && i < 8; i++) {
+        out->print(kHexDigits[(payload[i] >> 4) & 0x0F]);
+        out->print(kHexDigits[payload[i] & 0x0F]);
+    }
+}
+
 static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
     static const char kHexDigits[] = "0123456789ABCDEF";
     for (uint8_t i = 0; i < 8; i++) {
@@ -102,7 +114,7 @@ void IsobusDebugMenu::Update() {
 // ------------------------------------------------------------------
 // Menu
 // ------------------------------------------------------------------
-void IsobusDebugMenu::printMenu() {
+FLASHMEM void IsobusDebugMenu::printMenu() {
     serialDebug->println("=== ISOBUS DEBUG MENU ===");
     serialDebug->println("1. Full status dump");
     serialDebug->print("2. Periodic summary line (");
@@ -114,7 +126,7 @@ void IsobusDebugMenu::printMenu() {
     serialDebug->println("q. Exit");
 }
 
-void IsobusDebugMenu::handleMenu(char c) {
+FLASHMEM void IsobusDebugMenu::handleMenu(char c) {
     switch (c) {
         case '1':
             printFullDump();
@@ -172,7 +184,7 @@ void IsobusDebugMenu::handleMenu(char c) {
 // ------------------------------------------------------------------
 // Full status dump
 // ------------------------------------------------------------------
-void IsobusDebugMenu::printFullDump() {
+FLASHMEM void IsobusDebugMenu::printFullDump() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
@@ -235,6 +247,27 @@ void IsobusDebugMenu::printFullDump() {
     serialDebug->println(counters.speedNmea2000);
     serialDebug->print("  PGN 129283 XTE NMEA2000:      ");
     serialDebug->println(counters.xteNmea2000);
+    if (counters.xteNmea2000 > 0) {
+        serialDebug->print("             last SA=0x");
+        serialDebug->print(counters.lastXteNmea2000SourceAddress, HEX);
+        serialDebug->print(" len=");
+        serialDebug->print(counters.lastXteNmea2000Length);
+        serialDebug->print(" raw=");
+        GPrintBytesHex(serialDebug, counters.lastXteNmea2000Payload, counters.lastXteNmea2000Length);
+        serialDebug->print("  (");
+        serialDebug->print(millis() - counters.lastXteNmea2000Ms);
+        serialDebug->println(" ms ago)");
+        serialDebug->print("             committed=");
+        serialDebug->print(counters.xteNmea2000Outcome[kXteRejectNone]);
+        serialDebug->print("  rejected: length=");
+        serialDebug->print(counters.xteNmea2000Outcome[kXteRejectLength]);
+        serialDebug->print(" navTerminated=");
+        serialDebug->print(counters.xteNmea2000Outcome[kXteRejectNavigationTerminated]);
+        serialDebug->print(" notAvailable=");
+        serialDebug->print(counters.xteNmea2000Outcome[kXteRejectNotAvailable]);
+        serialDebug->print(" error=");
+        serialDebug->println(counters.xteNmea2000Outcome[kXteRejectError]);
+    }
     serialDebug->print("  PGN 65267  Position legacy:   ");
     serialDebug->println(counters.positionLegacy);
     serialDebug->print("  PGN 65256  Speed legacy:      ");
@@ -623,7 +656,7 @@ void IsobusDebugMenu::printFullDump() {
 // ------------------------------------------------------------------
 // Periodic one-liner
 // ------------------------------------------------------------------
-void IsobusDebugMenu::printPeriodicLine() {
+FLASHMEM void IsobusDebugMenu::printPeriodicLine() {
     auto controlFunction = guidanceChannel->GetControlFunction();
     bool claimed = controlFunction != nullptr && controlFunction->get_address_valid();
     auto counters = guidanceChannel->GetMessageCounters();
@@ -671,6 +704,18 @@ void IsobusDebugMenu::printPeriodicLine() {
         GPrintPayloadHex(serialDebug, counters.lastXteJohnDeereLegacyPayload);
     }
 
+    // The last PGN 129283 frame as sender:length:bytes (#201), next to the
+    // decoded xte= above, so a terminal's on-screen XTE can be checked against
+    // the frame on one line, on any brand that sends it.
+    if (counters.xteNmea2000 > 0) {
+        serialDebug->print(" x129283=");
+        serialDebug->print(counters.lastXteNmea2000SourceAddress, HEX);
+        serialDebug->print(":");
+        serialDebug->print(counters.lastXteNmea2000Length);
+        serialDebug->print(":");
+        GPrintBytesHex(serialDebug, counters.lastXteNmea2000Payload, counters.lastXteNmea2000Length);
+    }
+
     // The InCommand's lightbar XTE, raw, on the same line for the same reason
     // as xteraw: the side bit is still unconfirmed against deliberate offsets.
     if (lightbarChannel != nullptr && lightbarChannel->GetCounters().xteFrames > 0) {
@@ -711,7 +756,7 @@ void IsobusDebugMenu::printPeriodicLine() {
     serialDebug->println();
 }
 
-void IsobusDebugMenu::printHexBlob(const char* label, const uint8_t* data, uint32_t length) {
+FLASHMEM void IsobusDebugMenu::printHexBlob(const char* label, const uint8_t* data, uint32_t length) {
     static const char kHex[] = "0123456789ABCDEF";
     constexpr uint32_t kBytesPerLine = 32;
 

@@ -267,9 +267,20 @@ struct GuidanceMachineInfoResult {
 
 GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const uint8_t* data, uint8_t length);
 
+// Why DecodeXteNmea2000 did not commit a PGN 129283 frame (#201), for the
+// debug dump; kXteRejectNone = it did. Also the index into
+// IsobusGuidanceChannel's per-outcome counters, hence the fixed values.
+static constexpr uint8_t kXteRejectNone                 = 0;
+static constexpr uint8_t kXteRejectLength               = 1;  // shorter than 6 bytes (0xCD answers with 0)
+static constexpr uint8_t kXteRejectNavigationTerminated = 2;  // byte 1 bit 6
+static constexpr uint8_t kXteRejectNotAvailable         = 3;  // XTE 0x7FFFFFFF
+static constexpr uint8_t kXteRejectError                = 4;  // XTE 0x7FFFFFFE
+static constexpr uint8_t kXteRejectReasons              = 5;
+
 struct XteResult {
     bool     lengthOk = false;   // true once the length guard passed
     bool     valid = false;      // true => SetXte(...) should be called
+    uint8_t  rejectReason = kXteRejectNone;  // DecodeXteNmea2000 only (#201)
     bool     hasQuality = false; // true => call the two-arg SetXte(xte, quality) overload
     int      xteHundredthsMeter = 0;
     byte     quality = 0;
