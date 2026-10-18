@@ -22,6 +22,7 @@
 #include <EEPROM.h>
 
 #include "GuidanceSource.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementPlough.hpp"
 #include "TritonIo.hpp"
@@ -101,11 +102,8 @@ private:
     // XTE
     short int xte;   // initialised in the constructor; see note there
 
-    // Timers for end shutoff
-    unsigned short int shutoffTime;
-    bool                shutoffWide;
-    bool                shutoffNarrow;
-    unsigned long       shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     Stream*     serialDebug;
