@@ -18,6 +18,7 @@
 */
 #include "ImplementScraper.hpp"
 #include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -327,35 +328,8 @@ int ImplementScraper::getActualPosition() {
     // Read analog input
     int readRaw = analogRead(POSITION_SENS_PIN_5);
     float actualPosition;
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > positionCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - positionCalibrationData[i - 1];
-    float b = positionCalibrationData[i] - positionCalibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading -- same
-    // degenerate-calibration guard already added to ImplementPlough/
-    // ImplementPlanter/ImplementSprayer. Dead today (NOSENS is always
-    // defined, so this function is never called), but this class of bug
-    // isn't worth leaving unguarded for whenever a sensored variant is
-    // revived.
-    if (b == 0.0f) {
-        actualPosition = d;
-    }
-    else {
-        actualPosition = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(positionCalibrationData, 3, readRaw);
+    actualPosition = Interpolation::Evaluate(positionCalibrationData, positionCalibrationPoints, i, readRaw);
 
     return actualPosition;
 }

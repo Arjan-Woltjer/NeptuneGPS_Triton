@@ -18,6 +18,7 @@
 */
 #include "ImplementRooier.hpp"
 #include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -330,30 +331,8 @@ int ImplementRooier::getActualHeight(byte pin, const int* calibrationData) {
     }
     int readRaw = sum / 8;
 
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > calibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - calibrationData[i - 1];
-    float b = calibrationData[i] - calibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading -- same
-    // degenerate-calibration guard already established in ImplementScraper/
-    // ImplementPlanter/ImplementPlough.
-    if (b == 0.0f) {
-        return int(d);
-    }
-    return int(((a * c) / b) + d);
+    const int i = Interpolation::SegmentAscending(calibrationData, 3, readRaw);
+    return int(Interpolation::Evaluate(calibrationData, positionCalibrationPoints, i, readRaw));
 }
 
 // ----------------------------------------------

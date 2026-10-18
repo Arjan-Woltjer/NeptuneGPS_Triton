@@ -18,6 +18,7 @@
 */
 #include "ImplementPlanter.hpp"
 #include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -202,35 +203,8 @@ int ImplementPlanter::getActualPosition() {
     // Read analog input
     int readRaw = analogRead(POSITION_SENS_PIN_3);
     int actualPosition;
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > positionCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - positionCalibrationData[i - 1];
-    float b = positionCalibrationData[i] - positionCalibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading, which a
-    // disconnected or seized position potentiometer produces directly: the
-    // wizard latches analogRead() at each step without checking the captures
-    // differ. The result would be inf or NaN, and narrowing either to int
-    // below is undefined behaviour -- so this cannot be left to the caller.
-    // Fall back to the segment's own start point, the nearest defensible value.
-    if (b == 0.0f) {
-        actualPosition = d;
-    }
-    else {
-        actualPosition = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(positionCalibrationData, 3, readRaw);
+    actualPosition = Interpolation::Evaluate(positionCalibrationData, positionCalibrationPoints, i, readRaw);
 
     return actualPosition;
 }
@@ -242,30 +216,8 @@ int ImplementPlanter::getActualXte() {
     // Read analog input
     int readRaw = analogRead(XTE_SENS_PIN_3);
     int actualXte;
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > xteCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - xteCalibrationData[i - 1];
-    float b = xteCalibrationData[i] - xteCalibrationData[i - 1];
-    float c = xteCalibrationPoints[i] - xteCalibrationPoints[i - 1];
-    float d = xteCalibrationPoints[i - 1];
-
-    // Same degenerate-calibration guard as getActualPosition() above.
-    if (b == 0.0f) {
-        actualXte = d;
-    }
-    else {
-        actualXte = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(xteCalibrationData, 3, readRaw);
+    actualXte = Interpolation::Evaluate(xteCalibrationData, xteCalibrationPoints, i, readRaw);
 
     return actualXte;
 }
