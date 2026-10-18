@@ -315,8 +315,11 @@ void ImplementPlough::Narrower(byte pwm) {
     digitalWrite(OUTPUT_VALVE_PH_2, OUTPUT_NARROW_PH_LEVEL);
     analogWrite(OUTPUT_VALVE_EN_2, pwm);
 #else
-    analogWrite(OUTPUT_WIDE_2, 0);
-    analogWrite(OUTPUT_NARROW_2, pwm);
+    // digitalWrite, not analogWrite: pins 20/21 have no PWM on Teensy 4.x, where
+    // analogWrite does nothing, so the valves never opened (#242). They only
+    // switch fully on or off.
+    digitalWrite(OUTPUT_WIDE_2, LOW);
+    digitalWrite(OUTPUT_NARROW_2, pwm ? HIGH : LOW);
     //analogWrite(OUTPUT_BYPASS_2, pwm);
 #endif
 #ifdef OUTPUT_LED_2
@@ -332,8 +335,8 @@ void ImplementPlough::Wider(byte pwm) {
     digitalWrite(OUTPUT_VALVE_PH_2, (OUTPUT_NARROW_PH_LEVEL == LOW) ? HIGH : LOW);
     analogWrite(OUTPUT_VALVE_EN_2, pwm);
 #else
-    analogWrite(OUTPUT_WIDE_2, pwm);
-    analogWrite(OUTPUT_NARROW_2, 0);
+    digitalWrite(OUTPUT_WIDE_2, pwm ? HIGH : LOW);
+    digitalWrite(OUTPUT_NARROW_2, LOW);
     //analogWrite(OUTPUT_BYPASS_2, pwm);
 #endif
 #ifdef OUTPUT_LED_2
@@ -348,8 +351,8 @@ void ImplementPlough::Stop() {
 #if defined(ESP32S3)
     analogWrite(OUTPUT_VALVE_EN_2, 0);
 #else
-    analogWrite(OUTPUT_WIDE_2, 0);
-    analogWrite(OUTPUT_NARROW_2, 0);
+    digitalWrite(OUTPUT_WIDE_2, LOW);
+    digitalWrite(OUTPUT_NARROW_2, LOW);
     //analogWrite(OUTPUT_BYPASS_2, 0);
 #endif
 #ifdef OUTPUT_LED_2
