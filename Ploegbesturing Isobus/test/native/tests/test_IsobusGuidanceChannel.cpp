@@ -721,12 +721,12 @@ test(IsobusGuidanceChannel, allImplementStop_stopRequestedStopsThePlough) {
     Reset();
     // Drive the plough first, so Stop() has something to undo.
     gcImplement->Wider(200);
-    assertMore(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
 
     millisValue(4000);
     Deliver(IsobusGuidanceChannelTestAccess::AllImplementStop(), 0xF0, AisoFrame(0));
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);      // the safety path ran
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);      // the safety path ran
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
     assertEqual(Channel().GetMessageCounters().allImplementStop, (uint32_t)1);
     assertEqual(Channel().GetMessageCounters().lastAllImplementStopMs, (unsigned long)4000);
     assertEqual((int)Channel().GetMessageCounters().lastAllImplementStopState, 0);
@@ -740,7 +740,7 @@ test(IsobusGuidanceChannel, allImplementStop_permittedStateIsRecordedButStopsNot
     gcImplement->Wider(200);
     millisValue(5000);
     Deliver(IsobusGuidanceChannelTestAccess::AllImplementStop(), 0xF0, AisoFrame(1));
-    assertMore(analogWriteValue(OUTPUT_WIDE_2), 0);       // still driving
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);       // still driving
     assertEqual(Channel().GetMessageCounters().allImplementStop, (uint32_t)1);
     assertEqual((int)Channel().GetMessageCounters().lastAllImplementStopState, 1);
     assertEqual(Channel().GetMessageCounters().lastAllImplementStopMs, (unsigned long)0);
@@ -753,7 +753,7 @@ test(IsobusGuidanceChannel, allImplementStop_notAvailableStopsNothingEither) {
     gcImplement->Wider(200);
     millisValue(6000);
     Deliver(IsobusGuidanceChannelTestAccess::AllImplementStop(), 0xF0, AisoFrame(3));
-    assertMore(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
     assertEqual((int)Channel().GetMessageCounters().lastAllImplementStopState, 3);
     assertEqual(Channel().GetMessageCounters().lastAllImplementStopMs, (unsigned long)0);
     gcImplement->Stop();
