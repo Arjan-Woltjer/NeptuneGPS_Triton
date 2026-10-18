@@ -22,10 +22,10 @@
 namespace triton
 {
 
-VehicleTractor::VehicleTractor(Stream* serialDebug)
+VehicleTractor::VehicleTractor(Stream* serialDebug, bool defaultInversion)
     : serialDebug(serialDebug),
       speed(0), simspeed(1.0f), simtime(2),
-      sim(true), inversion(false),
+      sim(true), inversion(defaultInversion),
       vConst(250), wheelspeedPulses(0), distance(0),
       wheelspeedPulse(false), updateAge(0) {
 #ifdef DEBUG
