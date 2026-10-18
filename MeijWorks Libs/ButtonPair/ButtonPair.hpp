@@ -33,12 +33,13 @@ namespace triton
 // The variants are inputs, not copies:
 //  - leftJoystick/rightJoystick join the single-button branches (not the
 //    both-held one), as on the scraper and the rooier;
-//  - the VT soft keys (Ploegbesturing Isobus) are consume-once edges, each
-//    with its own branch right after the physical branch it mirrors, so the
-//    physical buttons keep priority: Calibrate -> 2, Wider -> -1 (the left
-//    slot), Narrower -> 1 (the right slot). They skip the hold timers (an
-//    edge is true for one loop only) but re-seed them like their physical
-//    counterparts. See IsobusVtInterface.hpp.
+//  - the VT soft keys (Ploegbesturing Isobus): Wider and Narrower are held
+//    levels (#245) and join the single-button branches like the joysticks
+//    (Wider -> -1, the left slot; Narrower -> 1, the right slot), so a held
+//    soft key repeats exactly like a held cab button. They never make the
+//    both-held combo. Calibrate is a consume-once tap with its own branch
+//    after the combo: it skips the combo's hold (a tap is true for one loop)
+//    but re-seeds its timer. See IsobusVtInterface.hpp.
 class ButtonPair {
 public:
     // Timers started at nowMs, nothing pending: what the constructors did.
@@ -73,19 +74,11 @@ public:
             button1Flag = true;
             return 2;
         }
-        if (leftButton || leftJoystick) {
+        if (leftButton || leftJoystick || vtWider) {
             return held(-1, delay2, nowMs);
         }
-        if (vtWider) {
-            button2Flag = true;
-            return -1;
-        }
-        if (rightButton || rightJoystick) {
+        if (rightButton || rightJoystick || vtNarrower) {
             return held(1, delay2, nowMs);
-        }
-        if (vtNarrower) {
-            button2Flag = true;
-            return 1;
         }
         button1Flag = true;
         button2Flag = true;

@@ -487,14 +487,40 @@ void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parent
     self->failover.OnVtStatus(message.get_identifier().get_source_address(), self->lastVtStatusMessageMs);
 }
 
-void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
-    if (event.keyEvent != VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased) return;
+bool IsobusVtInterface::IsWiderHeld() const {
+    return widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs;
+}
 
-    // Wider/Narrower/Calibrate set a consume-once pending flag, picked up by
-    // main.cpp's loop() and passed into InterfacePlough::CheckButtons() --
-    // see this class's own header comment and the ConsumeXxxPress() accessors
-    // for the full rationale. Auto has no existing target (InterfacePlough's
-    // AUTO mode is derived, not user-settable) so stays log-only.
+bool IsobusVtInterface::IsNarrowerHeld() const {
+    return narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs;
+}
+
+void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
+    using Code = VirtualTerminalClient::KeyActivationCode;
+
+    // Wider/Narrower: held from press (or a still-held repeat) until release
+    // or an aborted press, see IsWiderHeld() (#245).
+    if (event.objectID == Key_Wider || event.objectID == Key_Narrower) {
+        const bool wider = event.objectID == Key_Wider;
+        bool& held = wider ? widerHeld : narrowerHeld;
+        const bool down = event.keyEvent == Code::ButtonPressedOrLatched || event.keyEvent == Code::ButtonStillHeld;
+        if (event.keyEvent == Code::ButtonPressedOrLatched) {
+            serialDebug->println(wider ? "VT: Wider pressed" : "VT: Narrower pressed");
+        }
+        else if (!down && held) {
+            serialDebug->println(wider ? "VT: Wider released" : "VT: Narrower released");
+        }
+        held = down;
+        (wider ? widerEventMs : narrowerEventMs) = millis();
+        return;
+    }
+
+    if (event.keyEvent != Code::ButtonUnlatchedOrReleased) return;
+
+    // Calibrate sets a consume-once pending flag, picked up by main.cpp's
+    // loop() and passed into InterfacePlough::CheckButtons(). Auto has no
+    // existing target (InterfacePlough's AUTO mode is derived, not
+    // user-settable) so stays log-only.
     //
     // Calibrate is a heavier action than the other two and carries two real
     // caveats worth knowing before relying on it in the field:
@@ -515,8 +541,6 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
     //      therefore a "start it, then finish it at the cab display"
     //      affordance, not full VT-side calibration -- see GitHub issue #31.
     switch (event.objectID) {
-        case Key_Wider:     pendingWiderPress = true;     serialDebug->println("VT: Wider pressed");     break;
-        case Key_Narrower:  pendingNarrowerPress = true;  serialDebug->println("VT: Narrower pressed");  break;
         case Key_Calibrate: pendingCalibratePress = true; serialDebug->println("VT: Calibrate pressed"); break;
         case Key_Auto:      serialDebug->println("VT: Auto pressed (not wired to control)");             break;
         default: break;
