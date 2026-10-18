@@ -191,8 +191,20 @@ void IsobusVtInterface::Update() {
 // VT failover -- see VtFailoverPolicy.hpp for the field case and why a
 // request for address claim comes first.
 // ----------------------------------------------------------------
+// Bus load above this counts as traffic from other CFs (see updateFailover()).
+static constexpr float kOthersTrafficBusloadPercent = 1.0f;
+
 void IsobusVtInterface::updateFailover() {
     const unsigned long now = millis();
+    // Traffic from the others, for the policy's rejoin grace. Alone on the bus
+    // (session 18: unplugged, or on USB only) the estimate sits at 0.0-0.2 %
+    // from our own unacknowledged frames; a live ISOBUS is 12-19 %. A quiet
+    // bus below 1 % is still covered: every VT status counts as well
+    // (OnVtToEcuMessage). After a loop stall this is the first call again, so
+    // the stall shows up as a gap too.
+    if (CANNetworkManager::CANNetwork.get_estimated_busload(0) > kOthersTrafficBusloadPercent) {
+        failover.OnBusTraffic(now);
+    }
     const VtFailoverPolicy::Decision decision =
         failover.Evaluate(now, IsConnected(), GetPartnerAddress(), IsPartnerAddressValid());
 
@@ -469,7 +481,9 @@ void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parent
     self->vtStatusMessageCount++;
     self->lastVtStatusMessageMs = millis();
     // Every VT's status, not only our partner's: the policy needs to know
-    // which other VT is alive.
+    // which other VT is alive. Traffic first, so the first status after a
+    // rejoin starts the grace before it can make its sender a candidate.
+    self->failover.OnBusTraffic(self->lastVtStatusMessageMs);
     self->failover.OnVtStatus(message.get_identifier().get_source_address(), self->lastVtStatusMessageMs);
 }
 

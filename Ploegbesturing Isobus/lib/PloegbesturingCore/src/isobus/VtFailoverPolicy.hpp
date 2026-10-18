@@ -63,6 +63,13 @@ public:
     // Spacing between our requests for address claim while no live VT is
     // known: each one makes every CF on the bus answer, so it is rate-limited.
     static constexpr unsigned long kRequestIntervalMs = 10000UL;
+    // After we were off the bus -- nothing at all received for longer than
+    // kPartnerSilentMs, then traffic again -- the bound VT is not judged
+    // silent for this long. Its silence was ours: session 18's R2 (63 s
+    // unplugged) and every calibration-wizard stall otherwise ended in a
+    // switch to whichever VT spoke first after the rejoin. 120 s: owner's
+    // choice, 2026-10-17.
+    static constexpr unsigned long kRejoinGraceMs = 120000UL;
 
     static constexpr uint8_t kNoAddress = 0xFE;
 
@@ -84,6 +91,11 @@ public:
     // A VT Status Message (VT-to-ECU, function 0xFE) arrived from `source`.
     void OnVtStatus(uint8_t source, unsigned long nowMs);
 
+    // Something was received from the bus (any traffic, not only VT status).
+    // A gap longer than kPartnerSilentMs between two calls is a rejoin and
+    // starts kRejoinGraceMs. Call it before OnVtStatus() for the same frame.
+    void OnBusTraffic(unsigned long nowMs);
+
     // What to do now. `partnerAddress` and `partnerValid` describe the bound
     // partner as AgIsoStack sees it.
     Decision Evaluate(unsigned long nowMs, bool connected, uint8_t partnerAddress, bool partnerValid) const;
@@ -94,6 +106,7 @@ public:
 
     unsigned int GetSwitchCount() const { return switchCount; }
     unsigned int GetRequestCount() const { return requestCount; }
+    unsigned int GetRejoinCount() const { return rejoinCount; }
 
 private:
     bool HeardRecently(uint8_t address, unsigned long nowMs, unsigned long windowMs) const;
@@ -108,6 +121,12 @@ private:
     bool          requested     = false;
     unsigned int  switchCount   = 0;
     unsigned int  requestCount  = 0;
+
+    unsigned long lastTrafficMs = 0;
+    bool          heardTraffic  = false;
+    unsigned long rejoinMs      = 0;
+    bool          rejoined      = false;
+    unsigned int  rejoinCount   = 0;
 };
 
 }  // namespace triton

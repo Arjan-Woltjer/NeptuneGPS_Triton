@@ -36,8 +36,8 @@ using namespace triton;
 // every test below constructs its own local ImplementPlough after resetAll()
 // re-erases the fake EEPROM, guaranteeing the exact same "no calibration data
 // found" defaults every time (positionCalibrationData={600,461,308},
-// positionCalibrationPoints={34,42,50}, offset=160, shares=4, error=2,
-// max correction 50 mm per share (20 cm on 4 shares), kp=100 -- see
+// positionCalibrationPoints={34,42,50}, offset=160, shares=4, deadband=2,
+// max correction 50 mm per share (20 cm on 4 shares), no bypass -- see
 // ImplementPlough.cpp's constructor).
 // ---------------------------------------------------------------------------
 static GuidanceSource mockGuidance;
@@ -117,23 +117,23 @@ test(ImplementPlough, position_ascendingCalibration_atPoint1) {
 // actualPosition = -3*direction. Manual mode (mode>=2) always bypasses the
 // end-shutoff latch's blocking effect (see the shutoff-latch test below for
 // why), so this exercises pure wide/narrow/stop selection without shutoff
-// interference. manPwm defaults to 255 (PWM_MAN undefined).
+// interference. the valves run at kValvePwm, 255.
 // ---------------------------------------------------------------------------
 
 test(ImplementPlough, adjust_manualMode_directionPositive_narrows) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, 1);  // actualPosition = 0 - 1*3 = -3 < setpoint(0)-error(2)=-2
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
 test(ImplementPlough, adjust_manualMode_directionNegative_widens) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, -1);  // actualPosition = 0 - (-1)*3 = 3 > setpoint(0)+error(2)=2
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 255);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
 }
 
 test(ImplementPlough, adjust_manualMode_directionZero_stops) {
@@ -141,11 +141,11 @@ test(ImplementPlough, adjust_manualMode_directionZero_stops) {
     ImplementPlough impl(nullptr, &mockGuidance);
     // Leave a nonzero value in place first so Stop() zeroing it is observable.
     impl.Adjust(2, 1);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     impl.Adjust(2, 0);  // actualPosition = 0 - 0*3 = 0, within [setpoint-error, setpoint+error]
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -180,16 +180,16 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
     // setpoint stays at its untouched default (0); error=2 -> position(-92) is
     // far below setpoint-error(-2), so every call below takes the "Narrower" branch.
     impl.Adjust(0, 0);  // 1st call: lastPosition(0) != actualPosition(-92) -> shutoffTimer resets to millis()=0
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     impl.Adjust(0, 0);  // 2nd call, same millis(): actualPosition unchanged -> shutoffTimer NOT reset; still narrows
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     // Advance past shutoffTime (3000 ms per SHUTOFF_2). This call still narrows
     // (the block runs before the shutoff check latches shutoffNarrow=true).
     millisValue(3001);
     impl.Adjust(0, 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     // shutoffNarrow is now latched. In auto mode (mode<2), the latch's
     // (!shutoffNarrow || mode>=2) guard is now false -> falls through to Stop(),
@@ -197,8 +197,8 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
     analogWrite(OUTPUT_NARROW_2, 255);  // re-seed a nonzero value so Stop() zeroing it is observable
     millisValue(3002);
     impl.Adjust(0, 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -281,8 +281,8 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
 }
 
 // ---------------------------------------------------------------------------
-// SetSetpoint (private, exercised through Update()) -- proportional-gain
-// (kp=100 default -> gain 1.0) and max-correction clamping (50 mm per share
+// SetSetpoint (private, exercised through Update()) -- the correction is the
+// XTE itself (bang-bang, gain 1) and max-correction clamping (50 mm per share
 // on 4 shares = 20 cm default, #163). setpoint = offset - pe (GetSide() reads false by default, so the
 // sign multiplier (GetSide()*2-1) is -1); offset defaults to 160.
 // ---------------------------------------------------------------------------
@@ -428,7 +428,7 @@ test(ImplementPlough, resetCalibration_erasedEeprom_reportsNoData) {
     ImplementPlough impl(nullptr, &mockGuidance);
     assertFalse(impl.ResetCalibration());
     assertEqual((int)impl.GetShares(), 4);
-    assertEqual((int)impl.GetError(), 2);
+    assertEqual((int)impl.GetDeadband(), 2);
     assertEqual((int)impl.GetMaxCorrectionPerShare(), 50);
     assertEqual(impl.GetMaxCorrection(), (short int)200);
     assertFalse(impl.GetSide());
@@ -441,7 +441,7 @@ test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
     analogReadValue(POSITION_SENS_PIN_2, 500); impl.SetPositionCalibrationData(1);
     analogReadValue(POSITION_SENS_PIN_2, 300); impl.SetPositionCalibrationData(2);
     impl.SetShares(6);
-    impl.SetError(7);
+    impl.SetDeadband(7);
     impl.SetMaxCorrectionPerShare(35);
     impl.SetSwap(true);
     impl.CommitCalibration();
@@ -450,7 +450,7 @@ test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
     ImplementPlough fresh(&dbg, &mockGuidance);
     assertTrue(fresh.ResetCalibration());
     assertEqual((int)fresh.GetShares(), 6);
-    assertEqual((int)fresh.GetError(), 7);
+    assertEqual((int)fresh.GetDeadband(), 7);
     assertEqual((int)fresh.GetMaxCorrectionPerShare(), 35);
     assertEqual(fresh.GetMaxCorrection(), (short int)210);
     assertTrue(fresh.GetSide());                 // swap=1 with the side pin low
@@ -458,7 +458,7 @@ test(ImplementPlough, commitThenFreshInstance_roundTripsEverySetting) {
     fresh.PrintCalibrationData();
     assertTrue(dbg.has("Offset calibration data\n700, 34\n500, 42\n300, 50\n"));
     assertTrue(dbg.has("Number of shares\n6\n"));
-    assertTrue(dbg.has("error margin\n7\n"));
+    assertTrue(dbg.has("Deadband (cm)\n7\n"));
     assertTrue(dbg.has("error ploughside\n1\n"));
     assertTrue(dbg.has("Maximum correction per share (mm)\n35\n"));
     assertTrue(dbg.has("Maximum correction (mm)\n210\n"));
@@ -471,12 +471,12 @@ test(ImplementPlough, outOfRangeStoredBytes_fallBackToDefaults) {
     EEPROM.write(42, 0x01); EEPROM.write(43, 0xF4);   // 500
     EEPROM.write(44, 0x01); EEPROM.write(45, 0x2C);   // 300
     // ... and every scalar out of its accepted range.
-    EEPROM.write(58, 200);   // error margin >= 10
+    EEPROM.write(58, 200);   // deadband above 10
     EEPROM.write(60, 200);   // max correction above 100 mm per share
     EEPROM.write(62, 9);     // swap not 0/1
-    EEPROM.write(64, 99);    // shares >= 10
+    EEPROM.write(64, 99);    // shares above 10
     ImplementPlough impl(nullptr, &mockGuidance);
-    assertEqual((int)impl.GetError(), 2);
+    assertEqual((int)impl.GetDeadband(), 2);
     assertEqual((int)impl.GetMaxCorrectionPerShare(), 50);
     assertEqual((int)impl.GetShares(), 4);
     assertFalse(impl.GetSide());
@@ -490,7 +490,7 @@ test(ImplementPlough, printCalibrationData_onErasedEeprom_printsTheDefaults) {
     assertTrue(dbg.has("Times started\n255\n"));
     assertTrue(dbg.has("Offset calibration data\n600, 34\n461, 42\n308, 50\n"));
     assertTrue(dbg.has("Number of shares\n4\n"));
-    assertTrue(dbg.has("error margin\n2\n"));
+    assertTrue(dbg.has("Deadband (cm)\n2\n"));
     assertTrue(dbg.has("error ploughside\n0\n"));
     assertTrue(dbg.has("Maximum correction per share (mm)\n50\n"));
     assertTrue(dbg.has("Maximum correction (mm)\n200\n"));
@@ -563,4 +563,88 @@ test(ImplementPlough, maxCorrection_oldTwentyCentimetres_becomesTheDefault) {
     ImplementPlough impl(nullptr, &mockGuidance);
     assertEqual((int)impl.GetMaxCorrectionPerShare(), 50);
     assertEqual(impl.GetMaxCorrection(), (short int)200);
+}
+
+// ---------------------------------------------------------------------------
+// Shares and deadband: the boot load accepts exactly what the calibration
+// wizard can set, 2 to 10 both, so nothing the operator saves is reset at
+// the next boot (the #163 trap: shares and the deadband used to stop at 9).
+// ---------------------------------------------------------------------------
+
+static byte loadedShares(byte stored) {
+    resetAll();
+    EEPROM.write(64, stored);
+    return ImplementPlough(nullptr, &mockGuidance).GetShares();
+}
+
+static byte loadedDeadband(byte stored) {
+    resetAll();
+    EEPROM.write(58, stored);
+    return ImplementPlough(nullptr, &mockGuidance).GetDeadband();
+}
+
+test(ImplementPlough, shares_loadAcceptsTwoToTen) {
+    assertEqual((int)loadedShares(2), 2);
+    assertEqual((int)loadedShares(10), 10);
+    assertEqual((int)loadedShares(1), 4);
+    assertEqual((int)loadedShares(11), 4);
+}
+
+test(ImplementPlough, deadband_loadAcceptsTwoToTen) {
+    assertEqual((int)loadedDeadband(2), 2);
+    assertEqual((int)loadedDeadband(10), 10);
+    assertEqual((int)loadedDeadband(1), 2);
+    assertEqual((int)loadedDeadband(11), 2);
+}
+
+// ---------------------------------------------------------------------------
+// Bypass valve (EEPROM 68, 1 = fitted). Fitted: driven with the narrower and
+// wider valve, closed at Stop. Not fitted, the default: the output stays off.
+// ---------------------------------------------------------------------------
+
+static bool loadedBypass(byte stored) {
+    resetAll();
+    EEPROM.write(68, stored);
+    return ImplementPlough(nullptr, &mockGuidance).GetBypass();
+}
+
+test(ImplementPlough, bypass_storedAsOneOrZero) {
+    assertTrue(loadedBypass(1));
+    assertFalse(loadedBypass(0));
+    assertFalse(loadedBypass(7));    // not 0/1: no
+    resetAll();
+    assertFalse(ImplementPlough(nullptr, &mockGuidance).GetBypass());   // erased: no
+}
+
+test(ImplementPlough, bypass_survivesCommitAndBoot) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetBypass(true);
+    impl.CommitCalibration();
+    assertEqual((int)EEPROM.read(68), 1);
+    assertTrue(ImplementPlough(nullptr, &mockGuidance).GetBypass());
+}
+
+test(ImplementPlough, bypass_fitted_drivenWithTheValvesAndClosedAtStop) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetBypass(true);
+    impl.Adjust(2, 1);                                   // narrower
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+    impl.Adjust(2, 0);                                   // within the deadband: stop
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
+    impl.Adjust(2, -1);                                  // wider
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+    impl.Stop();
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
+}
+
+test(ImplementPlough, bypass_notFitted_outputStaysOff) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.Adjust(2, 1);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
+    impl.Adjust(2, -1);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
 }

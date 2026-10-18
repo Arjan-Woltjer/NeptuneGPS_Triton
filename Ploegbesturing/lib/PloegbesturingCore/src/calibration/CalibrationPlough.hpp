@@ -63,6 +63,15 @@ public:
 
     void PrintCalibrationData();
 
+    // One + or - press on a number screen: one step, never past the bounds
+    // the boot load accepts, so a saved value always survives the next boot
+    // (the #163 trap). `buttons` is GetButtons(): 1 up, -1 down, else none.
+    static int StepWithin(int value, int buttons, int step, int lowest, int highest) {
+        if (buttons == 1 && value + step <= highest) return value + step;
+        if (buttons == -1 && value - step >= lowest) return value - step;
+        return value;
+    }
+
 private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;

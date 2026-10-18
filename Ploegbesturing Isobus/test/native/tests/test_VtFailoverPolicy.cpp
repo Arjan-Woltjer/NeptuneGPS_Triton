@@ -216,6 +216,100 @@ test(VtFailoverPolicy, staleStatusFromBeforeStartDoesNotCount) {
     assertTrue(policy.Evaluate(kT0 + 100000 + 1000, false, kCnhVt, true).action == Action::None);
 }
 
+// --- Rejoining the bus -------------------------------------------------
+// Session 18's R2 (2026-10-17): the plough's ISOBUS plug was out for 63 s. On
+// the rejoin the InCommand's status (0x80) arrived first, and 0.4 s later the
+// plough switched to it: 0x26 had been "silent" for a minute, but only because
+// we were not on the bus. Every calibration-wizard stall ended the same way.
+
+namespace {
+
+// Both VTs and the rest of the bus heard every second from kT0 to `untilMs`.
+void OnTheBusWithBothVtsUntil(VtFailoverPolicy& policy, unsigned long untilMs) {
+    for (unsigned long t = kT0; t <= untilMs; t += 1000) {
+        policy.OnBusTraffic(t);
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+}
+
+}  // namespace
+
+test(VtFailoverPolicy, rejoin_afterTimeOffTheBus_keepsTheOldPartner) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    const unsigned long unplugged = kT0 + 30000;
+    OnTheBusWithBothVtsUntil(policy, unplugged);
+    const unsigned long rejoin = unplugged + 63000;
+    policy.OnBusTraffic(rejoin);
+    policy.OnVtStatus(kInCommand, rejoin);
+    assertTrue(policy.Evaluate(rejoin + 400, false, kCnhVt, true).action == Action::None);
+    assertEqual(policy.GetRejoinCount(), (unsigned int)1);
+    // 0x26 speaks again within its 1 s cycle: bound to it as before.
+    policy.OnVtStatus(kCnhVt, rejoin + 800);
+    assertTrue(policy.Evaluate(rejoin + 1000, true, kCnhVt, true).action == Action::None);
+}
+
+// If the old partner does not come back, the switch waits for the grace
+// period to end, then happens at once (it has been silent far longer than
+// kPartnerSilentMs by then).
+test(VtFailoverPolicy, rejoin_oldPartnerGone_switchesWhenTheGraceEnds) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    const unsigned long unplugged = kT0 + 30000;
+    OnTheBusWithBothVtsUntil(policy, unplugged);
+    const unsigned long rejoin = unplugged + 63000;
+    for (unsigned long t = rejoin; t <= rejoin + VtFailoverPolicy::kRejoinGraceMs; t += 1000) {
+        policy.OnBusTraffic(t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+    assertEqual(VtFailoverPolicy::kRejoinGraceMs, 120000UL);
+    assertTrue(policy.Evaluate(rejoin + VtFailoverPolicy::kRejoinGraceMs - 1, false, kCnhVt, true).action ==
+               Action::None);
+    const VtFailoverPolicy::Decision d = policy.Evaluate(rejoin + VtFailoverPolicy::kRejoinGraceMs, false, kCnhVt, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kInCommand);
+}
+
+// A loop that did not run (the calibration wizard, #31) is a gap in the
+// traffic just like an unplug: nothing was received while it was open.
+test(VtFailoverPolicy, rejoin_afterALoopStall_keepsTheOldPartner) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    const unsigned long stalled = kT0 + 30000;
+    OnTheBusWithBothVtsUntil(policy, stalled);
+    const unsigned long resumed = stalled + 30000;
+    policy.OnBusTraffic(resumed);
+    policy.OnVtStatus(kInCommand, resumed);
+    assertTrue(policy.Evaluate(resumed, false, kCnhVt, true).action == Action::None);
+}
+
+// On the bus all along (F1/F3, and session 13's pruned VT whose status never
+// reached us): no rejoin, the 15 s switch stays.
+test(VtFailoverPolicy, onTheBusAllAlong_partnerSilent_switchesAfterTheUsualTime) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    OnTheBusWithBothVtsUntil(policy, kT0 + 30000);
+    const unsigned long stop = kT0 + 30000;
+    for (unsigned long t = stop + 1000; t <= stop + VtFailoverPolicy::kPartnerSilentMs; t += 1000) {
+        policy.OnBusTraffic(t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+    const VtFailoverPolicy::Decision d = policy.Evaluate(stop + VtFailoverPolicy::kPartnerSilentMs, false, kCnhVt, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(policy.GetRejoinCount(), (unsigned int)0);
+}
+
+// The first traffic after boot is not a rejoin: nothing was heard before it.
+test(VtFailoverPolicy, firstTrafficAfterBoot_isNotARejoin) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    policy.OnBusTraffic(kT0 + 60000);
+    policy.OnVtStatus(kInCommand, kT0 + 60000);
+    assertTrue(policy.Evaluate(kT0 + 60000, false, kCnhVt, true).action == Action::SwitchTo);
+    assertEqual(policy.GetRejoinCount(), (unsigned int)0);
+}
+
 test(VtFailoverPolicy, survivesMillisWraparound) {
     const unsigned long nearWrap = 0xFFFFFFFFUL - 5000;
     VtFailoverPolicy policy;

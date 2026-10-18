@@ -311,6 +311,18 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
     } else {
         serialDebug->println("             raw: nothing from 0x2A or 0x80 yet");
     }
+    serialDebug->print("  PGN 65535  GNSS status 0x80:  ");
+    serialDebug->print(counters.agLeaderGnssStatus);
+    if (counters.agLeaderGnssStatus > 0) {
+        serialDebug->print("   fix mode ");
+        serialDebug->print(counters.lastAgLeaderGnssFixMode);
+        serialDebug->print(counters.lastAgLeaderGnssFixMode == 2 ? " (RTK fixed)" : " (not RTK fixed)");
+        serialDebug->print("  (");
+        serialDebug->print(millis() - counters.lastAgLeaderGnssStatusMs);
+        serialDebug->println(" ms ago)");
+    } else {
+        serialDebug->println("   (none)");
+    }
     serialDebug->print("  PGN 60160  XTE Trimble legacy:");
     serialDebug->print(counters.xteTrimbleLegacy);
     serialDebug->print("   last SA=0x");
@@ -451,7 +463,9 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->print("  VT failover: switches=");
         serialDebug->print(vtInterface->GetVtSwitchCount());
         serialDebug->print(" claim requests=");
-        serialDebug->println(vtInterface->GetVtClaimRequestCount());
+        serialDebug->print(vtInterface->GetVtClaimRequestCount());
+        serialDebug->print(" rejoins=");
+        serialDebug->println(vtInterface->GetVtRejoinCount());
     }
 
     serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");
