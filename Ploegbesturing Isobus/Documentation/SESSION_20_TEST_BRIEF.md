@@ -8,7 +8,7 @@ Previous results:
 - `logs/2026-10-18_session19_vanmastwijk_timeline.md`
 - `logs/2026-10-18_session19_vanmastwijk_capture.md`
 
-Both are on main. This session's notes go on **`test/session20`**, see section 10.
+Both are on main. This session's notes go on **`test/session20`**, see section 9.
 
 ## 0. What changed since session 19, and what this session decides
 
@@ -35,8 +35,9 @@ This session decides:
 2. **#247:** does the width follow a share change without a reboot?
 3. **#250:** does manual mode cut the valve at both end stops, and stay off until driven the other way, without cutting while the plough moves?
 4. **#251:** do the soft keys behave exactly like the cab buttons, on the CNH VT **and** on the InCommand 1200?
-5. From session 19, not run yet: **Q3** (RTK dropout while driving). G2 (main screen while driving)
-   passed on the owner's word after session 19: nothing strange, the screen all as expected.
+Session 19's two open steps are closed: G2 (main screen while driving) passed on the owner's word,
+and Q3 (RTK dropout while driving) is not run. The behaviour before RTK fixes was seen to be right
+in Q1/Q2, and the NTRIP settings stay as they are (owner).
 
 ## 1. Kit and build
 
@@ -118,19 +119,13 @@ now treats a soft key exactly like the cab button on the same side.
 | V7 | Switch over to the **InCommand 1200 (0x80)**: CNH VT off, wait for the switch (~15 s, as in session 19's F3). Repeat V1, V2 and V5 on the 1200. Note the times. | The same as on the CNH VT. **If the movement stutters** (stop-start while the key is held), note it: the 1200 may send its still-held messages more slowly than every 600 ms. The CANedge captures the interval either way. |
 | V8 | CNH VT back on. | Stays on 0x80, as in session 19's F4. |
 
-## 6. Left over from session 19
-
-| Step | Do | Expect |
-|---|---|---|
-| Q3 | AUTO (after P1), driving on the line with RTK fixed. Lose RTK: switch the corrections off on the 1200, or wait for a dropout. Then let it fix again. | Within a few seconds of the 1200 losing RTK fixed, `q=4` -> `q=1` and the plough holds (HOLD, `hr G!`). Back to `q=4` and correcting once RTK fixes. Note the times against the 1200's screen. |
-
-## 7. Observe only
+## 6. Observe only
 
 - **#248** (VT command timeouts while the VT had answered): count the `[VT]: Server response to a
   command timed out` lines in the serial log. Session 19 had 8 with no reason, about one every 4 min
   while values changed. Nothing is fixed yet; the CANedge capture is the evidence.
 
-## 8. Not on this board
+## 7. Not on this board
 
 - #229 + #237: the plain-CAN builds (`teensy41_can` and others).
   - Still waiting for the owner's answer on the CAN pins: besturing 0.1 uses FLEXCAN3 31/30, the old
@@ -139,7 +134,7 @@ now treats a soft key exactly like the cab button on the same side.
 - #230: SP/Rooier hitch inversion. #239: Teensy 4.0 pinout.
 - #31 (non-blocking wizard), #240/#241 (VT and serial calibration): not built yet.
 
-## 9. Checklist (copy into the timeline, tick live)
+## 8. Checklist (copy into the timeline, tick live)
 
 SETUP
 - [ ] Build: `test/session20` @ ________ flashed; VT key logs `pressed` + `released` Y/N
@@ -174,16 +169,13 @@ VT SOFT KEYS (#251)
 - [ ] V7 InCommand 1200: V1 Y/N, V2 Y/N, V5 Y/N; stutter Y/N
 - [ ] V8 CNH VT back on: stays on 0x80 Y/N
 
-LEFT OVER
-- [ ] Q3 RTK lost __:__:__ -> `q=1` at __:__:__, HOLD Y/N; fixed __:__:__ -> `q=4` at __:__:__, correcting Y/N
-
 OBSERVE
 - [ ] #248 timeout lines in the serial log: ____
 
 END
 - [ ] final dump   - [ ] CANedge left running or stopped __:__:__ (let the last piece upload)   - [ ] session ____
 
-## 10. Afterwards
+## 9. Afterwards
 
 - **Notes:** the serial log and the timeline (this checklist filled in) go on **`test/session20`** under
   `Ploegbesturing Isobus/Documentation/logs/`, named `<date>_session20_vanmastwijk_*`.
@@ -193,5 +185,4 @@ END
 - **Where results go:**
   - #253 (P1-P5), #247 (W1-W5), #250 (E1-E6, V6) and #251 (V1-V8): each PR merges to main only on
     its own evidence.
-  - Q3 to #221, which is merged; comment there.
   - The #248 count to #248.
