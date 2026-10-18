@@ -41,7 +41,9 @@ bool CanFrameGuidanceChannel::Decode(uint32_t id, const uint8_t* data, uint8_t l
         case kPgnXteNmea2000:          return GApply(DecodeXteNmea2000(data, length), guidance);
         case kPgnPositionLegacy:       return GApply(DecodeLegacyPosition(data, length), guidance);
         case kPgnSpeedLegacy:          return GApply(DecodeLegacySpeed(data, length), guidance);
-        case kPgnXteJohnDeereLegacy:   return GApply(DecodeLegacyXteJohnDeere(sa, data, length), guidance);
+        case kPgnXteJohnDeereLegacy:   // also the InCommand's GNSS status, selector 0x51
+            return GApply(DecodeLegacyXteJohnDeere(sa, data, length), guidance) ||
+                   GApply(DecodeGnssStatusAgLeader(sa, data, length), guidance);
         case kPgnXteTrimbleLegacy:     return GApply(DecodeLegacyXteTrimble(sa, data, length), guidance);
         default:                       return false;
     }
