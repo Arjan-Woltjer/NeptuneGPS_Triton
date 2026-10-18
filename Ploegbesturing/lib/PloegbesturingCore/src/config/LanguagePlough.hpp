@@ -55,8 +55,8 @@
 #define L2_CAL_ADJUST    "+ / - : verstellen  "
 #define L2_CAL_ENTER     "Beide : accepteren  "
 
-#define L2_CAL_ON        "                 aan"
-#define L2_CAL_OFF       "                 uit"
+#define L2_CAL_YES       "                  ja"
+#define L2_CAL_NO        "                 nee"
 
 #define L2_CAL_POS       "Breedte calibratie  "
 #define L2_CAL_POS_AD    "Verstel naar     cm "
@@ -67,17 +67,8 @@
 #define L2_CAL_SHARES    "Wijzig aant. scharen"
 #define L2_CAL_SHARES_AD "Aantal scharen:     "
 
-#define L2_CAL_KP        "PID wijzig KP       "
-#define L2_CAL_KP_AD     "KP:                 "
-
-#define L2_CAL_PWM_M     "Wijzig PWM handmatig"
-#define L2_CAL_PWM_M_AD  "PWM handmatig:      "
-
-#define L2_CAL_PWM_A     "Wijzig PWM automaat "
-#define L2_CAL_PWM_A_AD  "PWM automaat:       "
-
-#define L2_CAL_MARGIN    "Wijzig foutmarge    "
-#define L2_CAL_MARGIN_AD "Foutmarge :       cm"
+#define L2_CAL_DEADBAND    "Wijzig dode band    "
+#define L2_CAL_DEADBAND_AD "Dode band:        cm"
 
 #define L2_CAL_MAXCOR    "Wijzig corr./schaar "
 #define L2_CAL_MAXCOR_AD "Corr./schaar:     mm"
@@ -85,11 +76,13 @@
 #define L2_CAL_SWAP      "Wijzig ploegzijde   "
 #define L2_CAL_SWAP_AD   "Ploegt naar:        "
 
+#define L2_CAL_BYPASS    "Bypassventiel       "
+
 #define L2_CAL_QUAL      "Corrigeer RTK ident."
 #define L2_CAL_QUAL_AD   "Quality:            "
 
-#define L2_CAL_DEUTZ     "Inverteer hefsignaal"
-#define L2_CAL_DEUTZ_AD  "Inversie:           "
+#define L2_CAL_INVERSION    "Inverteer hefsignaal"
+#define L2_CAL_INVERSION_AD "Inversie:           "
 
 #define L2_CAL_JD        "Hefschakelaar       "
 #define L2_CAL_JD_AD     "                    "
@@ -142,8 +135,8 @@
 #define L2_CAL_ADJUST    "+ / - : to adjust   "
 #define L2_CAL_ENTER     "Both  : to accept   "
 
-#define L2_CAL_ON        "                  on"
-#define L2_CAL_OFF       "                 off"
+#define L2_CAL_YES       "                 yes"
+#define L2_CAL_NO        "                  no"
 
 #define L2_CAL_POS       "Width calibration   "
 #define L2_CAL_POS_AD    "Adjust to        cm "
@@ -154,17 +147,8 @@
 #define L2_CAL_SHARES    "Adjust am. of shares"
 #define L2_CAL_SHARES_AD "Amount of shares:   "
 
-#define L2_CAL_KP        "PID adjust KP       "
-#define L2_CAL_KP_AD     "KP:                 "
-
-#define L2_CAL_PWM_M     "PWM adjust manual   "
-#define L2_CAL_PWM_M_AD  "PWM manual:         "
-
-#define L2_CAL_PWM_A     "PWM adjust auto     "
-#define L2_CAL_PWM_A_AD  "PWM auto:           "
-
-#define L2_CAL_MARGIN    "Adjust error margin "
-#define L2_CAL_MARGIN_AD "Margin :          cm"
+#define L2_CAL_DEADBAND    "Adjust deadband     "
+#define L2_CAL_DEADBAND_AD "Deadband :        cm"
 
 #define L2_CAL_MAXCOR    "Adj. max corr./share"
 #define L2_CAL_MAXCOR_AD "Corr./share:      mm"
@@ -172,8 +156,13 @@
 #define L2_CAL_SWAP      "Change ploughside   "
 #define L2_CAL_SWAP_AD   "Side:               "
 
+#define L2_CAL_BYPASS    "Bypass valve        "
+
 #define L2_CAL_QUAL      "Correct RTK ident.  "
 #define L2_CAL_QUAL_AD   "Quality:            "
+
+#define L2_CAL_INVERSION    "Invert hitch signal "
+#define L2_CAL_INVERSION_AD "Inversion:          "
 
 #define L2_CAL_SPEED     "Speed calibration   "
 #define L2_CAL_SPEED_AD  "Accelerate to 10kph "
