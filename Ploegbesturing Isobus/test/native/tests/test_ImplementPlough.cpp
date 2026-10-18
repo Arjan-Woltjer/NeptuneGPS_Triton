@@ -643,7 +643,7 @@ test(ImplementPlough, bypass_notFitted_outputStaysOff) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, 1);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
     impl.Adjust(2, -1);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
