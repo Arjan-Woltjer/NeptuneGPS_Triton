@@ -110,14 +110,14 @@ test(IsobusLightbarChannel, displayPartner_unboundBeforeBegin) {
     assertEqual((int)channel.GetDisplayPartnerAddress(), 0xFF);
 }
 
-// 233.7 s: engaged, 1 cm right -> +0.01 m committed, counted as such.
+// 233.7 s: engaged, 1 cm right on the 1200 -> -0.01 m committed (#252), counted as such.
 test(IsobusLightbarChannel, xte_engagedFrame_commits) {
     GuidanceSource guidance;
     IsobusLightbarChannel channel(nullptr, &guidance);
     const std::uint8_t d[8] = { 1, 0x00, 0x02, 0x00, 121, 0x00, 0x93, 0x04 };
     IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
 
-    assertEqual(guidance.GetXte(), 1);
+    assertEqual(guidance.GetXte(), -1);
     const auto& c = channel.GetCounters();
     assertEqual(c.xteFrames, (std::uint32_t)1);
     assertEqual(c.xteCommitted, (std::uint32_t)1);
@@ -136,7 +136,7 @@ test(IsobusLightbarChannel, xte_abLine_commits) {
     const std::uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
     IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
 
-    assertEqual(guidance.GetXte(), 148);
+    assertEqual(guidance.GetXte(), -148);
     const auto& c = channel.GetCounters();
     assertEqual(c.xteFrames, (std::uint32_t)1);
     assertEqual(c.xteCommitted, (std::uint32_t)1);
@@ -159,13 +159,13 @@ test(IsobusLightbarChannel, xte_noLine_countedNotCommitted) {
     assertEqual((int)c.lastXte.rawPayload[7], 0x01);
 }
 
-// 220 s: 34 cm left -> -0.34 m.
-test(IsobusLightbarChannel, xte_leftFrame_negative) {
+// 220 s: 34 cm left on the 1200 -> +0.34 m (#252).
+test(IsobusLightbarChannel, xte_displayLeft_positive) {
     GuidanceSource guidance;
     IsobusLightbarChannel channel(nullptr, &guidance);
     const std::uint8_t d[8] = { 34, 0x00, 0x02, 0x00, 115, 0x00, 0x53, 0x04 };
     IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
-    assertEqual(guidance.GetXte(), -34);
+    assertEqual(guidance.GetXte(), 34);
 }
 
 // Session 16, 20:57:30: 90 cm right, state 3, autosteer NOT engaged -> committed
@@ -175,7 +175,7 @@ test(IsobusLightbarChannel, xte_state3NotEngaged_commits) {
     IsobusLightbarChannel channel(nullptr, &guidance);
     const std::uint8_t d[8] = { 0x5A, 0x00, 0x03, 0x00, 0x1B, 0x01, 0x91, 0x04 };
     IsobusLightbarChannelTestAccess::Deliver(IsobusLightbarChannelTestAccess::Xte(), channel, kIdXte, d, 8);
-    assertEqual(guidance.GetXte(), 90);
+    assertEqual(guidance.GetXte(), -90);
     assertEqual(channel.GetCounters().xteCommitted, (std::uint32_t)1);
     assertFalse(channel.GetCounters().lastXte.engaged);
 }

@@ -213,9 +213,9 @@ LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length)
     if (result.magnitudeCm == 0) {
         value = 0;                                              // on the line: neither bit
     } else if (result.rightOfLine && !result.leftOfLine) {
-        value = int(result.magnitudeCm);
+        value = -int(result.magnitudeCm);                       // the 1200's "right": steer right (#252)
     } else if (result.leftOfLine && !result.rightOfLine) {
-        value = -int(result.magnitudeCm);
+        value = int(result.magnitudeCm);
     } else {
         return result;                                          // side unknown: never guess
     }
