@@ -198,10 +198,10 @@ void InterfacePlanter::UpdateScreen(boolean rewrite) {
     // Update screen
     if (rewrite) {
         // Regel 0 - 3
-        lcd->WriteBuffer(L3_OFFSET, 0);
-        lcd->WriteBuffer(L3_A_POS, 1);
-        lcd->WriteBuffer(L3_SETPOINT, 2);
-        lcd->WriteBuffer(L3_XTE, 3);
+        lcd->WriteBuffer(L_OFFSET, 0);
+        lcd->WriteBuffer(L_A_POS, 1);
+        lcd->WriteBuffer(L_SETPOINT, 2);
+        lcd->WriteBuffer(L_XTE, 3);
 
         lcd->WriteScreen(-1);
     }

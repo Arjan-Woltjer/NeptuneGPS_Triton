@@ -117,10 +117,10 @@ void setup() {
 
     // Write message to screen
     // Messages in LanguageScraper.hpp
-    gLcd->WriteBuffer(L5_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L5_DEVICE, 1);
-    gLcd->WriteBuffer(L5_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L5_AUTHOR, 3);
+    gLcd->WriteBuffer(L_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L_DEVICE, 1);
+    gLcd->WriteBuffer(L_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L_AUTHOR, 3);
 
     gLcd->WriteScreen(-1);
 
