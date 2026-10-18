@@ -46,6 +46,11 @@ class __FlashStringHelper {};
 #ifndef PROGMEM
 #  define PROGMEM
 #endif
+// Teensy 4.x: run a function from flash instead of copying it to RAM1 (ITCM).
+// Meaningless off-target.
+#ifndef FLASHMEM
+#  define FLASHMEM
+#endif
 #ifndef PSTR
 #  define PSTR(x)         (x)
 #endif

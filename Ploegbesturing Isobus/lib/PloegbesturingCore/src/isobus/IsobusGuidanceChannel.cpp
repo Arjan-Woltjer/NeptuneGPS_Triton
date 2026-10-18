@@ -61,22 +61,11 @@ IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug,
 }
 
 // ------------------------------------------------------------------
-// Begin -- call once from setup()
+// BuildPloughName -- the plough's ISOBUS NAME, pure so a native test can
+// pin it (#202): Begin() claims it, and terminals key their stored VT
+// pools and DDOPs on it.
 // ------------------------------------------------------------------
-void IsobusGuidanceChannel::Begin() {
-    CANHardwareInterface::set_number_of_can_channels(1);
-    CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
-    CANHardwareInterface::start();
-    canStarted = true;   // the plugin's open() has run FlexCAN_T4::begin() -- see SampleCanErrors()
-    // A baseline before we transmit anything, so an episode that starts during
-    // the address claim below is timed from when it really began, not from the
-    // first Update() after setup() -- a board alone on its bus goes
-    // error-passive within milliseconds of its first frame (bench, 2026-09-25).
-    SampleCanErrors();
-    PrintCanState("CAN controller at start: ");
-
-    CANHardwareInterface::update();
-
+NAME IsobusGuidanceChannel::BuildPloughName() {
     // ISOBUS NAME
     // ---- Our ISOBUS identity ----------------------------------------
     //
@@ -103,8 +92,16 @@ void IsobusGuidanceChannel::Begin() {
     NAME deviceName(0);
     deviceName.set_arbitrary_address_capable(true);
     deviceName.set_industry_group(2);   // Agriculture and Forestry
-    deviceName.set_device_class(8);     // Non-self-propelled work machine
-    deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::SteeringControl));  // TODO: confirm correct function
+    // ISO 11783-1, industry group 2 (#202): device class 2 is Tillage; the 8
+    // this used to claim is Root Harvesters, and a John Deere registered the
+    // plough as a harvester for it (session 12). Function 132 in class 2 is
+    // Tillage Machine Control: control of outputs including position, and for
+    // VT or TC control several control functions on one SA -- what this ECU
+    // is. The old function 16 is the global Steering Controller (steer-by-wire).
+    // Source: isobus.net "IG Specific NAME Function", archived in NeptuneGPS
+    // Documentation/ISOBUS/reference/parameters-csv.
+    deviceName.set_device_class(2);     // Tillage (primary soil tillage)
+    deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::MachineControl));  // 132, Tillage Machine Control
     // Was 64 -- belongs to a real, different manufacturer (flagged as a TODO
     // in Triton_TC_Client_Design.md sec 7, never actually fixed until now).
     // 1407 is AgIsoStack's own permitted-for-non-commercial-use code, the
@@ -131,6 +128,27 @@ void IsobusGuidanceChannel::Begin() {
     deviceName.set_ecu_instance(0);
     deviceName.set_function_instance(0);
     deviceName.set_device_class_instance(0);
+    return deviceName;
+}
+
+// ------------------------------------------------------------------
+// Begin -- call once from setup()
+// ------------------------------------------------------------------
+void IsobusGuidanceChannel::Begin() {
+    CANHardwareInterface::set_number_of_can_channels(1);
+    CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
+    CANHardwareInterface::start();
+    canStarted = true;   // the plugin's open() has run FlexCAN_T4::begin() -- see SampleCanErrors()
+    // A baseline before we transmit anything, so an episode that starts during
+    // the address claim below is timed from when it really began, not from the
+    // first Update() after setup() -- a board alone on its bus goes
+    // error-passive within milliseconds of its first frame (bench, 2026-09-25).
+    SampleCanErrors();
+    PrintCanState("CAN controller at start: ");
+
+    CANHardwareInterface::update();
+
+    const NAME deviceName = BuildPloughName();
 
     // Must go through the factory method, not a direct std::make_shared
     // construction -- only create_internal_control_function() registers the
@@ -158,6 +176,7 @@ void IsobusGuidanceChannel::Begin() {
 
     serialDebug->print("address claimed: 0x");
     serialDebug->println(controlFunction->get_address(), HEX);
+    RegisterRequestHandlers(controlFunction);   // #23: answer claim requests with the claim only
     PrintCanState("CAN controller after the claim: ");
 
     CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(kPgnPositionNmea2000,   OnPositionNmea2000,   this);
@@ -303,12 +322,46 @@ void IsobusGuidanceChannel::OnSpeedNmea2000(const CANMessage& msg, void* context
     GApply(DecodeSpeedNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
 }
 
+// ------------------------------------------------------------------
+// Request callbacks (#23)
+// ------------------------------------------------------------------
+// AgIsoStack answers a request for address claim addressed to us twice: its
+// address-claim code re-sends our claim, which is the ISO 11783-5 answer, and
+// its PGN request protocol -- finding no callback for PGN 60928 -- also sends a
+// NACK, "I don't support this PGN", from a control function that just claimed
+// with it. Claiming the PGN here, handled and without an acknowledgement,
+// leaves the claim as the only answer. The lightbar channel's control function
+// has done the same since #207 (its OnIgnoredRequest).
+void IsobusGuidanceChannel::RegisterRequestHandlers(const std::shared_ptr<InternalControlFunction>& icf) {
+    if (!icf) return;
+    if (auto protocol = icf->get_pgn_request_protocol().lock()) {
+        protocol->register_pgn_request_callback(static_cast<std::uint32_t>(CANLibParameterGroupNumber::AddressClaim),
+                                                OnAddressClaimRequest, nullptr);
+    }
+}
+
+bool IsobusGuidanceChannel::OnAddressClaimRequest(std::uint32_t, std::shared_ptr<ControlFunction>,
+                                                  bool& acknowledge, AcknowledgementType&, void*) {
+    acknowledge = false;   // the network manager's claim is the answer
+    return true;
+}
+
 void IsobusGuidanceChannel::OnXteNmea2000(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
-    self->counters.xteNmea2000++;
+    auto& c = self->counters;
+    c.xteNmea2000++;
 
+    // Keep the frame as it arrived, whatever the decoder makes of it (#201).
     const auto& d = msg.get_data();
-    GApply(DecodeXteNmea2000(d.data(), static_cast<uint8_t>(msg.get_data_length())), self->guidance);
+    const uint8_t length = static_cast<uint8_t>(msg.get_data_length());
+    c.lastXteNmea2000SourceAddress = msg.get_identifier().get_source_address();
+    c.lastXteNmea2000Length = length;
+    for (uint8_t i = 0; i < 8; i++) c.lastXteNmea2000Payload[i] = (i < length) ? d[i] : 0;
+    c.lastXteNmea2000Ms = millis();
+
+    const XteResult result = DecodeXteNmea2000(d.data(), length);
+    if (result.rejectReason < kXteRejectReasons) c.xteNmea2000Outcome[result.rejectReason]++;
+    GApply(result, self->guidance);
 }
 
 void IsobusGuidanceChannel::OnLegacyPosition(const CANMessage& msg, void* context) {
@@ -390,6 +443,15 @@ void IsobusGuidanceChannel::OnLegacyXteJohnDeere(const CANMessage& msg, void* co
     }
 
     GApply(result, self->guidance);
+
+    // The InCommand's GNSS status shares this PGN: the only fix quality on
+    // its bus, which has no 129029 (session 18, D4).
+    auto status = DecodeGnssStatusAgLeader(sourceAddress, d.data(), static_cast<uint8_t>(msg.get_data_length()));
+    if (GApply(status, self->guidance)) {
+        self->counters.agLeaderGnssStatus++;
+        self->counters.lastAgLeaderGnssFixMode = status.fixMode;
+        self->counters.lastAgLeaderGnssStatusMs = millis();
+    }
 }
 
 // The standard ISO 11783-7 guidance channel, broadcast at 10 Hz by the tractor
@@ -418,9 +480,11 @@ void IsobusGuidanceChannel::OnPositionDeltaNmea2000(const CANMessage& msg, void*
 // **it is the only message on any bus captured so far that carries a GNSS
 // quality indicator.** Without it, an ISOBUS build can only get quality from
 // the John Deere legacy XTE decoder (source address 0x2A) or the Trimble one
-// (0xAA). On a rig with neither -- the Ag Leader/CNH of session 9 -- quality
-// is structurally stuck at 0, IsRtkQuality() can never become true, and
-// InterfacePlough stays in HOLD no matter what else works.
+// (0xAA). On a rig with neither, quality is structurally stuck at 0,
+// IsRtkQuality() can never become true, and InterfacePlough stays in HOLD no
+// matter what else works. The Ag Leader/CNH rig of sessions 9-18 was that rig
+// until its InCommand's GNSS status (65535 selector 0x51) was decoded: see
+// OnLegacyXteJohnDeere().
 void IsobusGuidanceChannel::OnGnssPositionData(const CANMessage& msg, void* context) {
     auto* self = static_cast<IsobusGuidanceChannel*>(context);
     self->counters.gnssPositionData++;

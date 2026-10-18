@@ -137,6 +137,23 @@ test(IsobusPgnDecode, xteNmea2000_shortFrame_lengthNotOk) {
     assertFalse(r.lengthOk);
 }
 
+// #201: why a frame was not committed, one reason per case, for the debug dump.
+// The zero-length frame is what the CNH 0xCD sends back for each of our
+// requests for 129283 (sessions 13-17, van Mastwijk).
+test(IsobusPgnDecode, xteNmea2000_rejectReason_namesEachCase) {
+    uint8_t ok[6]          = { 0, 0x00, 0x7B, 0x00, 0x00, 0x00 };
+    uint8_t terminated[6]  = { 0, 0x40, 0x7B, 0x00, 0x00, 0x00 };
+    uint8_t notAvail[6]    = { 0, 0x00, 0xFF, 0xFF, 0xFF, 0x7F };
+    uint8_t error[6]       = { 0, 0x00, 0xFE, 0xFF, 0xFF, 0x7F };
+    uint8_t shortFrame[5]  = { 0, 0, 0, 0, 0 };
+    assertEqual((int)DecodeXteNmea2000(ok, 6).rejectReason, (int)kXteRejectNone);
+    assertEqual((int)DecodeXteNmea2000(nullptr, 0).rejectReason, (int)kXteRejectLength);
+    assertEqual((int)DecodeXteNmea2000(shortFrame, 5).rejectReason, (int)kXteRejectLength);
+    assertEqual((int)DecodeXteNmea2000(terminated, 6).rejectReason, (int)kXteRejectNavigationTerminated);
+    assertEqual((int)DecodeXteNmea2000(notAvail, 6).rejectReason, (int)kXteRejectNotAvailable);
+    assertEqual((int)DecodeXteNmea2000(error, 6).rejectReason, (int)kXteRejectError);
+}
+
 // --- DecodeLegacyPosition -----------------------------------------------------
 
 test(IsobusPgnDecode, legacyPosition_fullFrame_fixPresent) {
@@ -495,6 +512,34 @@ test(IsobusPgnDecode, legacyXteJohnDeere_agLeaderSelector_notDecoded) {
     uint8_t d[8] = { 0x51, 0x03, 0x02, 0xFF, 0x00, 0x63, 0x00, 0xFF };
     auto r = DecodeLegacyXteJohnDeere(0x80, d, 8);
     assertFalse(r.valid);
+}
+
+// --- DecodeGnssStatusAgLeader (PGN 65535 selector 0x51 from 0x80) ---
+// Frames as captured in CANedge sessions 57 and 61, one per fix mode.
+test(IsobusPgnDecode, gnssStatusAgLeader_fixModeToQuality) {
+    uint8_t fixed[8]      = { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF };
+    uint8_t converging[8] = { 0x51, 0x03, 0x01, 0xFF, 0x0A, 0x05, 0x08, 0xFF };
+    uint8_t booting[8]    = { 0x51, 0x01, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF };
+    auto r = DecodeGnssStatusAgLeader(0x80, fixed, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.fixMode, 2);
+    assertEqual((int)r.quality, 4);
+    r = DecodeGnssStatusAgLeader(0x80, converging, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.quality, 1);
+    r = DecodeGnssStatusAgLeader(0x80, booting, 8);
+    assertTrue(r.valid);
+    assertEqual((int)r.quality, 0);
+}
+
+// Overloaded PGN: only 0x80, only selector 0x51, only 8 bytes.
+test(IsobusPgnDecode, gnssStatusAgLeader_rejectsOtherSendersSelectorsAndLengths) {
+    uint8_t d[8] = { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF };
+    assertFalse(DecodeGnssStatusAgLeader(0x2A, d, 8).valid);
+    assertFalse(DecodeGnssStatusAgLeader(0x80, d, 7).valid);
+    assertFalse(DecodeGnssStatusAgLeader(0x80, d, 7).lengthOk);
+    uint8_t xte[8] = { 0x77, 0x15, 0x00, 0x00, 0x7D, 0x00, 0x00, 0x00 };
+    assertFalse(DecodeGnssStatusAgLeader(0x80, xte, 8).valid);
 }
 
 // --- DecodeGnssPositionData (PGN 129029) and DecodePositionDeltaNmea2000 ---

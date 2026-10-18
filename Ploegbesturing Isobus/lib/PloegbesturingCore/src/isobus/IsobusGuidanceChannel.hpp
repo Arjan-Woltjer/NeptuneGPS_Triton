@@ -43,6 +43,7 @@
 #undef min
 #undef max
 #include <isobus/hardware_integration/can_hardware_plugin.hpp>
+#include <isobus/isobus/can_callbacks.hpp>
 #include <isobus/isobus/can_internal_control_function.hpp>
 #include <isobus/isobus/can_message.hpp>
 #pragma pop_macro("max")
@@ -51,6 +52,7 @@
 #include "../implement/ImplementPlough.hpp"
 #include "CanErrorMonitor.hpp"
 #include "GuidanceSource.hpp"
+#include "IsobusPgnDecode.hpp"   // kXteReject*, sizing MessageCounters (#201)
 
 namespace triton
 {
@@ -82,6 +84,12 @@ public:
     // contention window, never called again after setup()), and registers
     // every PGN callback + sends the initial PGN requests once claimed.
     void Begin();
+    // The plough's ISOBUS NAME, as Begin() claims it (#202).
+    static isobus::NAME BuildPloughName();
+    // Request callbacks for our internal control function, registered by
+    // Begin() once the address is claimed. Static so a host test can install
+    // them on a control function of its own (#23).
+    static void RegisterRequestHandlers(const std::shared_ptr<isobus::InternalControlFunction>& icf);
 
     // Call every loop() iteration -- pumps CAN I/O.
     void Update();
@@ -128,7 +136,23 @@ public:
         uint8_t  lastXteJohnDeereLegacyPayloadSourceAddress = 0xFF;
         uint32_t xteJohnDeereCarrier                   = 0;
         uint32_t lastXteJohnDeereCarrierMs             = 0;
+        // The InCommand's GNSS status on the same PGN (0x80, selector 0x51):
+        // the fix quality on a bus without 129029.
+        uint32_t agLeaderGnssStatus                    = 0;
+        uint8_t  lastAgLeaderGnssFixMode               = 0;
+        uint32_t lastAgLeaderGnssStatusMs              = 0;
         uint8_t  lastXteTrimbleLegacySourceAddress     = 0xFF;
+
+        // PGN 129283, every frame (#201): the last one's sender, length and
+        // bytes, and per-frame outcomes indexed by kXteReject* (index 0 =
+        // committed). The bare count above was all the dump had, and on the
+        // van Mastwijk rig it counted 0xCD's empty answers to our requests as
+        // if they were XTE.
+        uint8_t  lastXteNmea2000SourceAddress = 0xFF;
+        uint8_t  lastXteNmea2000Length        = 0;
+        uint8_t  lastXteNmea2000Payload[8]    = { 0, 0, 0, 0, 0, 0, 0, 0 };
+        uint32_t lastXteNmea2000Ms            = 0;
+        uint32_t xteNmea2000Outcome[kXteRejectReasons] = { 0, 0, 0, 0, 0 };
 
         // PGN 44032, the standard ISO 11783-7 guidance channel. Diagnostics
         // only and deliberately so: it carries curvature, not cross-track
@@ -220,6 +244,8 @@ private:
     static void OnPositionNmea2000(const isobus::CANMessage& msg, void* context);
     static void OnSpeedNmea2000(const isobus::CANMessage& msg, void* context);
     static void OnXteNmea2000(const isobus::CANMessage& msg, void* context);
+    static bool OnAddressClaimRequest(std::uint32_t pgn, std::shared_ptr<isobus::ControlFunction> requester,
+                                      bool& acknowledge, isobus::AcknowledgementType& type, void* context);
     static void OnLegacyPosition(const isobus::CANMessage& msg, void* context);
     static void OnLegacySpeed(const isobus::CANMessage& msg, void* context);
     static void OnLegacyXteJohnDeere(const isobus::CANMessage& msg, void* context);

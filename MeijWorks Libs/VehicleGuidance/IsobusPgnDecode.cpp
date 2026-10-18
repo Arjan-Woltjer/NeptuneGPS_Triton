@@ -142,17 +142,30 @@ SpeedResult DecodeSpeedNmea2000(const uint8_t* data, uint8_t length) {
 // ------------------------------------------------------------------
 XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
     XteResult result;
-    if (length < 6) return result;
+    if (length < 6) {
+        result.rejectReason = kXteRejectLength;
+        return result;
+    }
     result.lengthOk = true;
 
     // Navigation Terminated (bit 6): the source has stopped navigating this
     // route/leg, so any XTE value in this frame is stale/meaningless --
     // gate on it rather than feeding a leftover number to GuidanceSource.
     bool navigationTerminated = (data[1] >> 6) & 0x01;
-    if (navigationTerminated) return result;
+    if (navigationTerminated) {
+        result.rejectReason = kXteRejectNavigationTerminated;
+        return result;
+    }
 
     auto rawXte = int32_t(uint32_t(data[2]) | (uint32_t(data[3]) << 8) | (uint32_t(data[4]) << 16) | (uint32_t(data[5]) << 24));
-    if (rawXte == int32_t(0x7FFFFFFF) || rawXte == int32_t(0x7FFFFFFE)) return result;
+    if (rawXte == int32_t(0x7FFFFFFF)) {
+        result.rejectReason = kXteRejectNotAvailable;
+        return result;
+    }
+    if (rawXte == int32_t(0x7FFFFFFE)) {
+        result.rejectReason = kXteRejectError;
+        return result;
+    }
 
     // rawXte is already hundredths of a metre (0.01 m units) -- matches
     // GuidanceSource::SetXte's hundredths-of-a-metre convention directly,
@@ -474,6 +487,25 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
     // and verified years ago; matches CanSerialParser's CAN_XTE case
     // (t[2] == '1', the ASCII-hex form of this same nibble check).
     result.quality = ((data[1] & 0xF0) == 0x10) ? 4 : 0;
+    return result;
+}
+
+GnssStatusResult DecodeGnssStatusAgLeader(uint8_t sourceAddress, const uint8_t* data, uint8_t length) {
+    GnssStatusResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+
+    // Same overloaded PGN as above: the selector means this only from 0x80.
+    if (sourceAddress != kSourceAddressAgLeaderRaven) return result;
+    if (data[0] != kMessageSelectorGnssStatusAgLeader) return result;
+
+    result.valid = true;
+    result.fixMode = data[2];
+    switch (data[2]) {
+        case 2:  result.quality = 4; break;   // RTK fixed
+        case 1:  result.quality = 1; break;   // a fix, not RTK fixed
+        default: result.quality = 0; break;
+    }
     return result;
 }
 

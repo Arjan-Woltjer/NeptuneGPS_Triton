@@ -67,9 +67,9 @@ static constexpr uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
 //    "last SA=" readout. Session 1 widened the John Deere decoder to accept
 //    it, assuming both vendors shared this PGN's payload layout. Session 6
 //    (2026-09-05) disproved that against live ground truth -- see
-//    DecodeLegacyXteJohnDeere() and GitHub issue #20. DIAGNOSTICS ONLY: its
-//    raw bytes are still captured (deriving the real layout needs them),
-//    but nothing is committed to GuidanceSource.
+//    DecodeLegacyXteJohnDeere() and GitHub issue #20. No cross-track error:
+//    its raw bytes are still captured, and its selector 0x51 GNSS status
+//    is decoded for the fix quality only (DecodeGnssStatusAgLeader()).
 //
 // Note this is only John Deere's *proprietary* XTE path. The same equipment
 // family also broadcasts standard NMEA2000 XTE (PGN 129283, legacy CAN ID
@@ -90,7 +90,9 @@ static constexpr uint8_t  kSourceAddressAgLeaderRaven = 0x80;
 // seven distinct selectors respectively. Ag Leader/Raven (0x80) sends 0x51,
 // which issue #20's closing analysis identified as a DOP-like triple rather
 // than cross-track error at all -- so on that rig this PGN carries no XTE.
+// It is the InCommand's GNSS status instead: see GnssStatusResult.
 static constexpr uint8_t  kMessageSelectorXte         = 0x77;
+static constexpr uint8_t  kMessageSelectorGnssStatusAgLeader = 0x51;
 static constexpr uint32_t kPgnXteTrimbleLegacy = 0xEB00;  // 60160, PDU1 -- legacy filter required
                                                                  // destination address 0xAC (fixed); our
                                                                  // claimed SA is dynamic, so whether this
@@ -265,9 +267,20 @@ struct GuidanceMachineInfoResult {
 
 GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const uint8_t* data, uint8_t length);
 
+// Why DecodeXteNmea2000 did not commit a PGN 129283 frame (#201), for the
+// debug dump; kXteRejectNone = it did. Also the index into
+// IsobusGuidanceChannel's per-outcome counters, hence the fixed values.
+static constexpr uint8_t kXteRejectNone                 = 0;
+static constexpr uint8_t kXteRejectLength               = 1;  // shorter than 6 bytes (0xCD answers with 0)
+static constexpr uint8_t kXteRejectNavigationTerminated = 2;  // byte 1 bit 6
+static constexpr uint8_t kXteRejectNotAvailable         = 3;  // XTE 0x7FFFFFFF
+static constexpr uint8_t kXteRejectError                = 4;  // XTE 0x7FFFFFFE
+static constexpr uint8_t kXteRejectReasons              = 5;
+
 struct XteResult {
     bool     lengthOk = false;   // true once the length guard passed
     bool     valid = false;      // true => SetXte(...) should be called
+    uint8_t  rejectReason = kXteRejectNone;  // DecodeXteNmea2000 only (#201)
     bool     hasQuality = false; // true => call the two-arg SetXte(xte, quality) overload
     int      xteHundredthsMeter = 0;
     byte     quality = 0;
@@ -322,6 +335,26 @@ struct LightbarXteResult {
     uint8_t  rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
 };
 
+// PGN 0xFFFF selector 0x51 from the Ag Leader InCommand (0x80), 10 Hz, beside
+// its 65267/65256/65097. The only fix-quality source on that bus: it sends no
+// 129029. Decoded from CANedge sessions 28, 31, 43, 56, 57 and 61 (2026-10-17):
+//   byte 0     0x51, the selector
+//   byte 1     1 while the display boots, then 3
+//   byte 2     fix mode: 0 no fix, 1 fix but not RTK fixed, 2 RTK fixed.
+//              2 starts within a second of the operator's "RTK fixed" calls
+//              (session 17, 09:21:59 and 09:41:54); stationary position noise
+//              is 0.2-0.3 cm with 2 and 3-50 cm with 1. A drop from 2 back to
+//              1 mid-session has not been seen yet.
+//   bytes 4-6  satellite counts or DOP-like values (0 until the first fix);
+//              unused here
+// Committed as an NMEA GGA quality: 2 -> 4 (RTK fixed), 1 -> 1, else 0.
+struct GnssStatusResult {
+    bool    lengthOk = false;
+    bool    valid = false;      // selector 0x51 from 0x80: SetQuality(quality) should be called
+    uint8_t fixMode = 0;        // byte 2, raw
+    byte    quality = 0;
+};
+
 struct AisoResult {
     bool    lengthOk = false;
     uint8_t state = 0xFF;         // decoded 2-bit state; 0xFF = frame too short to decode
@@ -342,6 +375,7 @@ XteResult      DecodeXteNmea2000(const uint8_t* data, uint8_t length);
 PositionResult DecodeLegacyPosition(const uint8_t* data, uint8_t length);
 SpeedResult    DecodeLegacySpeed(const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
+GnssStatusResult DecodeGnssStatusAgLeader(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteTrimble(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
 LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length);
 
