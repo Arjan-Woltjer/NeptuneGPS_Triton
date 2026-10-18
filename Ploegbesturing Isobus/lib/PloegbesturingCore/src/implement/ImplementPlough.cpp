@@ -18,6 +18,7 @@
 */
 #include "ImplementPlough.hpp"
 #include "FlashMem.hpp"
+#include "EepromStore.hpp"
 
 namespace triton
 {
@@ -468,7 +469,7 @@ void ImplementPlough::setOffset(short int correction) {
         // A press at a limit changes nothing, so it costs no EEPROM write.
         if (wanted != offset) {
             offset = static_cast<short int>(wanted);
-            writeInt(offset, 66);
+            EepromStore::WriteInt16Le(66, offset);
         }
     }
 }
@@ -477,7 +478,7 @@ void ImplementPlough::setOffset(short int correction) {
 // Method for reading implement offset from EEPROM
 // -----------------------------------------------
 void ImplementPlough::readOffset() {
-    offset = readInt(66);
+    offset = EepromStore::ReadInt16Le(66);
     if (offset == -1 || offset > shares * 60 || offset < shares * 20) {
         offset = shares * 40;
     }
@@ -507,9 +508,9 @@ boolean ImplementPlough::readCalibrationData() {
         for (int i = 0; i < 3; i++) {
             int k = 2 * i;
             // 100 - 101 and 110 - 111
-            storedPosition[i] = word(EEPROM.read(k + 40), EEPROM.read(k + 41));
+            storedPosition[i] = EepromStore::ReadUint16Be(k + 40);
 #ifdef ROTATION
-            rotationCalibrationData[i] = word(EEPROM.read(k + 46), EEPROM.read(k + 47));
+            rotationCalibrationData[i] = EepromStore::ReadUint16Be(k + 46);
 #endif
         }
 
@@ -651,11 +652,9 @@ void ImplementPlough::writeCalibrationData() {
     // Write each byte separately to the memory first the data then the points
     for (int i = 0; i < 3; i++) {
         int k = 2 * i;
-        EEPROM.write(k + 40, highByte(positionCalibrationData[i])); // 40, 42, 44
-        EEPROM.write(k + 41, lowByte(positionCalibrationData[i])); // 41, 42, 45
+        EepromStore::WriteUint16Be(k + 40, positionCalibrationData[i]); // 40, 42, 44
 #ifdef ROTATION
-        EEPROM.write(k + 46, highByte(rotationCalibrationData[i])); // 46, 48, 50
-        EEPROM.write(k + 47, lowByte(rotationCalibrationData[i])); // 47, 49, 51
+        EepromStore::WriteUint16Be(k + 46, rotationCalibrationData[i]); // 46, 48, 50
 #endif
     }
 
@@ -669,34 +668,6 @@ void ImplementPlough::writeCalibrationData() {
 #ifdef DEBUG
     serialDebug->println("Calibration data written");
 #endif
-}
-
-// ---------------------------------------
-// Method for reading int data from EEPROM
-// ---------------------------------------
-short int ImplementPlough::readInt(uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-    for (short int i = 0; i < 2; i++) {
-        data.b[i] = EEPROM.read(addr + i);
-    }
-    return data.i;
-}
-
-// -------------------------------------
-// Method for writing int data to EEPROM
-// -------------------------------------
-void ImplementPlough::writeInt(short int x, uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-    data.i = x;
-    for (short int i = 0; i < 2; i++) {
-        EEPROM.write(addr + i, data.b[i]);
-    }
 }
 
 }  // namespace triton
