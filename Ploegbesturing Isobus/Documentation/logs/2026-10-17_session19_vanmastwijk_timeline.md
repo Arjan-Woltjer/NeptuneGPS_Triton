@@ -18,7 +18,13 @@ in the Results table at the end. Step names (Q, D, R, F, C, G) are the brief's.
 
 New findings:
 - Plough width not re-checked when the shares change in the wizard (out of range until a reboot);
-  old code, found during C6. See the timeline at 20:23.
+  old code, found during C6. See the timeline at 20:23. Filed as **Triton #238** (same in both plough
+  projects; owner to choose: reset to the middle as at boot, or clamp as the buttons do). Not a #225
+  regression. **Arjan's decision (~20:45): reset to the middle (shares*40).**
+- Position calibration `600, 34 / 461, 42 / 308, 50` = raw sensor reading, cm per share. 34/42/50 are
+  constants (constructor, `ImplementPlough.cpp:83`); **600/461/308 are exactly the firmware defaults**
+  (`kDefaultPositionCalibration`, `ImplementPlough.hpp:40`): the sensor on this board was never
+  calibrated, or the stored values failed the boot check. To look at in G6.
 
 ## Run order
 
