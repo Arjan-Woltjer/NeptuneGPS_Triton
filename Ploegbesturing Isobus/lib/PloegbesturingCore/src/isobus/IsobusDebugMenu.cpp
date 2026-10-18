@@ -463,7 +463,9 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->print("  VT failover: switches=");
         serialDebug->print(vtInterface->GetVtSwitchCount());
         serialDebug->print(" claim requests=");
-        serialDebug->println(vtInterface->GetVtClaimRequestCount());
+        serialDebug->print(vtInterface->GetVtClaimRequestCount());
+        serialDebug->print(" rejoins=");
+        serialDebug->println(vtInterface->GetVtRejoinCount());
     }
 
     serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");
