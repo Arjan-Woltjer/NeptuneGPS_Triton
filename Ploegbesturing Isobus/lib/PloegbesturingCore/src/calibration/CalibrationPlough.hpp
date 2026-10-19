@@ -31,6 +31,9 @@
 #include "GuidanceSource.hpp"
 #include "../config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
+#ifdef ISOBUS
+#include "isobus/PreferredVt.hpp"
+#endif
 
 namespace triton
 {
@@ -84,6 +87,9 @@ private:
     // 4800 x {1,2,3,4,6,8,12,24}; index 0 (4800, the common NMEA default)
     // until a detect or a stored byte says otherwise.
     byte gpsBaudIndex = 0;
+#ifdef ISOBUS
+    byte             preferredVt = 0;  // #255: the VT number, 0 = none
+#endif
 
     bool loadGuidanceCalibration();
 };
