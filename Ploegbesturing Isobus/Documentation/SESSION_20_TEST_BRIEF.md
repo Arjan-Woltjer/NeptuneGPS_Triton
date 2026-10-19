@@ -125,6 +125,16 @@ now treats a soft key exactly like the cab button on the same side.
   command timed out` lines in the serial log. Session 19 had 8 with no reason, about one every 4 min
   while values changed. Nothing is fixed yet; the CANedge capture is the evidence.
 
+- **#254** (AUX-N, Breder/Smaller on joystick or armrest buttons): discovery only. The plough has no
+  AUX functions yet, so it won't be listed on an assignment screen. Session 19's capture had no AUX input
+  device on the bus. With the CANedge running:
+
+| Step | Do | Note |
+|---|---|---|
+| A1 | On the **CNH VT** and on the **InCommand 1200**, look for an AUX / auxiliary-control assignment screen (often under the implement or ISOBUS settings). | Present Y/N on each. Which inputs and which implements it lists. A photo helps. |
+| A2 | Press the tractor's **armrest / joystick buttons** one at a time, especially the ones without a fixed tractor function. Note the time of each press (to the second) and which button. | What happens on the screens, if anything. The capture shows whether the presses reach the ISOBUS as AUX messages. |
+| A3 | If an assignment screen lists inputs (from A1), enter learn mode and press a button. | Whether the screen picks up the button. |
+
 ## 7. Not on this board
 
 - #229 + #237: the plain-CAN builds (`teensy41_can` and others).
@@ -171,6 +181,9 @@ VT SOFT KEYS (#251)
 
 OBSERVE
 - [ ] #248 timeout lines in the serial log: ____
+- [ ] A1 AUX assignment screen: CNH VT Y/N, 1200 Y/N; lists ______ (photo Y/N)
+- [ ] A2 armrest/joystick presses (time, button): ________________________________
+- [ ] A3 learn mode picks up a button Y/N (which ______)
 
 END
 - [ ] final dump   - [ ] CANedge left running or stopped __:__:__ (let the last piece upload)   - [ ] session ____
@@ -185,4 +198,4 @@ END
 - **Where results go:**
   - #253 (P1-P5), #247 (W1-W5), #250 (E1-E6, V6) and #251 (V1-V8): each PR merges to main only on
     its own evidence.
-  - The #248 count to #248.
+  - The #248 count to #248, and A1-A3 to #254.
