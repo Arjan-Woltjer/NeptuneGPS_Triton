@@ -22,6 +22,7 @@ valve fix). `test/session20` adds these fixes for the findings:
 | **Ag Leader XTE sign:** the 1200's "right"/"left" is the direction to steer, so "right" (vehicle left of the line) is now a negative XTE, as in the John Deere decoder. **This board's plough-side swap must go back to 0 (section 2) before AUTO** | #253 (#252) | With swap 0, the side letter (`AL`/`AR`) and the VT plough picture show the real side, and AUTO still corrects toward the line. Session 19: the control was right only with swap 1, and the side was shown the wrong way round. `xte=` now has the opposite sign to `lb=` |
 | **VT BREDER/SMALLER held like the cab buttons:** held from the VT's press to its release. A missing still-held message for 600 ms counts as a release | #251 (#245) | Holding a soft key drives the plough in manual and steps the width in auto/hold, like a cab button (session 19: nothing moved). New log line `VT: Wider released` |
 | **Preferred VT:** a wizard step "Wijzig voorkeurs-VT" sets the VT number as the terminals show it (1200 = VT 1, CNH VT = VT 2), 0 = none. No wait at boot; the plough moves to the preferred VT once that VT has been up for 5 s, also when it comes back | #256 (#255) | Boot print `Preferred VT (0 = none)`. Dump: `preferred=none` or `preferred=VT2 at 0x26 (bound)`. Log on a move: `VT: preferred VT 2 up at 0x26 -- moving to it` |
+| **CAN receive, no frames lost in bursts:** the stack now takes every waiting frame each loop pass, and the Teensy driver receives by interrupt into a 64-frame queue (AgIsoStack fork `d4ad930`). The cause of #248's 1.5 s VT stalls | #258 (#248) | Dump: `CAN receive queue: high water N of 64, dropped 0` and `Loop pass: longest ... us`. On the field day: 23 stalls in 7.9 h, all after a burst of frames |
 
 Also on the branch, but **not for this board**:
 - #229 + #237: plain-CAN builds, another env.
@@ -37,13 +38,14 @@ This session decides:
 3. **#250:** does manual mode cut the valve at both end stops, and stay off until driven the other way, without cutting while the plough moves?
 4. **#251:** do the soft keys behave exactly like the cab buttons, on the CNH VT **and** on the InCommand 1200?
 5. **#256:** does the plough move to the preferred VT at boot and when it comes back, and does the failover still work while it is away?
+6. **#258:** with the new CAN receive path, does everything still connect and run, and are the 1.5 s VT stalls gone?
 Session 19's two open steps are closed: G2 (main screen while driving) passed on the owner's word,
 and Q3 (RTK dropout while driving) is not run. The behaviour before RTK fixes was seen to be right
 in Q1/Q2, and the NTRIP settings stay as they are (owner).
 
 ## 1. Kit and build
 
-- **Flash:** plough control 1324910 must run **`test/session20`** (`e443f14` or later). On the field laptop:
+- **Flash:** plough control 1324910 must run **`test/session20`** (`d8735dc` or later). On the field laptop:
   `git fetch && git switch test/session20 && git pull`, then
   `pio run -d "Ploegbesturing Isobus" -e teensy41_isobus -t upload`, **with only the plough's Teensy on
   USB**. Write down `git rev-parse --short HEAD`. Close the Teensy Loader only once the board is back on
@@ -61,6 +63,11 @@ in Q1/Q2, and the NTRIP settings stay as they are (owner).
   - Sim mode was 1 in session 19. Leave it as it is.
   - `Preferred VT (0 = none)` **0**: a new setting (EEPROM 70, unused until now). Keep it at 0 until section 6.
   - Anything else unexpected: **stop and report** before driving.
+- **Build check, the dump:** it has the lines `CAN receive queue: high water N of 64, dropped M` and
+  `Loop pass: longest ... us`. Missing = wrong build.
+- **New CAN receive path (#258) first, before anything else:** the board must claim its address, bind a
+  VT and load the pool exactly as before. If it doesn't (no VT, no TC, frames missing), **stop and
+  flash `ac3f6fb` back**: the field units run that build.
 - **Build check, on the bus:** one press and release of a VT soft key logs `VT: Wider pressed` and then
   `VT: Wider released`. Session 19's build logged only `pressed`, and only on release. Missing = wrong
   build.
@@ -137,11 +144,13 @@ numbers are the ones the terminals show: **1200 = VT 1, CNH VT = VT 2**.
 | T5 | Wizard: preferred VT **1** (the 1200), save. | The plough moves to the 1200 within ~5 s. |
 | T6 | Wizard: preferred VT **0**. Then CNH VT off and on (F3/F4 as in session 19). | Behaviour as before #256: it stays where it is. Leave the setting at whatever the owner wants for the field afterwards, and note the value. |
 
-## 7. Observe only
+## 7. Observe and count
 
-- **#248** (VT command timeouts while the VT had answered): count the `[VT]: Server response to a
-  command timed out` lines in the serial log. Session 19 had 8 with no reason, about one every 4 min
-  while values changed. Nothing is fixed yet; the CANedge capture is the evidence.
+- **#248 / #258** (VT command timeouts while the VT had answered, fixed by #258): count the
+  `[VT]: Server response to a command timed out` lines in the serial log. **Expect none** apart from
+  real causes (a VT switched off, a plug pulled). The field day had 23 in 7.9 h. The CANedge capture is
+  the proof either way. Dump at the end of the day: `dropped` must be **0**. Note the high water and the
+  longest loop pass.
 
 - **#254** (AUX-N, Breder/Smaller on joystick or armrest buttons): discovery only. The plough has no
   AUX functions yet, so it won't be listed on an assignment screen. Session 19's capture had no AUX input
@@ -207,7 +216,9 @@ PREFERRED VT (#256) -- after section 5
 - [ ] T6 preferred 0: stays put Y/N; setting left at ____
 
 OBSERVE
-- [ ] #248 timeout lines in the serial log: ____
+- [ ] #258 build check: dump has `CAN receive queue` + `Loop pass` Y/N; claim, VT and pool as before Y/N
+- [ ] #248/#258 timeout lines in the serial log: ____ (expect 0 apart from real VT loss)
+- [ ] #258 end of day: receive queue high water __ of 64, dropped __ (expect 0); longest loop pass ____ us
 - [ ] A1 AUX assignment screen: CNH VT Y/N, 1200 Y/N; lists ______ (photo Y/N)
 - [ ] A2 armrest/joystick presses (time, button): ________________________________
 - [ ] A3 learn mode picks up a button Y/N (which ______)
@@ -225,4 +236,4 @@ END
 - **Where results go:**
   - #253 (P1-P5), #247 (W1-W5), #250 (E1-E6, V6), #251 (V1-V8) and #256 (T1-T6): each PR merges to
     main only on its own evidence.
-  - The #248 count to #248, and A1-A3 to #254.
+  - The #248 count and the dump's queue/loop figures to #258, and A1-A3 to #254.
