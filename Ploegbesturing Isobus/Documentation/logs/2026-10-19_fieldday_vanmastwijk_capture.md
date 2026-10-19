@@ -77,9 +77,9 @@ session's last file is named after the next power-up. Real bus coverage:
   Between 70 and 71 the bus was off for only **4.9 s** (16:38:25.6 - 16:38:30.5). The plough went silent at
   16:38:21.35 and booted again at 16:38:30.97. This was an ignition cycle (the logger also started a new
   session), not a plough crash.
-- **Session 72 ends at 20:04:59.991 with every node still active**, exactly on a 5-minute file boundary.
-  Anything after 20:05 is not in the bucket (not uploaded yet, or the logger stopped). It could not be
-  determined whether the plough worked on after 20:05.
+- **Session 72 ended at 20:04:59.991 in the first upload**, exactly on a 5-minute file boundary. The rest
+  arrived later (38 files, last upload 21:20): the session runs to **21:09:59.996**. See the addendum at
+  the end for 20:05-21:10.
 - PGN 65462 comes from **0xF5** (the 1200's display function, same NAME family), not 0x80.
 - Ch1 is all 29-bit, there were no CAN error frames in any file (`get_data_frame_can_error` = 0), and no
   inter-file gap is above 20 ms. As in session 19, error-frame logging is probably off, so "no error frames"
@@ -328,6 +328,29 @@ input events to the plough were the 4 Key_Auto soft-key presses on 0x26 at 11:44
   outputs.
 - Who was steering the tractor while the 1200's "engaged" bit was clear. The meaning of 65462 byte 6
   bits 4 and 5.
-- Whether anything happened after 20:04:59.991, where the capture stops mid-operation at a file boundary.
+- ~~Whether anything happened after 20:04:59.991~~: answered by the late upload, see the addendum.
 - Whether the 23 stalls depend on bus load. The load differences are confounded with session and VT.
 - Whether the CANedge's running config logs error frames.
+
+## Addendum: session 72, 20:05-21:10 (late upload)
+
+The logger kept going until 21:09:59.996. The remaining 13 files arrived at 21:20 (38 files, 3.34 M frames
+in all, no error frames). Same scripts; times are bus clock, CEST.
+
+- **No restart.** 0x81's last address claim is still the boot sequence at 18:04. Its only VT handshakes in
+  the session are with 0x80 at 18:04:11 and with 0x26 at 20:49:02.
+- **The InCommand 1200 was switched off at 20:48:47.** 0x80 (last frame 20:48:47.389), 0xF5 (20:48:47.488),
+  the TC 0xF7 (20:48:46.891) and 0x2B (20:48:45.788) all stop together and don't return before the end.
+  The tractor (0xF0), the CNH VT (0x26) and 0xAC/0xCD stay on until 21:10.
+  - 0xAC is then only heard answering 0x81's guidance request set every 10 s (PGN 60160), which is
+    why the stability script lists it with 127 gaps of ~10 s.
+- **Failover to the CNH VT, as designed.**
+  - 0x81's command stream to 0x80 runs until 20:48:47.55.
+  - At **20:49:02.469** it starts the handshake with 0x26 (Get Memory). That is **15.1 s** after the 1200's
+    last frame: the 15 s partner-silent limit.
+  - LoadVersion response 20:49:02.919, error 0: **the pool is loaded from the CNH VT's memory**, with no
+    upload (only 2 transport frames from 0x81 to 0x26 after 20:05).
+  - The plough stays on 0x26 until the end. As all day, the CNH VT never shows it as the active working set.
+- **#248:** 45 650 Change Numeric Value commands after 20:05, **1 stall**, at 20:48:47.550. That one is
+  genuine: the command went to the 1200 as it was switched off.
+- **Day total:** 23 unexplained stalls in about 9 h with the plough on the bus, plus this one genuine one.
