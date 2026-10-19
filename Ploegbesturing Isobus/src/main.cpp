@@ -118,6 +118,21 @@ triton::IsobusLightbarChannel* gLightbarChannel;
 triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
+#if !defined(ESP32S3)
+// For the dump's receive-queue line (#248). The hardware interface keeps the
+// plugin alive.
+static isobus::FlexCANT4Plugin* gFlexCanPlugin = nullptr;
+static triton::CanReceiveQueueStats GReadCanReceiveQueueStats() {
+    triton::CanReceiveQueueStats stats;
+    if (gFlexCanPlugin != nullptr) {
+        stats.available = true;
+        stats.highWater = gFlexCanPlugin->get_receive_queue_high_water();
+        stats.size      = isobus::FlexCANT4Plugin::RECEIVE_QUEUE_SIZE;
+        stats.overflows = gFlexCanPlugin->get_receive_queue_overflow_count();
+    }
+    return stats;
+}
+#endif
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
 #ifdef PLAIN_CAN
@@ -224,6 +239,7 @@ void setup() {
 #else
     constexpr std::uint8_t kIsobusCanChannel = ISOBUS_CAN_CHANNEL;
     auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(kIsobusCanChannel);
+    gFlexCanPlugin = gCanPlugin.get();
 #endif
 
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
@@ -254,6 +270,9 @@ void setup() {
 
     gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface, gLightbarChannel);
     gDebugMenu->Begin();
+#if !defined(ESP32S3)
+    gDebugMenu->SetCanReceiveQueueStatsSource(GReadCanReceiveQueueStats);
+#endif
 #else
     // Receiver port at the stored rate, then the blocking autodetect on the
     // LCD, as the regular Ploegbesturing does: the receivers and the
@@ -289,6 +308,13 @@ void setup() {
 // Main loop
 // ---------
 void loop() {
+#ifdef ISOBUS
+    // How long each pass takes (#248): the dump shows the longest.
+    static unsigned long lastPassUs = micros();
+    const unsigned long passStartUs = micros();
+    gDebugMenu->NoteLoopPass(passStartUs - lastPassUs);
+    lastPassUs = passStartUs;
+#endif
 #if defined(ESP32S3)
     // One I2C read per iteration refreshes every expander-backed input; the
     // reads further down are then plain bit tests. EEPROM.commit() returns
