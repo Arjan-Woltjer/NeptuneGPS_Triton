@@ -48,6 +48,7 @@
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
 #include "VtFailoverPolicy.hpp"
+#include "PreferredVt.hpp"
 
 namespace triton
 {
@@ -152,6 +153,17 @@ public:
     unsigned int  GetVtClaimRequestCount() const { return failover.GetRequestCount(); }
     unsigned int  GetVtRejoinCount() const { return failover.GetRejoinCount(); }
 
+    // The operator's preferred VT (#255): the VT number as the terminals show
+    // it, 0 = none. Read from EEPROM in Begin(), and again by main.cpp after
+    // the calibration wizard, which sets it. Once that VT is up and settled
+    // the failover policy moves the pool to it, from boot on and after it
+    // comes back.
+    void          LoadPreferredVt();
+    std::uint8_t  GetPreferredVt() const { return preferredVt; }
+    // The preferred VT's address, or VtFailoverPolicy::kNoAddress while it
+    // has not been seen.
+    std::uint8_t  GetPreferredVtAddress() const { return failover.GetPreferredAddress(); }
+
     // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
     // release, cleared by the call itself (edge-triggered, matching a
     // discrete VT tap rather than a held physical button). Direction mapping
@@ -239,6 +251,8 @@ private:
     bool pendingNarrowerPress  = false;
     bool pendingCalibratePress = false;
 
+    std::uint8_t preferredVt = 0;
+
     unsigned int  vtStatusMessageCount  = 0;
     unsigned long lastVtStatusMessageMs = 0;
 
@@ -267,6 +281,7 @@ private:
     void updateVtVariables();
     void updateReconnectWatchdog();
     void updateFailover();
+    void notePreferredCandidate(std::uint8_t source);
     void switchTo(std::uint8_t address);
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
     static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);

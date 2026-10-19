@@ -71,6 +71,7 @@ IsobusVtInterface::IsobusVtInterface(Stream* serialDebug, ImplementPlough* imple
 // ----------------------------------------------------------------
 void IsobusVtInterface::Begin() {
     BuildObjectPool();
+    LoadPreferredVt();
 
     CANStackLogger::set_can_stack_logger_sink(&logger);
     // Bumped Warning -> Info 2026-09-05: at Warning, AgIsoStack's own [NM]
@@ -244,11 +245,20 @@ void IsobusVtInterface::switchTo(std::uint8_t address) {
     }
     const NAME name = target->get_NAME();
 
-    serialDebug->print("VT: partner 0x");
-    serialDebug->print(GetPartnerAddress(), HEX);
-    serialDebug->print(" silent, VT at 0x");
-    serialDebug->print(address, HEX);
-    serialDebug->println(" alive -- switching to it");
+    if (address == failover.GetPreferredAddress()) {
+        serialDebug->print("VT: preferred VT ");
+        serialDebug->print(preferredVt);
+        serialDebug->print(" up at 0x");
+        serialDebug->print(address, HEX);
+        serialDebug->println(" -- moving to it");
+    }
+    else {
+        serialDebug->print("VT: partner 0x");
+        serialDebug->print(GetPartnerAddress(), HEX);
+        serialDebug->print(" silent, VT at 0x");
+        serialDebug->print(address, HEX);
+        serialDebug->println(" alive -- switching to it");
+    }
 
     // Pinned to that one VT, not just "a VT": with a function-code-only
     // filter the new partner would match the first VT in the table, which is
@@ -485,6 +495,29 @@ void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parent
     // rejoin starts the grace before it can make its sender a candidate.
     self->failover.OnBusTraffic(self->lastVtStatusMessageMs);
     self->failover.OnVtStatus(message.get_identifier().get_source_address(), self->lastVtStatusMessageMs);
+    self->notePreferredCandidate(message.get_identifier().get_source_address());
+}
+
+void IsobusVtInterface::LoadPreferredVt() {
+    preferredVt = ReadPreferredVt();
+    // Found again by function instance from the next VT status on.
+    failover.SetPreferredAddress(VtFailoverPolicy::kNoAddress);
+}
+
+// Called for every VT status: is its sender the preferred VT (#255)? A table
+// lookup per status, at 1 Hz per VT, instead of scanning every loop.
+void IsobusVtInterface::notePreferredCandidate(std::uint8_t source) {
+    if (preferredVt == 0) return;
+    const std::shared_ptr<ControlFunction> cf = CANNetworkManager::CANNetwork.get_control_function(0, source);
+    if (!cf) return;
+    const NAME name = cf->get_NAME();
+    const bool isVt = name.get_function_code() == static_cast<std::uint8_t>(NAME::Function::VirtualTerminal);
+    if (IsPreferredVt(isVt, name.get_function_instance(), preferredVt)) {
+        failover.SetPreferredAddress(source);
+    }
+    else if (failover.GetPreferredAddress() == source) {
+        failover.SetPreferredAddress(VtFailoverPolicy::kNoAddress);  // that address is another VT's now
+    }
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
