@@ -135,6 +135,11 @@ now treats a soft key exactly like the cab button on the same side.
 | A2 | Press the tractor's **armrest / joystick buttons** one at a time, especially the ones without a fixed tractor function. Note the time of each press (to the second) and which button. | What happens on the screens, if anything. The capture shows whether the presses reach the ISOBUS as AUX messages. |
 | A3 | If an assignment screen lists inputs (from A1), enter learn mode and press a button. | Whether the screen picks up the button. |
 
+- **#255** (preferred VT by number): on the **CNH VT** and on the **InCommand 1200**, find the number the
+  terminal shows for itself ("VT number" / "VT instance", in its settings or diagnostics). The
+  session 19 capture has the 1200 as function instance 0 and the CNH VT as 1. The question is whether the
+  screens show 0/1 or 1/2. A photo helps.
+
 ## 7. Not on this board
 
 - #229 + #237: the plain-CAN builds (`teensy41_can` and others).
@@ -184,6 +189,7 @@ OBSERVE
 - [ ] A1 AUX assignment screen: CNH VT Y/N, 1200 Y/N; lists ______ (photo Y/N)
 - [ ] A2 armrest/joystick presses (time, button): ________________________________
 - [ ] A3 learn mode picks up a button Y/N (which ______)
+- [ ] #255 VT number shown: CNH VT ____, 1200 ____ (photo Y/N)
 
 END
 - [ ] final dump   - [ ] CANedge left running or stopped __:__:__ (let the last piece upload)   - [ ] session ____
@@ -198,4 +204,4 @@ END
 - **Where results go:**
   - #253 (P1-P5), #247 (W1-W5), #250 (E1-E6, V6) and #251 (V1-V8): each PR merges to main only on
     its own evidence.
-  - The #248 count to #248, and A1-A3 to #254.
+  - The #248 count to #248, A1-A3 to #254, and the VT numbers to #255.
