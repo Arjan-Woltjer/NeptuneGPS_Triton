@@ -1,4 +1,4 @@
-# Session 20 test brief -- van Mastwijk: plough side and XTE sign, width on a share change, end shutoff in manual, VT soft keys held
+# Session 20 test brief -- van Mastwijk: plough side and XTE sign, width on a share change, end shutoff in manual, VT soft keys held, preferred VT
 
 Written 2026-10-18 after session 19. Same rig as sessions 13-19: CNH with the InCommand 1200,
 SteerCommand Z2, one ISOBUS (CNH VT 0x26, InCommand VT 0x80, TC 0xF7, display function 0xF5). The
@@ -8,7 +8,7 @@ Previous results:
 - `logs/2026-10-18_session19_vanmastwijk_timeline.md`
 - `logs/2026-10-18_session19_vanmastwijk_capture.md`
 
-Both are on main. This session's notes go on **`test/session20`**, see section 9.
+Both are on main. This session's notes go on **`test/session20`**, see section 10.
 
 ## 0. What changed since session 19, and what this session decides
 
@@ -21,6 +21,7 @@ valve fix). `test/session20` adds these fixes for the findings:
 | **End shutoff in manual too:** the same latch as auto. No measured position change for 3 s cuts the valve; pressing the same way again stays off; driving the other way clears it | #250 (#244) | Holding a cab button against an end stop cuts the valve after ~3 s (session 19: stayed energised) |
 | **Ag Leader XTE sign:** the 1200's "right"/"left" is the direction to steer, so "right" (vehicle left of the line) is now a negative XTE, as in the John Deere decoder. **This board's plough-side swap must go back to 0 (section 2) before AUTO** | #253 (#252) | With swap 0, the side letter (`AL`/`AR`) and the VT plough picture show the real side, and AUTO still corrects toward the line. Session 19: the control was right only with swap 1, and the side was shown the wrong way round. `xte=` now has the opposite sign to `lb=` |
 | **VT BREDER/SMALLER held like the cab buttons:** held from the VT's press to its release. A missing still-held message for 600 ms counts as a release | #251 (#245) | Holding a soft key drives the plough in manual and steps the width in auto/hold, like a cab button (session 19: nothing moved). New log line `VT: Wider released` |
+| **Preferred VT:** a wizard step "Wijzig voorkeurs-VT" sets the VT number as the terminals show it (1200 = VT 1, CNH VT = VT 2), 0 = none. No wait at boot; the plough moves to the preferred VT once that VT has been up for 5 s, also when it comes back | #256 (#255) | Boot print `Preferred VT (0 = none)`. Dump: `preferred=none` or `preferred=VT2 at 0x26 (bound)`. Log on a move: `VT: preferred VT 2 up at 0x26 -- moving to it` |
 
 Also on the branch, but **not for this board**:
 - #229 + #237: plain-CAN builds, another env.
@@ -35,13 +36,14 @@ This session decides:
 2. **#247:** does the width follow a share change without a reboot?
 3. **#250:** does manual mode cut the valve at both end stops, and stay off until driven the other way, without cutting while the plough moves?
 4. **#251:** do the soft keys behave exactly like the cab buttons, on the CNH VT **and** on the InCommand 1200?
+5. **#256:** does the plough move to the preferred VT at boot and when it comes back, and does the failover still work while it is away?
 Session 19's two open steps are closed: G2 (main screen while driving) passed on the owner's word,
 and Q3 (RTK dropout while driving) is not run. The behaviour before RTK fixes was seen to be right
 in Q1/Q2, and the NTRIP settings stay as they are (owner).
 
 ## 1. Kit and build
 
-- **Flash:** plough control 1324910 must run **`test/session20`** (`38c2d1a` or later). On the field laptop:
+- **Flash:** plough control 1324910 must run **`test/session20`** (`e443f14` or later). On the field laptop:
   `git fetch && git switch test/session20 && git pull`, then
   `pio run -d "Ploegbesturing Isobus" -e teensy41_isobus -t upload`, **with only the plough's Teensy on
   USB**. Write down `git rev-parse --short HEAD`. Close the Teensy Loader only once the board is back on
@@ -57,6 +59,7 @@ in Q1/Q2, and the NTRIP settings stay as they are (owner).
   - width (offset) 160, back from the 200 bench test.
   - The position calibration should **no longer** be the defaults `600, 34 / 461, 42 / 308, 50`.
   - Sim mode was 1 in session 19. Leave it as it is.
+  - `Preferred VT (0 = none)` **0**: a new setting (EEPROM 70, unused until now). Keep it at 0 until section 6.
   - Anything else unexpected: **stop and report** before driving.
 - **Build check, on the bus:** one press and release of a VT soft key logs `VT: Wider pressed` and then
   `VT: Wider released`. Session 19's build logged only `pressed`, and only on release. Missing = wrong
@@ -119,7 +122,22 @@ now treats a soft key exactly like the cab button on the same side.
 | V7 | Switch over to the **InCommand 1200 (0x80)**: CNH VT off, wait for the switch (~15 s, as in session 19's F3). Repeat V1, V2 and V5 on the 1200. Note the times. | The same as on the CNH VT. **If the movement stutters** (stop-start while the key is held), note it: the 1200 may send its still-held messages more slowly than every 600 ms. The CANedge captures the interval either way. |
 | V8 | CNH VT back on. | Stays on 0x80, as in session 19's F4. |
 
-## 6. Observe only
+## 6. Preferred VT (#256): after section 5
+
+Run this **after** the soft-key steps: V8 expects the plough to stay on the 1200, which only holds with no
+preference. The wizard's new step is **Wijzig voorkeurs-VT**, value line `VT (0 = geen):`, 0-9. The
+numbers are the ones the terminals show: **1200 = VT 1, CNH VT = VT 2**.
+
+| Step | Do | Expect |
+|---|---|---|
+| T1 | With both VTs on, wizard: preferred VT **2** (the CNH VT), save. Dump. | Boot print after a power cycle: `Preferred VT` **2**. Dump: `preferred=VT2 at 0x26`. |
+| T2 | Get the plough onto the **1200**: CNH VT off, wait for the switch to 0x80 (as in V7). Then **CNH VT on**. Note the time it is back, and the time the plough moves. | About 5 s after the CNH VT's status is back, the log shows `VT: preferred VT 2 up at 0x26 -- moving to it`. The pool comes up on the CNH VT, and the dump shows `(bound)`. Session 19's F4 stayed on 0x80; with a preference it moves. |
+| T3 | **CNH VT off** again. | Failover to the 1200 in ~15 s, as before. Dump: `preferred=VT2 at 0x26 (not bound)` or `(not seen)`. |
+| T4 | Power-cycle the plough with **both VTs on**. | No wait at boot: the plough binds to whichever VT it finds first. If that is the 1200, it moves to the CNH VT within ~5 s of the CNH VT's status. Note where it ends up and how long it took. |
+| T5 | Wizard: preferred VT **1** (the 1200), save. | The plough moves to the 1200 within ~5 s. |
+| T6 | Wizard: preferred VT **0**. Then CNH VT off and on (F3/F4 as in session 19). | Behaviour as before #256: it stays where it is. Leave the setting at whatever the owner wants for the field afterwards, and note the value. |
+
+## 7. Observe only
 
 - **#248** (VT command timeouts while the VT had answered): count the `[VT]: Server response to a
   command timed out` lines in the serial log. Session 19 had 8 with no reason, about one every 4 min
@@ -136,7 +154,7 @@ now treats a soft key exactly like the cab button on the same side.
 | A3 | If an assignment screen lists inputs (from A1), enter learn mode and press a button. | Whether the screen picks up the button. |
 
 
-## 7. Not on this board
+## 8. Not on this board
 
 - #229 + #237: the plain-CAN builds (`teensy41_can` and others).
   - Still waiting for the owner's answer on the CAN pins: besturing 0.1 uses FLEXCAN3 31/30, the old
@@ -145,7 +163,7 @@ now treats a soft key exactly like the cab button on the same side.
 - #230: SP/Rooier hitch inversion. #239: Teensy 4.0 pinout.
 - #31 (non-blocking wizard), #240/#241 (VT and serial calibration): not built yet.
 
-## 8. Checklist (copy into the timeline, tick live)
+## 9. Checklist (copy into the timeline, tick live)
 
 SETUP
 - [ ] Build: `test/session20` @ ________ flashed; VT key logs `pressed` + `released` Y/N
@@ -180,6 +198,14 @@ VT SOFT KEYS (#251)
 - [ ] V7 InCommand 1200: V1 Y/N, V2 Y/N, V5 Y/N; stutter Y/N
 - [ ] V8 CNH VT back on: stays on 0x80 Y/N
 
+PREFERRED VT (#256) -- after section 5
+- [ ] T1 preferred VT 2 saved; boot print `Preferred VT` __; dump `preferred=` ________
+- [ ] T2 CNH VT back __:__:__ -> moved to 0x26 at __:__:__ (__ s); log line Y/N; `(bound)` Y/N
+- [ ] T3 CNH VT off: failover to 0x80 in __ s
+- [ ] T4 boot with both on: first bound to ____, moved to 0x26 at __ s (or straight there Y/N)
+- [ ] T5 preferred VT 1: moved to 0x80 in __ s
+- [ ] T6 preferred 0: stays put Y/N; setting left at ____
+
 OBSERVE
 - [ ] #248 timeout lines in the serial log: ____
 - [ ] A1 AUX assignment screen: CNH VT Y/N, 1200 Y/N; lists ______ (photo Y/N)
@@ -189,7 +215,7 @@ OBSERVE
 END
 - [ ] final dump   - [ ] CANedge left running or stopped __:__:__ (let the last piece upload)   - [ ] session ____
 
-## 9. Afterwards
+## 10. Afterwards
 
 - **Notes:** the serial log and the timeline (this checklist filled in) go on **`test/session20`** under
   `Ploegbesturing Isobus/Documentation/logs/`, named `<date>_session20_vanmastwijk_*`.
@@ -197,6 +223,6 @@ END
 - **Handover:** if the workstation session isn't reachable, leave a `logs/session20_vanmastwijk_handover.md`
   as in session 19.
 - **Where results go:**
-  - #253 (P1-P5), #247 (W1-W5), #250 (E1-E6, V6) and #251 (V1-V8): each PR merges to main only on
-    its own evidence.
+  - #253 (P1-P5), #247 (W1-W5), #250 (E1-E6, V6), #251 (V1-V8) and #256 (T1-T6): each PR merges to
+    main only on its own evidence.
   - The #248 count to #248, and A1-A3 to #254.
