@@ -55,11 +55,12 @@ _7 are defines for sower
 #ifdef TEENSY40
 // Teensy 4.0 board. Same pinout as the Teensy 4.1 production board above,
 // except that CAN lives on FLEXCAN1 (pins 22 TX / 23 RX), which were the
-// bypass / FET 4 outputs: those move to pins 2 and 3, and the plough-side
-// input, which was on pin 2, moves to pin 4.
+// bypass / spare FET outputs: those move to pins 3 and 4. That is the Teensy
+// 3.2 board with 3/4 and 22/23 swapped, so an old 3.2 PCB takes a 4.0 after
+// bodging just those four pins.
 
 // Digital inputs 12V -> 5V conversion
-#define PLOUGHSIDE_PIN_2      4     // was 2 on besturing 0.1; 2 is now OUTPUT_BYPASS_2
+#define PLOUGHSIDE_PIN_2      2
 
 // Digital outputs
 #define OUTPUT_LED_2          33    // bottom pad on the 4.0
@@ -67,7 +68,8 @@ _7 are defines for sower
 // FET OUTPUTS (22/23 are CAN TX/RX on this board)
 #define OUTPUT_NARROW_2       20
 #define OUTPUT_WIDE_2         21
-#define OUTPUT_BYPASS_2       2
+#define OUTPUT_BYPASS_2       3     // 22 on the 3.2 board
+//#define xxx_2                 4     // spare FET, 23 on the 3.2 board
 
 // Analog input
 #define POSITION_SENS_PIN_2   A0    // for potmeter input (input 1 connector)
