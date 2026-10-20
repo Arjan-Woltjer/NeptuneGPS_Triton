@@ -101,6 +101,7 @@ void InterfacePlough::Update() {
     else if (millis() - guidance->GetGgaTimestamp() > 2000 ||
              millis() - guidance->GetVtgTimestamp() > 2000 ||
              millis() - guidance->GetXteTimestamp() > 2000 ||
+             millis() - guidance->GetQualityTimestamp() > 2000 ||  // #261
              !guidance->IsRtkQuality() ||
              !guidance->MinSpeed()
             ) {

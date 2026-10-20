@@ -31,11 +31,14 @@ namespace triton
 // How old a GGA, VTG or XTE fix may be before the control holds.
 static const unsigned long kGuidanceFixMaxAgeMs = 2000;
 
-// Position, speed and cross-track all fresh, and RTK fixed quality.
+// Position, speed and cross-track all fresh, and RTK fixed quality, stated
+// within the same window (#261): a quality whose source went quiet counts as
+// none, even while another source keeps the fixes fresh.
 inline bool GpsReadyToSteer(GuidanceSource& guidance, unsigned long nowMs) {
     return nowMs - guidance.GetGgaTimestamp() <= kGuidanceFixMaxAgeMs &&
            nowMs - guidance.GetVtgTimestamp() <= kGuidanceFixMaxAgeMs &&
            nowMs - guidance.GetXteTimestamp() <= kGuidanceFixMaxAgeMs &&
+           nowMs - guidance.GetQualityTimestamp() <= kGuidanceFixMaxAgeMs &&
            guidance.IsRtkQuality();
 }
 

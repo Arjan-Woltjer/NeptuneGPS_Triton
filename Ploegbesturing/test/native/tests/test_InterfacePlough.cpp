@@ -201,6 +201,26 @@ test(InterfacePlough, update_staleXteFix_selectsHold) {
     assertEqual(iface.GetMode(), (byte)1);
 }
 
+// #261: RTK quality stated more than 2 s ago counts as none, even while the
+// fixes stay fresh; a fresh statement of it brings AUTO back.
+test(InterfacePlough, update_staleQuality_selectsHold) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+
+    millisValue(2001);
+    mockGuidance.NoteGgaFixReceived();
+    mockGuidance.SetSpeedKnots(10.0f);
+    mockGuidance.SetXte(0);             // fixes fresh; quality stated at 0
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)1);
+
+    mockGuidance.SetQuality(4);
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)0);   // AUTO
+    millisValue(0);
+}
+
 test(InterfacePlough, update_notRtkQuality_selectsHold) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);

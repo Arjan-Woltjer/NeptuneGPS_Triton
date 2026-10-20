@@ -286,7 +286,8 @@ test(CanSerialParser, nmea2000_cog_sog_not_available_is_skipped) {
 }
 
 // PGN 129283 Cross Track Error from SA 0x1C: int32 LE 0.01 m units, 123 ->
-// 1.23 m. The PGN carries no quality, so GuidanceSource::quality is untouched.
+// 1.23 m. The PGN carries no quality and the bridge has no NMEA2000 quality
+// message, so the XTE counts as RTK, as on a directly read bus (#261).
 test(CanSerialParser, nmea2000_xte_line) {
     GuidanceSource state;
     CanSerialParser p;
@@ -294,7 +295,7 @@ test(CanSerialParser, nmea2000_xte_line) {
     p.parseTerm(1, "00007B000000FFFF");
     p.commitTo(&state);
     assertEqual(state.GetXte(), 123);
-    assertEqual((int)state.GetQuality(), 0);
+    assertEqual((int)state.GetQuality(), 4);
 }
 
 // PGN 129025 Position, Rapid Update from SA 0x1C: two int32 LE in 1e-7 deg,
