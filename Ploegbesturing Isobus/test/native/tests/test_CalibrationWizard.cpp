@@ -383,6 +383,37 @@ testF(CalibrationWizard, width_plusAndMinus_showTheDirection) {
     assertEqual(row(3)[19], ' ');
 }
 
+// The width procedure drives in manual with the end shutoff watching a live
+// sensor: a plough that keeps moving is driven for as long as + is held, one
+// that has stopped moving is cut off after the 3 s shutoff time (#244).
+testF(CalibrationWizard, width_movingPlough_keepsDriving_pastTheShutoffTime) {
+    resetAll();
+    Wizard w;
+    assertTrue(w.cal.Start());
+    accept(w);
+    buttons(false, true);
+    for (int i = 0; i < 600; i++) {   // 6 s
+        later(10);
+        analogReadValue(POSITION_SENS_PIN_2, 300 + i / 2);
+        w.pass();
+    }
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+}
+
+testF(CalibrationWizard, width_stalledPlough_isCutOffAfterTheShutoffTime) {
+    resetAll();
+    Wizard w;
+    assertTrue(w.cal.Start());
+    accept(w);
+    buttons(false, true);
+    for (int i = 0; i < 400; i++) {   // 4 s, the sensor never moves
+        later(10);
+        w.pass();
+    }
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+}
+
 // #31: every pass returns. A held button kept the blocking wizard spinning
 // inside Calibrate(); here each Step() comes back while it is held, so
 // loop() keeps pumping the CAN stack, the VT and the TC.

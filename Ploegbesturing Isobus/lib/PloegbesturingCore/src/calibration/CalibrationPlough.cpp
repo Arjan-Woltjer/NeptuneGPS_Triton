@@ -114,8 +114,10 @@ bool CalibrationPlough::Start() {
 void CalibrationPlough::Step() {
     if (!IsActive()) return;
 
-    // Keeps the sensor readings live (the VT shows them, the end shutoff
-    // watches them). In manual, Update() leaves the width alone.
+    // Keeps the sensor readings live: the VT shows them, and the width
+    // procedure's end shutoff watches them (the blocking wizard never
+    // refreshed them, so 3 s of driving latched it however far the plough
+    // moved). In manual, Update() leaves the width alone.
     implement->Update(2, 0);
     lcd->WriteScreen(1);
 
@@ -174,7 +176,6 @@ void CalibrationPlough::Step() {
             }
             // The only valve movement while the wizard is open: + / - drive
             // the plough in manual, with the end shutoff as in manual (#244).
-            implement->Update(2, b);
             implement->Adjust(2, b);
             lcd->WriteBuffer(b == 1 ? '>' : b == -1 ? '<' : ' ', 3, 19);
             break;
