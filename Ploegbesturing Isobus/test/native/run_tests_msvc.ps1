@@ -39,6 +39,7 @@ $sources = @(
     'lib\PloegbesturingCore\src\implement\ImplementPlough.cpp',
     'lib\PloegbesturingCore\src\InterfacePlough.cpp',
     'lib\PloegbesturingCore\src\calibration\CalibrationPlough.cpp',
+    'lib\PloegbesturingCore\src\calibration\PloughSettings.cpp',
     'lib\PloegbesturingCore\src\isobus\VTObjectPool.cpp',
     'lib\PloegbesturingCore\src\isobus\VTImages.generated.cpp',
     '..\MeijWorks Libs\VehicleGuidance\NmeaParser.cpp',

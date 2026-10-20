@@ -440,16 +440,7 @@ boolean ImplementPlough::readCalibrationData() {
         // physically impossible. Every other persisted field here is range
         // checked; these were not. Adjacent points also have to differ, or the
         // interpolation divides by zero.
-        boolean positionValid = true;
-        for (int i = 0; i < 3; i++) {
-            if (storedPosition[i] < 0 || storedPosition[i] > kAdcMaxCount) {
-                positionValid = false;
-            }
-        }
-        if (storedPosition[0] == storedPosition[1] ||
-            storedPosition[1] == storedPosition[2]) {
-            positionValid = false;
-        }
+        const boolean positionValid = IsValidPositionCalibration(storedPosition);
 
         // The defaults are otherwise only applied when this function returns
         // false, so they have to be written explicitly here -- leaving the
