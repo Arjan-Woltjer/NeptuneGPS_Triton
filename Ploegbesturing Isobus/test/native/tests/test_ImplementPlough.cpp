@@ -280,6 +280,65 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
     assertEqual(impl.GetOffset(), (short int)160);
 }
 
+// The width's range follows the number of shares (shares*20 .. shares*60). A
+// width the new range doesn't hold goes to the middle at once, the same as
+// readOffset() at boot, instead of only after a reboot (#238).
+test(ImplementPlough, setShares_widthBelowNewRange_goesToTheMiddle) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);       // 4 shares, width 160
+    impl.SetShares(10);                                  // range 200-600
+    assertEqual(impl.GetOffset(), (short int)400);
+}
+
+test(ImplementPlough, setShares_widthAboveNewRange_goesToTheMiddle) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(200);
+    impl.Update(0, 80);                                  // 160 + 80 = 240, the maximum on 4 shares
+    assertEqual(impl.GetOffset(), (short int)240);
+    impl.SetShares(2);                                   // range 40-120
+    assertEqual(impl.GetOffset(), (short int)80);
+}
+
+test(ImplementPlough, setShares_widthInsideNewRange_isKept) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetShares(5);                                   // range 100-300 holds 160
+    assertEqual(impl.GetOffset(), (short int)160);
+}
+
+// The wizard's store saves the width the share change set, and its decline
+// restores the stored one: what the main screen shows is what comes back after
+// a restart. Bench 2026-10-20 (W5): width 180, shares 4 -> 10 -> 4 showed 160,
+// but the restart brought back 180 from EEPROM, valid again on 4 shares (#238).
+test(ImplementPlough, setShares_storedWidthComesBackAfterARestart) {
+    resetAll();
+    {
+        ImplementPlough impl(nullptr, &mockGuidance);
+        millisValue(200);
+        impl.Update(0, 20);                              // 160 + 20 = 180, saved by the press
+        assertEqual(impl.GetOffset(), (short int)180);
+        impl.SetShares(10);                              // 400
+        impl.SetShares(4);                               // 160
+        assertEqual(impl.GetOffset(), (short int)160);
+        impl.CommitCalibration();                        // the wizard's store
+    }
+    ImplementPlough restarted(nullptr, &mockGuidance);
+    assertEqual(restarted.GetOffset(), (short int)160);
+}
+
+test(ImplementPlough, setShares_declinedWizardRestoresTheStoredWidth) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.CommitCalibration();                            // a stored calibration with 4 shares
+    millisValue(200);
+    impl.Update(0, 20);                                  // 180, saved
+    impl.SetShares(10);                                  // 400 in RAM
+    impl.ResetCalibration();                             // the wizard's decline: shares back to 4
+    assertEqual((int)impl.GetShares(), 4);
+    assertEqual(impl.GetOffset(), (short int)180);
+}
+
 // ---------------------------------------------------------------------------
 // SetSetpoint (private, exercised through Update()) -- the correction is the
 // XTE itself (bang-bang, gain 1) and max-correction clamping (50 mm per share
