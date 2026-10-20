@@ -541,6 +541,7 @@ void ImplementPlough::writeCalibrationData() {
     EEPROM.write(60, maxCorrectionPerShare);   //60, mm per share (#163)
     EEPROM.write(62, swap);     //62
     EEPROM.write(64, shares);   //64
+    EepromStore::WriteInt16Le(66, offset);   //66-67, the width, which a share change may have reset (#238)
     EEPROM.write(68, bypass);   //68, bypass valve fitted
 
 #ifdef DEBUG
