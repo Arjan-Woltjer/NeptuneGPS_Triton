@@ -157,7 +157,8 @@ long FirstVtMismatch() {
             now += next() % 400;
             const unsigned r = next();
             const bool wider = r & 1, narrower = r & 2;   // the VT never reports both as the combo
-            const int expected = cab.Check(wider && !narrower, narrower && !wider, delay1, delay2, now);
+            // BREDER is the cab's right (+) button, SMALLER its left (-) one (owner, 2026-10-20).
+            const int expected = cab.Check(narrower && !wider, wider && !narrower, delay1, delay2, now);
             const int actual = vt.Check(false, false, delay1, delay2, now, false, false, false,
                                         wider && !narrower, narrower && !wider);
             if (expected != actual) {
@@ -174,9 +175,9 @@ test(ButtonPair, vtWiderHeld_repeatsEveryDelay2) {
     ButtonPair b;
     b.Begin(0);
     assertEqual(b.Check(false, false, 255, 200, 199, false, false, false, true, false), 0);   // not yet
-    assertEqual(b.Check(false, false, 255, 200, 200, false, false, false, true, false), -1);
+    assertEqual(b.Check(false, false, 255, 200, 200, false, false, false, true, false), 1);    // + : wider
     assertEqual(b.Check(false, false, 255, 200, 300, false, false, false, true, false), 0);   // timer re-seeded at 300
-    assertEqual(b.Check(false, false, 255, 200, 500, false, false, false, true, false), -1);
+    assertEqual(b.Check(false, false, 255, 200, 500, false, false, false, true, false), 1);
 }
 
 // The behaviour itself.
@@ -190,5 +191,5 @@ test(ButtonPair, bothHeldReportsTwoAfterDelay1TimesFour) {
 test(ButtonPair, physicalButtonBeatsAVtPressInTheSameLoop) {
     ButtonPair b;
     b.Begin(0);
-    assertEqual(b.Check(true, false, 255, 0, 10, false, false, false, false, true), -1);  // left wins over VT Narrower
+    assertEqual(b.Check(true, false, 255, 0, 10, false, false, false, true, false), -1);  // left (-) wins over VT Wider (+)
 }

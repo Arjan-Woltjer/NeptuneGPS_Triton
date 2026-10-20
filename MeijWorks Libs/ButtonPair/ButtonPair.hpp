@@ -35,7 +35,8 @@ namespace triton
 //    both-held one), as on the scraper and the rooier;
 //  - the VT soft keys (Ploegbesturing Isobus): Wider and Narrower are held
 //    levels (#245) and join the single-button branches like the joysticks
-//    (Wider -> -1, the left slot; Narrower -> 1, the right slot), so a held
+//    (Wider -> 1, the right slot: the cab's + button; Narrower -> -1, the
+//    left slot: the - button; owner, 2026-10-20), so a held
 //    soft key repeats exactly like a held cab button. They never make the
 //    both-held combo. Calibrate is a consume-once tap with its own branch
 //    after the combo: it skips the combo's hold (a tap is true for one loop)
@@ -74,10 +75,10 @@ public:
             button1Flag = true;
             return 2;
         }
-        if (leftButton || leftJoystick || vtWider) {
+        if (leftButton || leftJoystick || vtNarrower) {
             return held(-1, delay2, nowMs);
         }
-        if (rightButton || rightJoystick || vtNarrower) {
+        if (rightButton || rightJoystick || vtWider) {
             return held(1, delay2, nowMs);
         }
         button1Flag = true;
