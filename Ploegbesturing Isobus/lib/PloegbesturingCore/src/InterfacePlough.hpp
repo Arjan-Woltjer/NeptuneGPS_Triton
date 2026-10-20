@@ -64,7 +64,8 @@ public:
 
     // vtWiderPressed/vtNarrowerPressed/vtCalibratePressed: an IsobusVtInterface's
     // VT soft keys (see that class's header comment). Wider and Narrower are
-    // held levels (#245) that go through the LEFT (-1) and RIGHT (+1) buttons'
+    // held levels (#245): Narrower goes through the LEFT (-, -1) and Wider
+    // through the RIGHT (+, +1) button's
     // own hold-to-repeat; Calibrate is a one-call tap that gives 2, the
     // calibration trigger main.cpp acts on, without the both-held combo's hold.
     // Defaulted so non-ISOBUS builds and any other caller can omit them --

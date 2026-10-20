@@ -153,8 +153,11 @@ public:
 
     // VT Wider/Narrower soft keys as held levels (#245): held from the VT's
     // press, or a still-held repeat, until its release or an aborted press,
-    // like a cab button. Direction mapping, as ImplementPlough::Adjust()
-    // reads it: Wider feeds the LEFT slot (-1), Narrower the RIGHT slot (+1).
+    // like a cab button. Direction mapping: Wider (BREDER) is the cab's right
+    // button, marked + (+1), Narrower (SMALLER) its left one, marked - (-1)
+    // (owner, 2026-10-20). +1 raises the width in auto/hold and drives the
+    // output the + button drives in manual; ImplementPlough's own valve names
+    // follow the hoses, not the buttons.
     // A VT repeats still-held while the key is down (session 19: CNH VT every
     // 194-206 ms); without one for kSoftKeyHeldTimeoutMs the key counts as
     // released, so a lost release stops the valve within 0.6 s.
