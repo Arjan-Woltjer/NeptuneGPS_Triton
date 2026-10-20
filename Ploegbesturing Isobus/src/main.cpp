@@ -145,10 +145,10 @@ void setup() {
 
     // Write message to screen
     // Messages in LanguagePlough.hpp
-    gLcd->WriteBuffer(L2_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L2_DEVICE, 1);
-    gLcd->WriteBuffer(L2_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L2_AUTHOR, 3);
+    gLcd->WriteBuffer(L_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L_DEVICE, 1);
+    gLcd->WriteBuffer(L_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L_AUTHOR, 3);
 
     gLcd->WriteScreen(-1);
 

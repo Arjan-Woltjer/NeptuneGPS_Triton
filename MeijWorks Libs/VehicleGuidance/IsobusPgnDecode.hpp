@@ -67,9 +67,9 @@ static constexpr uint32_t kPgnXteAgLeaderLightbar = 0xFFB6;  // 65462, PDU2
 //    "last SA=" readout. Session 1 widened the John Deere decoder to accept
 //    it, assuming both vendors shared this PGN's payload layout. Session 6
 //    (2026-09-05) disproved that against live ground truth -- see
-//    DecodeLegacyXteJohnDeere() and GitHub issue #20. DIAGNOSTICS ONLY: its
-//    raw bytes are still captured (deriving the real layout needs them),
-//    but nothing is committed to GuidanceSource.
+//    DecodeLegacyXteJohnDeere() and GitHub issue #20. No cross-track error:
+//    its raw bytes are still captured, and its selector 0x51 GNSS status
+//    is decoded for the fix quality only (DecodeGnssStatusAgLeader()).
 //
 // Note this is only John Deere's *proprietary* XTE path. The same equipment
 // family also broadcasts standard NMEA2000 XTE (PGN 129283, legacy CAN ID
@@ -90,7 +90,9 @@ static constexpr uint8_t  kSourceAddressAgLeaderRaven = 0x80;
 // seven distinct selectors respectively. Ag Leader/Raven (0x80) sends 0x51,
 // which issue #20's closing analysis identified as a DOP-like triple rather
 // than cross-track error at all -- so on that rig this PGN carries no XTE.
+// It is the InCommand's GNSS status instead: see GnssStatusResult.
 static constexpr uint8_t  kMessageSelectorXte         = 0x77;
+static constexpr uint8_t  kMessageSelectorGnssStatusAgLeader = 0x51;
 static constexpr uint32_t kPgnXteTrimbleLegacy = 0xEB00;  // 60160, PDU1 -- legacy filter required
                                                                  // destination address 0xAC (fixed); our
                                                                  // claimed SA is dynamic, so whether this
@@ -308,11 +310,15 @@ struct XteResult {
 //              the display boots. NOT a validity state (session 16 read it as one).
 //   byte 3     0 (0xFF while booting)
 //   bytes 4-5  vehicle heading, whole degrees, little-endian; unused here
-//   byte 6     bit 7 = right of the line, bit 6 = left, neither = exactly on it;
+//   byte 6     bit 7 = the 1200 shows "right", bit 6 = "left", neither = exactly on it;
 //              bit 5 = the pass is the AB line or right of it, bit 4 = left of it;
 //              bit 1 = the tractor's autosteer is engaged; bit 0 repeats byte 7 == 4
 //   byte 7     0 = booting, 1 = no line, 4 = line present: the only validity flag
-// Positive = right of the line, as in the John Deere decoder. The XTE is committed
+// The 1200's side is the direction to steer: "right" means the vehicle is LEFT of the
+// line. The XTE is committed with the John Deere decoder's sign (positive = right of
+// the line), so "right" gives a negative XTE. Session 19 (#252): with the side read as
+// the vehicle's, the control was only right with the plough-side swap set, and then
+// the side letter and the VT picture showed the wrong side. The XTE is committed
 // whether or not autosteer is engaged (owner's decision 2026-10-13): ploughing is
 // usually driven by hand, and the plough only acts on the XTE in AUTO with the hitch
 // down. A non-zero magnitude without exactly one side bit was never seen and is not
@@ -322,8 +328,8 @@ struct LightbarXteResult {
     bool          valid = false;        // true => SetXte(xteHundredthsMeter) should be called
     bool          hasLine = false;      // byte 7 == 4: the only validity flag
     bool          engaged = false;      // byte 6 bit 1, reported only, not a commit condition
-    bool          rightOfLine = false;  // byte 6 bit 7
-    bool          leftOfLine = false;   // byte 6 bit 6
+    bool          rightOfLine = false;  // byte 6 bit 7: the 1200 shows "right" (vehicle left of the line)
+    bool          leftOfLine = false;   // byte 6 bit 6: the 1200 shows "left" (vehicle right of the line)
     bool          hasPass = false;      // a line and byte 2 in 1..254: pass and passLeftOfAbLine are set
     uint8_t  pass = 0;             // |pass| = byte 2 - 1; 0 = the AB line itself
     bool          passLeftOfAbLine = false;  // byte 6 bit 4 (bit 5 = the AB line or right of it)
@@ -331,6 +337,26 @@ struct LightbarXteResult {
     int           xteHundredthsMeter = 0;
     uint8_t  rawStatus = 0;        // byte 6
     uint8_t  rawPayload[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+};
+
+// PGN 0xFFFF selector 0x51 from the Ag Leader InCommand (0x80), 10 Hz, beside
+// its 65267/65256/65097. The only fix-quality source on that bus: it sends no
+// 129029. Decoded from CANedge sessions 28, 31, 43, 56, 57 and 61 (2026-10-17):
+//   byte 0     0x51, the selector
+//   byte 1     1 while the display boots, then 3
+//   byte 2     fix mode: 0 no fix, 1 fix but not RTK fixed, 2 RTK fixed.
+//              2 starts within a second of the operator's "RTK fixed" calls
+//              (session 17, 09:21:59 and 09:41:54); stationary position noise
+//              is 0.2-0.3 cm with 2 and 3-50 cm with 1. A drop from 2 back to
+//              1 mid-session has not been seen yet.
+//   bytes 4-6  satellite counts or DOP-like values (0 until the first fix);
+//              unused here
+// Committed as an NMEA GGA quality: 2 -> 4 (RTK fixed), 1 -> 1, else 0.
+struct GnssStatusResult {
+    bool    lengthOk = false;
+    bool    valid = false;      // selector 0x51 from 0x80: SetQuality(quality) should be called
+    uint8_t fixMode = 0;        // byte 2, raw
+    byte    quality = 0;
 };
 
 struct AisoResult {
@@ -353,6 +379,7 @@ XteResult      DecodeXteNmea2000(const uint8_t* data, uint8_t length);
 PositionResult DecodeLegacyPosition(const uint8_t* data, uint8_t length);
 SpeedResult    DecodeLegacySpeed(const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
+GnssStatusResult DecodeGnssStatusAgLeader(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
 XteResult      DecodeLegacyXteTrimble(uint8_t sourceAddress, const uint8_t* data, uint8_t length);
 LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length);
 

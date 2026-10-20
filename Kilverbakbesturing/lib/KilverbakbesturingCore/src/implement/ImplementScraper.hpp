@@ -23,6 +23,7 @@
 
 #include "GuidanceGeometry.hpp"
 #include "GuidanceSource.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementScraper.hpp"
 
@@ -54,8 +55,8 @@ private:
     byte error;
     int  maxCorrection;
 
-    // offset/slope/height* are all persisted through readInt()/writeInt()'s
-    // 2-byte EEPROM slots (see the .cpp) -- short int here, not int, so the
+    // offset/slope/height* are all persisted as EepromStore::ReadInt16Le()/
+    // WriteInt16Le()'s 2-byte EEPROM slots -- short int here, not int, so the
     // in-RAM type actually matches what's stored. The legacy source used
     // plain `int` (4 bytes on this ARM target) with a `union { byte b[2]; int
     // i; }` that only ever wrote the low 2 bytes, leaving the high 2 bytes as
@@ -99,11 +100,8 @@ private:
     // PID variables
     byte kp;
 
-    // Timers for end shutoff
-    unsigned int  shutoffTime;
-    bool          shutoffWide;
-    bool          shutoffNarrow;
-    unsigned long shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     GuidanceSource* guidance;
@@ -128,10 +126,6 @@ private:
 
     void calculateDistances();
 
-    void writeFloat(float x, uint16_t addr);
-    float readFloat(uint16_t addr);
-    void writeInt(short int x, uint16_t addr);
-    short int readInt(uint16_t addr);
 
     bool readCalibrationData();
     void writeCalibrationData();

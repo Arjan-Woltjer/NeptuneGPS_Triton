@@ -42,6 +42,7 @@
 
 #include "TestBus.hpp"
 #include "isobus/IsobusGuidanceChannel.hpp"
+#include "PloughGates.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -426,6 +427,66 @@ test(IsobusGuidanceChannel, johnDeereXte_commitsOnlyFromSourceAddress0x2A) {
     assertEqual(Channel().GetMessageCounters().xteJohnDeereLegacy, (uint32_t)2);
 }
 
+// The InCommand (0x80) sends its GNSS status on this PGN as selector 0x51 at
+// 10 Hz; byte 2 is the fix mode, 2 = RTK fixed. Frames from CANedge sessions
+// 57 and 61 (van Mastwijk): byte 2 steps 1 -> 2 at the second the operator
+// called "RTK fixed", and stationary position noise is 0.2-0.3 cm with 2 and
+// 3-50 cm with 1. It is the only quality source on that bus (no 129029), so
+// without it the plough can never leave HOLD there.
+test(IsobusGuidanceChannel, agLeaderGnssStatus_fixModeSetsQuality) {
+    Reset();
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x80,
+            { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF });   // RTK fixed
+    assertTrue(gcGuidance.IsRtkQuality());
+    assertEqual((int)gcGuidance.GetQuality(), 4);
+    assertEqual(gcGuidance.GetXteTimestamp(), (unsigned long)0);   // no cross-track in it
+
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x80,
+            { 0x51, 0x03, 0x01, 0xFF, 0x0A, 0x05, 0x08, 0xFF });   // converging after a boot
+    assertFalse(gcGuidance.IsRtkQuality());
+    assertEqual((int)gcGuidance.GetQuality(), 1);
+
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x80,
+            { 0x51, 0x01, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF });   // display booting
+    assertEqual((int)gcGuidance.GetQuality(), 0);
+    assertEqual(Channel().GetMessageCounters().agLeaderGnssStatus, (uint32_t)3);
+    assertEqual((int)Channel().GetMessageCounters().lastAgLeaderGnssFixMode, 0);
+}
+
+// Selector 0x51 means this only from the InCommand; from anyone else, or with
+// another selector from 0x80, the stored quality stays as it was.
+test(IsobusGuidanceChannel, agLeaderGnssStatus_onlySelector0x51From0x80) {
+    Reset();
+    gcGuidance.SetQuality(4);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
+            { 0x51, 0x03, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF });
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x80,
+            { 0x52, 0x03, 0x00, 0xFF, 0x00, 0x00, 0x00, 0xFF });
+    assertEqual((int)gcGuidance.GetQuality(), 4);
+    assertEqual(Channel().GetMessageCounters().agLeaderGnssStatus, (uint32_t)0);
+}
+
+// Session 18's D4: on the InCommand rig the plough stayed in HOLD with RTK
+// fixed. Position and speed came from 0x80's 65267/65256 and the XTE from the
+// lightbar channel, but nothing set the quality. These are the rig's own frames
+// while driving (session 61, 10:11): 53.442 N 6.755 E, 2.08 km/h.
+test(IsobusGuidanceChannel, agLeaderRig_readyToSteerWithGnssStatus) {
+    Reset();
+    millisValue(10000);
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyPosition(), 0x80,
+            { 0x57, 0x17, 0x06, 0x9D, 0xCC, 0x42, 0x32, 0x81 });
+    Deliver(IsobusGuidanceChannelTestAccess::LegacySpeed(), 0x80,
+            { 0x35, 0x96, 0x14, 0x02, 0xFF, 0xFF, 0x2A, 0x4E });
+    gcGuidance.SetXte(-46);                                         // as IsobusLightbarChannel commits it
+    assertTrue(SpeedReadyToSteer(gcGuidance));
+    assertFalse(GpsReadyToSteer(gcGuidance, millis()));             // no quality yet: HOLD
+
+    Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x80,
+            { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF });
+    assertTrue(GpsReadyToSteer(gcGuidance, millis()));
+    millisValue(0);
+}
+
 // Source address 0x2A also sends other messages under this PGN, 0x92 at 1 Hz
 // among them. Running those through the XTE decode is what produced a
 // +162.87 m error on a rig (#30).
@@ -721,12 +782,12 @@ test(IsobusGuidanceChannel, allImplementStop_stopRequestedStopsThePlough) {
     Reset();
     // Drive the plough first, so Stop() has something to undo.
     gcImplement->Wider(200);
-    assertMore(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
 
     millisValue(4000);
     Deliver(IsobusGuidanceChannelTestAccess::AllImplementStop(), 0xF0, AisoFrame(0));
-    assertEqual(analogWriteValue(OUTPUT_WIDE_2), 0);      // the safety path ran
-    assertEqual(analogWriteValue(OUTPUT_NARROW_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);      // the safety path ran
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
     assertEqual(Channel().GetMessageCounters().allImplementStop, (uint32_t)1);
     assertEqual(Channel().GetMessageCounters().lastAllImplementStopMs, (unsigned long)4000);
     assertEqual((int)Channel().GetMessageCounters().lastAllImplementStopState, 0);
@@ -740,7 +801,7 @@ test(IsobusGuidanceChannel, allImplementStop_permittedStateIsRecordedButStopsNot
     gcImplement->Wider(200);
     millisValue(5000);
     Deliver(IsobusGuidanceChannelTestAccess::AllImplementStop(), 0xF0, AisoFrame(1));
-    assertMore(analogWriteValue(OUTPUT_WIDE_2), 0);       // still driving
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);       // still driving
     assertEqual(Channel().GetMessageCounters().allImplementStop, (uint32_t)1);
     assertEqual((int)Channel().GetMessageCounters().lastAllImplementStopState, 1);
     assertEqual(Channel().GetMessageCounters().lastAllImplementStopMs, (unsigned long)0);
@@ -753,7 +814,7 @@ test(IsobusGuidanceChannel, allImplementStop_notAvailableStopsNothingEither) {
     gcImplement->Wider(200);
     millisValue(6000);
     Deliver(IsobusGuidanceChannelTestAccess::AllImplementStop(), 0xF0, AisoFrame(3));
-    assertMore(analogWriteValue(OUTPUT_WIDE_2), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
     assertEqual((int)Channel().GetMessageCounters().lastAllImplementStopState, 3);
     assertEqual(Channel().GetMessageCounters().lastAllImplementStopMs, (unsigned long)0);
     gcImplement->Stop();

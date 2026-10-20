@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfaceKipper.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -46,10 +47,7 @@ InterfaceKipper::InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implemen
     // call would measure elapsed time against garbage memory. Seeded to
     // millis(), same fix already applied to every sibling InterfaceX.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes
     this->lcd = lcd;
@@ -117,10 +115,10 @@ void InterfaceKipper::Update() {
 // --------------------------
 void InterfaceKipper::UpdateScreen(boolean rewrite) {
     if (rewrite) {
-        lcd->WriteBuffer(L4_OFFSET, 0);
-        lcd->WriteBuffer(L4_A_STEER, 1);
-        lcd->WriteBuffer(L4_SETPOINT, 2);
-        lcd->WriteBuffer(L4_ANGLE, 3);
+        lcd->WriteBuffer(L_OFFSET, 0);
+        lcd->WriteBuffer(L_A_STEER, 1);
+        lcd->WriteBuffer(L_SETPOINT, 2);
+        lcd->WriteBuffer(L_ANGLE, 3);
 
         lcd->WriteScreen(-1);
     }
@@ -161,88 +159,16 @@ void InterfaceKipper::UpdateScreen(boolean rewrite) {
 }
 
 void InterfaceKipper::writeValue(int value, byte row, byte col) {
-    int temp = abs(value);
-
-    if (temp > 99) {
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, col);
-        lcd->WriteBuffer(temp / 100 + '0', row, col + 1);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', row, col + 2);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', row, col + 3);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', row, col);
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, col + 1);
-        lcd->WriteBuffer(temp / 10 + '0', row, col + 2);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', row, col + 3);
-    }
-    else {
-        lcd->WriteBuffer(' ', row, col);
-        lcd->WriteBuffer(' ', row, col + 1);
-        lcd->WriteBuffer(value < 0 ? '-' : ' ', row, col + 2);
-        lcd->WriteBuffer(temp + '0', row, col + 3);
-    }
+    LcdWriteNumber(lcd, value, row, col, 4);
 }
 
 // ---------------------------
 // Method for checking buttons
 // ---------------------------
 int InterfaceKipper::CheckButtons(byte delay1, byte delay2) {
-    if (button1Flag) {
-        button1Timer = millis();
-        button1Flag = false;
-    }
-
-    if (button2Flag) {
-        button2Timer = millis();
-        button2Flag = false;
-    }
-
-    // Check for left/right button presses
-    if (digitalRead(LEFT_BUTTON_4) && digitalRead(RIGHT_BUTTON_4)) {
-        if (millis() - button1Timer >= delay1 * 4) {  // delay * 4 because of byte type
-            button1Flag = true;
-            buttons = 2;
-            return 2;
-        }
-        else {
-            button2Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(LEFT_BUTTON_4)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = -1;
-            return -1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(RIGHT_BUTTON_4)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = 1;
-            return 1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else {
-        button1Flag = true;
-        button2Flag = true;
-        buttons = 0;
-        return 0;
-    }
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+    buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_4), digitalRead(RIGHT_BUTTON_4), delay1, delay2, millis());
+    return buttons;
 }
 
 }  // namespace triton

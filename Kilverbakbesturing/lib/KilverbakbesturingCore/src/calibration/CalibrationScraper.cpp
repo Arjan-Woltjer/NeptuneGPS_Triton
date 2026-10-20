@@ -66,10 +66,10 @@ void CalibrationScraper::Calibrate() {
     // --------------------------
     // Set refpoints or calibrate
     // --------------------------
-    lcd->WriteBuffer(L5_CHOICE, 0);
-    lcd->WriteBuffer(L5_REF, 1);
-    lcd->WriteBuffer(L5_CAL, 2);
-    lcd->WriteBuffer(L5_BLANK, 3);
+    lcd->WriteBuffer(L_CHOICE, 0);
+    lcd->WriteBuffer(L_REF, 1);
+    lcd->WriteBuffer(L_CAL, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -85,10 +85,10 @@ void CalibrationScraper::Calibrate() {
             // --------------
             // Set refpoint A
             // --------------
-            lcd->WriteBuffer(L5_CAL_REF, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_REF, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -99,17 +99,17 @@ void CalibrationScraper::Calibrate() {
                 gpsChannel->Update();
 
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Set refpoint
-                    lcd->WriteBuffer(L5_CAL_REF_AD, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
-                    lcd->WriteBuffer(L5_BLANK, 3);
+                    lcd->WriteBuffer(L_CAL_REF_AD, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
+                    lcd->WriteBuffer(L_BLANK, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -125,11 +125,11 @@ void CalibrationScraper::Calibrate() {
             // --------------
             // Set refpoint B
             // --------------
-            lcd->WriteBuffer(L5_CAL_REF, 0);
+            lcd->WriteBuffer(L_CAL_REF, 0);
             lcd->WriteBuffer('B', 0, 16);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -140,17 +140,17 @@ void CalibrationScraper::Calibrate() {
                 gpsChannel->Update();
 
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Set refpoint
-                    lcd->WriteBuffer(L5_CAL_REF_AD, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
-                    lcd->WriteBuffer(L5_BLANK, 3);
+                    lcd->WriteBuffer(L_CAL_REF_AD, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
+                    lcd->WriteBuffer(L_BLANK, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -176,10 +176,10 @@ void CalibrationScraper::Calibrate() {
             // ------------
             // Adjust slope
             // ------------
-            lcd->WriteBuffer(L5_CAL_SLOPE, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_SLOPE, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -188,17 +188,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Adjust slope
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_SLOPE_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_SLOPE_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -235,8 +235,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                         lcd->WriteBuffer(abs(temp) % 10 + '0', 3, 16);
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     if (temp < 0) {
                         lcd->WriteBuffer('-', 3, 13);
@@ -260,10 +260,10 @@ void CalibrationScraper::Calibrate() {
             // --------------------
             // Position calibration
             // --------------------
-            lcd->WriteBuffer(L5_CAL_POS, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_POS, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -272,17 +272,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Position calibration
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_POS_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_POS_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -329,9 +329,9 @@ void CalibrationScraper::Calibrate() {
                             }
                         }
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
-                    lcd->WriteBuffer(L5_BLANK, 3);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
+                    lcd->WriteBuffer(L_BLANK, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -345,10 +345,10 @@ void CalibrationScraper::Calibrate() {
             // -----------------
             // SPEED calibration
             // -----------------
-            lcd->WriteBuffer(L5_CAL_SPEED, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_SPEED, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -357,9 +357,9 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
-                    lcd->WriteBuffer(L5_BLANK, 3);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
+                    lcd->WriteBuffer(L_BLANK, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -367,9 +367,9 @@ void CalibrationScraper::Calibrate() {
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Speed calibration
-                    lcd->WriteBuffer(L5_BLANK, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_SPEED_AD, 3);
+                    lcd->WriteBuffer(L_BLANK, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_SPEED_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -402,8 +402,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(abs(temp) % 10 + '0', 3, 16);
                     }
 
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
 
@@ -417,10 +417,10 @@ void CalibrationScraper::Calibrate() {
             // ---------
             // Adjust KP
             // ---------
-            lcd->WriteBuffer(L5_CAL_KP, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_KP, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -429,17 +429,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Adjust KP
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_KP_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_KP_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -472,8 +472,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                         lcd->WriteBuffer(temp % 10 + '0', 3, 16);
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteBuffer(temp3 + '0', 3, 13);
                     lcd->WriteBuffer('.', 3, 14);
@@ -493,10 +493,10 @@ void CalibrationScraper::Calibrate() {
             // -----------------
             // Adjust PWM manual
             // -----------------
-            lcd->WriteBuffer(L5_CAL_PWM_M, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_PWM_M, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -505,17 +505,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Adjust PWM manual
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_PWM_M_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_PWM_M_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -545,8 +545,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(temp2 + '0', 3, 15);
                         lcd->WriteBuffer(temp % 10 + '0', 3, 16);
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteBuffer(temp2 + '0', 3, 15);
                     lcd->WriteBuffer(temp % 10 + '0', 3, 16);
@@ -564,10 +564,10 @@ void CalibrationScraper::Calibrate() {
             // ---------------
             // Adjust PWM auto
             // ---------------
-            lcd->WriteBuffer(L5_CAL_PWM_A, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_PWM_A, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -576,17 +576,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Adjust PWM auto
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_PWM_A_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_PWM_A_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -616,8 +616,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(temp2 + '0', 3, 15);
                         lcd->WriteBuffer(temp % 10 + '0', 3, 16);
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteBuffer(temp2 + '0', 3, 15);
                     lcd->WriteBuffer(temp % 10 + '0', 3, 16);
@@ -634,10 +634,10 @@ void CalibrationScraper::Calibrate() {
             // ------------
             // Adjust error
             // ------------
-            lcd->WriteBuffer(L5_CAL_MARGIN, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_MARGIN, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -646,17 +646,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Adjust error
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_MARGIN_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_MARGIN_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -684,8 +684,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(temp2 + '0', 3, 15);
                         lcd->WriteBuffer(temp % 10 + '0', 3, 16);
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteBuffer(temp2 + '0', 3, 15);
                     lcd->WriteBuffer(temp % 10 + '0', 3, 16);
@@ -702,10 +702,10 @@ void CalibrationScraper::Calibrate() {
             // -------------------------
             // Adjust maximum correction
             // -------------------------
-            lcd->WriteBuffer(L5_CAL_MAXCOR, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_MAXCOR, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -714,17 +714,17 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteScreen(-1);
                     break;
                 }
                 else if (interface->CheckButtons(0, 0) == 1) {
                     // Adjust maximum correction
-                    lcd->WriteBuffer(L5_CAL_ADJUST, 1);
-                    lcd->WriteBuffer(L5_CAL_ENTER, 2);
-                    lcd->WriteBuffer(L5_CAL_MAXCOR_AD, 3);
+                    lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                    lcd->WriteBuffer(L_CAL_ENTER, 2);
+                    lcd->WriteBuffer(L_CAL_MAXCOR_AD, 3);
 
                     lcd->WriteScreen(-1);
 
@@ -755,8 +755,8 @@ void CalibrationScraper::Calibrate() {
                         lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                         lcd->WriteBuffer(temp % 10 + '0', 3, 16);
                     }
-                    lcd->WriteBuffer(L5_CAL_DONE, 1);
-                    lcd->WriteBuffer(L5_BLANK, 2);
+                    lcd->WriteBuffer(L_CAL_DONE, 1);
+                    lcd->WriteBuffer(L_BLANK, 2);
 
                     lcd->WriteBuffer(temp3 + '0', 3, 14);
                     lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
@@ -772,10 +772,10 @@ void CalibrationScraper::Calibrate() {
 #endif
 
             // Store calibration data
-            lcd->WriteBuffer(L5_CAL_COMPLETE, 0);
-            lcd->WriteBuffer(L5_CAL_ACCEPT, 1);
-            lcd->WriteBuffer(L5_CAL_DECLINE, 2);
-            lcd->WriteBuffer(L5_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+            lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+            lcd->WriteBuffer(L_CAL_DECLINE, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -784,8 +784,8 @@ void CalibrationScraper::Calibrate() {
 
             while (true) {
                 if (interface->CheckButtons(0, 0) == -1) {
-                    lcd->WriteBuffer(L5_CAL_DECLINED, 1);
-                    lcd->WriteBuffer(L5_CAL_NOSAVE, 2);
+                    lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                    lcd->WriteBuffer(L_CAL_NOSAVE, 2);
 
                     lcd->WriteScreen(-1);
 
@@ -800,8 +800,8 @@ void CalibrationScraper::Calibrate() {
                     tractor->CommitCalibration();
 
                     // Print message to LCD
-                    lcd->WriteBuffer(L5_CAL_DDONE, 1);
-                    lcd->WriteBuffer(L5_CAL_SAVE, 2);
+                    lcd->WriteBuffer(L_CAL_DDONE, 1);
+                    lcd->WriteBuffer(L_CAL_SAVE, 2);
 
                     lcd->WriteScreen(-1);
 

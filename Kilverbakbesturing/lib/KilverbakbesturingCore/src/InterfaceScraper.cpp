@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfaceScraper.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -58,10 +59,7 @@ InterfaceScraper::InterfaceScraper(InterfaceI2CLCD* lcd,
     // memory); seeded to millis() now, matching the same fix already applied
     // to InterfacePlough/InterfacePlanter.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes
     this->lcd = lcd;
@@ -143,75 +141,22 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
     // Update screen
     if (rewrite) {
         // Regel 0
-        lcd->WriteBuffer(L5_HEIGHT_R, 0);
+        lcd->WriteBuffer(L_HEIGHT_R, 0);
 
         // Regel 1
-        lcd->WriteBuffer(L5_HEIGHT, 1);
+        lcd->WriteBuffer(L_HEIGHT, 1);
 
         // Regel 2
-        lcd->WriteBuffer(L5_DISTANCE, 2);
+        lcd->WriteBuffer(L_DISTANCE, 2);
 
         // Regel 3
-        lcd->WriteBuffer(L5_SLOPE, 3);
+        lcd->WriteBuffer(L_SLOPE, 3);
 
         lcd->WriteScreen(-1);
     }
 
     // Regel 0
-    temp2 = implement->GetRefHeight();
-    temp = abs(temp2);
-
-    if (temp > 9999) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 5);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 5);
-        }
-        lcd->WriteBuffer(temp / 10000 + '0', 0, 6);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 0, 7);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 9);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 11);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 0, 5);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 6);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 6);
-        }
-        lcd->WriteBuffer(temp / 1000 + '0', 0, 7);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 9);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 11);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 0, 5);
-        lcd->WriteBuffer(' ', 0, 6);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 7);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 7);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 0, 8);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 9);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 10);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 11);
-    }
+    LcdWriteNumber(lcd, implement->GetRefHeight(), 0, 5, 7, 2, ',');
 
     // Regel 0
     temp2 = implement->GetOffset();
@@ -235,110 +180,10 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
     }
 
     // Regel 1
-    temp2 = implement->GetHeight();
-    temp = abs(temp2);
-
-    if (temp > 9999) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 12);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 12);
-        }
-        lcd->WriteBuffer(temp / 10000 + '0', 1, 13);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 1, 14);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 1, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 18);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 1, 12);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 13);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 13);
-        }
-        lcd->WriteBuffer(temp / 1000 + '0', 1, 14);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 1, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 18);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 1, 12);
-        lcd->WriteBuffer(' ', 1, 13);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 14);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 14);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 1, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 1, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 1, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 18);
-    }
+    LcdWriteNumber(lcd, implement->GetHeight(), 1, 12, 7, 2, ',');
 
     // Regel 2
-    temp2 = implement->GetDistance();
-    temp = abs(temp2);
-
-    if (temp > 9999) {
-        lcd->WriteBuffer(temp / 10000 + '0', 2, 14);
-        temp = temp % 10000;
-        lcd->WriteBuffer(temp / 1000 + '0', 2, 15);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else if (temp > 999) {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(temp / 1000 + '0', 2, 15);
-        temp = temp % 1000;
-        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else if (temp > 99) {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(' ', 2, 15);
-        lcd->WriteBuffer(temp / 100 + '0', 2, 16);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(' ', 2, 15);
-        lcd->WriteBuffer(' ', 2, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 2, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
-    else {
-        lcd->WriteBuffer(' ', 2, 14);
-        lcd->WriteBuffer(' ', 2, 15);
-        lcd->WriteBuffer(' ', 2, 16);
-        lcd->WriteBuffer(' ', 2, 17);
-        lcd->WriteBuffer(temp + '0', 2, 18);
-    }
+    LcdWriteNumber(lcd, implement->GetDistance(), 2, 14, 5);
 
     // Regel 3
     temp2 = implement->GetSlope();
@@ -408,59 +253,10 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
 // Method for checking buttons
 // ---------------------------
 int InterfaceScraper::CheckButtons(byte delay1, byte delay2) {
-    if (button1Flag) {
-        button1Timer = millis();
-        button1Flag = false;
-    }
-
-    if (button2Flag) {
-        button2Timer = millis();
-        button2Flag = false;
-    }
-
-    // Check for left/right button presses
-    if (digitalRead(LEFT_BUTTON_5) && digitalRead(RIGHT_BUTTON_5)) {
-        if (millis() - button1Timer >= delay1 * 4) {
-            button1Flag = true;
-            buttons = 2;
-            return 2;
-        }
-        else {
-            button2Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(LEFT_BUTTON_5) || digitalRead(JOY_LEFT_5)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = -1;
-            return -1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(RIGHT_BUTTON_5) || digitalRead(JOY_RIGHT_5)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = 1;
-            return 1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else {
-        button1Flag = true;
-        button2Flag = true;
-        buttons = 0;
-        return 0;
-    }
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+    buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_5), digitalRead(RIGHT_BUTTON_5), delay1, delay2, millis(),
+                              digitalRead(JOY_LEFT_5), digitalRead(JOY_RIGHT_5));
+    return buttons;
 }
 
 }  // namespace triton

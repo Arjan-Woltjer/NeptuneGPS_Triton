@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "InterfacePlanter.hpp"
+#include "LcdNumber.hpp"
 
 namespace triton
 {
@@ -59,10 +60,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
     // memory); seeded to millis() now, matching ImplementPlanter's own
     // timers.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes
     this->serialDebug = serialDebug;
@@ -96,10 +94,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
 
     // Button flag and timer -- same fix as the 5-arg constructor above.
     buttons = 0;
-    button1Flag = false;
-    button2Flag = false;
-    button1Timer = millis();
-    button2Timer = millis();
+    buttonPair.Begin(millis());
 
     // Connected classes. No guidance source supplied by this overload -- see
     // the constructor-selection comment in InterfacePlanter.hpp; Update()
@@ -194,183 +189,28 @@ void InterfacePlanter::Update() {
 // Method for updating screen
 // --------------------------
 void InterfacePlanter::UpdateScreen(boolean rewrite) {
-    int temp = 0;
-    int temp2 = 0;
-
     // Update screen
     if (rewrite) {
         // Regel 0 - 3
-        lcd->WriteBuffer(L3_OFFSET, 0);
-        lcd->WriteBuffer(L3_A_POS, 1);
-        lcd->WriteBuffer(L3_SETPOINT, 2);
-        lcd->WriteBuffer(L3_XTE, 3);
+        lcd->WriteBuffer(L_OFFSET, 0);
+        lcd->WriteBuffer(L_A_POS, 1);
+        lcd->WriteBuffer(L_SETPOINT, 2);
+        lcd->WriteBuffer(L_XTE, 3);
 
         lcd->WriteScreen(-1);
     }
 
     // Regel 0
-    temp2 = implement->GetOffset();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 16);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 16);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 0, 17);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 0, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 19);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 0, 16);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 17);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 17);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 0, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 19);
-    }
-    else {
-        lcd->WriteBuffer(' ', 0, 16);
-        lcd->WriteBuffer(' ', 0, 17);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 18);
-        }
-        else {
-            lcd->WriteBuffer(' ', 0, 18);
-        }
-        lcd->WriteBuffer(temp + '0', 0, 19);
-    }
+    LcdWriteNumber(lcd, implement->GetOffset(), 0, 16, 4);
 
     // Regel 1
-    temp2 = implement->GetPosition();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 16);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 16);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 1, 17);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 1, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 19);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 1, 16);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 17);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 17);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 1, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 1, 19);
-    }
-    else {
-        lcd->WriteBuffer(' ', 1, 16);
-        lcd->WriteBuffer(' ', 1, 17);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 1, 18);
-        }
-        else {
-            lcd->WriteBuffer(' ', 1, 18);
-        }
-        lcd->WriteBuffer(temp + '0', 1, 19);
-    }
+    LcdWriteNumber(lcd, implement->GetPosition(), 1, 16, 4);
 
     // Regel 2
-    temp2 = implement->GetSetpoint();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 16);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 16);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 2, 17);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 2, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 19);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 2, 16);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 17);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 17);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 2, 18);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 2, 19);
-    }
-    else {
-        lcd->WriteBuffer(' ', 2, 16);
-        lcd->WriteBuffer(' ', 2, 17);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 2, 18);
-        }
-        else {
-            lcd->WriteBuffer(' ', 2, 18);
-        }
-        lcd->WriteBuffer(temp + '0', 2, 19);
-    }
+    LcdWriteNumber(lcd, implement->GetSetpoint(), 2, 16, 4);
 
     // Regel 3
-    temp2 = implement->GetXte();
-    temp = abs(temp2);
-
-    if (temp > 99) {
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 3, 5);
-        }
-        else {
-            lcd->WriteBuffer(' ', 3, 5);
-        }
-        lcd->WriteBuffer(temp / 100 + '0', 3, 6);
-        temp = temp % 100;
-        lcd->WriteBuffer(temp / 10 + '0', 3, 7);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 8);
-    }
-    else if (temp > 9) {
-        lcd->WriteBuffer(' ', 3, 5);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 3, 6);
-        }
-        else {
-            lcd->WriteBuffer(' ', 3, 6);
-        }
-        lcd->WriteBuffer(temp / 10 + '0', 3, 7);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 3, 8);
-    }
-    else {
-        lcd->WriteBuffer(' ', 3, 5);
-        lcd->WriteBuffer(' ', 3, 6);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 3, 7);
-        }
-        else {
-            lcd->WriteBuffer(' ', 3, 7);
-        }
-        lcd->WriteBuffer(temp + '0', 3, 8);
-    }
+    LcdWriteNumber(lcd, implement->GetXte(), 3, 5, 4);
 
     switch (mode) {
         case 0:  // AUTO
@@ -429,59 +269,9 @@ void InterfacePlanter::UpdateScreen(boolean rewrite) {
 // Method for checking buttons
 // ---------------------------
 int InterfacePlanter::CheckButtons(byte delay1, byte delay2) {
-    if (button1Flag) {
-        button1Timer = millis();
-        button1Flag = false;
-    }
-
-    if (button2Flag) {
-        button2Timer = millis();
-        button2Flag = false;
-    }
-
-    // Check for left/right button presses
-    if (digitalRead(LEFT_BUTTON_3) && digitalRead(RIGHT_BUTTON_3)) {
-        if (millis() - button1Timer >= delay1 * 4) {  // delay * 4 because of byte type
-            button1Flag = true;
-            buttons = 2;
-            return 2;
-        }
-        else {
-            button2Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(LEFT_BUTTON_3)) {  // || digitalRead(JOY_LEFT_3)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = -1;
-            return -1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else if (digitalRead(RIGHT_BUTTON_3)) {  // || digitalRead(JOY_RIGHT_3)) {
-        if (millis() - button2Timer >= delay2) {
-            button2Flag = true;
-            buttons = 1;
-            return 1;
-        }
-        else {
-            button1Flag = true;
-            buttons = 0;
-            return 0;
-        }
-    }
-    else {
-        button1Flag = true;
-        button2Flag = true;
-        buttons = 0;
-        return 0;
-    }
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+    buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_3), digitalRead(RIGHT_BUTTON_3), delay1, delay2, millis());
+    return buttons;
 }
 
 }  // namespace triton
