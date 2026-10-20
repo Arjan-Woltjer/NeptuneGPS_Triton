@@ -102,6 +102,28 @@ enum PloughVtObjectId : uint16_t {
     // labels would make AgIsoStack scale those labels' font with the data
     // mask factor again (neptune-main a9453ff keeps shared fonts there).
     Font_White_Unit  = 37,
+
+    // ---- Calibration page (#240) ----
+    // A block of its own from 100, so no existing id moves. One label and
+    // one input per PloughSettings line, in table order: Label_Cal0 + i and
+    // Input_Cal0 + i for line i.
+    Plough_CalDataMask    = 100,
+    Plough_CalSoftKeyMask = 101,
+    Key_CalSave           = 102,
+    Key_CalCancel         = 103,
+    Label_CalSave         = 104,
+    Label_CalCancel       = 105,
+    Label_Cal0            = 110,  // .. 117
+    Input_Cal0            = 120,  // .. 127: InputNumber or InputList
+    // The list entries and units, shared by the inputs that use them.
+    Str_CalNo             = 130,
+    Str_CalYes            = 131,
+    Str_CalRight          = 132,
+    Str_CalLeft           = 133,
+    Str_CalDgps           = 134,
+    Str_CalRtk            = 135,
+    Str_CalCm             = 136,
+    Str_CalMm             = 137,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
@@ -110,6 +132,8 @@ enum PloughKeyCode : uint8_t {
     KeyCode_Narrower  = 2,
     KeyCode_Auto      = 3,
     KeyCode_Calibrate = 4,
+    KeyCode_CalSave   = 5,
+    KeyCode_CalCancel = 6,
 };
 
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().

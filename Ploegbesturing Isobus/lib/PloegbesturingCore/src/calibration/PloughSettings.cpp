@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "CalibrationPlough.hpp"
+#include "../FlashMem.hpp"
 
 namespace triton
 {
@@ -45,24 +46,24 @@ static const PloughSettingLine kLines[PloughSettings::kCount] = {
       CalibrationPlough::kEepromRtkQuality },
 };
 
-const PloughSettingLine& PloughSettings::Line(PloughSetting id) {
+FLASHMEM const PloughSettingLine& PloughSettings::Line(PloughSetting id) {
     return kLines[uint8_t(id)];
 }
 
-const PloughSettingLine* PloughSettings::Find(const char* key) {
+FLASHMEM const PloughSettingLine* PloughSettings::Find(const char* key) {
     for (uint8_t i = 0; i < kCount; i++) {
         if (strcmp(kLines[i].key, key) == 0) return &kLines[i];
     }
     return nullptr;
 }
 
-bool PloughSettings::IsValid(PloughSetting id, int16_t value) {
+FLASHMEM bool PloughSettings::IsValid(PloughSetting id, int16_t value) {
     const PloughSettingLine& line = Line(id);
     if (line.kind == SettingKind::RtkQuality) return value == 4 || value == 2;
     return value >= line.lowest && value <= line.highest;
 }
 
-int16_t PloughSettings::Step(PloughSetting id, int16_t value, int direction) {
+FLASHMEM int16_t PloughSettings::Step(PloughSetting id, int16_t value, int direction) {
     const PloughSettingLine& line = Line(id);
     if (line.kind != SettingKind::Number) {
         if (direction == 1) return line.highest;
@@ -78,7 +79,7 @@ PloughSettings::PloughSettings(ImplementPlough* implement, VehicleTractor* tract
                                GuidanceSource* guidance, CalibrationPlough* calibration)
     : implement(implement), tractor(tractor), guidance(guidance), calibration(calibration) {}
 
-int16_t PloughSettings::held(PloughSetting id) const {
+FLASHMEM int16_t PloughSettings::held(PloughSetting id) const {
     switch (id) {
         case PloughSetting::Shares:                return implement->GetShares();
         case PloughSetting::Swap:                  return implement->GetSwap();
@@ -94,7 +95,7 @@ int16_t PloughSettings::held(PloughSetting id) const {
     }
 }
 
-bool PloughSettings::Begin(SettingsOwner who) {
+FLASHMEM bool PloughSettings::Begin(SettingsOwner who) {
     if (who == SettingsOwner::None) return false;
     if (owner == who) return true;
     if (owner != SettingsOwner::None) return false;
@@ -104,18 +105,18 @@ bool PloughSettings::Begin(SettingsOwner who) {
     return true;
 }
 
-int16_t PloughSettings::Get(PloughSetting id) const {
+FLASHMEM int16_t PloughSettings::Get(PloughSetting id) const {
     return owner != SettingsOwner::None ? draft[uint8_t(id)] : held(id);
 }
 
-bool PloughSettings::Set(SettingsOwner who, PloughSetting id, int16_t value) {
+FLASHMEM bool PloughSettings::Set(SettingsOwner who, PloughSetting id, int16_t value) {
     if (who == SettingsOwner::None || who != owner) return false;
     if (!IsValid(id, value)) return false;
     draft[uint8_t(id)] = value;
     return true;
 }
 
-bool PloughSettings::StageWidthCalibration(SettingsOwner who, const short int adc[3]) {
+FLASHMEM bool PloughSettings::StageWidthCalibration(SettingsOwner who, const short int adc[3]) {
     if (who == SettingsOwner::None || who != owner) return false;
     if (!ImplementPlough::IsValidPositionCalibration(adc)) return false;
     for (int i = 0; i < 3; i++) widthDraft[i] = adc[i];
@@ -123,7 +124,7 @@ bool PloughSettings::StageWidthCalibration(SettingsOwner who, const short int ad
     return true;
 }
 
-bool PloughSettings::Save(SettingsOwner who) {
+FLASHMEM bool PloughSettings::Save(SettingsOwner who) {
     if (who == SettingsOwner::None || who != owner) return false;
 
     // Shares first: SetShares() re-checks the width against the new number
@@ -152,7 +153,7 @@ bool PloughSettings::Save(SettingsOwner who) {
     return true;
 }
 
-void PloughSettings::Cancel(SettingsOwner who) {
+FLASHMEM void PloughSettings::Cancel(SettingsOwner who) {
     if (who == SettingsOwner::None || who != owner) return;
     owner = SettingsOwner::None;
     widthStaged = false;

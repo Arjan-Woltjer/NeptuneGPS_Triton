@@ -88,6 +88,7 @@ triton::CalibrationPlough* gCalibration;
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusLightbarChannel* gLightbarChannel;
 triton::IsobusVtInterface*     gVtInterface;
+triton::IsobusVtCalibration*   gVtCalibration;
 triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 #if !defined(ESP32S3)
@@ -232,6 +233,10 @@ void setup() {
     gLightbarChannel->Begin();
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
+    // The VT calibration page (#240) edits the same settings draft as the
+    // cab wizard.
+    gVtCalibration = new triton::IsobusVtCalibration(gSerialDebug, &gCalibration->GetSettings(), gImplement);
+    gVtInterface->AttachCalibration(gVtCalibration);
 
     // Constructed after gVtInterface->Begin() so the VT's partner exists --
     // the TC client uses it for language/unit data on TC servers older than
@@ -307,10 +312,6 @@ void loop() {
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();
-    // ConsumeCalibratePress() must run on every iteration: it is the only
-    // thing that clears the pending tap, which counts for nothing while the
-    // wizard is already open.
-    const bool vtCalibrate = gVtInterface->ConsumeCalibratePress();
 #endif
 
     // The calibration wizard is a step runner (#31): while it is open it
@@ -326,19 +327,20 @@ void loop() {
     }
 
 #ifdef ISOBUS
+    // The VT calibration page is open (#240): the control holds and the cab
+    // buttons do nothing until it is saved or cancelled.
+    if (gCalibration->HoldWhileVtCalibrates()) return;
+
     // Update interface -- the VT's Wider/Narrower soft keys (held levels, #245)
-    // and Calibrate tap feed InterfacePlough's button handling, see
-    // IsobusVtInterface.hpp.
-    gInterface->Update(gVtInterface->IsWiderHeld(),
-                       gVtInterface->IsNarrowerHeld(),
-                       vtCalibrate);
+    // feed InterfacePlough's button handling, see IsobusVtInterface.hpp.
+    gInterface->Update(gVtInterface->IsWiderHeld(), gVtInterface->IsNarrowerHeld());
 #else
     // Update interface
     gInterface->Update();
 #endif
 
-    // Both buttons held (or the VT's Calibrate soft key) -> open the
-    // calibration wizard. See CalibrationPlough.hpp for why this trigger lives
+    // Both buttons held -> open the calibration wizard (the VT's Calibrate
+    // key opens the VT page instead). See CalibrationPlough.hpp for why this trigger lives
     // here instead of inside InterfacePlough itself.
     if (gInterface->GetButtons() == 2) {
         gCalibration->Start();
