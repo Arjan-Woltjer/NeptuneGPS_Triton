@@ -61,9 +61,9 @@ public:
     inline void SetCourseDeg(float degrees)     { course = degrees; lastVtgFix = millis(); }
     inline void SetTime(float t)                { time = t; }
     inline void SetDate(unsigned long d)        { date = d; }
-    inline void SetQuality(byte q)              { quality = q; }
+    inline void SetQuality(byte q)              { quality = q; lastQualityFix = millis(); }
     inline void SetXte(int hundredthsM)         { xte = hundredthsM; lastXteFix = millis(); }
-    inline void SetXte(int hundredthsM, byte q) { xte = hundredthsM; quality = q; lastXteFix = millis(); }
+    inline void SetXte(int hundredthsM, byte q) { xte = hundredthsM; quality = q; lastXteFix = millis(); lastQualityFix = lastXteFix; }
 
     // Some receivers (e.g. the ATGM336H, via NmeaParser's TXT handling) can
     // keep reporting a plausible-looking GGA/VTG fix -- non-zero quality, a
@@ -90,6 +90,10 @@ public:
     inline unsigned long GetXteTimestamp() { return lastXteFix; }
     inline unsigned long GetGgaTimestamp() { return lastGgaFix; }
     inline unsigned long GetVtgTimestamp() { return lastVtgFix; }
+    // When a message last stated the fix quality (#261). Unlike the value,
+    // which stands until a message changes it, this lets a gate tell a
+    // confirmed quality from one left over by a source that went quiet.
+    inline unsigned long GetQualityTimestamp() { return lastQualityFix; }
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
     inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
@@ -126,6 +130,7 @@ private:
     unsigned long lastGgaFix = 0;
     unsigned long lastVtgFix = 0;
     unsigned long lastXteFix = 0;
+    unsigned long lastQualityFix = 0;
     bool          antennaOk = true;
 };
 
