@@ -238,27 +238,32 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
             break;
         case 2:
         case 3:
+            // The button picks the direction; the end shutoff below still
+            // watches the measured position, as in auto (#244).
             actualPosition = setpoint - (direction * (deadband + 1));
-            lastPosition = setpoint; // to counter shutoff when in manual mode
             pwm = kValvePwm;
     }
 
     // ------------------------------
     // Adjust tree including deadband
     // ------------------------------
-    if (actualPosition < setpoint - deadband && (!endShutoff.Latched(EndShutoff::kNarrower) || (mode >= 2))) {
+    // The end shutoff latches in every mode: a held button no longer drives
+    // through it, so the hydraulics are protected in manual too (#244). A
+    // latched direction drives again once the plough has moved the other way.
+    const bool positionChanged = position != lastPosition;
+    if (actualPosition < setpoint - deadband && !endShutoff.Latched(EndShutoff::kNarrower)) {
         // Setpoint < actual position
         Narrower(pwm);
 
         // End shutoff
-        endShutoff.Moving(EndShutoff::kNarrower, actualPosition != lastPosition, millis());
+        endShutoff.Moving(EndShutoff::kNarrower, positionChanged, millis());
     }
-    else if (actualPosition > setpoint + deadband && (!endShutoff.Latched(EndShutoff::kWider) || (mode >= 2))) {
+    else if (actualPosition > setpoint + deadband && !endShutoff.Latched(EndShutoff::kWider)) {
         // Setpoint < actual position
         Wider(pwm);
 
         // End shutoff
-        endShutoff.Moving(EndShutoff::kWider, actualPosition != lastPosition, millis());
+        endShutoff.Moving(EndShutoff::kWider, positionChanged, millis());
     }
     else {
         // Setpoint reached
@@ -267,7 +272,7 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
         // Reset shutoff timer
         endShutoff.Stopped(millis());
     }
-    lastPosition = actualPosition;
+    lastPosition = position;
 }
 
 // ------------------------------------
@@ -578,6 +583,7 @@ void ImplementPlough::writeCalibrationData() {
     EEPROM.write(60, maxCorrectionPerShare);   //60, mm per share (#163)
     EEPROM.write(62, swap);     //62
     EEPROM.write(64, shares);   //64
+    EepromStore::WriteInt16Le(66, offset);   //66-67, the width, which a share change may have reset (#238)
     EEPROM.write(68, bypass);   //68, bypass valve fitted
 
 #ifdef DEBUG
