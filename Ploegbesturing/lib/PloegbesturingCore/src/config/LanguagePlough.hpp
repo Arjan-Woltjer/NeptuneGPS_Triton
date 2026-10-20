@@ -71,15 +71,6 @@
 #define L_CAL_JD_AD     "                    "
 #define L_CAL_SPEED_AD  "Accelereer tot 10kmh"
 
-#define L_CAL_PROG      "Selecteer programma "
-#define L_CAL_PROG_AD2  "Ploegbesturing      "
-#define L_CAL_PROG_AD3  "Pootmachinebesturing"
-#define L_CAL_PROG_AD4  "Kieperbesturing     "
-#define L_CAL_PROG_AD5  "Kilverbakbesturing  "
-#define L_CAL_PROG_AD6  "Spuitcomputer       "
-#define L_CAL_PROG_AD7  "Zaaimachinebesturing"
-#define L_CAL_PROG_AD8  "Rooierbesturing     "
-
 #define L_CAL_COMPLETE  "Calibratie afronden "
 
 // -----------
