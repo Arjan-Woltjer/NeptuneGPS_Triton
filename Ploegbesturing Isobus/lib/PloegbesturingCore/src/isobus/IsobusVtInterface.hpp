@@ -62,7 +62,7 @@ namespace triton
 // ConsumeCalibratePress() below into InterfacePlough::Update(), which lands
 // each where the physical button meaning the same thing goes (Wider -> the
 // LEFT_BUTTON_2 slot, Narrower -> RIGHT_BUTTON_2, Calibrate -> the both-held
-// outcome main.cpp turns into a CalibrationPlough::Calibrate() call).
+// outcome main.cpp turns into a CalibrationPlough::Start() call).
 // Wider/Narrower are held levels (#245): held from the VT's press until its
 // release, they go through the cab buttons' own hold-to-repeat, so a held
 // soft key drives in manual and steps the width every 200 ms in auto or
@@ -178,7 +178,7 @@ public:
     bool IsNarrowerHeld() const;
 
     // Consume-once Calibrate tap, set on key release and cleared by the call
-    // itself: it enters a blocking wizard, so one tap must enter it once.
+    // itself: one tap opens the wizard once.
     inline bool ConsumeCalibratePress() {
         bool v = pendingCalibratePress;
         pendingCalibratePress = false;

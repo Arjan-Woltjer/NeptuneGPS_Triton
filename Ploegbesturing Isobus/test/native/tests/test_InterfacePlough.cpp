@@ -173,7 +173,7 @@ test(InterfacePlough, checkButtons_vtCalibrate_returnsComboWithoutHoldDuration) 
     // The regression this pins: Update() calls CheckButtons() with delay1=255,
     // so the physical combo needs 255*4 = 1020 ms of hold. A one-iteration VT
     // edge can never reach that, so vtCalibratePressed needs its own branch --
-    // 2 here at millis()=0 is what main.cpp turns into Calibrate().
+    // 2 here at millis()=0 is what main.cpp turns into CalibrationPlough::Start().
     assertEqual(iface.CheckButtons(255, 0, false, false, true), (short int)2);
     assertEqual(iface.GetButtons(), (short int)2);
 }
@@ -219,12 +219,12 @@ test(InterfacePlough, checkButtons_vtCalibrateReseedsComboTimer) {
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
     // A VT Calibrate sets button1Flag, so button1Timer is re-seeded on the
-    // next call. Without that, Calibrate()'s long blocking run would leave
+    // next call. Without that, the time the wizard was open would leave
     // button1Timer stale and the first both-held read afterwards would clear
     // delay1*4 instantly, re-entering the wizard the operator just left.
     assertEqual(iface.CheckButtons(10, 0, false, false, true), (short int)2);
 
-    millisValue(5000);  // stands in for time spent inside Calibrate()
+    millisValue(5000);  // stands in for time spent in the wizard
     digitalReadValue(LEFT_BUTTON_2, true);
     digitalReadValue(RIGHT_BUTTON_2, true);
     // This call re-seeds button1Timer to 5000 and reports "still waiting".

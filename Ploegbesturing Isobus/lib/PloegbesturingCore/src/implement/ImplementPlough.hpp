@@ -237,6 +237,11 @@ public:
         positionCalibrationData[i] = analogRead(POSITION_SENS_PIN_2);
     }
 
+    // The width sensor now, for the width procedure to capture.
+    inline short int ReadPositionSensor() {
+        return analogRead(POSITION_SENS_PIN_2);
+    }
+
     // A reading taken earlier, for a draft applied on Save (PloughSettings).
     inline void SetPositionCalibrationValue(short int i, short int adc) {
         positionCalibrationData[i] = adc;
