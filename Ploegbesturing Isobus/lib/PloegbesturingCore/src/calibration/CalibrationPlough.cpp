@@ -385,6 +385,206 @@ FLASHMEM void CalibrationPlough::Calibrate() {
     }
     delay(1000);
 
+    // -----------------
+    // Adjust ploughside
+    // -----------------
+    lcd->WriteBuffer(L_CAL_SWAP, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
+
+    lcd->WriteScreen(-1);
+
+    while (interface->CheckButtons(0, 0) != 0) {
+    }
+
+    while (true) {
+        if (interface->CheckButtons(0, 0) == -1) {
+            // print message to LCD
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            break;
+        }
+        else if (interface->CheckButtons(0, 0) == 1) {
+            // Adjust maximum correction
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_SWAP_AD, 3);
+
+            if (implement->GetSide()) {
+                lcd->WriteBuffer('L', 3, 16);
+            }
+            else {
+                lcd->WriteBuffer('R', 3, 16);
+            }
+
+            while (interface->CheckButtons(0, 0) != 0) {
+            }
+
+            while (true) {
+                lcd->WriteScreen(1);
+                interface->CheckButtons(0, 255);
+
+                if (interface->GetButtons() == 1) {
+                    implement->SetSwap(true);
+                }
+                else if (interface->GetButtons() == -1) {
+                    implement->SetSwap(false);
+                }
+                else if (interface->GetButtons() == 2) {
+                    break;
+                }
+
+                if (implement->GetSide()) {
+                    lcd->WriteBuffer('L', 3, 16);
+                }
+                else {
+                    lcd->WriteBuffer('R', 3, 16);
+                }
+            }
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            if (implement->GetSide()) {
+                lcd->WriteBuffer('L', 3, 16);
+            }
+            else {
+                lcd->WriteBuffer('R', 3, 16);
+            }
+
+            lcd->WriteScreen(-1);
+
+            break;
+        }
+    }
+    delay(1000);
+
+    // ---------------------
+    // Hitch signal inversion
+    // ---------------------
+    lcd->WriteBuffer(L_CAL_INVERSION, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
+
+    lcd->WriteScreen(-1);
+
+    while (interface->CheckButtons(0, 0) != 0) {
+    }
+
+    while (true) {
+        if (interface->CheckButtons(0, 0) == -1) {
+            // print message to LCD
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            break;
+        }
+        else if (interface->CheckButtons(0, 0) == 1) {
+            // Hitch signal inverted: yes / no
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+
+            lcd->WriteScreen(-1);
+
+            temp = tractor->GetInversion();
+
+            while (true) {
+                lcd->WriteScreen(1);
+                interface->CheckButtons(0, 255);
+
+                if (interface->GetButtons() == 1) {
+                    temp = 1;
+                }
+                else if (interface->GetButtons() == -1) {
+                    temp = 0;
+                }
+                else if (interface->GetButtons() == 2) {
+                    break;
+                }
+
+                lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
+            }
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            if (temp) {
+                tractor->SetInversion(true);
+            }
+            else {
+                tractor->SetInversion(false);
+            }
+
+            lcd->WriteScreen(-1);
+
+            break;
+        }
+    }
+    delay(1000);
+
+    // ------------
+    // Bypass valve
+    // ------------
+    lcd->WriteBuffer(L_CAL_BYPASS, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
+
+    lcd->WriteScreen(-1);
+
+    while (interface->CheckButtons(0, 0) != 0) {
+    }
+
+    while (true) {
+        if (interface->CheckButtons(0, 0) == -1) {
+            // print message to LCD
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            break;
+        }
+        else if (interface->CheckButtons(0, 0) == 1) {
+            // Bypass valve fitted: yes / no
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(implement->GetBypass() ? L_CAL_YES : L_CAL_NO, 3);
+
+            lcd->WriteScreen(-1);
+
+            temp = implement->GetBypass();
+
+            while (true) {
+                lcd->WriteScreen(1);
+                interface->CheckButtons(0, 255);
+
+                if (interface->GetButtons() == 1) {
+                    temp = 1;
+                }
+                else if (interface->GetButtons() == -1) {
+                    temp = 0;
+                }
+                else if (interface->GetButtons() == 2) {
+                    break;
+                }
+
+                lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
+            }
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            implement->SetBypass(temp != 0);
+
+            lcd->WriteScreen(-1);
+
+            break;
+        }
+    }
+    delay(1000);
+
     // ---------------
     // Adjust deadband
     // ---------------
@@ -526,266 +726,6 @@ FLASHMEM void CalibrationPlough::Calibrate() {
     }
     delay(1000);
 
-    // -----------------
-    // Adjust ploughside
-    // -----------------
-    lcd->WriteBuffer(L_CAL_SWAP, 0);
-    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust maximum correction
-            lcd->WriteBuffer(L_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L_CAL_ENTER, 2);
-            lcd->WriteBuffer(L_CAL_SWAP_AD, 3);
-
-            if (implement->GetSide()) {
-                lcd->WriteBuffer('L', 3, 16);
-            }
-            else {
-                lcd->WriteBuffer('R', 3, 16);
-            }
-
-            while (interface->CheckButtons(0, 0) != 0) {
-            }
-
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    implement->SetSwap(true);
-                }
-                else if (interface->GetButtons() == -1) {
-                    implement->SetSwap(false);
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                if (implement->GetSide()) {
-                    lcd->WriteBuffer('L', 3, 16);
-                }
-                else {
-                    lcd->WriteBuffer('R', 3, 16);
-                }
-            }
-            lcd->WriteBuffer(L_CAL_DONE, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            if (implement->GetSide()) {
-                lcd->WriteBuffer('L', 3, 16);
-            }
-            else {
-                lcd->WriteBuffer('R', 3, 16);
-            }
-
-            lcd->WriteScreen(-1);
-
-            break;
-        }
-    }
-    delay(1000);
-
-    // ------------
-    // Bypass valve
-    // ------------
-    lcd->WriteBuffer(L_CAL_BYPASS, 0);
-    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Bypass valve fitted: yes / no
-            lcd->WriteBuffer(L_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L_CAL_ENTER, 2);
-            lcd->WriteBuffer(implement->GetBypass() ? L_CAL_YES : L_CAL_NO, 3);
-
-            lcd->WriteScreen(-1);
-
-            temp = implement->GetBypass();
-
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    temp = 1;
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp = 0;
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
-            }
-            lcd->WriteBuffer(L_CAL_DONE, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            implement->SetBypass(temp != 0);
-
-            lcd->WriteScreen(-1);
-
-            break;
-        }
-    }
-    delay(1000);
-
-    // ----------
-    // RTK ident
-    // ----------
-    lcd->WriteBuffer(L_CAL_QUAL, 0);
-    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Setting sim mode
-            lcd->WriteBuffer(L_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L_CAL_ENTER, 2);
-
-            lcd->WriteScreen(-1);
-
-            temp = guidance->GetRtkQuality();
-
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    temp = 4;
-                    guidance->SetRtkQuality(4);
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp = 2;
-                    guidance->SetRtkQuality(2);
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                lcd->WriteBuffer(temp + '0', 3, 16);
-
-            }
-            lcd->WriteBuffer(L_CAL_DONE, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-
-            break;
-        }
-    }
-    delay(1000);
-
-    // ---------------------
-    // Hitch signal inversion
-    // ---------------------
-    lcd->WriteBuffer(L_CAL_INVERSION, 0);
-    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Hitch signal inverted: yes / no
-            lcd->WriteBuffer(L_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L_CAL_ENTER, 2);
-
-            lcd->WriteScreen(-1);
-
-            temp = tractor->GetInversion();
-
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    temp = 1;
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp = 0;
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
-            }
-            lcd->WriteBuffer(L_CAL_DONE, 1);
-            lcd->WriteBuffer(L_BLANK, 2);
-
-            if (temp) {
-                tractor->SetInversion(true);
-            }
-            else {
-                tractor->SetInversion(false);
-            }
-
-            lcd->WriteScreen(-1);
-
-            break;
-        }
-    }
-    delay(1000);
-
 #ifdef ISOBUS
     // ----------------------------------------------------
     // Preferred VT (#255): 0 = none, else the VT number the
@@ -848,10 +788,10 @@ FLASHMEM void CalibrationPlough::Calibrate() {
     delay(1000);
 #endif
 
-    // -----------------------
-    // Adjust program
-    // -----------------------
-    lcd->WriteBuffer(L_CAL_PROG, 0);
+    // ----------
+    // RTK ident
+    // ----------
+    lcd->WriteBuffer(L_CAL_QUAL, 0);
     lcd->WriteBuffer(L_CAL_ACCEPT, 1);
     lcd->WriteBuffer(L_CAL_DECLINE, 2);
     lcd->WriteBuffer(L_BLANK, 3);
@@ -871,69 +811,38 @@ FLASHMEM void CalibrationPlough::Calibrate() {
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust amount of shares
+            // Setting sim mode
             lcd->WriteBuffer(L_CAL_ADJUST, 1);
             lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
-            temp = 2;
+            temp = guidance->GetRtkQuality();
 
-            while (interface->CheckButtons(0, 0) != 0) {
-            }
-
-            // Adjust loop
             while (true) {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
                 if (interface->GetButtons() == 1) {
-                    temp++;
-                    if (temp > 8) {
-                        temp = 8;
-                    }
+                    temp = 4;
+                    guidance->SetRtkQuality(4);
                 }
                 else if (interface->GetButtons() == -1) {
-                    temp--;
-                    if (temp < 2) {
-                        temp = 2;
-                    }
+                    temp = 2;
+                    guidance->SetRtkQuality(2);
                 }
                 else if (interface->GetButtons() == 2) {
                     break;
                 }
 
-                // Write to screen
-                switch (temp) {
-                    case 2:
-                        lcd->WriteBuffer(L_CAL_PROG_AD2, 3);
-                        break;
-                    case 3:
-                        lcd->WriteBuffer(L_CAL_PROG_AD3, 3);
-                        break;
-                    case 4:
-                        lcd->WriteBuffer(L_CAL_PROG_AD4, 3);
-                        break;
-                    case 5:
-                        lcd->WriteBuffer(L_CAL_PROG_AD5, 3);
-                        break;
-                    case 6:
-                        lcd->WriteBuffer(L_CAL_PROG_AD6, 3);
-                        break;
-                    case 7:
-                        lcd->WriteBuffer(L_CAL_PROG_AD7, 3);
-                        break;
-                    case 8:
-                        lcd->WriteBuffer(L_CAL_PROG_AD8, 3);
-                        break;
-                }
+                lcd->WriteBuffer(temp + '0', 3, 16);
+
             }
             lcd->WriteBuffer(L_CAL_DONE, 1);
             lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
 
-            EEPROM.write(1, temp);
             break;
         }
     }
