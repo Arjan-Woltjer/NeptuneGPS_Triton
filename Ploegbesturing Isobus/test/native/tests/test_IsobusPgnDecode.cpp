@@ -839,6 +839,9 @@ test(IsobusPgnDecode, allImplementStop_shortFrame_lengthNotOk) {
 // Frames from upload sessions 56 and 57 (sessions 16 and 17, InCommand 1200 display
 // function 0xF5), times CEST. The XTE is committed whenever byte 7 = 4, engaged or
 // not (owner's decisions 2026-10-13 and 2026-10-16).
+// "Right"/"left" below is the side the 1200 shows (byte 6 bit 7 / bit 6). The XTE has
+// the opposite sign: the 1200's side is the direction to steer, so "right" = the
+// vehicle is left of the line = negative, as in the John Deere decoder (#252).
 
 // Session 16, 20:57:30.072, by hand 90 cm right of the line, autosteer NOT engaged,
 // on 2L (byte 2 = 3, byte 6 bit 4).
@@ -850,7 +853,7 @@ test(IsobusPgnDecode, lightbarXte_pass2NotEngaged_commits) {
     assertTrue(r.hasPass);
     assertEqual((int)r.pass, 2);
     assertTrue(r.passLeftOfAbLine);
-    assertEqual(r.xteHundredthsMeter, 90);
+    assertEqual(r.xteHundredthsMeter, -90);
 }
 
 // 20:53:14.134, the engage itself: byte 6 bit 1 set, 114 cm right.
@@ -859,7 +862,7 @@ test(IsobusPgnDecode, lightbarXte_engageIsByte6Bit1) {
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
     assertTrue(r.engaged);
-    assertEqual(r.xteHundredthsMeter, 114);
+    assertEqual(r.xteHundredthsMeter, -114);
 }
 
 // 20:52:53.740, 137 cm left (byte 6 bit 6), not engaged.
@@ -869,7 +872,7 @@ test(IsobusPgnDecode, lightbarXte_leftIsByte6Bit6) {
     assertTrue(r.valid);
     assertTrue(r.leftOfLine);
     assertFalse(r.rightOfLine);
-    assertEqual(r.xteHundredthsMeter, -137);
+    assertEqual(r.xteHundredthsMeter, 137);
 }
 
 // Session 16, 20:59:58.040, onto 1L after the headland turn, 131 cm right.
@@ -879,7 +882,7 @@ test(IsobusPgnDecode, lightbarXte_pass1Left_commits) {
     assertTrue(r.valid);
     assertEqual((int)r.pass, 1);
     assertTrue(r.passLeftOfAbLine);
-    assertEqual(r.xteHundredthsMeter, 131);
+    assertEqual(r.xteHundredthsMeter, -131);
 }
 
 // 20:53:36.331, exactly on the line: neither side bit, 0 cm, engaged.
@@ -925,7 +928,7 @@ test(IsobusPgnDecode, lightbarXte_abLineEngaged_commits) {
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
     assertTrue(r.engaged);
-    assertEqual(r.xteHundredthsMeter, 34);
+    assertEqual(r.xteHundredthsMeter, -34);
     assertTrue(r.hasPass);
     assertEqual((int)r.pass, 0);
     assertFalse(r.passLeftOfAbLine);
@@ -945,7 +948,7 @@ test(IsobusPgnDecode, lightbarXte_log42AbLine_commits) {
     uint8_t d[8] = { 0x94, 0x00, 0x01, 0x00, 127, 0x00, 0xA1, 0x04 };
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, 148);
+    assertEqual(r.xteHundredthsMeter, -148);
 }
 
 // 09:28:31.861, overshooting onto 3L (byte 2 = 4), 2 cm left.
@@ -953,7 +956,7 @@ test(IsobusPgnDecode, lightbarXte_pass3Left_commits) {
     uint8_t d[8] = { 0x02, 0x00, 0x04, 0x00, 0x68, 0x00, 0x51, 0x04 };
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, -2);
+    assertEqual(r.xteHundredthsMeter, 2);
     assertEqual((int)r.pass, 3);
     assertTrue(r.passLeftOfAbLine);
 }
@@ -964,13 +967,13 @@ test(IsobusPgnDecode, lightbarXte_pass1RightAndLeft_commit) {
     uint8_t right[8] = { 0x67, 0x00, 0x02, 0x00, 0x98, 0x00, 0xA1, 0x04 };
     auto r = DecodeXteAgLeaderLightbar(right, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, 103);
+    assertEqual(r.xteHundredthsMeter, -103);
     assertEqual((int)r.pass, 1);
     assertFalse(r.passLeftOfAbLine);
     uint8_t left[8] = { 0x01, 0x00, 0x02, 0x00, 0x95, 0x00, 0x51, 0x04 };
     auto l = DecodeXteAgLeaderLightbar(left, 8);
     assertTrue(l.valid);
-    assertEqual(l.xteHundredthsMeter, -1);
+    assertEqual(l.xteHundredthsMeter, 1);
     assertEqual((int)l.pass, 1);
     assertTrue(l.passLeftOfAbLine);
 }
@@ -981,7 +984,7 @@ test(IsobusPgnDecode, lightbarXte_pass10_commits) {
     uint8_t d[8] = { 0x29, 0x00, 0x0B, 0x00, 0xD7, 0x00, 0x61, 0x04 };
     auto r = DecodeXteAgLeaderLightbar(d, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, -41);
+    assertEqual(r.xteHundredthsMeter, 41);
     assertEqual((int)r.pass, 10);
     assertFalse(r.passLeftOfAbLine);
 }

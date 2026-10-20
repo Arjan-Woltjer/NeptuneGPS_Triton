@@ -128,9 +128,9 @@ struct IsobusVtInterfaceTestAccess {
     }
 
     static void ResetPendingKeys(IsobusVtInterface& vt) {
-        vt.pendingWiderPress     = false;
-        vt.pendingNarrowerPress  = false;
         vt.pendingCalibratePress = false;
+        vt.widerHeld             = false;
+        vt.narrowerHeld          = false;
     }
 };
 }  // namespace triton
@@ -303,61 +303,89 @@ test(IsobusVtInterface, vtStatus_ageIsZeroBeforeTheFirstMessage) {
 // Soft-key handling
 // ---------------------------------------------------------------------------
 
-test(IsobusVtInterface, key_widerReleaseSetsAConsumeOncePress) {
+// Wider/Narrower are held levels (#245): the VT sends press, then still-held
+// about every 200 ms (session 19: CNH VT 194-206 ms), then release. Held from
+// press to release, they behave exactly like the cab buttons in every mode.
+void KeyCode(std::uint16_t objectId, isobus::VirtualTerminalClient::KeyActivationCode code) {
+    IsobusVtInterfaceTestAccess::Key(Fixture(), objectId, code);
+}
+const auto kPressed   = isobus::VirtualTerminalClient::KeyActivationCode::ButtonPressedOrLatched;
+const auto kStillHeld = isobus::VirtualTerminalClient::KeyActivationCode::ButtonStillHeld;
+const auto kReleased  = isobus::VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased;
+const auto kAborted   = isobus::VirtualTerminalClient::KeyActivationCode::ButtonPressAborted;
+
+test(IsobusVtInterface, key_widerIsHeldFromPressToRelease) {
     Reset();
-    Release(Key_Wider);
-    assertTrue(Fixture().ConsumeWiderPress());
-    // Consume-once: main.cpp's loop() calls this every iteration, and a flag
-    // that stayed set would adjust the plough on every pass instead of once
-    // per tap.
-    assertFalse(Fixture().ConsumeWiderPress());
+    KeyCode(Key_Wider, kPressed);
+    assertTrue(Fixture().IsWiderHeld());
+    assertTrue(Fixture().IsWiderHeld());                 // a level, read every loop
+    millisValue(200);
+    KeyCode(Key_Wider, kStillHeld);
+    assertTrue(Fixture().IsWiderHeld());
+    millisValue(400);
+    KeyCode(Key_Wider, kReleased);
+    assertFalse(Fixture().IsWiderHeld());
     assertTrue(vtDebug.Contains("VT: Wider pressed"));
+    assertTrue(vtDebug.Contains("VT: Wider released"));
 }
 
-test(IsobusVtInterface, key_narrowerAndCalibrateAreIndependent) {
+test(IsobusVtInterface, key_narrowerIsHeldFromPressToRelease) {
     Reset();
-    Release(Key_Narrower);
-    assertFalse(Fixture().ConsumeWiderPress());
+    KeyCode(Key_Narrower, kPressed);
+    assertTrue(Fixture().IsNarrowerHeld());
+    assertFalse(Fixture().IsWiderHeld());
+    KeyCode(Key_Narrower, kReleased);
+    assertFalse(Fixture().IsNarrowerHeld());
+}
+
+test(IsobusVtInterface, key_abortedPressReleasesTheKey) {
+    Reset();
+    KeyCode(Key_Wider, kPressed);
+    KeyCode(Key_Wider, kAborted);                        // finger slid off the key
+    assertFalse(Fixture().IsWiderHeld());
+}
+
+// A lost release must not keep a valve driving: without a still-held repeat
+// for the timeout, the key counts as released.
+test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
+    Reset();
+    KeyCode(Key_Wider, kPressed);
+    millisValue(IsobusVtInterface::kSoftKeyHeldTimeoutMs);
+    assertTrue(Fixture().IsWiderHeld());
+    millisValue(IsobusVtInterface::kSoftKeyHeldTimeoutMs + 1);
+    assertFalse(Fixture().IsWiderHeld());
+    KeyCode(Key_Wider, kStillHeld);                      // the VT is still reporting it
+    assertTrue(Fixture().IsWiderHeld());
+    millisValue(0);
+}
+
+// A still-held repeat without the press before it (a lost press) counts as held.
+test(IsobusVtInterface, key_stillHeldWithoutPressCountsAsHeld) {
+    Reset();
+    KeyCode(Key_Narrower, kStillHeld);
+    assertTrue(Fixture().IsNarrowerHeld());
+}
+
+// Calibrate stays a single tap, acting on release: it enters a blocking wizard.
+test(IsobusVtInterface, key_calibrateActsOnReleaseOnly) {
+    Reset();
+    KeyCode(Key_Calibrate, kPressed);
+    KeyCode(Key_Calibrate, kStillHeld);
     assertFalse(Fixture().ConsumeCalibratePress());
-    assertTrue(Fixture().ConsumeNarrowerPress());
-
     Release(Key_Calibrate);
-    assertFalse(Fixture().ConsumeWiderPress());
-    assertFalse(Fixture().ConsumeNarrowerPress());
     assertTrue(Fixture().ConsumeCalibratePress());
+    assertFalse(Fixture().ConsumeCalibratePress());       // consume-once
+    assertFalse(Fixture().IsWiderHeld());
+    assertFalse(Fixture().IsNarrowerHeld());
+    assertTrue(vtDebug.Contains("VT: Calibrate pressed"));
 }
 
-test(IsobusVtInterface, key_actsOnReleaseOnly) {
-    Reset();
-    // A VT sends press, then ButtonStillHeld cyclically while the finger is
-    // down, then release. Acting on anything but release would turn one tap
-    // into a stream of adjustments.
-    IsobusVtInterfaceTestAccess::Key(
-        Fixture(), Key_Wider,
-        isobus::VirtualTerminalClient::KeyActivationCode::ButtonPressedOrLatched);
-    IsobusVtInterfaceTestAccess::Key(
-        Fixture(), Key_Wider,
-        isobus::VirtualTerminalClient::KeyActivationCode::ButtonStillHeld);
-    IsobusVtInterfaceTestAccess::Key(
-        Fixture(), Key_Wider,
-        isobus::VirtualTerminalClient::KeyActivationCode::ButtonStillHeld);
-    assertFalse(Fixture().ConsumeWiderPress());
-
-    Release(Key_Wider);
-    assertTrue(Fixture().ConsumeWiderPress());
-}
-
-test(IsobusVtInterface, key_anAbortedPressIsNotAPress) {
+test(IsobusVtInterface, key_anAbortedCalibrateIsNotAPress) {
     Reset();
     // The operator put a finger on the key and slid off it. The VT reports
-    // ButtonPressAborted instead of a release, and nothing must move -- which
-    // matters most for Calibrate, a single tap that enters a blocking wizard.
-    IsobusVtInterfaceTestAccess::Key(
-        Fixture(), Key_Calibrate,
-        isobus::VirtualTerminalClient::KeyActivationCode::ButtonPressedOrLatched);
-    IsobusVtInterfaceTestAccess::Key(
-        Fixture(), Key_Calibrate,
-        isobus::VirtualTerminalClient::KeyActivationCode::ButtonPressAborted);
+    // ButtonPressAborted instead of a release, and the wizard must not start.
+    KeyCode(Key_Calibrate, kPressed);
+    KeyCode(Key_Calibrate, kAborted);
     assertFalse(Fixture().ConsumeCalibratePress());
 }
 
@@ -366,9 +394,10 @@ test(IsobusVtInterface, key_autoIsLoggedButNotWired) {
     // InterfacePlough's AUTO mode is derived from GPS and hitch state, not
     // user-settable, so this key has no control target by design -- see the
     // class header.
+    KeyCode(Key_Auto, kPressed);
     Release(Key_Auto);
-    assertFalse(Fixture().ConsumeWiderPress());
-    assertFalse(Fixture().ConsumeNarrowerPress());
+    assertFalse(Fixture().IsWiderHeld());
+    assertFalse(Fixture().IsNarrowerHeld());
     assertFalse(Fixture().ConsumeCalibratePress());
     assertTrue(vtDebug.Contains("VT: Auto pressed"));
 }
@@ -377,31 +406,23 @@ test(IsobusVtInterface, key_unknownObjectIdIsIgnored) {
     Reset();
     // Other objects in the pool raise button events too -- the data mask, the
     // numeric fields. None of them mean anything here.
-    Release(Plough_DataMask);
-    Release(Out_Position);
-    Release(0xFFFF);
-    assertFalse(Fixture().ConsumeWiderPress());
-    assertFalse(Fixture().ConsumeNarrowerPress());
+    KeyCode(Plough_DataMask, kPressed);
+    KeyCode(Out_Position, kPressed);
+    KeyCode(0xFFFF, kPressed);
+    assertFalse(Fixture().IsWiderHeld());
+    assertFalse(Fixture().IsNarrowerHeld());
     assertFalse(Fixture().ConsumeCalibratePress());
 }
 
-test(IsobusVtInterface, key_rearmsAfterBeingConsumed) {
+test(IsobusVtInterface, key_widerAndNarrowerAreIndependent) {
     Reset();
-    Release(Key_Wider);
-    assertTrue(Fixture().ConsumeWiderPress());
-    Release(Key_Wider);
-    assertTrue(Fixture().ConsumeWiderPress());
-    assertFalse(Fixture().ConsumeWiderPress());
-}
-
-test(IsobusVtInterface, key_allThreeCanBePendingAtOnce) {
-    Reset();
-    Release(Key_Wider);
-    Release(Key_Narrower);
-    Release(Key_Calibrate);
-    assertTrue(Fixture().ConsumeWiderPress());
-    assertTrue(Fixture().ConsumeNarrowerPress());
-    assertTrue(Fixture().ConsumeCalibratePress());
+    KeyCode(Key_Wider, kPressed);
+    KeyCode(Key_Narrower, kPressed);
+    assertTrue(Fixture().IsWiderHeld());
+    assertTrue(Fixture().IsNarrowerHeld());
+    KeyCode(Key_Wider, kReleased);
+    assertFalse(Fixture().IsWiderHeld());
+    assertTrue(Fixture().IsNarrowerHeld());
 }
 
 // ---------------------------------------------------------------------------
