@@ -145,8 +145,12 @@ public:
     // ----------------------------------------------------------------
     // public inline member functions implemented in ImplementPlough.hpp
     // ----------------------------------------------------------------
+    // Decline: everything back as stored, the width included, since a share
+    // change may have reset it (#238).
     inline boolean ResetCalibration() {
-        return readCalibrationData();
+        const boolean found = readCalibrationData();
+        readOffset();
+        return found;
     }
 
     inline void CommitCalibration() {
@@ -226,7 +230,9 @@ public:
 
     // The width's range depends on the number of shares, so a width the new
     // range doesn't hold goes to the middle, as readOffset() does at boot
-    // (#238). Not written: readOffset() gives the same value after a reboot.
+    // (#238). The wizard's store writes it with the shares (writeCalibrationData);
+    // without that, 4 -> 10 -> 4 shares came back after a restart with the old
+    // width, valid again on 4 shares (bench 2026-10-20).
     inline void SetShares(byte value) {
         shares = value;
         if (offset > shares * 60 || offset < shares * 20) {
