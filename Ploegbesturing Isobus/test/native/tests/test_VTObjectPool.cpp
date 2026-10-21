@@ -18,14 +18,15 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// Standard headers first: Arduino.h, which the plough headers pull in,
+// defines min/max macros that break GCC's.
+#include <map>
 #include <vector>
 
 #include <AUnit.h>
 #include "isobus/VTImages.hpp"
 #include "isobus/VTObjectPool.hpp"
 #include "calibration/PloughSettings.hpp"
-
-#include <map>
 
 using namespace aunit;
 using namespace triton;
