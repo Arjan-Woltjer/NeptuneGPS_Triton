@@ -51,16 +51,41 @@
 #else
 #include "InterfaceGuidance.hpp"
 #include "SerialGuidanceChannel.hpp"
-#ifdef CAN_ACAN
-// Teensy 3.2 ([env:teensy32_can]): the full ISOBUS build does not fit the
-// 3.2 (341 KB flash / 146 KB RAM against 256 / 64), and AgIsoStack's
-// FlexCAN plugin is Teensy 4 only. Instead the bus is read the way
-// ploegbesturing v1.20-v1.31 read it: pierremolinaro's ACAN library on the
-// 3.2's CAN0, acceptance filters for the guidance messages, and every
-// matching frame handed to CanFrameGuidanceChannel. Listen-only in effect:
-// no address claim, no VT, no TC.
-#include <ACAN.h>
+#if defined(CAN_ACAN) || defined(CAN_ACAN_T4)
+// Plain CAN, no ISOBUS stack: the bus is read the way ploegbesturing
+// v1.20-v1.31 read it -- acceptance filters for the guidance messages, and
+// every matching frame handed to CanFrameGuidanceChannel. Listen-only in
+// effect: no address claim, no VT, no TC.
+//  - Teensy 3.2 ([env:teensy32_can], -D CAN_ACAN): the full ISOBUS build does
+//    not fit the 3.2 (341 KB flash / 146 KB RAM against 256 / 64), and
+//    AgIsoStack's FlexCAN plugin is Teensy 4 only. pierremolinaro's ACAN on
+//    the 3.2's CAN0.
+//  - Teensy 4.1 / 4.0 ([env:teensy41_can], [env:teensy40_can], -D
+//    CAN_ACAN_T4): ACAN_T4, its Teensy 4 successor, on the FlexCAN the board
+//    wires to its transceiver (ISOBUS_CAN_CHANNEL, ConfigPlough.hpp). What
+//    the regular Ploegbesturing's build does, on the board's own CAN pins.
+#define PLAIN_CAN
 #include "CanFrameGuidanceChannel.hpp"
+#endif
+#ifdef CAN_ACAN
+#include <ACAN.h>
+#define GPlainCan ACAN::can0
+typedef ACANSettings GPlainCanSettings;
+#endif
+#ifdef CAN_ACAN_T4
+#include <ACAN_T4.h>
+#ifndef ISOBUS_CAN_CHANNEL
+// An undefined macro reads as 0 in #if: every board would silently get FLEXCAN1.
+#error "ISOBUS_CAN_CHANNEL undefined: config/ConfigPlough.hpp must be included before this point"
+#endif
+#if ISOBUS_CAN_CHANNEL == 0
+#define GPlainCan ACAN_T4::can1   // FLEXCAN1: pins 22 TX / 23 RX
+#elif ISOBUS_CAN_CHANNEL == 1
+#define GPlainCan ACAN_T4::can2   // FLEXCAN2: pins 1 TX / 0 RX
+#else
+#define GPlainCan ACAN_T4::can3   // FLEXCAN3: pins 31 TX / 30 RX
+#endif
+typedef ACAN_T4_Settings GPlainCanSettings;
 #endif
 #endif
 
@@ -107,8 +132,8 @@ static triton::CanReceiveQueueStats GReadCanReceiveQueueStats() {
 #endif
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
-#ifdef CAN_ACAN
-// The receiver on the UART and the CAN frames ACAN hands GHandleCanMessage()
+#ifdef PLAIN_CAN
+// The receiver on the UART and the CAN frames ACAN/ACAN_T4 hands GHandleCanMessage()
 // both commit into gGuidance, as in the regular Ploegbesturing build.
 triton::CanFrameGuidanceChannel* gCanChannel;
 
@@ -263,7 +288,7 @@ void setup() {
             gCalibration->CommitGuidanceCalibration();
         }
     }
-#ifdef CAN_ACAN
+#ifdef PLAIN_CAN
     gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);
     GCanSetup();
 #endif
@@ -297,9 +322,9 @@ void loop() {
 
     // Pumps guidance data acquisition -- CAN I/O + PGN callbacks (ISOBUS) or
     // the UART sentence dispatcher (serial), feeding gGuidance either way.
-#ifdef CAN_ACAN
-    // Teensy 3.2: also the received CAN frames, through GHandleCanMessage().
-    ACAN::can0.dispatchReceivedMessage();
+#ifdef PLAIN_CAN
+    // Plain CAN: also the received CAN frames, through GHandleCanMessage().
+    GPlainCan.dispatchReceivedMessage();
 #endif
     gGuidanceChannel->Update();
 #ifdef ISOBUS
@@ -334,18 +359,19 @@ void loop() {
     }
 }
 
-#ifdef CAN_ACAN
-// ---------------------------------
-// Setup CAN-bus for ISOBUS (Teensy 3.2)
-// ---------------------------------
-// The ACAN original of the regular Ploegbesturing's ACAN_T4 setup: the same
-// four filters ploegbesturing v1.30/v1.31 used (StarFire position and
+#ifdef PLAIN_CAN
+// --------------------------------------------
+// Setup plain CAN (Teensy 3.2, Teensy 4.1 / 4.0)
+// --------------------------------------------
+// The regular Ploegbesturing's ACAN_T4 setup, for every plain-CAN board: the
+// same four filters ploegbesturing v1.30/v1.31 used (StarFire position and
 // speed, JD and Trimble/CNH XTE), plus the three standard NMEA2000 PGNs
 // CanFrameGuidanceChannel decodes, from any source address, so a receiver
-// that only broadcasts those is read too. ACAN::can0 is the 3.2's only
-// controller, on pins 3 TX / 4 RX.
+// that only broadcasts those is read too. GPlainCan is ACAN::can0 on the 3.2
+// (its only controller, pins 3 TX / 4 RX) and the board's FlexCAN through
+// ACAN_T4 on a Teensy 4 -- see the includes at the top.
 static void GCanSetup() {
-    ACANSettings settings(250UL * 1000UL);  // CAN bit rate 250 kbit/s
+    GPlainCanSettings settings(250UL * 1000UL);  // CAN bit rate 250 kbit/s
 
     const ACANPrimaryFilter primaryFilters[]{
         ACANPrimaryFilter(kData, kExtended, 0x00FFFFFF, 0x00FEF31C, GHandleCanMessage), // Position
@@ -357,7 +383,7 @@ static void GCanSetup() {
         ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F90300, GHandleCanMessage)  // 129283 cross track error
     };
 
-    const uint32_t errorCode = ACAN::can0.begin(settings, primaryFilters, 7);
+    const uint32_t errorCode = GPlainCan.begin(settings, primaryFilters, 7);
 
     if (errorCode == 0) {
         gSerialDebug->print("Bit Rate prescaler: ");
