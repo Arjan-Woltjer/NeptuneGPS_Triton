@@ -239,6 +239,27 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
     serialDebug->print("Bus load (ch0): ");
     serialDebug->print(busload, 1);
     serialDebug->println(" %");
+    // #248: a frame used to be lost whenever a loop pass outlasted a burst
+    // on the bus. The driver's receive queue shows how close it came to full.
+    serialDebug->print("CAN receive queue: ");
+    if (receiveQueueStats == nullptr || !receiveQueueStats().available) {
+        serialDebug->println("not on this build");
+    }
+    else {
+        const CanReceiveQueueStats q = receiveQueueStats();
+        serialDebug->print("high water ");
+        serialDebug->print(q.highWater);
+        serialDebug->print(" of ");
+        serialDebug->print(q.size);
+        serialDebug->print(", dropped ");
+        serialDebug->println(q.overflows);
+    }
+    serialDebug->print("Loop pass: longest ");
+    serialDebug->print(longestPassSinceDumpUs);
+    serialDebug->print(" us since the last dump, ");
+    serialDebug->print(longestPassUs);
+    serialDebug->println(" us since boot");
+    longestPassSinceDumpUs = 0;
 
     serialDebug->println("--- Message counters ---");
     serialDebug->print("  PGN 129025 Position NMEA2000: ");
