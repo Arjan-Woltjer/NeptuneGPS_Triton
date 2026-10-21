@@ -132,6 +132,20 @@ test(CanFrameGuidanceChannel, john_deere_other_selector_is_ignored) {
     assertEqual(g.GetXte(), -42);
 }
 
+// The InCommand's GNSS status (selector 0x51 from 0x80): byte 2 = 2 is RTK
+// fixed. The fix quality is committed, nothing else.
+test(CanFrameGuidanceChannel, agleader_gnss_status_sets_quality) {
+    GuidanceSource g;
+    CanFrameGuidanceChannel ch(&g);
+    const uint8_t fixed[8] = { 0x51, 0x03, 0x02, 0xFF, 0x0B, 0x05, 0x0A, 0xFF };
+    assertTrue(ch.Update(0x0CFFFF80, fixed, 8));
+    assertTrue(g.IsRtkQuality());
+    assertEqual(g.GetXteTimestamp(), (unsigned long)0);
+    const uint8_t converging[8] = { 0x51, 0x03, 0x01, 0xFF, 0x0A, 0x05, 0x08, 0xFF };
+    assertTrue(ch.Update(0x0CFFFF80, converging, 8));
+    assertFalse(g.IsRtkQuality());
+}
+
 test(CanFrameGuidanceChannel, john_deere_pgn_from_other_source_is_ignored) {
     GuidanceSource g;
     CanFrameGuidanceChannel ch(&g);
@@ -195,12 +209,18 @@ test(CanFrameGuidanceChannel, nmea2000_speed_and_course) {
     assertTrue(near(g.GetCourse(), 90.0f, 0.01f));
 }
 
-test(CanFrameGuidanceChannel, nmea2000_xte_without_quality) {
+// Plain CAN has no NMEA2000 quality message (129029 is a fast packet this path
+// does not reassemble), so an NMEA2000 XTE counts as RTK, as the Trimble XTE
+// always has (owner, #261). Freshly stamped, so the quality age gate holds
+// once these frames stop.
+test(CanFrameGuidanceChannel, nmea2000_xte_counts_as_rtk) {
     GuidanceSource g;
     CanFrameGuidanceChannel ch(&g);
-    g.SetQuality(4);
     const uint8_t d[6] = { 0, 0x00, 0x7B, 0x00, 0x00, 0x00 };   // 123 hundredths
+    millisValue(500);
     assertTrue(ch.Update(0x09F9031C, d, 6));
     assertEqual(g.GetXte(), 123);
-    assertEqual((int)g.GetQuality(), 4);   // this PGN carries none; the stored one stands
+    assertEqual((int)g.GetQuality(), 4);
+    assertEqual(g.GetQualityTimestamp(), (unsigned long)500);
+    millisValue(0);
 }

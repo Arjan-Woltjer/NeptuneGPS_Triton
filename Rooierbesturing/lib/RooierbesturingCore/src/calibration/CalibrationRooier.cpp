@@ -33,9 +33,9 @@ CalibrationRooier::CalibrationRooier(InterfaceI2CLCD* lcd, ImplementRooier* impl
 // -------------------------------------------------------------------------
 bool CalibrationRooier::adjustValue(const char* title, const char* prompt, int* value, int minValue, int maxValue) {
     lcd->WriteBuffer(title, 0);
-    lcd->WriteBuffer(L8_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L8_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L8_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -46,16 +46,16 @@ bool CalibrationRooier::adjustValue(const char* title, const char* prompt, int* 
         int buttons = interface->CheckButtons(0, 0);
 
         if (buttons == -1) {
-            lcd->WriteBuffer(L8_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L8_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             delay(1000);
             return false;
         }
         else if (buttons == 1) {
-            lcd->WriteBuffer(L8_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L8_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
             lcd->WriteBuffer(prompt, 3);
 
             lcd->WriteScreen(-1);
@@ -96,8 +96,8 @@ bool CalibrationRooier::adjustValue(const char* title, const char* prompt, int* 
 
             *value = temp;
 
-            lcd->WriteBuffer(L8_CAL_DONE, 1);
-            lcd->WriteBuffer(L8_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             delay(1000);
@@ -182,7 +182,7 @@ void CalibrationRooier::Calibrate() {
     // Skew calibration
     // ----------------
     int skew = implement->GetSkew();
-    if (adjustValue(L8_CAL_SKEW, L8_CAL_SKEW_AD, &skew, -30, 30)) {
+    if (adjustValue(L_CAL_SKEW, L_CAL_SKEW_AD, &skew, -30, 30)) {
         implement->SetSkew(skew);
     }
 
@@ -190,7 +190,7 @@ void CalibrationRooier::Calibrate() {
     // Margin calibration
     // -----------------
     int error = implement->GetError();
-    if (adjustValue(L8_CAL_MARGIN, L8_CAL_MARGIN_AD, &error, 0, 10)) {
+    if (adjustValue(L_CAL_MARGIN, L_CAL_MARGIN_AD, &error, 0, 10)) {
         implement->SetError(byte(error));
     }
 
@@ -198,12 +198,12 @@ void CalibrationRooier::Calibrate() {
     // Height calibration L, then R
     // ---------------------------
     for (int side = 0; side < 2; side++) {
-        const char* title = (side == 0) ? L8_CAL_POS_L : L8_CAL_POS_R;
+        const char* title = (side == 0) ? L_CAL_POS_L : L_CAL_POS_R;
 
         lcd->WriteBuffer(title, 0);
-        lcd->WriteBuffer(L8_CAL_ACCEPT, 1);
-        lcd->WriteBuffer(L8_CAL_DECLINE, 2);
-        lcd->WriteBuffer(L8_BLANK, 3);
+        lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+        lcd->WriteBuffer(L_CAL_DECLINE, 2);
+        lcd->WriteBuffer(L_BLANK, 3);
 
         lcd->WriteScreen(-1);
 
@@ -214,17 +214,17 @@ void CalibrationRooier::Calibrate() {
             int buttons = interface->CheckButtons(0, 0);
 
             if (buttons == -1) {
-                lcd->WriteBuffer(L8_CAL_DECLINED, 1);
-                lcd->WriteBuffer(L8_BLANK, 2);
+                lcd->WriteBuffer(L_CAL_DECLINED, 1);
+                lcd->WriteBuffer(L_BLANK, 2);
 
                 lcd->WriteScreen(-1);
                 delay(1000);
                 break;
             }
             else if (buttons == 1) {
-                lcd->WriteBuffer(L8_CAL_ADJUST, 1);
-                lcd->WriteBuffer(L8_CAL_ENTER, 2);
-                lcd->WriteBuffer(L8_CAL_POS_AD, 3);
+                lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                lcd->WriteBuffer(L_CAL_ENTER, 2);
+                lcd->WriteBuffer(L_CAL_POS_AD, 3);
 
                 lcd->WriteScreen(-1);
 
@@ -272,9 +272,9 @@ void CalibrationRooier::Calibrate() {
                     }
                 }
 
-                lcd->WriteBuffer(L8_CAL_DONE, 1);
-                lcd->WriteBuffer(L8_BLANK, 2);
-                lcd->WriteBuffer(L8_BLANK, 3);
+                lcd->WriteBuffer(L_CAL_DONE, 1);
+                lcd->WriteBuffer(L_BLANK, 2);
+                lcd->WriteBuffer(L_BLANK, 3);
 
                 lcd->WriteScreen(-1);
                 delay(1000);
@@ -287,17 +287,17 @@ void CalibrationRooier::Calibrate() {
     // PID gain adjust
     // ---------------
     int kp = implement->GetKP();
-    if (adjustValue(L8_CAL_KP, L8_CAL_KP_AD, &kp, 0, 255)) {
+    if (adjustValue(L_CAL_KP, L_CAL_KP_AD, &kp, 0, 255)) {
         implement->SetKP(byte(kp));
     }
 
     int ki = implement->GetKI();
-    if (adjustValue(L8_CAL_KI, L8_CAL_KI_AD, &ki, 0, 255)) {
+    if (adjustValue(L_CAL_KI, L_CAL_KI_AD, &ki, 0, 255)) {
         implement->SetKI(byte(ki));
     }
 
     int kd = implement->GetKD();
-    if (adjustValue(L8_CAL_KD, L8_CAL_KD_AD, &kd, 0, 255)) {
+    if (adjustValue(L_CAL_KD, L_CAL_KD_AD, &kd, 0, 255)) {
         implement->SetKD(byte(kd));
     }
 
@@ -305,12 +305,12 @@ void CalibrationRooier::Calibrate() {
     // PWM adjust
     // -----------
     int pwmMan = implement->GetPwmMan();
-    if (adjustValue(L8_CAL_PWM_M, L8_CAL_PWM_M_AD, &pwmMan, 0, 255)) {
+    if (adjustValue(L_CAL_PWM_M, L_CAL_PWM_M_AD, &pwmMan, 0, 255)) {
         implement->SetPwmMan(byte(pwmMan));
     }
 
     int pwmAuto = implement->GetPwmAuto();
-    if (adjustValue(L8_CAL_PWM_A, L8_CAL_PWM_A_AD, &pwmAuto, 0, 255)) {
+    if (adjustValue(L_CAL_PWM_A, L_CAL_PWM_A_AD, &pwmAuto, 0, 255)) {
         implement->SetPwmAuto(byte(pwmAuto));
     }
 
@@ -325,10 +325,10 @@ void CalibrationRooier::Calibrate() {
     // ----------------------
     // Store calibration data
     // ----------------------
-    lcd->WriteBuffer(L8_CAL_COMPLETE, 0);
-    lcd->WriteBuffer(L8_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L8_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L8_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -339,8 +339,8 @@ void CalibrationRooier::Calibrate() {
         int buttons = interface->CheckButtons(0, 0);
 
         if (buttons == -1) {
-            lcd->WriteBuffer(L8_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L8_CAL_NOSAVE, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_CAL_NOSAVE, 2);
 
             lcd->WriteScreen(-1);
 
@@ -353,8 +353,8 @@ void CalibrationRooier::Calibrate() {
             implement->CommitCalibration();
             tractor->CommitCalibration();
 
-            lcd->WriteBuffer(L8_CAL_DDONE, 1);
-            lcd->WriteBuffer(L8_CAL_SAVE, 2);
+            lcd->WriteBuffer(L_CAL_DDONE, 1);
+            lcd->WriteBuffer(L_CAL_SAVE, 2);
 
             lcd->WriteScreen(-1);
 

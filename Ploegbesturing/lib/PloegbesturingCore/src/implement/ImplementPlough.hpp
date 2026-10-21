@@ -22,6 +22,7 @@
 #include <EEPROM.h>
 
 #include "GuidanceSource.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementPlough.hpp"
 
@@ -44,6 +45,19 @@ static constexpr short int kDefaultPositionCalibration[3] = { 600, 461, 308 };
 static constexpr byte kLowestMaxCorrectionPerShareMm  = 25;
 static constexpr byte kHighestMaxCorrectionPerShareMm = 100;
 static constexpr byte kDefaultMaxCorrectionPerShareMm = 50;
+
+// Number of shares and deadband (cm): the calibration wizard adjusts within
+// these bounds and the boot load accepts exactly the same range.
+static constexpr byte kLowestShares    = 2;
+static constexpr byte kHighestShares   = 10;
+static constexpr byte kDefaultShares   = 4;
+static constexpr byte kLowestDeadband  = 2;
+static constexpr byte kHighestDeadband = 10;
+static constexpr byte kDefaultDeadband = 2;
+
+// The valves are switched, not proportional: a bang-bang control at full
+// duty, in manual and automatic alike.
+static constexpr byte kValvePwm = 255;
 
 class ImplementPlough {
 private:
@@ -72,28 +86,23 @@ private:
 
     // Variables concerning adjust loop
     short int setpoint;
-    byte      error;
+    byte      deadband;                // cm
     byte      maxCorrectionPerShare;   // mm (#163)
 
     short int offset;
-    byte      manPwm;
-    byte      autoPwm;
 
     // Variables for adjusting ploughside and amount of shares
     boolean swap;
     byte    shares;
 
+    // Bypass valve fitted: driven together with the narrower/wider valves
+    boolean bypass;
+
     // XTE
     short int xte;   // initialised in the constructor; see note there
 
-    // PID variables
-    byte kp;
-
-    // Timers for end shutoff
-    unsigned short int shutoffTime;
-    bool                shutoffWide;
-    bool                shutoffNarrow;
-    unsigned long       shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     Stream*         serialDebug;
@@ -109,11 +118,10 @@ private:
 
     void setSetpoint();
     void setOffset(short int correction);
+    void driveBypass(byte pwm);
 
     void readOffset();
 
-    void writeInt(short int x, uint16_t addr);
-    short int readInt(uint16_t addr);
 
     boolean readCalibrationData();
     void writeCalibrationData();
@@ -136,8 +144,12 @@ public:
     // ----------------------------------------------------------------
     // public inline member functions implemented in ImplementPlough.hpp
     // ----------------------------------------------------------------
+    // Decline: everything back as stored, the width included, since a share
+    // change may have reset it (#238).
     inline boolean ResetCalibration() {
-        return readCalibrationData();
+        const boolean found = readCalibrationData();
+        readOffset();
+        return found;
     }
 
     inline void CommitCalibration() {
@@ -194,26 +206,12 @@ public:
         return maxCorrectionPerShare * shares;
     }
 
-#ifdef PID_KP
-    inline short int GetKP() {
-        return kp;
+    inline byte GetDeadband() {
+        return deadband;
     }
-#endif
 
-#ifdef PWM_MAN
-    inline byte GetPwmMan() {
-        return manPwm;
-    }
-#endif
-
-#ifdef PWM_AUTO
-    inline byte GetPwmAuto() {
-        return autoPwm;
-    }
-#endif
-
-    inline byte GetError() {
-        return error;
+    inline bool GetBypass() {
+        return bypass;
     }
 
     // -------
@@ -229,38 +227,32 @@ public:
     }
 #endif
 
+    // The width's range depends on the number of shares, so a width the new
+    // range doesn't hold goes to the middle, as readOffset() does at boot
+    // (#238). The wizard's store writes it with the shares (writeCalibrationData);
+    // without that, 4 -> 10 -> 4 shares came back after a restart with the old
+    // width, valid again on 4 shares (bench 2026-10-20).
     inline void SetShares(byte value) {
         shares = value;
+        if (offset > shares * 60 || offset < shares * 20) {
+            offset = shares * 40;
+        }
     }
-
-#ifdef PID_KP
-    inline void SetKP(short int value) {
-        kp = value;
-    }
-#endif
-
-#ifdef PWM_MAN
-    inline void SetPwmMan(byte value) {
-        manPwm = value;
-    }
-#endif
-
-#ifdef PWM_AUTO
-    inline void SetPwmAuto(byte value) {
-        autoPwm = value;
-    }
-#endif
 
     inline void SetMaxCorrectionPerShare(byte value) {
         maxCorrectionPerShare = value;
     }
 
-    inline void SetError(byte value) {
-        error = value;
+    inline void SetDeadband(byte value) {
+        deadband = value;
     }
 
     inline void SetSwap(boolean value) {
         swap = value;
+    }
+
+    inline void SetBypass(boolean value) {
+        bypass = value;
     }
 };
 

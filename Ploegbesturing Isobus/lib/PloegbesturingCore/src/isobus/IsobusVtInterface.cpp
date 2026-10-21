@@ -71,6 +71,7 @@ IsobusVtInterface::IsobusVtInterface(Stream* serialDebug, ImplementPlough* imple
 // ----------------------------------------------------------------
 void IsobusVtInterface::Begin() {
     BuildObjectPool();
+    LoadPreferredVt();
 
     CANStackLogger::set_can_stack_logger_sink(&logger);
     // Bumped Warning -> Info 2026-09-05: at Warning, AgIsoStack's own [NM]
@@ -191,8 +192,20 @@ void IsobusVtInterface::Update() {
 // VT failover -- see VtFailoverPolicy.hpp for the field case and why a
 // request for address claim comes first.
 // ----------------------------------------------------------------
+// Bus load above this counts as traffic from other CFs (see updateFailover()).
+static constexpr float kOthersTrafficBusloadPercent = 1.0f;
+
 void IsobusVtInterface::updateFailover() {
     const unsigned long now = millis();
+    // Traffic from the others, for the policy's rejoin grace. Alone on the bus
+    // (session 18: unplugged, or on USB only) the estimate sits at 0.0-0.2 %
+    // from our own unacknowledged frames; a live ISOBUS is 12-19 %. A quiet
+    // bus below 1 % is still covered: every VT status counts as well
+    // (OnVtToEcuMessage). After a loop stall this is the first call again, so
+    // the stall shows up as a gap too.
+    if (CANNetworkManager::CANNetwork.get_estimated_busload(0) > kOthersTrafficBusloadPercent) {
+        failover.OnBusTraffic(now);
+    }
     const VtFailoverPolicy::Decision decision =
         failover.Evaluate(now, IsConnected(), GetPartnerAddress(), IsPartnerAddressValid());
 
@@ -232,11 +245,20 @@ void IsobusVtInterface::switchTo(std::uint8_t address) {
     }
     const NAME name = target->get_NAME();
 
-    serialDebug->print("VT: partner 0x");
-    serialDebug->print(GetPartnerAddress(), HEX);
-    serialDebug->print(" silent, VT at 0x");
-    serialDebug->print(address, HEX);
-    serialDebug->println(" alive -- switching to it");
+    if (address == failover.GetPreferredAddress()) {
+        serialDebug->print("VT: preferred VT ");
+        serialDebug->print(preferredVt);
+        serialDebug->print(" up at 0x");
+        serialDebug->print(address, HEX);
+        serialDebug->println(" -- moving to it");
+    }
+    else {
+        serialDebug->print("VT: partner 0x");
+        serialDebug->print(GetPartnerAddress(), HEX);
+        serialDebug->print(" silent, VT at 0x");
+        serialDebug->print(address, HEX);
+        serialDebug->println(" alive -- switching to it");
+    }
 
     // Pinned to that one VT, not just "a VT": with a function-code-only
     // filter the new partner would match the first VT in the table, which is
@@ -469,18 +491,69 @@ void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parent
     self->vtStatusMessageCount++;
     self->lastVtStatusMessageMs = millis();
     // Every VT's status, not only our partner's: the policy needs to know
-    // which other VT is alive.
+    // which other VT is alive. Traffic first, so the first status after a
+    // rejoin starts the grace before it can make its sender a candidate.
+    self->failover.OnBusTraffic(self->lastVtStatusMessageMs);
     self->failover.OnVtStatus(message.get_identifier().get_source_address(), self->lastVtStatusMessageMs);
+    self->notePreferredCandidate(message.get_identifier().get_source_address());
+}
+
+void IsobusVtInterface::LoadPreferredVt() {
+    preferredVt = ReadPreferredVt();
+    // Found again by function instance from the next VT status on.
+    failover.SetPreferredAddress(VtFailoverPolicy::kNoAddress);
+}
+
+// Called for every VT status: is its sender the preferred VT (#255)? A table
+// lookup per status, at 1 Hz per VT, instead of scanning every loop.
+void IsobusVtInterface::notePreferredCandidate(std::uint8_t source) {
+    if (preferredVt == 0) return;
+    const std::shared_ptr<ControlFunction> cf = CANNetworkManager::CANNetwork.get_control_function(0, source);
+    if (!cf) return;
+    const NAME name = cf->get_NAME();
+    const bool isVt = name.get_function_code() == static_cast<std::uint8_t>(NAME::Function::VirtualTerminal);
+    if (IsPreferredVt(isVt, name.get_function_instance(), preferredVt)) {
+        failover.SetPreferredAddress(source);
+    }
+    else if (failover.GetPreferredAddress() == source) {
+        failover.SetPreferredAddress(VtFailoverPolicy::kNoAddress);  // that address is another VT's now
+    }
+}
+
+bool IsobusVtInterface::IsWiderHeld() const {
+    return widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs;
+}
+
+bool IsobusVtInterface::IsNarrowerHeld() const {
+    return narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs;
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
-    if (event.keyEvent != VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased) return;
+    using Code = VirtualTerminalClient::KeyActivationCode;
 
-    // Wider/Narrower/Calibrate set a consume-once pending flag, picked up by
-    // main.cpp's loop() and passed into InterfacePlough::CheckButtons() --
-    // see this class's own header comment and the ConsumeXxxPress() accessors
-    // for the full rationale. Auto has no existing target (InterfacePlough's
-    // AUTO mode is derived, not user-settable) so stays log-only.
+    // Wider/Narrower: held from press (or a still-held repeat) until release
+    // or an aborted press, see IsWiderHeld() (#245).
+    if (event.objectID == Key_Wider || event.objectID == Key_Narrower) {
+        const bool wider = event.objectID == Key_Wider;
+        bool& held = wider ? widerHeld : narrowerHeld;
+        const bool down = event.keyEvent == Code::ButtonPressedOrLatched || event.keyEvent == Code::ButtonStillHeld;
+        if (event.keyEvent == Code::ButtonPressedOrLatched) {
+            serialDebug->println(wider ? "VT: Wider pressed" : "VT: Narrower pressed");
+        }
+        else if (!down && held) {
+            serialDebug->println(wider ? "VT: Wider released" : "VT: Narrower released");
+        }
+        held = down;
+        (wider ? widerEventMs : narrowerEventMs) = millis();
+        return;
+    }
+
+    if (event.keyEvent != Code::ButtonUnlatchedOrReleased) return;
+
+    // Calibrate sets a consume-once pending flag, picked up by main.cpp's
+    // loop() and passed into InterfacePlough::CheckButtons(). Auto has no
+    // existing target (InterfacePlough's AUTO mode is derived, not
+    // user-settable) so stays log-only.
     //
     // Calibrate is a heavier action than the other two and carries two real
     // caveats worth knowing before relying on it in the field:
@@ -501,8 +574,6 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
     //      therefore a "start it, then finish it at the cab display"
     //      affordance, not full VT-side calibration -- see GitHub issue #31.
     switch (event.objectID) {
-        case Key_Wider:     pendingWiderPress = true;     serialDebug->println("VT: Wider pressed");     break;
-        case Key_Narrower:  pendingNarrowerPress = true;  serialDebug->println("VT: Narrower pressed");  break;
         case Key_Calibrate: pendingCalibratePress = true; serialDebug->println("VT: Calibrate pressed"); break;
         case Key_Auto:      serialDebug->println("VT: Auto pressed (not wired to control)");             break;
         default: break;

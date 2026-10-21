@@ -17,6 +17,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ImplementScraper.hpp"
+#include "EepromStore.hpp"
+#include "EndShutoff.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -64,10 +67,7 @@ ImplementScraper::ImplementScraper(GuidanceSource* guidance) {
     setpoint = 0;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_5;
-    shutoffNarrow = false;
-    shutoffWide = false;
-    shutoffTimer = millis();
+    endShutoff.Begin(SHUTOFF_5, millis());
 
     // Update timer
     updateAge = millis();
@@ -251,50 +251,26 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     //---------------------------
     // Setpoint < actual position
     //---------------------------
-    if (actualPosition < setpoint - error && !shutoffNarrow) {
+    if (actualPosition < setpoint - error && !endShutoff.Latched(EndShutoff::kNarrower)) {
         analogWrite(OUTPUT_WIDE_5, 0);
         analogWrite(OUTPUT_NARROW_5, 255);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
         // End shutoff
-        if (actualPosition != lastPosition) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffWide) {
-            shutoffNarrow = false;
-            shutoffWide = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = true;
-            shutoffWide = false;
-        }
+        endShutoff.Moving(EndShutoff::kNarrower, actualPosition != lastPosition, millis());
     }
     //---------------------------
     // Setpoint > actual position
     //---------------------------
-    else if (actualPosition > setpoint + error && !shutoffWide) {
+    else if (actualPosition > setpoint + error && !endShutoff.Latched(EndShutoff::kWider)) {
         analogWrite(OUTPUT_WIDE_5, 255);
         analogWrite(OUTPUT_NARROW_5, 0);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
         // End shutoff
-        if (actualPosition != lastPosition) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffNarrow) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = false;
-            shutoffWide = true;
-        }
+        endShutoff.Moving(EndShutoff::kWider, actualPosition != lastPosition, millis());
     }
     //-----------------
     // Setpoint reached
@@ -303,7 +279,7 @@ void ImplementScraper::Adjust(byte mode, int direction) {
         Stop();
 
         // Reset shutoff timer
-        shutoffTimer = millis();
+        endShutoff.Stopped(millis());
     }
     lastPosition = actualPosition;
 #endif
@@ -326,35 +302,8 @@ int ImplementScraper::getActualPosition() {
     // Read analog input
     int readRaw = analogRead(POSITION_SENS_PIN_5);
     float actualPosition;
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > positionCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - positionCalibrationData[i - 1];
-    float b = positionCalibrationData[i] - positionCalibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading -- same
-    // degenerate-calibration guard already added to ImplementPlough/
-    // ImplementPlanter/ImplementSprayer. Dead today (NOSENS is always
-    // defined, so this function is never called), but this class of bug
-    // isn't worth leaving unguarded for whenever a sensored variant is
-    // revived.
-    if (b == 0.0f) {
-        actualPosition = d;
-    }
-    else {
-        actualPosition = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(positionCalibrationData, 3, readRaw);
+    actualPosition = Interpolation::Evaluate(positionCalibrationData, positionCalibrationPoints, i, readRaw);
 
     return actualPosition;
 }
@@ -434,7 +383,7 @@ void ImplementScraper::setOffset(int correction) {
 void ImplementScraper::readOffset() {
     if (EEPROM.read(148) < 255) {
         // Read offset (2 bytes)
-        offset = readInt(148);
+        offset = EepromStore::ReadInt16Le(148);
     }
     else {
         offset = 0;
@@ -463,18 +412,18 @@ void ImplementScraper::SetRefB() {
 // Method for reading Reference A
 // ------------------------------
 void ImplementScraper::readRefA() {
-    latRa = readFloat(150);
-    longRa = readFloat(154);
-    heightRa = readInt(158);
+    latRa = EepromStore::ReadFloat(150);
+    longRa = EepromStore::ReadFloat(154);
+    heightRa = EepromStore::ReadInt16Le(158);
 }
 
 // ------------------------------
 // Method for reading Reference B
 // ------------------------------
 void ImplementScraper::readRefB() {
-    latRb = readFloat(160);
-    longRb = readFloat(164);
-    heightRb = readInt(168);
+    latRb = EepromStore::ReadFloat(160);
+    longRb = EepromStore::ReadFloat(164);
+    heightRb = EepromStore::ReadInt16Le(168);
 }
 
 // ------------------------------
@@ -485,9 +434,9 @@ void ImplementScraper::setRef(float* lat, float* lon, short int* height, uint16_
     *lon = guidance->GetLongitude();
     *height = altitudeCm();
 
-    writeFloat(*lat, addr);
-    writeFloat(*lon, addr + 4);
-    writeInt(*height, addr + 8);
+    EepromStore::WriteFloat(addr, *lat);
+    EepromStore::WriteFloat(addr + 4, *lon);
+    EepromStore::WriteInt16Le(addr + 8, *height);
 
     // Set offset to 0
     setOffset(2);
@@ -522,7 +471,7 @@ bool ImplementScraper::readCalibrationData() {
 
         // Read from eeprom highbyte, then lowbyte, and combine into words
         for (int i = 0; i < 3; i++) {
-            positionCalibrationData[i] = readInt(130 + i * 2);
+            positionCalibrationData[i] = EepromStore::ReadInt16Le(130 + i * 2);
         }
 
 #ifdef PWM_MAN
@@ -559,7 +508,7 @@ bool ImplementScraper::readCalibrationData() {
 #endif
 
         // Read slope
-        slope = readInt(146);
+        slope = EepromStore::ReadInt16Le(146);
         if (slope > 99 || slope < -99) {
             slope = 0;
         }
@@ -639,7 +588,7 @@ void ImplementScraper::PrintCalibrationData() {
 void ImplementScraper::writeCalibrationData() {
     // Write each byte separately to the memory first the data then the points
     for (int i = 0; i < 3; i++) {
-        writeInt(positionCalibrationData[i], 130 + i * 2);
+        EepromStore::WriteInt16Le(130 + i * 2, positionCalibrationData[i]);
     }
 
     EEPROM.write(136, manPwm);   // 136
@@ -650,7 +599,7 @@ void ImplementScraper::writeCalibrationData() {
 #ifndef NOSENS
     EEPROM.write(144, maxCorrection);  // 144
 #endif
-    writeInt(slope, 146);  // 146
+    EepromStore::WriteInt16Le(146, slope);  // 146
 
 #ifdef DEBUG
     Serial.println("Calibration data written");
@@ -662,69 +611,11 @@ void ImplementScraper::writeCalibrationData() {
 // ---------------------------------------------
 void ImplementScraper::wipeCalibrationData() {
     // Wipe calibration data
-    for (int i = 1; i < 255; i++) {
-        EEPROM.write(i, 255);
-    }
+    EepromStore::Fill(1, 255, 255);
 
 #ifdef DEBUG
     Serial.println("Calibration data wiped");
 #endif
-}
-
-// -----------------------------------------
-// Method for reading float data from EEPROM
-// -----------------------------------------
-float ImplementScraper::readFloat(uint16_t addr) {
-    union {
-        byte b[4];
-        float f;
-    } data;
-    for (int i = 0; i < 4; i++) {
-        data.b[i] = EEPROM.read(addr + i);
-    }
-    return data.f;
-}
-
-// ---------------------------------------
-// Method for writing float data to EEPROM
-// ---------------------------------------
-void ImplementScraper::writeFloat(float x, uint16_t addr) {
-    union {
-        byte b[4];
-        float f;
-    } data;
-    data.f = x;
-    for (int i = 0; i < 4; i++) {
-        EEPROM.write(addr + i, data.b[i]);
-    }
-}
-
-// ---------------------------------------
-// Method for reading int data from EEPROM
-// ---------------------------------------
-short int ImplementScraper::readInt(uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-    for (short int i = 0; i < 2; i++) {
-        data.b[i] = EEPROM.read(addr + i);
-    }
-    return data.i;
-}
-
-// -------------------------------------
-// Method for writing int data to EEPROM
-// -------------------------------------
-void ImplementScraper::writeInt(short int x, uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-    data.i = x;
-    for (short int i = 0; i < 2; i++) {
-        EEPROM.write(addr + i, data.b[i]);
-    }
 }
 
 }  // namespace triton

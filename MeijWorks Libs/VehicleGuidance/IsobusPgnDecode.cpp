@@ -213,9 +213,9 @@ LightbarXteResult DecodeXteAgLeaderLightbar(const uint8_t* data, uint8_t length)
     if (result.magnitudeCm == 0) {
         value = 0;                                              // on the line: neither bit
     } else if (result.rightOfLine && !result.leftOfLine) {
-        value = int(result.magnitudeCm);
+        value = -int(result.magnitudeCm);                       // the 1200's "right": steer right (#252)
     } else if (result.leftOfLine && !result.rightOfLine) {
-        value = -int(result.magnitudeCm);
+        value = int(result.magnitudeCm);
     } else {
         return result;                                          // side unknown: never guess
     }
@@ -487,6 +487,25 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
     // and verified years ago; matches CanSerialParser's CAN_XTE case
     // (t[2] == '1', the ASCII-hex form of this same nibble check).
     result.quality = ((data[1] & 0xF0) == 0x10) ? 4 : 0;
+    return result;
+}
+
+GnssStatusResult DecodeGnssStatusAgLeader(uint8_t sourceAddress, const uint8_t* data, uint8_t length) {
+    GnssStatusResult result;
+    if (length != 8) return result;
+    result.lengthOk = true;
+
+    // Same overloaded PGN as above: the selector means this only from 0x80.
+    if (sourceAddress != kSourceAddressAgLeaderRaven) return result;
+    if (data[0] != kMessageSelectorGnssStatusAgLeader) return result;
+
+    result.valid = true;
+    result.fixMode = data[2];
+    switch (data[2]) {
+        case 2:  result.quality = 4; break;   // RTK fixed
+        case 1:  result.quality = 1; break;   // a fix, not RTK fixed
+        default: result.quality = 0; break;
+    }
     return result;
 }
 

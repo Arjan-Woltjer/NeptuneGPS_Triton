@@ -115,10 +115,10 @@ void setup() {
 
     // Write message to screen
     // Messages in LanguagePlanter.hpp
-    gLcd->WriteBuffer(L3_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L3_DEVICE, 1);
-    gLcd->WriteBuffer(L3_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L3_AUTHOR, 3);
+    gLcd->WriteBuffer(L_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L_DEVICE, 1);
+    gLcd->WriteBuffer(L_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L_AUTHOR, 3);
 
     gLcd->WriteScreen(-1);
 

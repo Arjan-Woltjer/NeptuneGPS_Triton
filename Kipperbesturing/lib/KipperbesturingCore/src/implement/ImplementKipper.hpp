@@ -27,6 +27,7 @@
 #include <EEPROM.h>
 
 #include "VehicleTractor.hpp"
+#include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementKipper.hpp"
 
@@ -79,11 +80,8 @@ private:
     float D;
     byte  kd;
 
-    // Timers for end shutoff
-    unsigned int  shutoffTime;
-    bool          shutoffWide;
-    bool          shutoffNarrow;
-    unsigned long shutoffTimer;
+    // End-of-travel latch (MeijWorks Libs/EndShutoff)
+    EndShutoff endShutoff;
 
     // Objects
     VehicleTractor* tractor;
@@ -99,12 +97,6 @@ private:
     bool readCalibrationData();
     void writeCalibrationData();
     void wipeCalibrationData();
-
-    // Signed 16-bit EEPROM access, as ImplementPlough has always had. Every
-    // signed value goes through these instead of word()/highByte(), which
-    // are unsigned and lose the sign (NeptuneGPS_Triton#100).
-    short int readInt(uint16_t addr);
-    void      writeInt(short int x, uint16_t addr);
 
 public:
     // -----------------------------------------------------------

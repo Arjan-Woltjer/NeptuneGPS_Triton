@@ -139,3 +139,15 @@ test(CalibrationPlough, printCalibrationData_reportsRateAndQuality) {
     assertTrue(dbg.has("Baudrate\n14400\n"));
     assertTrue(dbg.has("RTK Quality\n4\n"));
 }
+
+// The shares and deadband screens step within the bounds the boot load
+// accepts (2-10), so a saved value is never thrown away at the next boot.
+test(CalibrationPlough, stepWithin_staysInsideTheLoadBounds) {
+    assertEqual(CalibrationPlough::StepWithin(4, 1, 1, kLowestShares, kHighestShares), 5);
+    assertEqual(CalibrationPlough::StepWithin(4, -1, 1, kLowestShares, kHighestShares), 3);
+    assertEqual(CalibrationPlough::StepWithin(kHighestShares, 1, 1, kLowestShares, kHighestShares), 10);
+    assertEqual(CalibrationPlough::StepWithin(kLowestShares, -1, 1, kLowestShares, kHighestShares), 2);
+    assertEqual(CalibrationPlough::StepWithin(kHighestDeadband, 1, 1, kLowestDeadband, kHighestDeadband), 10);
+    assertEqual(CalibrationPlough::StepWithin(kLowestDeadband, -1, 1, kLowestDeadband, kHighestDeadband), 2);
+    assertEqual(CalibrationPlough::StepWithin(6, 0, 1, kLowestDeadband, kHighestDeadband), 6);   // no press
+}
