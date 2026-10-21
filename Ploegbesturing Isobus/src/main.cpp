@@ -87,6 +87,9 @@ typedef ACANSettings GPlainCanSettings;
 #endif
 typedef ACAN_T4_Settings GPlainCanSettings;
 #endif
+#ifdef PLAIN_CAN
+#include "PlainCanGuidance.hpp"   // after the ACAN headers: it uses their filter types
+#endif
 #endif
 
 // Serial ports
@@ -371,46 +374,7 @@ void loop() {
 // (its only controller, pins 3 TX / 4 RX) and the board's FlexCAN through
 // ACAN_T4 on a Teensy 4 -- see the includes at the top.
 static void GCanSetup() {
-    GPlainCanSettings settings(250UL * 1000UL);  // CAN bit rate 250 kbit/s
-
-    const ACANPrimaryFilter primaryFilters[]{
-        ACANPrimaryFilter(kData, kExtended, 0x00FFFFFF, 0x00FEF31C, GHandleCanMessage), // Position
-        ACANPrimaryFilter(kData, kExtended, 0x00FFFFFF, 0x00FEE81C, GHandleCanMessage), // Direction, speed
-        ACANPrimaryFilter(kData, kExtended, 0x0CFFFF2A, GHandleCanMessage),             // JD XTE
-        ACANPrimaryFilter(kData, kExtended, 0x1CEBACAA, GHandleCanMessage),             // Trimble CNH XTE
-        ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F80100, GHandleCanMessage), // 129025 position, rapid update
-        ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F80200, GHandleCanMessage), // 129026 COG/SOG, rapid update
-        ACANPrimaryFilter(kData, kExtended, 0x01FFFF00, 0x01F90300, GHandleCanMessage)  // 129283 cross track error
-    };
-
-    const uint32_t errorCode = GPlainCan.begin(settings, primaryFilters, 7);
-
-    if (errorCode == 0) {
-        gSerialDebug->print("Bit Rate prescaler: ");
-        gSerialDebug->println(settings.mBitRatePrescaler);
-        gSerialDebug->print("Propagation Segment: ");
-        gSerialDebug->println(settings.mPropagationSegment);
-        gSerialDebug->print("Phase segment 1: ");
-        gSerialDebug->println(settings.mPhaseSegment1);
-        gSerialDebug->print("Phase segment 2: ");
-        gSerialDebug->println(settings.mPhaseSegment2);
-        gSerialDebug->print("RJW:");
-        gSerialDebug->println(settings.mRJW);
-        gSerialDebug->print("Triple Sampling: ");
-        gSerialDebug->println(settings.mTripleSampling ? "yes" : "no");
-        gSerialDebug->print("Actual bit rate: ");
-        gSerialDebug->print(settings.actualBitRate());
-        gSerialDebug->println(" bit/s");
-        gSerialDebug->print("Exact bit rate ? ");
-        gSerialDebug->println(settings.exactBitRate() ? "yes" : "no");
-        gSerialDebug->print("Sample point: ");
-        gSerialDebug->print(settings.samplePointFromBitStart());
-        gSerialDebug->println("%");
-    }
-    else {
-        gSerialDebug->print("Error can0: 0x");
-        gSerialDebug->println(errorCode, HEX);
-    }
+    triton::PlainCanBegin<GPlainCanSettings>(GPlainCan, gSerialDebug, GHandleCanMessage);
 }
 
 static void GHandleCanMessage(const CANMessage& inMessage) {
