@@ -38,9 +38,40 @@ FLASHMEM void IsobusVtCalibration::OnCalibrateKey() {
 }
 
 FLASHMEM bool IsobusVtCalibration::OnSoftKey(uint16_t keyObjectId) {
-    if (keyObjectId != Key_CalSave && keyObjectId != Key_CalCancel) return false;
-    // A page left on the VT after a reconnect has no draft behind it: either
-    // key just goes back to the main mask.
+    switch (keyObjectId) {
+        case Key_CalSave:
+        case Key_CalCancel:
+            break;
+        case Key_CalWidth:
+            if (open && !widthOpen) openWidthProcedure();
+            return false;
+        case Key_CalCapture:
+            if (!widthOpen) return false;
+            widthInvalid = false;   // a new attempt clears the old status
+            if (width.Capture()) {
+                // A capture the boot load would throw away is not staged: the
+                // VT says so and the procedure starts over at the first point.
+                if (settings->StageWidthCalibration(SettingsOwner::Vt, width.Readings())) {
+                    serialDebug->println("VT: width calibration captured");
+                    closeWidthProcedure();
+                }
+                else {
+                    serialDebug->println("VT: width calibration refused, the boot would not keep these readings");
+                    widthInvalid = true;
+                    width.Begin();
+                }
+            }
+            return false;
+        case Key_CalWidthBack:
+            if (widthOpen) closeWidthProcedure();
+            return false;
+        default:
+            return false;
+    }
+
+    // Opslaan / Annuleren. A page left on the VT after a reconnect has no
+    // draft behind it: either key just goes back to the main mask.
+    if (widthOpen) closeWidthProcedure();
     wantedMask = Plough_DataMask;
     if (!open) return false;
     const bool save = keyObjectId == Key_CalSave;
@@ -54,6 +85,17 @@ FLASHMEM bool IsobusVtCalibration::OnSoftKey(uint16_t keyObjectId) {
     }
     open = false;
     return save;
+}
+
+FLASHMEM void IsobusVtCalibration::OnWidthKey(uint16_t keyObjectId, bool down) {
+    if (keyObjectId == Key_CalWider) {
+        widerHeld = down && widthOpen;
+        widerEventMs = millis();
+    }
+    else if (keyObjectId == Key_CalNarrower) {
+        narrowerHeld = down && widthOpen;
+        narrowerEventMs = millis();
+    }
 }
 
 FLASHMEM void IsobusVtCalibration::OnNumericValue(uint16_t objectId, uint32_t value) {
@@ -71,6 +113,7 @@ FLASHMEM void IsobusVtCalibration::OnNumericValue(uint16_t objectId, uint32_t va
 }
 
 FLASHMEM void IsobusVtCalibration::OnConnectionLost() {
+    if (widthOpen) closeWidthProcedure();
     if (open) {
         settings->Cancel(SettingsOwner::Vt);
         serialDebug->println("VT: calibration dropped, the VT went away");
@@ -81,7 +124,10 @@ FLASHMEM void IsobusVtCalibration::OnConnectionLost() {
 }
 
 FLASHMEM void IsobusVtCalibration::Update(VtCalibrationOutput& out) {
-    if (open) {
+    if (widthOpen) {
+        updateWidthProcedure(out);
+    }
+    else if (open) {
         for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
             const PloughSetting id = PloughSetting(i);
             const uint32_t vtValue = ToVt(id, settings->Get(id));
@@ -125,6 +171,56 @@ FLASHMEM int16_t IsobusVtCalibration::FromVt(PloughSetting id, uint32_t vtValue)
 
 FLASHMEM void IsobusVtCalibration::forgetShown() {
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) shown[i] = kNotSent;
+}
+
+FLASHMEM void IsobusVtCalibration::openWidthProcedure() {
+    width.Begin();
+    widthOpen = true;
+    widthInvalid = false;
+    widerHeld = false;
+    narrowerHeld = false;
+    shownPoint = shownTarget = shownStatus = shownSensor = kNotSent;
+    wantedMask = Plough_CalWidthMask;
+    serialDebug->println("VT: width calibration open");
+}
+
+// Back to the page: the valves stop, and the page shows its values again.
+FLASHMEM void IsobusVtCalibration::closeWidthProcedure() {
+    width.Drive(0);
+    implement->Stop();
+    widthOpen = false;
+    widerHeld = false;
+    narrowerHeld = false;
+    forgetShown();
+    wantedMask = Plough_CalDataMask;
+}
+
+FLASHMEM void IsobusVtCalibration::updateWidthProcedure(VtCalibrationOutput& out) {
+    const unsigned long now = millis();
+    const bool wider = widerHeld && now - widerEventMs <= kHeldTimeoutMs;
+    const bool narrower = narrowerHeld && now - narrowerEventMs <= kHeldTimeoutMs;
+    // Breder is the cab's + (1), Smaller its - (-1), as the main soft keys
+    // (#245); both at once or neither stops the plough.
+    width.Drive(wider == narrower ? 0 : wider ? 1 : -1);
+
+    const uint32_t pointValue = uint32_t(width.Point() + 1);
+    if (pointValue != shownPoint && out.ChangeNumericValue(Var_CalWidthPoint, pointValue)) {
+        shownPoint = pointValue;
+    }
+    const uint32_t targetValue = uint32_t(width.Target() + 1000);
+    if (targetValue != shownTarget && out.ChangeNumericValue(Var_CalWidthTarget, targetValue)) {
+        shownTarget = targetValue;
+    }
+    const uint32_t statusValue = widthInvalid ? Str_CalInvalid : Str_CalBlank;
+    if (statusValue != shownStatus && out.ChangeNumericValue(Ptr_CalWidthStatus, statusValue)) {
+        shownStatus = statusValue;
+    }
+    const uint32_t sensorValue = uint32_t(implement->ReadPositionSensor());
+    if (sensorValue != shownSensor && (shownSensor == kNotSent || now - lastSensorSendMs >= kSensorSendMs) &&
+        out.ChangeNumericValue(Var_CalWidthSensor, sensorValue)) {
+        shownSensor = sensorValue;
+        lastSensorSendMs = now;
+    }
 }
 
 }  // namespace triton

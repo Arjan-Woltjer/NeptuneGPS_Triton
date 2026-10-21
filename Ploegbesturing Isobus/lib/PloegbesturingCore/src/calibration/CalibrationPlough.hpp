@@ -32,6 +32,7 @@
 #include "../config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
 #include "PloughSettings.hpp"
+#include "WidthProcedure.hpp"
 #ifdef ISOBUS
 #include "isobus/PreferredVt.hpp"
 #endif
@@ -123,6 +124,7 @@ private:
 #endif
 
     PloughSettings settings;
+    WidthProcedure width;
 
     // The wizard's screens: the width procedure, one per settings line in
     // table order, then COMPLETE.
@@ -146,8 +148,6 @@ private:
     uint8_t       screen = kIdle;
     Phase         phase = Phase::AskRelease;
     int16_t       value = 0;
-    uint8_t       point = 0;
-    short int     widthAdc[3] = {};
     unsigned long pauseStartMs = 0;
     bool          holdingForVt = false;
 

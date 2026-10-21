@@ -25,7 +25,7 @@ namespace triton
 CalibrationPlough::CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
                                       VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface)
     : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), interface(interface),
-      settings(implement, tractor, guidance, this) {
+      settings(implement, tractor, guidance, this), width(implement) {
     loadGuidanceCalibration();
 }
 
@@ -158,15 +158,13 @@ FLASHMEM void CalibrationPlough::Step() {
         case Phase::Point: {
             const short int b = interface->CheckButtons(0, 0);
             if (b == 2) {
-                implement->Stop();
-                widthAdc[point] = implement->ReadPositionSensor();
-                if (++point < 3) {
+                if (!width.Capture()) {
                     showPoint();
                     break;
                 }
                 // A capture the boot load would throw away is not staged:
                 // the plough keeps the width it had.
-                const bool staged = settings.StageWidthCalibration(SettingsOwner::Cab, widthAdc);
+                const bool staged = settings.StageWidthCalibration(SettingsOwner::Cab, width.Readings());
                 lcd->WriteBuffer(staged ? L_CAL_DONE : L_CAL_DECLINED, 1);
                 lcd->WriteBuffer(L_BLANK, 2);
                 lcd->WriteBuffer(L_BLANK, 3);
@@ -174,9 +172,8 @@ FLASHMEM void CalibrationPlough::Step() {
                 pause();
                 break;
             }
-            // The only valve movement while the wizard is open: + / - drive
-            // the plough in manual, with the end shutoff as in manual (#244).
-            implement->Adjust(2, b);
+            // The only valve movement while the wizard is open (WidthProcedure).
+            width.Drive(b);
             lcd->WriteBuffer(b == 1 ? '>' : b == -1 ? '<' : ' ', 3, 19);
             break;
         }
@@ -242,7 +239,7 @@ FLASHMEM void CalibrationPlough::accept() {
     if (screen == kWidth) {
         lcd->WriteBuffer(L_CAL_POS_AD, 3);
         lcd->WriteScreen(-1);
-        point = 0;
+        width.Begin();
         showPoint();
         return;
     }
@@ -287,7 +284,7 @@ FLASHMEM void CalibrationPlough::pause() {
 
 // The target of the width point being captured: sign and two digits in cm.
 FLASHMEM void CalibrationPlough::showPoint() {
-    const short int target = implement->GetPositionCalibrationPoint(point);
+    const short int target = width.Target();
     lcd->WriteBuffer(target < 0 ? '-' : ' ', 3, 12);
     lcd->WriteBuffer(abs(target / 10) + '0', 3, 13);
     lcd->WriteBuffer(abs(target) % 10 + '0', 3, 14);

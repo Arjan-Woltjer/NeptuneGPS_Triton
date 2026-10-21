@@ -349,3 +349,41 @@ test(VTObjectPool, calibrationIds_startAt100_clearOfTheMainScreen) {
     assertTrue(Label_Cal0 + PloughSettings::kCount <= Input_Cal0);
     assertTrue(Input_Cal0 + PloughSettings::kCount <= Str_CalNo);
 }
+
+// The width procedure (#240 PR 4): its mask, its four soft keys, the
+// BREEDTE key on the page that opens it, and its ids clear of the others.
+test(VTObjectPool, widthProcedure_hasItsMask_andItsKeys) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    assertTrue(isType(objects, Plough_CalWidthMask, 1));
+    assertEqual((int)poolU16(objects.at(Plough_CalWidthMask).at + 4), (int)Plough_CalWidthSoftKeyMask);
+    assertTrue(isType(objects, Plough_CalWidthSoftKeyMask, 4));
+    const uint32_t keys = objects.at(Plough_CalWidthSoftKeyMask).at;
+    assertEqual((int)VT3PoolData[keys + 4], 4);
+    const uint16_t expected[4] = { Key_CalNarrower, Key_CalWider, Key_CalCapture, Key_CalWidthBack };
+    const uint8_t codes[4] = { KeyCode_CalNarrower, KeyCode_CalWider, KeyCode_CalCapture, KeyCode_CalWidthBack };
+    for (int i = 0; i < 4; i++) {
+        assertEqual((int)poolU16(keys + 6 + i * 2), (int)expected[i]);
+        assertEqual((int)VT3PoolData[objects.at(expected[i]).at + 4], (int)codes[i]);
+    }
+    // The page reaches it through BREEDTE.
+    const uint32_t pageKeys = objects.at(Plough_CalSoftKeyMask).at;
+    bool hasWidthKey = false;
+    for (uint8_t i = 0; i < VT3PoolData[pageKeys + 4]; i++) hasWidthKey |= poolU16(pageKeys + 6 + i * 2) == Key_CalWidth;
+    assertTrue(hasWidthKey);
+    assertEqual((int)VT3PoolData[objects.at(Key_CalWidth).at + 4], (int)KeyCode_CalWidth);
+    // The status line starts blank.
+    assertEqual((int)poolU16(objects.at(Ptr_CalWidthStatus).at + 3), (int)Str_CalBlank);
+    for (uint16_t id = Plough_CalWidthMask; id <= Str_CalInvalid; id++) assertTrue(exists(objects, id));
+}
+
+test(VTObjectPool, keyCodes_ofAllSoftKeys_areDistinct) {
+    const uint8_t codes[] = { KeyCode_Wider, KeyCode_Narrower, KeyCode_Auto, KeyCode_Calibrate, KeyCode_CalSave,
+                              KeyCode_CalCancel, KeyCode_CalWidth, KeyCode_CalNarrower, KeyCode_CalWider,
+                              KeyCode_CalCapture, KeyCode_CalWidthBack };
+    for (size_t i = 0; i < sizeof(codes); i++) {
+        assertNotEqual((int)codes[i], 0);
+        for (size_t j = i + 1; j < sizeof(codes); j++) assertNotEqual((int)codes[i], (int)codes[j]);
+    }
+}
