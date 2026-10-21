@@ -128,32 +128,41 @@ test(InterfacePlough, checkButtons_bothHeld_withDelay1_waitsForCombo) {
 }
 
 // ---------------------------------------------------------------------------
-// CheckButtons() -- VT soft-key presses (vtWiderPressed/vtNarrowerPressed/
-// vtCalibratePressed). These are consume-once edges from IsobusVtInterface,
-// true for exactly one call, so unlike the physical buttons they must act
-// without any hold debounce -- and they must lose an arbitration against a
-// physical button pressed at the same time.
+// CheckButtons() -- VT soft keys. Wider/Narrower are held levels from
+// IsobusVtInterface since #245 and go through exactly the cab buttons' hold
+// timing. Calibrate is still a consume-once edge (one call), so it acts
+// without the both-held combo's hold. A physical button pressed at the same
+// time wins.
 // ---------------------------------------------------------------------------
 
-test(InterfacePlough, checkButtons_vtWider_actsImmediatelyDespiteDelay) {
+// BREDER is the cab's right button, marked + (wider), and SMALLER its left
+// one, marked - (owner, 2026-10-20). Fed into the left slot, BREDER drove the
+// output the - button drives in manual and lowered the width in auto/hold.
+test(InterfacePlough, checkButtons_vtWiderHeld_behavesLikeTheRightButton) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    // delay2=255 would gate a physical LEFT press for 255 ms. A VT press is a
-    // single-iteration edge, so gating it that way would drop it entirely --
-    // this must return -1 on the very first call, at millis()=0.
-    assertEqual(iface.CheckButtons(255, 255, true, false, false), (short int)-1);
-    assertEqual(iface.GetButtons(), (short int)-1);
+    // Held for the hold delay, like RIGHT (+): nothing before delay2, then +1.
+    millisValue(254);
+    assertEqual(iface.CheckButtons(255, 255, true, false, false), (short int)0);
+    millisValue(255);
+    assertEqual(iface.CheckButtons(255, 255, true, false, false), (short int)1);
+    millisValue(0);
 }
 
-test(InterfacePlough, checkButtons_vtNarrower_actsImmediatelyDespiteDelay) {
+test(InterfacePlough, checkButtons_vtNarrowerHeld_drivesEveryLoopInManual) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    assertEqual(iface.CheckButtons(255, 255, false, true, false), (short int)1);
-    assertEqual(iface.GetButtons(), (short int)1);
+    // Update() passes delay2 = 0: a held key gives its direction every loop,
+    // which is what keeps the valve driving in manual (#245).
+    for (unsigned long t = 0; t < 5; t++) {
+        millisValue(t);
+        assertEqual(iface.CheckButtons(255, 0, false, true, false), (short int)-1);   // SMALLER = the - button
+    }
+    millisValue(0);
 }
 
 test(InterfacePlough, checkButtons_vtCalibrate_returnsComboWithoutHoldDuration) {
@@ -169,28 +178,26 @@ test(InterfacePlough, checkButtons_vtCalibrate_returnsComboWithoutHoldDuration) 
     assertEqual(iface.GetButtons(), (short int)2);
 }
 
-test(InterfacePlough, checkButtons_vtPressNotRepeated_returnsZeroOnNextCall) {
+test(InterfacePlough, checkButtons_vtKeyReleased_returnsZero) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    assertEqual(iface.CheckButtons(255, 0, true, false, false), (short int)-1);
-    // IsobusVtInterface cleared the flag when main.cpp consumed it, so the
-    // next iteration passes false and must fall through to the idle branch.
+    assertEqual(iface.CheckButtons(255, 0, true, false, false), (short int)1);
     assertEqual(iface.CheckButtons(255, 0, false, false, false), (short int)0);
     assertEqual(iface.GetButtons(), (short int)0);
 }
 
-test(InterfacePlough, checkButtons_physicalLeftBeatsVtNarrower) {
+test(InterfacePlough, checkButtons_physicalLeftBeatsVtWider) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    // Physical branches are tested first, so a held LEFT wins over a VT
-    // Narrower arriving in the same iteration -- the two mean opposite
-    // directions and must never be merged into one movement.
+    // A held LEFT (-) wins over a VT Wider (+) arriving in the same
+    // iteration -- the two mean opposite directions and must never be
+    // merged into one movement.
     digitalReadValue(LEFT_BUTTON_2, true);
-    assertEqual(iface.CheckButtons(0, 0, false, true, false), (short int)-1);
+    assertEqual(iface.CheckButtons(0, 0, true, false, false), (short int)-1);
 }
 
 test(InterfacePlough, checkButtons_physicalComboBeatsVtCalibrate) {

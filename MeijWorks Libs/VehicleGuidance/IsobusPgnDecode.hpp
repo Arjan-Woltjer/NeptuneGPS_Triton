@@ -310,11 +310,15 @@ struct XteResult {
 //              the display boots. NOT a validity state (session 16 read it as one).
 //   byte 3     0 (0xFF while booting)
 //   bytes 4-5  vehicle heading, whole degrees, little-endian; unused here
-//   byte 6     bit 7 = right of the line, bit 6 = left, neither = exactly on it;
+//   byte 6     bit 7 = the 1200 shows "right", bit 6 = "left", neither = exactly on it;
 //              bit 5 = the pass is the AB line or right of it, bit 4 = left of it;
 //              bit 1 = the tractor's autosteer is engaged; bit 0 repeats byte 7 == 4
 //   byte 7     0 = booting, 1 = no line, 4 = line present: the only validity flag
-// Positive = right of the line, as in the John Deere decoder. The XTE is committed
+// The 1200's side is the direction to steer: "right" means the vehicle is LEFT of the
+// line. The XTE is committed with the John Deere decoder's sign (positive = right of
+// the line), so "right" gives a negative XTE. Session 19 (#252): with the side read as
+// the vehicle's, the control was only right with the plough-side swap set, and then
+// the side letter and the VT picture showed the wrong side. The XTE is committed
 // whether or not autosteer is engaged (owner's decision 2026-10-13): ploughing is
 // usually driven by hand, and the plough only acts on the XTE in AUTO with the hitch
 // down. A non-zero magnitude without exactly one side bit was never seen and is not
@@ -324,8 +328,8 @@ struct LightbarXteResult {
     bool          valid = false;        // true => SetXte(xteHundredthsMeter) should be called
     bool          hasLine = false;      // byte 7 == 4: the only validity flag
     bool          engaged = false;      // byte 6 bit 1, reported only, not a commit condition
-    bool          rightOfLine = false;  // byte 6 bit 7
-    bool          leftOfLine = false;   // byte 6 bit 6
+    bool          rightOfLine = false;  // byte 6 bit 7: the 1200 shows "right" (vehicle left of the line)
+    bool          leftOfLine = false;   // byte 6 bit 6: the 1200 shows "left" (vehicle right of the line)
     bool          hasPass = false;      // a line and byte 2 in 1..254: pass and passLeftOfAbLine are set
     uint8_t  pass = 0;             // |pass| = byte 2 - 1; 0 = the AB line itself
     bool          passLeftOfAbLine = false;  // byte 6 bit 4 (bit 5 = the AB line or right of it)

@@ -114,10 +114,9 @@ test(ImplementPlough, position_ascendingCalibration_atPoint1) {
 // ---------------------------------------------------------------------------
 // Adjust() -- manual mode (2/3): actualPosition = setpoint - direction*(error+1).
 // setpoint is left at its untouched default (0); error defaults to 2, so
-// actualPosition = -3*direction. Manual mode (mode>=2) always bypasses the
-// end-shutoff latch's blocking effect (see the shutoff-latch test below for
-// why), so this exercises pure wide/narrow/stop selection without shutoff
-// interference. the valves run at kValvePwm, 255.
+// actualPosition = -3*direction. No time passes in these, so the end-shutoff
+// latch (which manual mode respects since #244, see below) never trips and
+// they exercise pure wide/narrow/stop selection. the valves run at kValvePwm, 255.
 // ---------------------------------------------------------------------------
 
 test(ImplementPlough, adjust_manualMode_directionPositive_narrows) {
@@ -149,9 +148,9 @@ test(ImplementPlough, adjust_manualMode_directionZero_stops) {
 }
 
 // ---------------------------------------------------------------------------
-// Adjust() -- end-shutoff latch (auto mode, mode=0). Manual mode's mode>=2
-// always overrides the latch's blocking effect, so this needs auto mode,
-// which reads the private `position` member -- reached indirectly by
+// Adjust() -- end-shutoff latch (auto mode, mode=0; manual mode latches the
+// same way since #244, tests after this one). Auto mode reads the private
+// `position` member -- reached indirectly by
 // extrapolating GetActualPosition() well past the calibrated range (the
 // interpolation formula is unclamped) to land on a deeply negative reading,
 // then averaging it in via two Update() calls, same as the position tests above.
@@ -199,6 +198,87 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
     impl.Adjust(0, 0);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
     assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+}
+
+// Manual mode latches the same way as auto (#244, owner): the end shutoff is
+// there to protect the hydraulics, so holding the button against an end stop
+// must cut the valve too. The check uses the measured position, as in auto.
+// Holds the measured position at -92 (the auto test above explains the
+// numbers) so it never changes while a test holds a button.
+static void holdPositionStill(ImplementPlough& impl) {
+    analogReadValue(POSITION_SENS_PIN_2, 0);
+    impl.SetPositionCalibrationData(0);
+    analogReadValue(POSITION_SENS_PIN_2, 100);
+    impl.SetPositionCalibrationData(1);
+    analogReadValue(POSITION_SENS_PIN_2, 200);
+    impl.SetPositionCalibrationData(2);
+    analogReadValue(POSITION_SENS_PIN_2, -1000);
+    impl.Update(2, 0);
+    impl.Update(2, 0);
+}
+
+// Holds Narrower in manual for just over the shutoff time with the position
+// standing still, so the narrower direction latches.
+static void latchNarrowerInManual(ImplementPlough& impl) {
+    holdPositionStill(impl);
+    millisValue(0);
+    impl.Adjust(2, 1);
+    millisValue(3001);
+    impl.Adjust(2, 1);
+}
+
+test(ImplementPlough, adjust_manualMode_endShutoff_latchesAfterShutoffTime) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    holdPositionStill(impl);
+    millisValue(0);
+    impl.Adjust(2, 1);                                   // Narrower held
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    millisValue(3001);
+    impl.Adjust(2, 1);                                   // past the shutoff time: still drives, then latches
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    millisValue(3002);
+    impl.Adjust(2, 1);                                   // still held: the valve is cut
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+}
+
+test(ImplementPlough, adjust_manualMode_endShutoff_releaseAndPressAgainStaysOff) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    latchNarrowerInManual(impl);
+    millisValue(3100);
+    impl.Adjust(2, 0);                                   // button released
+    millisValue(3200);
+    impl.Adjust(2, 1);                                   // pressed again the same way
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+}
+
+test(ImplementPlough, adjust_manualMode_endShutoff_otherWayClearsTheLatch) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    latchNarrowerInManual(impl);
+    millisValue(3100);
+    impl.Adjust(2, -1);                                  // Wider: allowed, and clears the latch
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
+    millisValue(3200);
+    impl.Adjust(2, 1);                                   // Narrower drives again
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+}
+
+test(ImplementPlough, adjust_manualMode_endShutoff_movingPloughNeverLatches) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    holdPositionStill(impl);
+    for (unsigned long t = 0; t <= 6000; t += 500) {
+        millisValue(t);
+        analogReadValue(POSITION_SENS_PIN_2, -1000 + (int)t / 10);   // the plough moves
+        impl.Update(2, 0);
+        impl.Update(2, 0);
+        impl.Adjust(2, 1);
+    }
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 }
 
 // ---------------------------------------------------------------------------
@@ -278,6 +358,65 @@ test(ImplementPlough, setOffset_manualMode_neverCalled) {
     millisValue(200);
     impl.Update(2, 90);  // mode>=2 -> Update()'s "mode < 2" guard skips setOffset entirely
     assertEqual(impl.GetOffset(), (short int)160);
+}
+
+// The width's range follows the number of shares (shares*20 .. shares*60). A
+// width the new range doesn't hold goes to the middle at once, the same as
+// readOffset() at boot, instead of only after a reboot (#238).
+test(ImplementPlough, setShares_widthBelowNewRange_goesToTheMiddle) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);       // 4 shares, width 160
+    impl.SetShares(10);                                  // range 200-600
+    assertEqual(impl.GetOffset(), (short int)400);
+}
+
+test(ImplementPlough, setShares_widthAboveNewRange_goesToTheMiddle) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    millisValue(200);
+    impl.Update(0, 80);                                  // 160 + 80 = 240, the maximum on 4 shares
+    assertEqual(impl.GetOffset(), (short int)240);
+    impl.SetShares(2);                                   // range 40-120
+    assertEqual(impl.GetOffset(), (short int)80);
+}
+
+test(ImplementPlough, setShares_widthInsideNewRange_isKept) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetShares(5);                                   // range 100-300 holds 160
+    assertEqual(impl.GetOffset(), (short int)160);
+}
+
+// The wizard's store saves the width the share change set, and its decline
+// restores the stored one: what the main screen shows is what comes back after
+// a restart. Bench 2026-10-20 (W5): width 180, shares 4 -> 10 -> 4 showed 160,
+// but the restart brought back 180 from EEPROM, valid again on 4 shares (#238).
+test(ImplementPlough, setShares_storedWidthComesBackAfterARestart) {
+    resetAll();
+    {
+        ImplementPlough impl(nullptr, &mockGuidance);
+        millisValue(200);
+        impl.Update(0, 20);                              // 160 + 20 = 180, saved by the press
+        assertEqual(impl.GetOffset(), (short int)180);
+        impl.SetShares(10);                              // 400
+        impl.SetShares(4);                               // 160
+        assertEqual(impl.GetOffset(), (short int)160);
+        impl.CommitCalibration();                        // the wizard's store
+    }
+    ImplementPlough restarted(nullptr, &mockGuidance);
+    assertEqual(restarted.GetOffset(), (short int)160);
+}
+
+test(ImplementPlough, setShares_declinedWizardRestoresTheStoredWidth) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.CommitCalibration();                            // a stored calibration with 4 shares
+    millisValue(200);
+    impl.Update(0, 20);                                  // 180, saved
+    impl.SetShares(10);                                  // 400 in RAM
+    impl.ResetCalibration();                             // the wizard's decline: shares back to 4
+    assertEqual((int)impl.GetShares(), 4);
+    assertEqual(impl.GetOffset(), (short int)180);
 }
 
 // ---------------------------------------------------------------------------
