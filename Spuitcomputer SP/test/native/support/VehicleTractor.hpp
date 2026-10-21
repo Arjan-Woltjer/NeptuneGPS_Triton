@@ -47,4 +47,9 @@ class VehicleTractor {
     void          SetSimTime(unsigned long value) { simTime = value; }
     unsigned int  GetVconst() { return vconst; }
     void          SetVconst(unsigned int value) { vconst = value; }
+    // The wizard's hitch-inversion screen. `hitch` above is GetHitch()'s
+    // result after the inversion, so this is not applied to it.
+    bool          inversion = true;
+    bool          GetInversion() { return inversion; }
+    void          SetInversion(bool value) { inversion = value; }
 };

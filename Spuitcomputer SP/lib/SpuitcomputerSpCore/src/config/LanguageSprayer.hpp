@@ -42,6 +42,10 @@
 #define L_MEASURE       "Gemeten:        L/Ha"
 #define L_SPEED         "Snelheid:       KM/h"
 
+#define L_CAL_YES       "                  ja"
+#define L_CAL_NO        "                 nee"
+#define L_CAL_INVERSION "Inverteer hefsignaal"
+
 #define L_MEN_SIM       "Simulatie menu      "
 #define L_MEN_SPEED     "Snelheidscalibratie "
 #define L_MEN_FLOW      "Flowcalibratie      "
@@ -100,6 +104,10 @@
 #define L_FLOW          "Output:         L/Ha"
 #define L_MEASURE       "Measured:       L/Ha"
 #define L_SPEED         "Speed:          KM/h"
+
+#define L_CAL_YES       "                 yes"
+#define L_CAL_NO        "                  no"
+#define L_CAL_INVERSION "Invert hitch signal "
 
 #define L_MEN_SIM       "Simulation menu     "
 #define L_MEN_SPEED     "Speed calibration   "
