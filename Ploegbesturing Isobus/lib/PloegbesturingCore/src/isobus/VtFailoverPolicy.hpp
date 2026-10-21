@@ -63,8 +63,22 @@ public:
     // Spacing between our requests for address claim while no live VT is
     // known: each one makes every CF on the bus answer, so it is rate-limited.
     static constexpr unsigned long kRequestIntervalMs = 10000UL;
+    // After we were off the bus -- nothing at all received for longer than
+    // kPartnerSilentMs, then traffic again -- the bound VT is not judged
+    // silent for this long. Its silence was ours: session 18's R2 (63 s
+    // unplugged) and every calibration-wizard stall otherwise ended in a
+    // switch to whichever VT spoke first after the rejoin. 120 s: owner's
+    // choice, 2026-10-17.
+    static constexpr unsigned long kRejoinGraceMs = 120000UL;
 
     static constexpr uint8_t kNoAddress = 0xFE;
+    // The operator's preferred VT (#255) is moved to once its VT Status has
+    // come in without a gap (kCandidateFreshMs) for this long, and no sooner
+    // than this after any switch. Owner: no wait at boot, bind to the first
+    // VT, and move to the preferred one as soon as it has finished booting
+    // or is back. Five statuses: a VT still booting, or one that flaps, is
+    // not chased, and a fresh binding gets time to resolve its partner.
+    static constexpr unsigned long kPreferredSettledMs = 5000UL;
 
     enum class Action : uint8_t {
         None,
@@ -84,6 +98,16 @@ public:
     // A VT Status Message (VT-to-ECU, function 0xFE) arrived from `source`.
     void OnVtStatus(uint8_t source, unsigned long nowMs);
 
+    // Something was received from the bus (any traffic, not only VT status).
+    // A gap longer than kPartnerSilentMs between two calls is a rejoin and
+    // starts kRejoinGraceMs. Call it before OnVtStatus() for the same frame.
+    void OnBusTraffic(unsigned long nowMs);
+
+    // The preferred VT's address, or kNoAddress: no preference set, or that
+    // VT is not on the bus. IsobusVtInterface finds it by function instance.
+    void SetPreferredAddress(uint8_t address) { preferredAddress = address; }
+    uint8_t GetPreferredAddress() const { return preferredAddress; }
+
     // What to do now. `partnerAddress` and `partnerValid` describe the bound
     // partner as AgIsoStack sees it.
     Decision Evaluate(unsigned long nowMs, bool connected, uint8_t partnerAddress, bool partnerValid) const;
@@ -94,6 +118,7 @@ public:
 
     unsigned int GetSwitchCount() const { return switchCount; }
     unsigned int GetRequestCount() const { return requestCount; }
+    unsigned int GetRejoinCount() const { return rejoinCount; }
 
 private:
     bool HeardRecently(uint8_t address, unsigned long nowMs, unsigned long windowMs) const;
@@ -102,12 +127,22 @@ private:
     // ever has (0 is a valid millis() value, so it cannot double as "never").
     unsigned long lastStatusMs[256] = {};
     bool          heard[256]        = {};
+    // When each address's current unbroken run of statuses began.
+    unsigned long aliveSinceMs[256] = {};
+
+    uint8_t       preferredAddress = kNoAddress;
 
     unsigned long startMs       = 0;
     unsigned long lastRequestMs = 0;
     bool          requested     = false;
     unsigned int  switchCount   = 0;
     unsigned int  requestCount  = 0;
+
+    unsigned long lastTrafficMs = 0;
+    bool          heardTraffic  = false;
+    unsigned long rejoinMs      = 0;
+    bool          rejoined      = false;
+    unsigned int  rejoinCount   = 0;
 };
 
 }  // namespace triton

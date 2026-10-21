@@ -74,6 +74,23 @@ test(PloughGates, gps_notOkOnceAnyFixIsTooOld) {
     millisValue(0);
 }
 
+// The quality ages like the fixes do (#261): a quality source that stops
+// while position, speed and XTE keep coming from another one must not leave
+// its last RTK standing. Bench 2026-10-20: John Deere XTE (quality 4), then
+// NMEA2000 only -- AUTO on the left-over quality.
+test(PloughGates, gps_notOkOnceTheQualityIsTooOld) {
+    GuidanceSource g;
+    allFreshAt(g, 10000);
+    millisValue(10000 + kGuidanceFixMaxAgeMs + 1);
+    g.NoteGgaFixReceived();                              // position, speed and XTE fresh,
+    g.SetSpeedKnots(10.0f);
+    g.SetXte(0);                                         // but no quality since 10000
+    assertFalse(GpsReadyToSteer(g, 10000 + kGuidanceFixMaxAgeMs + 1));
+    g.SetQuality(4);                                     // confirmed again
+    assertTrue(GpsReadyToSteer(g, 10000 + kGuidanceFixMaxAgeMs + 1));
+    millisValue(0);
+}
+
 test(PloughGates, gps_notOkWithoutRtkQuality) {
     GuidanceSource g;
     allFreshAt(g, 10000);

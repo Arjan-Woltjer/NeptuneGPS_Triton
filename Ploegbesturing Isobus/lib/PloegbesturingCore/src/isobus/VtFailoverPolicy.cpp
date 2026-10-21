@@ -32,8 +32,22 @@ void VtFailoverPolicy::Start(unsigned long nowMs) {
 }
 
 void VtFailoverPolicy::OnVtStatus(uint8_t source, unsigned long nowMs) {
+    if (!heard[source] || nowMs - lastStatusMs[source] > kCandidateFreshMs) {
+        aliveSinceMs[source] = nowMs;
+    }
     lastStatusMs[source] = nowMs;
     heard[source]        = true;
+}
+
+void VtFailoverPolicy::OnBusTraffic(unsigned long nowMs) {
+    // Not from boot: the first traffic ever heard has no gap before it.
+    if (heardTraffic && nowMs - lastTrafficMs > kPartnerSilentMs) {
+        rejoinMs = nowMs;
+        rejoined = true;
+        rejoinCount++;
+    }
+    lastTrafficMs = nowMs;
+    heardTraffic  = true;
 }
 
 bool VtFailoverPolicy::HeardRecently(uint8_t address, unsigned long nowMs, unsigned long windowMs) const {
@@ -43,6 +57,16 @@ bool VtFailoverPolicy::HeardRecently(uint8_t address, unsigned long nowMs, unsig
 VtFailoverPolicy::Decision VtFailoverPolicy::Evaluate(unsigned long nowMs, bool connected, uint8_t partnerAddress,
                                                       bool partnerValid) const {
     Decision decision;
+    // The operator's preferred VT, once it is up and settled (#255): from any
+    // other VT, connected or not. Not while a fresh binding settles.
+    if (preferredAddress != kNoAddress && !(partnerValid && partnerAddress == preferredAddress) &&
+        nowMs - startMs >= kPreferredSettledMs && HeardRecently(preferredAddress, nowMs, kCandidateFreshMs) &&
+        nowMs - aliveSinceMs[preferredAddress] >= kPreferredSettledMs) {
+        decision.action  = Action::SwitchTo;
+        decision.address = preferredAddress;
+        return decision;
+    }
+
     // "Connected" comes from AgIsoStack's VT client, and that client stamps
     // its VT-status timestamp on EVERY VT Status it sees, not only the
     // partner's (isobus_virtual_terminal_client.cpp, the VTStatusMessage case
@@ -53,6 +77,9 @@ VtFailoverPolicy::Decision VtFailoverPolicy::Evaluate(unsigned long nowMs, bool 
     // counts while the partner itself has been heard within the window; the
     // per-address table below is what knows that.
     if (connected && (!partnerValid || HeardRecently(partnerAddress, nowMs, kPartnerSilentMs))) return decision;
+
+    // Back on the bus after time away: the bound VT's silence was ours.
+    if (rejoined && nowMs - rejoinMs < kRejoinGraceMs) return decision;
 
     // Silent since the later of the grace period's start and the bound VT's
     // last status. A partner that is not address-valid has no status of its
