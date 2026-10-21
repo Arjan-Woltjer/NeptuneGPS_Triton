@@ -53,6 +53,10 @@
 #define L_CAL_POS_R     "Hoogtecalibratie R  "
 #define L_CAL_POS_AD    "Verstel naar     %  "
 
+#define L_CAL_INVERSION "Inverteer hefsignaal"
+#define L_CAL_YES       "                  ja"
+#define L_CAL_NO        "                 nee"
+
 #define L_CAL_COMPLETE  "Calibratie afronden "
 
 // -----------
@@ -79,6 +83,10 @@
 #define L_CAL_POS_L     "Height calibration L"
 #define L_CAL_POS_R     "Height calibration R"
 #define L_CAL_POS_AD    "Adjust to        %  "
+
+#define L_CAL_INVERSION "Invert hitch signal "
+#define L_CAL_YES       "                 yes"
+#define L_CAL_NO        "                  no"
 
 #define L_CAL_COMPLETE  "Finish calibration  "
 
