@@ -30,6 +30,7 @@ $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusGuidanceChannel.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusVtInterface.cpp',
+    'lib\PloegbesturingCore\src\isobus\IsobusVtCalibration.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusLightbarChannel.cpp',
     'lib\PloegbesturingCore\src\isobus\AgLeaderLightbarEmulation.cpp',
     'lib\PloegbesturingCore\src\isobus\VtFailoverPolicy.cpp',
