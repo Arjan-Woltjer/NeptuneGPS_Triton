@@ -5,7 +5,8 @@
 // nothing. InterfacePlough.cpp's UpdateScreen() renders into it too, but no
 // test asserts on that.
 #include <stdint.h>
-#include <string>
+// No <string> here: this header comes after Arduino.h, whose min/max macros
+// break GCC's standard library headers (CI, 2026-10-21).
 
 class TwoWire;
 
@@ -22,7 +23,8 @@ class InterfaceI2CLCD {
     }
     void WriteScreen(uint8_t) {}
 
-    std::string Row(uint8_t lineNo) const { return std::string(rows[lineNo], 20); }
+    // The row as 20 characters, null-terminated.
+    const char* Row(uint8_t lineNo) const { return rows[lineNo]; }
     void Clear() {
         for (uint8_t r = 0; r < 4; r++) {
             for (uint8_t c = 0; c < 20; c++) rows[r][c] = ' ';
