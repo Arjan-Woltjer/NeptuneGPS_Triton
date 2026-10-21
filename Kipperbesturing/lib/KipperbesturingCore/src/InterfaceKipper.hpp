@@ -23,6 +23,7 @@
 #include "VehicleTractor.hpp"
 #include "config/ConfigInterfaceKipper.hpp"
 #include "config/LanguageKipper.hpp"
+#include "ButtonPair.hpp"
 
 namespace triton
 {
@@ -38,10 +39,7 @@ private:
 
     // Button flag and timer
     int           buttons;
-    bool          button1Flag;
-    bool          button2Flag;
-    unsigned long button1Timer;
-    unsigned long button2Timer;
+    ButtonPair    buttonPair;
 
     // Objects
     InterfaceI2CLCD* lcd;

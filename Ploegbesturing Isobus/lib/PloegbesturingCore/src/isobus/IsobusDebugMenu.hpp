@@ -56,6 +56,17 @@ namespace triton
 // CalibrationSprayer, this never writes calibration data and every menu
 // choice is a fixed single keypress, so input dispatches immediately -- no
 // line buffer/Enter needed.
+// The CAN driver's receive queue (#248), on builds whose driver has one
+// (Teensy FlexCAN). main.cpp hands the menu a function that reads it, so
+// the menu needs no driver types.
+struct CanReceiveQueueStats {
+    bool          available = false;
+    unsigned long highWater = 0;   // most frames held at once since boot
+    unsigned long size      = 0;
+    unsigned long overflows = 0;   // frames dropped on a full queue
+};
+using CanReceiveQueueStatsSource = CanReceiveQueueStats (*)();
+
 class IsobusDebugMenu {
 public:
     // tcInterface/vtInterface may be nullptr (e.g. during incremental
@@ -70,6 +81,15 @@ public:
 
     // Call every loop() iteration. Non-blocking.
     void Update();
+
+    // The time one loop() pass took, in microseconds (#248). The dump shows
+    // the longest since the previous dump and since boot.
+    void NoteLoopPass(unsigned long passUs) {
+        if (passUs > longestPassSinceDumpUs) longestPassSinceDumpUs = passUs;
+        if (passUs > longestPassUs) longestPassUs = passUs;
+    }
+
+    void SetCanReceiveQueueStatsSource(CanReceiveQueueStatsSource source) { receiveQueueStats = source; }
 
 private:
     enum class State { IDLE, MENU };
@@ -92,6 +112,10 @@ private:
     State         state = State::IDLE;
     bool          periodicEnabled = false;
     unsigned long lastPeriodicPrintMs = 0;
+
+    unsigned long longestPassSinceDumpUs = 0;
+    unsigned long longestPassUs = 0;
+    CanReceiveQueueStatsSource receiveQueueStats = nullptr;
 
     void printMenu();
     void handleMenu(char c);

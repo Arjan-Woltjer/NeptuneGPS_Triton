@@ -48,6 +48,7 @@
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
 #include "VtFailoverPolicy.hpp"
+#include "PreferredVt.hpp"
 
 namespace triton
 {
@@ -57,18 +58,17 @@ namespace triton
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes.
 //
-// Soft-key handling: Wider/Narrower (2026-08-10) and Calibrate (2026-09-08)
-// are wired through ConsumeWiderPress()/ConsumeNarrowerPress()/
-// ConsumeCalibratePress() below -- main.cpp's loop() passes all three into
-// InterfacePlough::Update(), which lands each in the CheckButtons() branch
-// that mirrors the physical button meaning the same thing (Wider -> the
+// Soft-key handling: main.cpp's loop() passes IsWiderHeld()/IsNarrowerHeld()/
+// ConsumeCalibratePress() below into InterfacePlough::Update(), which lands
+// each where the physical button meaning the same thing goes (Wider -> the
 // LEFT_BUTTON_2 slot, Narrower -> RIGHT_BUTTON_2, Calibrate -> the both-held
-// combo main.cpp turns into a CalibrationPlough::Calibrate() call), with the
-// physical buttons keeping priority in an arbitration. They get their own
-// branches rather than being OR'd into the physical conditions (which is how
-// Wider/Narrower were first wired) because a consume-once edge can never
-// satisfy those branches' hold-duration debounce -- see CheckButtons() for
-// the full reasoning.
+// outcome main.cpp turns into a CalibrationPlough::Calibrate() call).
+// Wider/Narrower are held levels (#245): held from the VT's press until its
+// release, they go through the cab buttons' own hold-to-repeat, so a held
+// soft key drives in manual and steps the width every 200 ms in auto or
+// hold, exactly like a held cab button. Until #245 they were one-loop edges
+// on release and never moved the plough. Calibrate stays a tap, acting on
+// release.
 //
 // Auto (Key_Auto) is deliberately NOT wired -- InterfacePlough's AUTO mode is
 // derived from GPS/hitch state, not user-settable via a button, so there's no
@@ -146,28 +146,39 @@ public:
 
     // VT failover counters -- see VtFailoverPolicy.hpp. Switches: times the
     // client was rebuilt onto another VT. Requests: global requests for
-    // address claim sent while looking for one.
+    // address claim sent while looking for one. Rejoins: returns to the bus
+    // after time away, each starting the policy's rejoin grace.
     unsigned int  GetVtSwitchCount() const { return failover.GetSwitchCount(); }
     unsigned int  GetVtClaimRequestCount() const { return failover.GetRequestCount(); }
+    unsigned int  GetVtRejoinCount() const { return failover.GetRejoinCount(); }
 
-    // Consume-once VT soft-key press signals -- set by onVtKeyEvent() on key
-    // release, cleared by the call itself (edge-triggered, matching a
-    // discrete VT tap rather than a held physical button). Direction mapping
-    // confirmed against ImplementPlough::Adjust(): direction=-1
-    // (LEFT_BUTTON_2's slot) -> Wider(), direction=+1 (RIGHT_BUTTON_2's
-    // slot) -> Narrower() -- so Key_Wider must feed the LEFT slot and
-    // Key_Narrower the RIGHT slot for both input paths to mean the same
-    // thing. See InterfacePlough::CheckButtons() for where these land.
-    inline bool ConsumeWiderPress() {
-        bool v = pendingWiderPress;
-        pendingWiderPress = false;
-        return v;
-    }
-    inline bool ConsumeNarrowerPress() {
-        bool v = pendingNarrowerPress;
-        pendingNarrowerPress = false;
-        return v;
-    }
+    // The operator's preferred VT (#255): the VT number as the terminals show
+    // it, 0 = none. Read from EEPROM in Begin(), and again by main.cpp after
+    // the calibration wizard, which sets it. Once that VT is up and settled
+    // the failover policy moves the pool to it, from boot on and after it
+    // comes back.
+    void          LoadPreferredVt();
+    std::uint8_t  GetPreferredVt() const { return preferredVt; }
+    // The preferred VT's address, or VtFailoverPolicy::kNoAddress while it
+    // has not been seen.
+    std::uint8_t  GetPreferredVtAddress() const { return failover.GetPreferredAddress(); }
+
+    // VT Wider/Narrower soft keys as held levels (#245): held from the VT's
+    // press, or a still-held repeat, until its release or an aborted press,
+    // like a cab button. Direction mapping: Wider (BREDER) is the cab's right
+    // button, marked + (+1), Narrower (SMALLER) its left one, marked - (-1)
+    // (owner, 2026-10-20). +1 raises the width in auto/hold and drives the
+    // output the + button drives in manual; ImplementPlough's own valve names
+    // follow the hoses, not the buttons.
+    // A VT repeats still-held while the key is down (session 19: CNH VT every
+    // 194-206 ms); without one for kSoftKeyHeldTimeoutMs the key counts as
+    // released, so a lost release stops the valve within 0.6 s.
+    static constexpr unsigned long kSoftKeyHeldTimeoutMs = 600;
+    bool IsWiderHeld() const;
+    bool IsNarrowerHeld() const;
+
+    // Consume-once Calibrate tap, set on key release and cleared by the call
+    // itself: it enters a blocking wizard, so one tap must enter it once.
     inline bool ConsumeCalibratePress() {
         bool v = pendingCalibratePress;
         pendingCalibratePress = false;
@@ -233,9 +244,13 @@ private:
     uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
     int32_t       lastSentSpeed       = 0;  // 0.1 km/h
 
-    bool pendingWiderPress     = false;
-    bool pendingNarrowerPress  = false;
     bool pendingCalibratePress = false;
+    bool          widerHeld       = false;
+    bool          narrowerHeld    = false;
+    unsigned long widerEventMs    = 0;
+    unsigned long narrowerEventMs = 0;
+
+    std::uint8_t preferredVt = 0;
 
     unsigned int  vtStatusMessageCount  = 0;
     unsigned long lastVtStatusMessageMs = 0;
@@ -265,6 +280,7 @@ private:
     void updateVtVariables();
     void updateReconnectWatchdog();
     void updateFailover();
+    void notePreferredCandidate(std::uint8_t source);
     void switchTo(std::uint8_t address);
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
     static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);

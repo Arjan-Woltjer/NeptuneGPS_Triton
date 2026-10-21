@@ -17,14 +17,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "VehicleTractor.hpp"
+#include "EepromStore.hpp"
 
 namespace triton
 {
 
-VehicleTractor::VehicleTractor(Stream* serialDebug)
+VehicleTractor::VehicleTractor(Stream* serialDebug, bool defaultInversion)
     : serialDebug(serialDebug),
       speed(0), simspeed(1.0f), simtime(2),
-      sim(true), inversion(false),
+      sim(true), inversion(defaultInversion),
       vConst(250), wheelspeedPulses(0), distance(0),
       wheelspeedPulse(false), updateAge(0) {
 #ifdef DEBUG
@@ -100,14 +101,15 @@ bool VehicleTractor::readCalibrationData() {
     if (EEPROM.read(20) != 255 || EEPROM.read(21) != 255
         || EEPROM.read(22) != 255 || EEPROM.read(24) != 255
         || EEPROM.read(26) != 255 || EEPROM.read(28) != 255) {
-        vConst   = word(EEPROM.read(20), EEPROM.read(21));
+        vConst   = EepromStore::ReadUint16Be(20);
         simspeed = EEPROM.read(22) / 10.0f;
         simtime  = EEPROM.read(24);
         if (simtime > 10) {
             simtime = 10;
         }
-        sim       = EEPROM.read(26);
-        inversion = EEPROM.read(28);
+        // Yes/no settings are stored as 1 or 0; anything else is "no"
+        sim       = EEPROM.read(26) == 1;
+        inversion = EEPROM.read(28) == 1;
         return true;
     }
     return false;
@@ -135,8 +137,7 @@ void VehicleTractor::PrintCalibrationData() {
 }
 
 void VehicleTractor::writeCalibrationData() {
-    EEPROM.write(20, highByte(vConst));
-    EEPROM.write(21, lowByte(vConst));
+    EepromStore::WriteUint16Be(20, vConst);
     EEPROM.write(22, byte(simspeed * 10));
     EEPROM.write(24, simtime);
     EEPROM.write(26, sim);

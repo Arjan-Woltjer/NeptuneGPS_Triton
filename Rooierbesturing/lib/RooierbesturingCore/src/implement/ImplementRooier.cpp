@@ -17,6 +17,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "ImplementRooier.hpp"
+#include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -67,13 +69,8 @@ ImplementRooier::ImplementRooier() {
     lastErrorR = 0.0f;
 
     // End shutoff timers
-    shutoffTime = SHUTOFF_8;
-    shutoffWideL = false;
-    shutoffWideR = false;
-    shutoffNarrowL = false;
-    shutoffNarrowR = false;
-    shutoffTimerL = millis();
-    shutoffTimerR = millis();
+    endShutoffL.Begin(SHUTOFF_8, millis());
+    endShutoffR.Begin(SHUTOFF_8, millis());
 
     // Update timer
     updateAge = millis();
@@ -231,9 +228,9 @@ void ImplementRooier::Adjust(byte mode, int direction) {
     }
 
     bool drivingL = adjustSide(actualL, targetL, pwm, OUTPUT_UP_L_8, OUTPUT_DOWN_L_8,
-                                lastHeightL, shutoffWideL, shutoffNarrowL, shutoffTimerL);
+                                lastHeightL, endShutoffL);
     bool drivingR = adjustSide(actualR, targetR, pwm, OUTPUT_UP_R_8, OUTPUT_DOWN_R_8,
-                                lastHeightR, shutoffWideR, shutoffNarrowR, shutoffTimerR);
+                                lastHeightR, endShutoffR);
 
     digitalWrite(OUTPUT_LED_8, (drivingL || drivingR) ? HIGH : LOW);
 }
@@ -242,54 +239,30 @@ void ImplementRooier::Adjust(byte mode, int direction) {
 // Method for driving a single side's shutoff-latch bang-bang
 // ----------------------------------------------------------
 bool ImplementRooier::adjustSide(int actual, int target, byte pwm, byte outputUp, byte outputDown,
-                                  int& lastHeight, bool& shutoffWide, bool& shutoffNarrow, unsigned long& shutoffTimer) {
+                                  int& lastHeight, EndShutoff& endShutoff) {
     bool driving = false;
 
     //---------------------------
     // Actual below target -> up
     //---------------------------
-    if (actual < target - error && !shutoffNarrow) {
+    if (actual < target - error && !endShutoff.Latched(EndShutoff::kNarrower)) {
         analogWrite(outputUp, pwm);
         analogWrite(outputDown, 0);
         driving = true;
 
         // End shutoff
-        if (actual != lastHeight) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffWide) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = true;
-            shutoffWide = false;
-        }
+        endShutoff.Moving(EndShutoff::kNarrower, actual != lastHeight, millis());
     }
     //-----------------------------
     // Actual above target -> down
     //-----------------------------
-    else if (actual > target + error && !shutoffWide) {
+    else if (actual > target + error && !endShutoff.Latched(EndShutoff::kWider)) {
         analogWrite(outputDown, pwm);
         analogWrite(outputUp, 0);
         driving = true;
 
         // End shutoff
-        if (actual != lastHeight) {
-            shutoffTimer = millis();
-        }
-
-        if (shutoffNarrow) {
-            shutoffWide = false;
-            shutoffNarrow = false;
-        }
-
-        if (millis() - shutoffTimer > shutoffTime) {
-            shutoffNarrow = false;
-            shutoffWide = true;
-        }
+        endShutoff.Moving(EndShutoff::kWider, actual != lastHeight, millis());
     }
     //----------------
     // Target reached
@@ -298,7 +271,7 @@ bool ImplementRooier::adjustSide(int actual, int target, byte pwm, byte outputUp
         analogWrite(outputUp, 0);
         analogWrite(outputDown, 0);
 
-        shutoffTimer = millis();
+        endShutoff.Stopped(millis());
     }
 
     lastHeight = actual;
@@ -329,30 +302,8 @@ int ImplementRooier::getActualHeight(byte pin, const int* calibrationData) {
     }
     int readRaw = sum / 8;
 
-    int i = 0;
-
-    // Loop through calibrationdata
-    while (i < 2 && readRaw > calibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - calibrationData[i - 1];
-    float b = calibrationData[i] - calibrationData[i - 1];
-    float c = positionCalibrationPoints[i] - positionCalibrationPoints[i - 1];
-    float d = positionCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points hold the same reading -- same
-    // degenerate-calibration guard already established in ImplementScraper/
-    // ImplementPlanter/ImplementPlough.
-    if (b == 0.0f) {
-        return int(d);
-    }
-    return int(((a * c) / b) + d);
+    const int i = Interpolation::SegmentAscending(calibrationData, 3, readRaw);
+    return int(Interpolation::Evaluate(calibrationData, positionCalibrationPoints, i, readRaw));
 }
 
 // ----------------------------------------------
@@ -365,8 +316,8 @@ bool ImplementRooier::readCalibrationData() {
     if (EEPROM.read(200) != 255 || EEPROM.read(217) != 255 || EEPROM.read(220) != 255) {
         for (int i = 0; i < 3; i++) {
             int k = 2 * i;
-            positionCalibrationDataL[i] = word(EEPROM.read(k + 200), EEPROM.read(k + 201));
-            positionCalibrationDataR[i] = word(EEPROM.read(k + 206), EEPROM.read(k + 207));
+            positionCalibrationDataL[i] = EepromStore::ReadUint16Be(k + 200);
+            positionCalibrationDataR[i] = EepromStore::ReadUint16Be(k + 206);
         }
 
         manPwm = EEPROM.read(212);
@@ -381,12 +332,12 @@ bool ImplementRooier::readCalibrationData() {
             error = 2;
         }
 
-        // Signed, so it goes through readInt() rather than word(), which is
+        // Signed, so it goes through EepromStore::ReadInt16Le() rather than word(), which is
         // unsigned and turned every stored negative skew into a large
         // positive number that failed the range check below and reset the
         // skew to 0 on every boot (NeptuneGPS_Triton#100). Same helper
         // ImplementPlough uses.
-        skew = readInt(218);
+        skew = EepromStore::ReadInt16Le(218);
         if (skew > 30 || skew < -30) {
             skew = 0;
         }
@@ -396,7 +347,7 @@ bool ImplementRooier::readCalibrationData() {
             setpoint = 50;
         }
 
-        offset = readInt(221);   // signed, as skew above
+        offset = EepromStore::ReadInt16Le(221);   // signed, as skew above
         if (offset > 30 || offset < -30) {
             offset = 0;
         }
@@ -413,10 +364,8 @@ bool ImplementRooier::readCalibrationData() {
 void ImplementRooier::writeCalibrationData() {
     for (int i = 0; i < 3; i++) {
         int k = 2 * i;
-        EEPROM.write(k + 200, highByte(positionCalibrationDataL[i]));
-        EEPROM.write(k + 201, lowByte(positionCalibrationDataL[i]));
-        EEPROM.write(k + 206, highByte(positionCalibrationDataR[i]));
-        EEPROM.write(k + 207, lowByte(positionCalibrationDataR[i]));
+        EepromStore::WriteUint16Be(k + 200, positionCalibrationDataL[i]);
+        EepromStore::WriteUint16Be(k + 206, positionCalibrationDataR[i]);
     }
 
     EEPROM.write(212, manPwm);
@@ -428,11 +377,11 @@ void ImplementRooier::writeCalibrationData() {
 
     EEPROM.write(217, error);
 
-    writeInt(skew, 218);  // 218 - 219, signed; see readCalibrationData()
+    EepromStore::WriteInt16Le(218, skew);  // 218 - 219, signed; see readCalibrationData()
 
     EEPROM.write(220, byte(setpoint));
 
-    writeInt(offset, 221);  // 221 - 222, signed
+    EepromStore::WriteInt16Le(221, offset);  // 221 - 222, signed
 
 #ifdef DEBUG
     Serial.println("Calibration data written");
@@ -443,9 +392,7 @@ void ImplementRooier::writeCalibrationData() {
 // Method for wiping calibrationdata from EEPROM
 // ---------------------------------------------
 void ImplementRooier::wipeCalibrationData() {
-    for (int i = 1; i < 255; i++) {
-        EEPROM.write(i, 255);
-    }
+    EepromStore::Fill(1, 255, 255);
 
 #ifdef DEBUG
     Serial.println("Calibration data wiped");
@@ -500,41 +447,6 @@ void ImplementRooier::PrintCalibrationData() {
     Serial.println(setpoint);
     Serial.println(offset);
     Serial.println("--------------------------");
-}
-
-// ---------------------------------------
-// Method for reading int data from EEPROM
-// ---------------------------------------
-// Signed 16-bit, byte for byte in host order. Every signed value this class
-// persists goes through here and writeInt() below rather than through
-// word()/highByte(), which are unsigned and silently lose the sign
-// (NeptuneGPS_Triton#100). Copied from ImplementPlough, which has always
-// stored its own offset this way.
-short int ImplementRooier::readInt(uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-
-    for (short int i = 0; i < 2; i++) {
-        data.b[i] = EEPROM.read(addr + i);
-    }
-    return data.i;
-}
-
-// -------------------------------------
-// Method for writing int data to EEPROM
-// -------------------------------------
-void ImplementRooier::writeInt(short int x, uint16_t addr) {
-    union {
-        byte b[2];
-        short int i;
-    } data;
-
-    data.i = x;
-    for (short int i = 0; i < 2; i++) {
-        EEPROM.write(addr + i, data.b[i]);
-    }
 }
 
 }  // namespace triton

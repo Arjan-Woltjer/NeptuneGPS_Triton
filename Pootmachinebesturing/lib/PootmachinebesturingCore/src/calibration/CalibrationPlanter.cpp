@@ -66,10 +66,10 @@ void CalibrationPlanter::Calibrate() {
     // --------------------
     // Position calibration
     // --------------------
-    lcd->WriteBuffer(L3_CAL_POS, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_POS, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -79,17 +79,17 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Width calibration
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_POS_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_POS_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -136,9 +136,9 @@ void CalibrationPlanter::Calibrate() {
                     }
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
-            lcd->WriteBuffer(L3_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -151,10 +151,10 @@ void CalibrationPlanter::Calibrate() {
     // ---------------
     // XTE calibration
     // ---------------
-    lcd->WriteBuffer(L3_CAL_XTE, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_XTE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -164,9 +164,9 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
-            lcd->WriteBuffer(L3_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -174,9 +174,9 @@ void CalibrationPlanter::Calibrate() {
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // XTE calibration
-            lcd->WriteBuffer(L3_BLANK, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_XTE_AD, 3);
+            lcd->WriteBuffer(L_BLANK, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_XTE_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -209,9 +209,9 @@ void CalibrationPlanter::Calibrate() {
                     lcd->WriteScreen(1);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
-            lcd->WriteBuffer(L3_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -224,10 +224,10 @@ void CalibrationPlanter::Calibrate() {
     // ---------
     // Adjust KP
     // ---------
-    lcd->WriteBuffer(L3_CAL_KP, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_KP, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -237,17 +237,17 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust KP
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_KP_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_KP_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -280,8 +280,8 @@ void CalibrationPlanter::Calibrate() {
                 lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp3 + '0', 3, 13);
             lcd->WriteBuffer('.', 3, 14);
@@ -299,10 +299,10 @@ void CalibrationPlanter::Calibrate() {
     // ---------
     // Adjust KI
     // ---------
-    lcd->WriteBuffer(L3_CAL_KI, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_KI, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -312,17 +312,17 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust KI
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_KI_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_KI_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -355,8 +355,8 @@ void CalibrationPlanter::Calibrate() {
                 lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp3 + '0', 3, 13);
             lcd->WriteBuffer('.', 3, 14);
@@ -374,10 +374,10 @@ void CalibrationPlanter::Calibrate() {
     // ---------
     // Adjust KD
     // ---------
-    lcd->WriteBuffer(L3_CAL_KD, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_KD, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -387,17 +387,17 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust KD
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_KD_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_KD_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -430,8 +430,8 @@ void CalibrationPlanter::Calibrate() {
                 lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp3 + '0', 3, 13);
             lcd->WriteBuffer('.', 3, 14);
@@ -449,10 +449,10 @@ void CalibrationPlanter::Calibrate() {
     // -----------------
     // Adjust PWM manual
     // -----------------
-    lcd->WriteBuffer(L3_CAL_PWM_M, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_PWM_M, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -462,17 +462,17 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust PWM manual
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_PWM_M_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_PWM_M_AD, 3);
 
             temp = implement->GetPwmMan();
 
@@ -503,8 +503,8 @@ void CalibrationPlanter::Calibrate() {
                 lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp3 + '0', 3, 14);
             lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
@@ -521,10 +521,10 @@ void CalibrationPlanter::Calibrate() {
     // ---------------
     // Adjust PWM auto
     // ---------------
-    lcd->WriteBuffer(L3_CAL_PWM_A, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_PWM_A, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -534,18 +534,18 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust PWM auto
-            lcd->WriteBuffer(L3_CAL_PWM_A, 0);
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_PWM_A_AD, 3);
+            lcd->WriteBuffer(L_CAL_PWM_A, 0);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_PWM_A_AD, 3);
 
             temp = implement->GetPwmAuto();
 
@@ -576,8 +576,8 @@ void CalibrationPlanter::Calibrate() {
                 lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp3 + '0', 3, 14);
             lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
@@ -594,10 +594,10 @@ void CalibrationPlanter::Calibrate() {
     // ------------
     // Adjust error
     // ------------
-    lcd->WriteBuffer(L3_CAL_OFFSET, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_OFFSET, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -607,17 +607,17 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust error
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
-            lcd->WriteBuffer(L3_CAL_OFFSET_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_OFFSET_AD, 3);
 
             temp = implement->GetOffset();
 
@@ -646,8 +646,8 @@ void CalibrationPlanter::Calibrate() {
                 lcd->WriteBuffer(temp2 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp2 + '0', 3, 15);
             lcd->WriteBuffer(temp % 10 + '0', 3, 16);
@@ -663,10 +663,10 @@ void CalibrationPlanter::Calibrate() {
     // ----------
     // Enable GPS
     // ----------
-    lcd->WriteBuffer(L3_CAL_GPS_EN, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_GPS_EN, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -676,16 +676,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -706,14 +706,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             implement->SetGpsEnabled(temp);
 
@@ -727,10 +727,10 @@ void CalibrationPlanter::Calibrate() {
     // -----------------
     // Enable XTE sensor
     // -----------------
-    lcd->WriteBuffer(L3_CAL_SEN_EN, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_SEN_EN, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -740,16 +740,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -770,14 +770,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             implement->SetSensorEnabled(temp);
 
@@ -791,10 +791,10 @@ void CalibrationPlanter::Calibrate() {
     // -------------------
     // Enable PWM on valve
     // -------------------
-    lcd->WriteBuffer(L3_CAL_PWM_EN, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_PWM_EN, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -804,16 +804,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -834,14 +834,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             implement->SetPwmEnabled(temp);
 
@@ -855,10 +855,10 @@ void CalibrationPlanter::Calibrate() {
     // -------------------
     // Zwart wit ventiel
     // -------------------
-    lcd->WriteBuffer(L3_CAL_1_0_EN, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_1_0_EN, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -868,16 +868,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -898,14 +898,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             implement->SetOnOffValve(temp);
 
@@ -919,10 +919,10 @@ void CalibrationPlanter::Calibrate() {
     // -------------------
     // Inversie hydrauliek
     // -------------------
-    lcd->WriteBuffer(L3_CAL_INV_HY, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_INV_HY, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -932,16 +932,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -962,14 +962,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             implement->SetInvertHydraulics(temp);
 
@@ -983,10 +983,10 @@ void CalibrationPlanter::Calibrate() {
     // -----------------------
     // Inversie pootbalksensor
     // -----------------------
-    lcd->WriteBuffer(L3_CAL_INV_SE, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_INV_SE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -996,16 +996,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -1026,14 +1026,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             implement->SetInvertPlantingelementSensor(temp);
 
@@ -1047,10 +1047,10 @@ void CalibrationPlanter::Calibrate() {
     // -------------------
     // Inversie hefsignaal
     // -------------------
-    lcd->WriteBuffer(L3_CAL_INV_HI, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_INV_HI, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -1060,16 +1060,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -1090,14 +1090,14 @@ void CalibrationPlanter::Calibrate() {
                 }
 
                 if (temp) {
-                    lcd->WriteBuffer(L3_CAL_ON, 3);
+                    lcd->WriteBuffer(L_CAL_ON, 3);
                 }
                 else {
-                    lcd->WriteBuffer(L3_CAL_OFF, 3);
+                    lcd->WriteBuffer(L_CAL_OFF, 3);
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             tractor->SetInversion(temp);
 
@@ -1111,10 +1111,10 @@ void CalibrationPlanter::Calibrate() {
     // --------------
     // Select program
     // --------------
-    lcd->WriteBuffer(L3_CAL_PROG, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_PROG, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -1124,16 +1124,16 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust program
-            lcd->WriteBuffer(L3_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L3_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -1166,30 +1166,30 @@ void CalibrationPlanter::Calibrate() {
                 // Write to screen
                 switch (temp) {
                     case 2:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD2, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD2, 3);
                         break;
                     case 3:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD3, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD3, 3);
                         break;
                     case 4:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD4, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD4, 3);
                         break;
                     case 5:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD5, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD5, 3);
                         break;
                     case 6:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD6, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD6, 3);
                         break;
                     case 7:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD7, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD7, 3);
                         break;
                     case 8:
-                        lcd->WriteBuffer(L3_CAL_PROG_AD8, 3);
+                        lcd->WriteBuffer(L_CAL_PROG_AD8, 3);
                         break;
                 }
             }
-            lcd->WriteBuffer(L3_CAL_DONE, 1);
-            lcd->WriteBuffer(L3_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
 
@@ -1200,10 +1200,10 @@ void CalibrationPlanter::Calibrate() {
     delay(1000);
 
     // Store calibration data
-    lcd->WriteBuffer(L3_CAL_COMPLETE, 0);
-    lcd->WriteBuffer(L3_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L3_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L3_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -1213,8 +1213,8 @@ void CalibrationPlanter::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L3_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L3_CAL_NOSAVE, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_CAL_NOSAVE, 2);
 
             lcd->WriteScreen(-1);
 
@@ -1229,8 +1229,8 @@ void CalibrationPlanter::Calibrate() {
             implement->CommitCalibration();
 
             // Print message to LCD
-            lcd->WriteBuffer(L3_CAL_DDONE, 1);
-            lcd->WriteBuffer(L3_CAL_SAVE, 2);
+            lcd->WriteBuffer(L_CAL_DDONE, 1);
+            lcd->WriteBuffer(L_CAL_SAVE, 2);
 
             lcd->WriteScreen(-1);
 

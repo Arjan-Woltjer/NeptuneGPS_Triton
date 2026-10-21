@@ -118,6 +118,21 @@ triton::IsobusLightbarChannel* gLightbarChannel;
 triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
+#if !defined(ESP32S3)
+// For the dump's receive-queue line (#248). The hardware interface keeps the
+// plugin alive.
+static isobus::FlexCANT4Plugin* gFlexCanPlugin = nullptr;
+static triton::CanReceiveQueueStats GReadCanReceiveQueueStats() {
+    triton::CanReceiveQueueStats stats;
+    if (gFlexCanPlugin != nullptr) {
+        stats.available = true;
+        stats.highWater = gFlexCanPlugin->get_receive_queue_high_water();
+        stats.size      = isobus::FlexCANT4Plugin::RECEIVE_QUEUE_SIZE;
+        stats.overflows = gFlexCanPlugin->get_receive_queue_overflow_count();
+    }
+    return stats;
+}
+#endif
 #else
 triton::SerialGuidanceChannel* gGuidanceChannel;
 #ifdef PLAIN_CAN
@@ -173,10 +188,10 @@ void setup() {
 
     // Write message to screen
     // Messages in LanguagePlough.hpp
-    gLcd->WriteBuffer(L2_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L2_DEVICE, 1);
-    gLcd->WriteBuffer(L2_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L2_AUTHOR, 3);
+    gLcd->WriteBuffer(L_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L_DEVICE, 1);
+    gLcd->WriteBuffer(L_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L_AUTHOR, 3);
 
     gLcd->WriteScreen(-1);
 
@@ -224,6 +239,7 @@ void setup() {
 #else
     constexpr std::uint8_t kIsobusCanChannel = ISOBUS_CAN_CHANNEL;
     auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(kIsobusCanChannel);
+    gFlexCanPlugin = gCanPlugin.get();
 #endif
 
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
@@ -254,6 +270,9 @@ void setup() {
 
     gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface, gLightbarChannel);
     gDebugMenu->Begin();
+#if !defined(ESP32S3)
+    gDebugMenu->SetCanReceiveQueueStatsSource(GReadCanReceiveQueueStats);
+#endif
 #else
     // Receiver port at the stored rate, then the blocking autodetect on the
     // LCD, as the regular Ploegbesturing does: the receivers and the
@@ -289,6 +308,13 @@ void setup() {
 // Main loop
 // ---------
 void loop() {
+#ifdef ISOBUS
+    // How long each pass takes (#248): the dump shows the longest.
+    static unsigned long lastPassUs = micros();
+    const unsigned long passStartUs = micros();
+    gDebugMenu->NoteLoopPass(passStartUs - lastPassUs);
+    lastPassUs = passStartUs;
+#endif
 #if defined(ESP32S3)
     // One I2C read per iteration refreshes every expander-backed input; the
     // reads further down are then plain bit tests. EEPROM.commit() returns
@@ -310,14 +336,12 @@ void loop() {
     gTcInterface->Update();
     gDebugMenu->Update();
 
-    // Update interface -- VT Wider/Narrower/Calibrate soft-key presses feed
-    // InterfacePlough's existing button arbitration, see
-    // IsobusVtInterface.hpp/InterfacePlough.cpp for the full rationale.
-    // Every Consume*() call must happen on every iteration: they are the only
-    // thing that clears the pending flags, so short-circuiting one would leave
-    // a press latched until the next one arrives.
-    gInterface->Update(gVtInterface->ConsumeWiderPress(),
-                       gVtInterface->ConsumeNarrowerPress(),
+    // Update interface -- the VT's Wider/Narrower soft keys (held levels, #245)
+    // and Calibrate tap feed InterfacePlough's button handling, see
+    // IsobusVtInterface.hpp. ConsumeCalibratePress() must run on every
+    // iteration: it is the only thing that clears the pending tap.
+    gInterface->Update(gVtInterface->IsWiderHeld(),
+                       gVtInterface->IsNarrowerHeld(),
                        gVtInterface->ConsumeCalibratePress());
 #else
     // Update interface
@@ -331,6 +355,10 @@ void loop() {
     // costs the ISOBUS stack when the trigger came from the VT.
     if (gInterface->GetButtons() == 2) {
         gCalibration->Calibrate();
+#ifdef ISOBUS
+        // The wizard may have changed the preferred VT (#255).
+        gVtInterface->LoadPreferredVt();
+#endif
     }
 }
 

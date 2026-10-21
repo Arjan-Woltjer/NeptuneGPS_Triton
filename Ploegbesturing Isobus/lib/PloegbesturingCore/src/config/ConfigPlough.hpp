@@ -56,8 +56,5 @@
 #endif
 
 //#define ROTATION
-//#define PWM_MAN
-//#define PWM_AUTO
-//#define PID_KP
 //#define SPEED_L
 //#define DEBUG

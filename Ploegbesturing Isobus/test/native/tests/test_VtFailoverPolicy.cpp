@@ -20,6 +20,7 @@
 #include <AUnit.h>
 
 #include "isobus/VtFailoverPolicy.hpp"
+#include "isobus/PreferredVt.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -216,6 +217,100 @@ test(VtFailoverPolicy, staleStatusFromBeforeStartDoesNotCount) {
     assertTrue(policy.Evaluate(kT0 + 100000 + 1000, false, kCnhVt, true).action == Action::None);
 }
 
+// --- Rejoining the bus -------------------------------------------------
+// Session 18's R2 (2026-10-17): the plough's ISOBUS plug was out for 63 s. On
+// the rejoin the InCommand's status (0x80) arrived first, and 0.4 s later the
+// plough switched to it: 0x26 had been "silent" for a minute, but only because
+// we were not on the bus. Every calibration-wizard stall ended the same way.
+
+namespace {
+
+// Both VTs and the rest of the bus heard every second from kT0 to `untilMs`.
+void OnTheBusWithBothVtsUntil(VtFailoverPolicy& policy, unsigned long untilMs) {
+    for (unsigned long t = kT0; t <= untilMs; t += 1000) {
+        policy.OnBusTraffic(t);
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+}
+
+}  // namespace
+
+test(VtFailoverPolicy, rejoin_afterTimeOffTheBus_keepsTheOldPartner) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    const unsigned long unplugged = kT0 + 30000;
+    OnTheBusWithBothVtsUntil(policy, unplugged);
+    const unsigned long rejoin = unplugged + 63000;
+    policy.OnBusTraffic(rejoin);
+    policy.OnVtStatus(kInCommand, rejoin);
+    assertTrue(policy.Evaluate(rejoin + 400, false, kCnhVt, true).action == Action::None);
+    assertEqual(policy.GetRejoinCount(), (unsigned int)1);
+    // 0x26 speaks again within its 1 s cycle: bound to it as before.
+    policy.OnVtStatus(kCnhVt, rejoin + 800);
+    assertTrue(policy.Evaluate(rejoin + 1000, true, kCnhVt, true).action == Action::None);
+}
+
+// If the old partner does not come back, the switch waits for the grace
+// period to end, then happens at once (it has been silent far longer than
+// kPartnerSilentMs by then).
+test(VtFailoverPolicy, rejoin_oldPartnerGone_switchesWhenTheGraceEnds) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    const unsigned long unplugged = kT0 + 30000;
+    OnTheBusWithBothVtsUntil(policy, unplugged);
+    const unsigned long rejoin = unplugged + 63000;
+    for (unsigned long t = rejoin; t <= rejoin + VtFailoverPolicy::kRejoinGraceMs; t += 1000) {
+        policy.OnBusTraffic(t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+    assertEqual(VtFailoverPolicy::kRejoinGraceMs, 120000UL);
+    assertTrue(policy.Evaluate(rejoin + VtFailoverPolicy::kRejoinGraceMs - 1, false, kCnhVt, true).action ==
+               Action::None);
+    const VtFailoverPolicy::Decision d = policy.Evaluate(rejoin + VtFailoverPolicy::kRejoinGraceMs, false, kCnhVt, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kInCommand);
+}
+
+// A loop that did not run (the calibration wizard, #31) is a gap in the
+// traffic just like an unplug: nothing was received while it was open.
+test(VtFailoverPolicy, rejoin_afterALoopStall_keepsTheOldPartner) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    const unsigned long stalled = kT0 + 30000;
+    OnTheBusWithBothVtsUntil(policy, stalled);
+    const unsigned long resumed = stalled + 30000;
+    policy.OnBusTraffic(resumed);
+    policy.OnVtStatus(kInCommand, resumed);
+    assertTrue(policy.Evaluate(resumed, false, kCnhVt, true).action == Action::None);
+}
+
+// On the bus all along (F1/F3, and session 13's pruned VT whose status never
+// reached us): no rejoin, the 15 s switch stays.
+test(VtFailoverPolicy, onTheBusAllAlong_partnerSilent_switchesAfterTheUsualTime) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    OnTheBusWithBothVtsUntil(policy, kT0 + 30000);
+    const unsigned long stop = kT0 + 30000;
+    for (unsigned long t = stop + 1000; t <= stop + VtFailoverPolicy::kPartnerSilentMs; t += 1000) {
+        policy.OnBusTraffic(t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+    const VtFailoverPolicy::Decision d = policy.Evaluate(stop + VtFailoverPolicy::kPartnerSilentMs, false, kCnhVt, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(policy.GetRejoinCount(), (unsigned int)0);
+}
+
+// The first traffic after boot is not a rejoin: nothing was heard before it.
+test(VtFailoverPolicy, firstTrafficAfterBoot_isNotARejoin) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    policy.OnBusTraffic(kT0 + 60000);
+    policy.OnVtStatus(kInCommand, kT0 + 60000);
+    assertTrue(policy.Evaluate(kT0 + 60000, false, kCnhVt, true).action == Action::SwitchTo);
+    assertEqual(policy.GetRejoinCount(), (unsigned int)0);
+}
+
 test(VtFailoverPolicy, survivesMillisWraparound) {
     const unsigned long nearWrap = 0xFFFFFFFFUL - 5000;
     VtFailoverPolicy policy;
@@ -228,4 +323,143 @@ test(VtFailoverPolicy, survivesMillisWraparound) {
     assertEqual(d.address, kInCommand);
     assertTrue(policy.Evaluate(nearWrap + 1000 + VtFailoverPolicy::kPartnerSilentMs - 1, false, kCnhVt, true).action ==
                Action::None);
+}
+
+// ---------------------------------------------------------------------------
+// Preferred VT (#255): the operator's choice wins once that VT is up. Owner:
+// no wait at boot (bind to the first VT), and move back to the preferred one
+// as soon as it is available again.
+// ---------------------------------------------------------------------------
+namespace {
+// Both VTs broadcast their status at 1 Hz from `fromMs` to `toMs`.
+void BothVtsTalk(VtFailoverPolicy& policy, unsigned long fromMs, unsigned long toMs) {
+    for (unsigned long t = fromMs; t <= toMs; t += 1000) {
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+}
+}  // namespace
+
+test(VtFailoverPolicy, preferred_settled_movesFromTheOtherVt) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + VtFailoverPolicy::kPreferredSettledMs);
+    policy.SetPreferredAddress(kCnhVt);
+    // Bound to the InCommand, connected and talking: only the preference moves it.
+    const VtFailoverPolicy::Decision d =
+        policy.Evaluate(kT0 + VtFailoverPolicy::kPreferredSettledMs, true, kInCommand, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kCnhVt);
+}
+
+test(VtFailoverPolicy, preferred_stillBooting_staysPut) {
+    // The CNH VT only just started broadcasting: not settled yet.
+    VtFailoverPolicy fresh;
+    fresh.Start(kT0);
+    for (unsigned long t = kT0; t <= kT0 + 10000; t += 1000) fresh.OnVtStatus(kInCommand, t);
+    fresh.OnVtStatus(kCnhVt, kT0 + 8000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 9000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 10000);
+    fresh.SetPreferredAddress(kCnhVt);
+    assertTrue(fresh.Evaluate(kT0 + 10000, true, kInCommand, true).action == Action::None);
+    fresh.OnVtStatus(kCnhVt, kT0 + 11000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 12000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 13000);
+    assertTrue(fresh.Evaluate(kT0 + 13000, true, kInCommand, true).action == Action::SwitchTo);
+}
+
+test(VtFailoverPolicy, preferred_alreadyBound_noAction) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 10000);
+    policy.SetPreferredAddress(kCnhVt);
+    assertTrue(policy.Evaluate(kT0 + 10000, true, kCnhVt, true).action == Action::None);
+}
+
+test(VtFailoverPolicy, noPreference_staysOnTheOtherVt) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 10000);
+    policy.SetPreferredAddress(VtFailoverPolicy::kNoAddress);
+    assertTrue(policy.Evaluate(kT0 + 10000, true, kInCommand, true).action == Action::None);
+}
+
+// A gap in the preferred VT's status (it rebooted, or flaps) starts the
+// settling over, so a flapping VT is not chased.
+test(VtFailoverPolicy, preferred_gapRestartsTheSettling) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    for (unsigned long t = kT0; t <= kT0 + 2000; t += 1000) policy.OnVtStatus(kCnhVt, t);
+    // 5 s without the CNH VT's status (longer than kCandidateFreshMs), then back from kT0 + 7000.
+    for (unsigned long t = kT0; t <= kT0 + 11000; t += 1000) policy.OnVtStatus(kInCommand, t);
+    for (unsigned long t = kT0 + 7000; t <= kT0 + 11000; t += 1000) policy.OnVtStatus(kCnhVt, t);
+    policy.SetPreferredAddress(kCnhVt);
+    assertTrue(policy.Evaluate(kT0 + 11000, true, kInCommand, true).action == Action::None);   // 4 s since it came back
+    policy.OnVtStatus(kInCommand, kT0 + 12000);
+    policy.OnVtStatus(kCnhVt, kT0 + 12000);
+    assertTrue(policy.Evaluate(kT0 + 12000, true, kInCommand, true).action == Action::SwitchTo);
+}
+
+// Right after any switch the new binding is left alone for a while, so the
+// client is never rebuilt twice in a row while its partner resolves.
+test(VtFailoverPolicy, preferred_notRightAfterASwitch) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 24000);
+    policy.SetPreferredAddress(kCnhVt);
+    policy.OnSwitched(kT0 + 20000);
+    // Partner not resolved yet (invalid): still no second switch inside the hold-off.
+    assertTrue(policy.Evaluate(kT0 + 20000 + VtFailoverPolicy::kPreferredSettledMs - 1, true, kCnhVt, false).action ==
+               Action::None);
+    BothVtsTalk(policy, kT0 + 25000, kT0 + 25000);
+    assertTrue(policy.Evaluate(kT0 + 20000 + VtFailoverPolicy::kPreferredSettledMs, true, kInCommand, true).action ==
+               Action::SwitchTo);
+}
+
+test(VtFailoverPolicy, preferred_silent_noMove) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 10000);
+    for (unsigned long t = kT0 + 11000; t <= kT0 + 20000; t += 1000) policy.OnVtStatus(kInCommand, t);
+    policy.SetPreferredAddress(kCnhVt);                   // last heard at kT0 + 10000
+    assertTrue(policy.Evaluate(kT0 + 20000, true, kInCommand, true).action == Action::None);
+}
+
+// The bound VT goes silent and the preferred one is up: the failover goes to
+// the preferred VT, not to the lowest live address.
+test(VtFailoverPolicy, partnerSilent_preferredUp_goesToThePreferred) {
+    constexpr uint8_t kThirdVt = 0x10;
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    policy.OnVtStatus(kInCommand, kT0);                   // bound VT, then silent
+    for (unsigned long t = kT0; t <= kT0 + 20000; t += 1000) {
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kThirdVt, t);
+    }
+    policy.SetPreferredAddress(kCnhVt);
+    const VtFailoverPolicy::Decision d = policy.Evaluate(kT0 + 20000, false, kInCommand, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kCnhVt);
+}
+
+// The setting is the VT number as the terminals show it: function instance + 1
+// (owner: the 1200, instance 0, is VT 1; the CNH VT, instance 1, is VT 2).
+test(PreferredVt, matchesTheVtNumberAsTheTerminalsShowIt) {
+    assertTrue(IsPreferredVt(true, 0, 1));     // the InCommand 1200
+    assertTrue(IsPreferredVt(true, 1, 2));     // the CNH VT
+    assertFalse(IsPreferredVt(true, 1, 1));
+    assertFalse(IsPreferredVt(true, 0, 0));    // 0 = no preference
+    assertFalse(IsPreferredVt(false, 1, 2));   // not a Virtual Terminal
+}
+
+test(PreferredVt, storedAsTheNumber_erasedOrOutOfRangeIsNone) {
+    EEPROM.eepromReset();
+    assertEqual((int)ReadPreferredVt(), 0);    // erased (255)
+    WritePreferredVt(2);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 2);
+    assertEqual((int)ReadPreferredVt(), 2);
+    EEPROM.write(kEepromPreferredVt, kHighestPreferredVt + 1);
+    assertEqual((int)ReadPreferredVt(), 0);
+    WritePreferredVt(kHighestPreferredVt + 1);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 0);
 }

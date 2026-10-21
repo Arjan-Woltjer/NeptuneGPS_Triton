@@ -80,10 +80,10 @@ void CalibrationPlough::Calibrate() {
     // --------------------
     // Position calibration
     // --------------------
-    lcd->WriteBuffer(L2_CAL_POS, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_POS, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -93,17 +93,17 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Width calibration
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_POS_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_POS_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -150,9 +150,9 @@ void CalibrationPlough::Calibrate() {
                     }
                 }
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-            lcd->WriteBuffer(L2_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -163,10 +163,10 @@ void CalibrationPlough::Calibrate() {
 
 #ifdef ROTATION
     // Rotation calibration
-    lcd->WriteBuffer(L2_CAL_ROTATION, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_ROTATION, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -176,17 +176,17 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Rotation calibration
-            lcd->WriteBuffer(L2_BLANK, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_ROTATION_AD, 3);
+            lcd->WriteBuffer(L_BLANK, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ROTATION_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -221,9 +221,9 @@ void CalibrationPlough::Calibrate() {
                     }
                 }
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-            lcd->WriteBuffer(L2_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -237,10 +237,10 @@ void CalibrationPlough::Calibrate() {
     // ----------------
     // SPEED calibration
     // ----------------
-    lcd->WriteBuffer(L2_CAL_SPEED, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_SPEED, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -251,9 +251,9 @@ void CalibrationPlough::Calibrate() {
 
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-            lcd->WriteBuffer(L2_BLANK, 3);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(L_BLANK, 3);
 
             lcd->WriteScreen(-1);
 
@@ -261,9 +261,9 @@ void CalibrationPlough::Calibrate() {
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Speed calibration
-            lcd->WriteBuffer(L2_BLANK, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_SPEED_AD, 3);
+            lcd->WriteBuffer(L_BLANK, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_SPEED_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -296,8 +296,8 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteBuffer(abs(temp) % 10 + '0', 3, 16);
             }
 
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
 
@@ -310,10 +310,10 @@ void CalibrationPlough::Calibrate() {
     // -----------------------
     // Adjust number of shares
     // -----------------------
-    lcd->WriteBuffer(L2_CAL_SHARES, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_SHARES, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -323,17 +323,17 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust amount of shares
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_SHARES_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_SHARES_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -347,15 +347,10 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
-                if (interface->GetButtons() == 1) {
-                    temp++;
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp--;
-                }
-                else if (interface->GetButtons() == 2) {
+                if (interface->GetButtons() == 2) {
                     break;
                 }
+                temp = StepWithin(temp, interface->GetButtons(), 1, kLowestShares, kHighestShares);
                 // Calculate derived variables
                 temp2 = temp / 10;
 
@@ -363,8 +358,8 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteBuffer(temp2 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp2 + '0', 3, 15);
             lcd->WriteBuffer(temp % 10 + '0', 3, 16);
@@ -377,92 +372,13 @@ void CalibrationPlough::Calibrate() {
     }
     delay(1000);
 
-#ifdef PID_KP
-    // ---------
-    // Adjust KP
-    // ---------
-    lcd->WriteBuffer(L2_CAL_KP, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust KP
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_KP_AD, 3);
-
-            lcd->WriteScreen(-1);
-
-            temp = implement->GetKP();
-
-            while (interface->CheckButtons(0, 0) != 0) {
-            }
-
-            // Adjust loop
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    temp++;
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp--;
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-                // Calculate derived variables
-                temp2 = temp / 10;
-                temp3 = temp / 100;
-
-                // Write to screen
-                lcd->WriteBuffer(temp3 + '0', 3, 13);
-                lcd->WriteBuffer('.', 3, 14);
-                lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
-                lcd->WriteBuffer(temp % 10 + '0', 3, 16);
-
-            }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            lcd->WriteBuffer(temp3 + '0', 3, 13);
-            lcd->WriteBuffer('.', 3, 14);
-            lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
-            lcd->WriteBuffer(temp % 10 + '0', 3, 16);
-
-            lcd->WriteScreen(-1);
-
-            implement->SetKP(temp);
-            break;
-        }
-    }
-    delay(1000);
-#endif
-
-#ifdef PWM_MAN
     // -----------------
-    // Adjust PWM manual
+    // Adjust ploughside
     // -----------------
-    lcd->WriteBuffer(L2_CAL_PWM_M, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_SWAP, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -472,69 +388,73 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust PWM manual
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_PWM_M_AD, 3);
+            // Adjust maximum correction
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_SWAP_AD, 3);
 
-            lcd->WriteScreen(-1);
-
-            temp = implement->GetPwmMan();
+            if (implement->GetSide()) {
+                lcd->WriteBuffer('L', 3, 16);
+            }
+            else {
+                lcd->WriteBuffer('R', 3, 16);
+            }
 
             while (interface->CheckButtons(0, 0) != 0) {
             }
 
-            // Adjust loop
             while (true) {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
                 if (interface->GetButtons() == 1) {
-                    temp++;
+                    implement->SetSwap(true);
                 }
                 else if (interface->GetButtons() == -1) {
-                    temp--;
+                    implement->SetSwap(false);
                 }
                 else if (interface->GetButtons() == 2) {
                     break;
                 }
-                // Calculate derived variables
-                temp2 = temp / 10;
 
-                // Write to screen
-                lcd->WriteBuffer(temp2 + '0', 3, 15);
-                lcd->WriteBuffer(temp % 10 + '0', 3, 16);
+                if (implement->GetSide()) {
+                    lcd->WriteBuffer('L', 3, 16);
+                }
+                else {
+                    lcd->WriteBuffer('R', 3, 16);
+                }
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
-            lcd->WriteBuffer(temp2 + '0', 3, 15);
-            lcd->WriteBuffer(temp % 10 + '0', 3, 16);
+            if (implement->GetSide()) {
+                lcd->WriteBuffer('L', 3, 16);
+            }
+            else {
+                lcd->WriteBuffer('R', 3, 16);
+            }
 
             lcd->WriteScreen(-1);
 
-            implement->SetPwmMan(byte(temp));
             break;
         }
     }
     delay(1000);
-#endif
 
-#ifdef PWM_AUTO
-    // ---------------
-    // Adjust PWM auto
-    // ---------------
-    lcd->WriteBuffer(L2_CAL_PWM_A, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    // ---------------------
+    // Hitch signal inversion
+    // ---------------------
+    lcd->WriteBuffer(L_CAL_INVERSION, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -544,68 +464,61 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust PWM auto
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_PWM_A_AD, 3);
+            // Hitch signal inverted: yes / no
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
-            temp = implement->GetPwmAuto();
+            temp = tractor->GetInversion();
 
-            while (interface->CheckButtons(0, 0) != 0) {
-            }
-
-            // Adjust loop
             while (true) {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
                 if (interface->GetButtons() == 1) {
-                    temp++;
+                    temp = 1;
                 }
                 else if (interface->GetButtons() == -1) {
-                    temp--;
+                    temp = 0;
                 }
                 else if (interface->GetButtons() == 2) {
                     break;
                 }
-                // Calculate derived variables
-                temp2 = temp / 10;
 
-                // Write to screen
-                lcd->WriteBuffer(temp2 + '0', 3, 15);
-                lcd->WriteBuffer(temp % 10 + '0', 3, 16);
+                lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
-            lcd->WriteBuffer(temp2 + '0', 3, 15);
-            lcd->WriteBuffer(temp % 10 + '0', 3, 16);
+            if (temp) {
+                tractor->SetInversion(true);
+            }
+            else {
+                tractor->SetInversion(false);
+            }
 
             lcd->WriteScreen(-1);
 
-            implement->SetPwmAuto(byte(temp));
             break;
         }
     }
     delay(1000);
-#endif
 
     // ------------
-    // Adjust error
+    // Bypass valve
     // ------------
-    lcd->WriteBuffer(L2_CAL_MARGIN, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_BYPASS, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -615,21 +528,81 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust error
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_MARGIN_AD, 3);
+            // Bypass valve fitted: yes / no
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(implement->GetBypass() ? L_CAL_YES : L_CAL_NO, 3);
 
             lcd->WriteScreen(-1);
 
-            temp = implement->GetError();
+            temp = implement->GetBypass();
+
+            while (true) {
+                lcd->WriteScreen(1);
+                interface->CheckButtons(0, 255);
+
+                if (interface->GetButtons() == 1) {
+                    temp = 1;
+                }
+                else if (interface->GetButtons() == -1) {
+                    temp = 0;
+                }
+                else if (interface->GetButtons() == 2) {
+                    break;
+                }
+
+                lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
+            }
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            implement->SetBypass(temp != 0);
+
+            lcd->WriteScreen(-1);
+
+            break;
+        }
+    }
+    delay(1000);
+
+    // ---------------
+    // Adjust deadband
+    // ---------------
+    lcd->WriteBuffer(L_CAL_DEADBAND, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
+
+    lcd->WriteScreen(-1);
+
+    while (interface->CheckButtons(0, 0) != 0) {
+    }
+
+    while (true) {
+        if (interface->CheckButtons(0, 0) == -1) {
+            // print message to LCD
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            break;
+        }
+        else if (interface->CheckButtons(0, 0) == 1) {
+            // Adjust deadband
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_DEADBAND_AD, 3);
+
+            lcd->WriteScreen(-1);
+
+            temp = implement->GetDeadband();
 
             while (interface->CheckButtons(0, 0) != 0) {
             }
@@ -638,30 +611,25 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteScreen(1);
                 interface->CheckButtons(0, 255);
 
-                if (interface->GetButtons() == 1) {
-                    temp++;
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp--;
-                }
-                else if (interface->GetButtons() == 2) {
+                if (interface->GetButtons() == 2) {
                     break;
                 }
+                temp = StepWithin(temp, interface->GetButtons(), 1, kLowestDeadband, kHighestDeadband);
                 // Calculate derived variables
                 temp2 = temp / 10;
 
                 lcd->WriteBuffer(temp2 + '0', 3, 15);
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp2 + '0', 3, 15);
             lcd->WriteBuffer(temp % 10 + '0', 3, 16);
 
             lcd->WriteScreen(-1);
 
-            implement->SetError(byte(temp));
+            implement->SetDeadband(byte(temp));
             break;
         }
     }
@@ -670,10 +638,10 @@ void CalibrationPlough::Calibrate() {
     // -------------------------
     // Adjust maximum correction
     // -------------------------
-    lcd->WriteBuffer(L2_CAL_MAXCOR, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_MAXCOR, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -683,17 +651,17 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Adjust maximum correction
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_MAXCOR_AD, 3);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_MAXCOR_AD, 3);
 
             lcd->WriteScreen(-1);
 
@@ -730,8 +698,8 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteBuffer(temp % 10 + '0', 3, 16);
             }
 
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteBuffer(temp3 + '0', 3, 14);
             lcd->WriteBuffer(temp2 % 10 + '0', 3, 15);
@@ -745,89 +713,13 @@ void CalibrationPlough::Calibrate() {
     }
     delay(1000);
 
-    // -----------------
-    // Adjust ploughside
-    // -----------------
-    lcd->WriteBuffer(L2_CAL_SWAP, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust maximum correction
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-            lcd->WriteBuffer(L2_CAL_SWAP_AD, 3);
-
-            if (implement->GetSide()) {
-                lcd->WriteBuffer('L', 3, 16);
-            }
-            else {
-                lcd->WriteBuffer('R', 3, 16);
-            }
-
-            while (interface->CheckButtons(0, 0) != 0) {
-            }
-
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    implement->SetSwap(true);
-                }
-                else if (interface->GetButtons() == -1) {
-                    implement->SetSwap(false);
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                if (implement->GetSide()) {
-                    lcd->WriteBuffer('L', 3, 16);
-                }
-                else {
-                    lcd->WriteBuffer('R', 3, 16);
-                }
-            }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            if (implement->GetSide()) {
-                lcd->WriteBuffer('L', 3, 16);
-            }
-            else {
-                lcd->WriteBuffer('R', 3, 16);
-            }
-
-            lcd->WriteScreen(-1);
-
-            break;
-        }
-    }
-    delay(1000);
-
     // ----------
     // RTK ident
     // ----------
-    lcd->WriteBuffer(L2_CAL_QUAL, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_QUAL, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -837,16 +729,16 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
             break;
         }
         else if (interface->CheckButtons(0, 0) == 1) {
             // Setting sim mode
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
 
             lcd->WriteScreen(-1);
 
@@ -871,182 +763,21 @@ void CalibrationPlough::Calibrate() {
                 lcd->WriteBuffer(temp + '0', 3, 16);
 
             }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
 
             lcd->WriteScreen(-1);
 
-            break;
-        }
-    }
-    delay(1000);
-
-    // ----------
-    // Deutz
-    // ----------
-    lcd->WriteBuffer(L2_CAL_DEUTZ, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Setting sim mode
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-
-            lcd->WriteScreen(-1);
-
-            temp = tractor->GetInversion();
-
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    temp = 1;
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp = 0;
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                if (temp) {
-                    lcd->WriteBuffer(L2_CAL_ON, 3);
-                }
-                else {
-                    lcd->WriteBuffer(L2_CAL_OFF, 3);
-                }
-
-            }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            if (temp) {
-                tractor->SetInversion(true);
-            }
-            else {
-                tractor->SetInversion(false);
-            }
-
-            lcd->WriteScreen(-1);
-
-            break;
-        }
-    }
-    delay(1000);
-
-    // -----------------------
-    // Adjust program
-    // -----------------------
-    lcd->WriteBuffer(L2_CAL_PROG, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
-
-    lcd->WriteScreen(-1);
-
-    while (interface->CheckButtons(0, 0) != 0) {
-    }
-
-    while (true) {
-        if (interface->CheckButtons(0, 0) == -1) {
-            // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-            break;
-        }
-        else if (interface->CheckButtons(0, 0) == 1) {
-            // Adjust amount of shares
-            lcd->WriteBuffer(L2_CAL_ADJUST, 1);
-            lcd->WriteBuffer(L2_CAL_ENTER, 2);
-
-            lcd->WriteScreen(-1);
-
-            temp = 2;
-
-            while (interface->CheckButtons(0, 0) != 0) {
-            }
-
-            // Adjust loop
-            while (true) {
-                lcd->WriteScreen(1);
-                interface->CheckButtons(0, 255);
-
-                if (interface->GetButtons() == 1) {
-                    temp++;
-                    if (temp > 8) {
-                        temp = 8;
-                    }
-                }
-                else if (interface->GetButtons() == -1) {
-                    temp--;
-                    if (temp < 2) {
-                        temp = 2;
-                    }
-                }
-                else if (interface->GetButtons() == 2) {
-                    break;
-                }
-
-                // Write to screen
-                switch (temp) {
-                    case 2:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD2, 3);
-                        break;
-                    case 3:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD3, 3);
-                        break;
-                    case 4:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD4, 3);
-                        break;
-                    case 5:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD5, 3);
-                        break;
-                    case 6:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD6, 3);
-                        break;
-                    case 7:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD7, 3);
-                        break;
-                    case 8:
-                        lcd->WriteBuffer(L2_CAL_PROG_AD8, 3);
-                        break;
-                }
-            }
-            lcd->WriteBuffer(L2_CAL_DONE, 1);
-            lcd->WriteBuffer(L2_BLANK, 2);
-
-            lcd->WriteScreen(-1);
-
-            EEPROM.write(1, temp);
             break;
         }
     }
     delay(1000);
 
     // Store calibration data
-    lcd->WriteBuffer(L2_CAL_COMPLETE, 0);
-    lcd->WriteBuffer(L2_CAL_ACCEPT, 1);
-    lcd->WriteBuffer(L2_CAL_DECLINE, 2);
-    lcd->WriteBuffer(L2_BLANK, 3);
+    lcd->WriteBuffer(L_CAL_COMPLETE, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
 
     lcd->WriteScreen(-1);
 
@@ -1056,8 +787,8 @@ void CalibrationPlough::Calibrate() {
     while (true) {
         if (interface->CheckButtons(0, 0) == -1) {
             // print message to LCD
-            lcd->WriteBuffer(L2_CAL_DECLINED, 1);
-            lcd->WriteBuffer(L2_CAL_NOSAVE, 2);
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_CAL_NOSAVE, 2);
 
             lcd->WriteScreen(-1);
 
@@ -1073,8 +804,8 @@ void CalibrationPlough::Calibrate() {
             CommitGuidanceCalibration();
 
             // Print message to LCD
-            lcd->WriteBuffer(L2_CAL_DDONE, 1);
-            lcd->WriteBuffer(L2_CAL_SAVE, 2);
+            lcd->WriteBuffer(L_CAL_DDONE, 1);
+            lcd->WriteBuffer(L_CAL_SAVE, 2);
 
             lcd->WriteScreen(-1);
 

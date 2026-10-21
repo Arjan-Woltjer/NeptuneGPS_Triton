@@ -18,6 +18,8 @@
 */
 #include "ImplementSprayer.hpp"
 #include "../config/LanguageSprayer.hpp"
+#include "EepromStore.hpp"
+#include "Interpolation.hpp"
 
 namespace triton
 {
@@ -360,36 +362,9 @@ void ImplementSprayer::calculateAlarm(byte mode) {
 // ---------------------------------
 void ImplementSprayer::calculateSetpointPwm() {
     int readRaw = (flowCalibration / 500.0f) * (setpointFlow / 40);  // cc per 100s
-    int i = 0;
     int setpoint = 0;
-
-    // Loop through calibrationdata
-    while (i < 11 && readRaw > pwmCalibrationData[i]) {
-        i++;
-    }
-
-    if (i == 0) {
-        i++;
-    }
-
-    // Interpolate calibrationdata
-    float a = readRaw - pwmCalibrationData[i - 1];
-    float b = pwmCalibrationData[i] - pwmCalibrationData[i - 1];
-    float c = pwmCalibrationPoints[i] - pwmCalibrationPoints[i - 1];
-    float d = pwmCalibrationPoints[i - 1];
-
-    // b is zero when two calibration points captured the same flow-pulse
-    // count (the pump maxed out before the 12-point sweep finished, or
-    // corrupt EEPROM) -- same class of guard already added to
-    // ImplementPlough/ImplementPlanter's position interpolation. Falling
-    // back to the segment's own start point avoids narrowing an inf/NaN to
-    // int (undefined behaviour).
-    if (b == 0.0f) {
-        setpoint = d;
-    }
-    else {
-        setpoint = (((a * c) / b) + d);
-    }
+    const int i = Interpolation::SegmentAscending(pwmCalibrationData, 12, readRaw);
+    setpoint = Interpolation::Evaluate(pwmCalibrationData, pwmCalibrationPoints, i, readRaw);
 
     if (setpoint > 255) {
         setpointPwm = 255;
@@ -439,8 +414,7 @@ void ImplementSprayer::setDose(int correction) {
         ccPer100m = dose * width;
 
         // Write each byte separately to the memory
-        EEPROM.write(190, highByte(dose));
-        EEPROM.write(191, lowByte(dose));
+        EepromStore::WriteUint16Be(190, dose);
     }
     else {
         doseHist = 0;
@@ -453,7 +427,7 @@ void ImplementSprayer::setDose(int correction) {
 void ImplementSprayer::readDose() {
     if (EEPROM.read(190) < 255) {
         // Read dose (2 bytes)
-        dose = word(EEPROM.read(190), EEPROM.read(191));
+        dose = EepromStore::ReadUint16Be(190);
         if (dose > 500) {
             dose = 500;
         }
@@ -540,7 +514,7 @@ bool ImplementSprayer::readCalibrationData() {
         int storedPwm[12];
         for (int i = 0; i < 12; i++) {
             // 100 - 123
-            storedPwm[i] = word(EEPROM.read(i * 2 + 100), EEPROM.read(i * 2 + 101));
+            storedPwm[i] = EepromStore::ReadUint16Be(i * 2 + 100);
         }
 
         // calibratePump() only ever writes a strictly increasing sequence
@@ -583,11 +557,11 @@ bool ImplementSprayer::readCalibrationData() {
             pwmCalibrationData[11] = 203;
         }
 
-        flowCalibration = word(EEPROM.read(140), EEPROM.read(141));
+        flowCalibration = EepromStore::ReadUint16Be(140);
 
         pumps = EEPROM.read(161);
 
-        ccPer100Omw = pumps * int(word(EEPROM.read(150), EEPROM.read(151)));
+        ccPer100Omw = pumps * int(EepromStore::ReadUint16Be(150));
 
         teeth = EEPROM.read(160);
         width = EEPROM.read(162);
@@ -651,15 +625,12 @@ void ImplementSprayer::printCalibrationData() {
 void ImplementSprayer::writeCalibrationData() {
     // Write each byte separately to the memory first the data then the points
     for (int i = 0; i < 12; i++) {
-        EEPROM.write(i * 2 + 100, highByte(pwmCalibrationData[i]));  // 100
-        EEPROM.write(i * 2 + 101, lowByte(pwmCalibrationData[i]));
+        EepromStore::WriteUint16Be(i * 2 + 100, pwmCalibrationData[i]);  // 100
     }
 
-    EEPROM.write(140, highByte(flowCalibration));  // 140
-    EEPROM.write(141, lowByte(flowCalibration));   // 141
+    EepromStore::WriteUint16Be(140, flowCalibration);  // 140
 
-    EEPROM.write(150, highByte(ccPer100Omw / pumps));  // 150
-    EEPROM.write(151, lowByte(ccPer100Omw / pumps));   // 151
+    EepromStore::WriteUint16Be(150, ccPer100Omw / pumps);  // 150
 
     EEPROM.write(160, teeth);  // 160
     EEPROM.write(161, pumps);  // 161

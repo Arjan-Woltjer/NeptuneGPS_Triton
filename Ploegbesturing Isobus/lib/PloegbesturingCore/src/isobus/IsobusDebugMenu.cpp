@@ -239,6 +239,27 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
     serialDebug->print("Bus load (ch0): ");
     serialDebug->print(busload, 1);
     serialDebug->println(" %");
+    // #248: a frame used to be lost whenever a loop pass outlasted a burst
+    // on the bus. The driver's receive queue shows how close it came to full.
+    serialDebug->print("CAN receive queue: ");
+    if (receiveQueueStats == nullptr || !receiveQueueStats().available) {
+        serialDebug->println("not on this build");
+    }
+    else {
+        const CanReceiveQueueStats q = receiveQueueStats();
+        serialDebug->print("high water ");
+        serialDebug->print(q.highWater);
+        serialDebug->print(" of ");
+        serialDebug->print(q.size);
+        serialDebug->print(", dropped ");
+        serialDebug->println(q.overflows);
+    }
+    serialDebug->print("Loop pass: longest ");
+    serialDebug->print(longestPassSinceDumpUs);
+    serialDebug->print(" us since the last dump, ");
+    serialDebug->print(longestPassUs);
+    serialDebug->println(" us since boot");
+    longestPassSinceDumpUs = 0;
 
     serialDebug->println("--- Message counters ---");
     serialDebug->print("  PGN 129025 Position NMEA2000: ");
@@ -310,6 +331,18 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->println(" ms ago)");
     } else {
         serialDebug->println("             raw: nothing from 0x2A or 0x80 yet");
+    }
+    serialDebug->print("  PGN 65535  GNSS status 0x80:  ");
+    serialDebug->print(counters.agLeaderGnssStatus);
+    if (counters.agLeaderGnssStatus > 0) {
+        serialDebug->print("   fix mode ");
+        serialDebug->print(counters.lastAgLeaderGnssFixMode);
+        serialDebug->print(counters.lastAgLeaderGnssFixMode == 2 ? " (RTK fixed)" : " (not RTK fixed)");
+        serialDebug->print("  (");
+        serialDebug->print(millis() - counters.lastAgLeaderGnssStatusMs);
+        serialDebug->println(" ms ago)");
+    } else {
+        serialDebug->println("   (none)");
     }
     serialDebug->print("  PGN 60160  XTE Trimble legacy:");
     serialDebug->print(counters.xteTrimbleLegacy);
@@ -451,7 +484,26 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->print("  VT failover: switches=");
         serialDebug->print(vtInterface->GetVtSwitchCount());
         serialDebug->print(" claim requests=");
-        serialDebug->println(vtInterface->GetVtClaimRequestCount());
+        serialDebug->print(vtInterface->GetVtClaimRequestCount());
+        serialDebug->print(" rejoins=");
+        serialDebug->print(vtInterface->GetVtRejoinCount());
+        // Preferred VT (#255): the number, and where it was last seen.
+        serialDebug->print(" preferred=");
+        if (vtInterface->GetPreferredVt() == 0) {
+            serialDebug->println("none");
+        }
+        else {
+            serialDebug->print("VT");
+            serialDebug->print(vtInterface->GetPreferredVt());
+            if (vtInterface->GetPreferredVtAddress() == VtFailoverPolicy::kNoAddress) {
+                serialDebug->println(" (not seen)");
+            }
+            else {
+                serialDebug->print(" at 0x");
+                serialDebug->print(vtInterface->GetPreferredVtAddress(), HEX);
+                serialDebug->println(vtInterface->GetPreferredVtAddress() == vtInterface->GetPartnerAddress() ? " (bound)" : " (not bound)");
+            }
+        }
     }
 
     serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");

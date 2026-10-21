@@ -31,6 +31,9 @@
 #include "GuidanceSource.hpp"
 #include "../config/LanguagePlough.hpp"
 #include "VehicleTractor.hpp"
+#ifdef ISOBUS
+#include "isobus/PreferredVt.hpp"
+#endif
 
 namespace triton
 {
@@ -64,6 +67,15 @@ public:
 
     void PrintCalibrationData();
 
+    // One + or - press on a number screen: one step, never past the bounds
+    // the boot load accepts, so a saved value always survives the next boot
+    // (the #163 trap). `buttons` is GetButtons(): 1 up, -1 down, else none.
+    static int StepWithin(int value, int buttons, int step, int lowest, int highest) {
+        if (buttons == 1 && value + step <= highest) return value + step;
+        if (buttons == -1 && value - step >= lowest) return value - step;
+        return value;
+    }
+
 private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
@@ -75,6 +87,9 @@ private:
     // 4800 x {1,2,3,4,6,8,12,24}; index 0 (4800, the common NMEA default)
     // until a detect or a stored byte says otherwise.
     byte gpsBaudIndex = 0;
+#ifdef ISOBUS
+    byte             preferredVt = 0;  // #255: the VT number, 0 = none
+#endif
 
     bool loadGuidanceCalibration();
 };

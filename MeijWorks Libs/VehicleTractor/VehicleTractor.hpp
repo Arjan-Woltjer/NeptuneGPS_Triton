@@ -69,7 +69,11 @@ private:
 
 public:
     // Constructor
-    explicit VehicleTractor(Stream* serialDebug);
+    // defaultInversion: the hitch inversion a board without stored tractor
+    // data starts with. The stored setting (EEPROM 28, set in the calibration
+    // wizard) always wins. Spuitcomputer SP passes true: its hitch signal used
+    // to be inverted in code, hard-wired.
+    explicit VehicleTractor(Stream* serialDebug, bool defaultInversion = false);
 
     void Update(byte mode);
 
