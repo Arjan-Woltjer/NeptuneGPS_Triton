@@ -67,6 +67,12 @@ public:
 
     void PrintCalibrationData();
 
+#ifdef ISOBUS
+    // The preferred VT number (#255), held until CommitGuidanceCalibration().
+    byte GetPreferredVt() const   { return preferredVt; }
+    void SetPreferredVt(byte vt)  { preferredVt = vt <= kHighestPreferredVt ? vt : 0; }
+#endif
+
     // One + or - press on a number screen: one step, never past the bounds
     // the boot load accepts, so a saved value always survives the next boot
     // (the #163 trap). `buttons` is GetButtons(): 1 up, -1 down, else none.
