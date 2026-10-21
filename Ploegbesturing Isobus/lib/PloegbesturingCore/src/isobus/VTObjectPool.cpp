@@ -460,12 +460,14 @@ FLASHMEM static void appendCalibrationPage() {
         if (PloughSetting(i) == PloughSetting::MaxCorrectionPerShare) appendObjRef(Str_CalMm, UNIT_X, y + 6);
     }
 
-    appendSoftKeyMask(Plough_CalSoftKeyMask, kBlack, 2);
-    pu16(Key_CalSave); pu16(Key_CalCancel);
+    appendSoftKeyMask(Plough_CalSoftKeyMask, kBlack, 3);
+    pu16(Key_CalSave); pu16(Key_CalCancel); pu16(Key_CalWidth);
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
+    appendKey(Key_CalWidth, kBlack, KeyCode_CalWidth, Label_CalWidth);
     appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "OPSLAAN");
     appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "ANNUL.");
+    appendOutputString(Label_CalWidth, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREEDTE");
 
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         const PloughSettingLine& line = PloughSettings::Line(PloughSetting(i));
@@ -495,6 +497,58 @@ FLASHMEM static void appendCalibrationPage() {
     appendOutputString(Str_CalRtk, VAL_W, ROW_H, Font_White_Medium, 0, "RTK");
     appendOutputString(Str_CalCm, 16, 10, Font_White_Unit, 0, "cm");
     appendOutputString(Str_CalMm, 16, 10, Font_White_Unit, 0, "mm");
+}
+
+// The width procedure (#240): which of the three points, the width to drive
+// the plough to, the live sensor reading, and a status line that says when a
+// capture was not taken. Smaller / Breder drive the plough while held,
+// Vastleggen captures the point, Terug goes back to the page.
+FLASHMEM static void appendCalibrationWidthPage() {
+    constexpr uint16_t kCharW = 12;
+    constexpr uint16_t ROW_H = 28;
+    constexpr uint16_t TITLE_Y = 4, POINT_Y = 32, TARGET_Y = 60, SENSOR_Y = 88, STATUS_Y = 116;
+    constexpr uint16_t LBL_X = 2, LBL_W = 84, VAL_X = 90, VAL_W = 60;
+    static_assert(6 * kCharW <= LBL_W, "label column narrower than SENSOR");
+    static_assert(4 * kCharW <= VAL_W && VAL_X + VAL_W <= 200, "value column too narrow or off the mask");
+    static_assert(8 * kCharW <= 196 && STATUS_Y + ROW_H <= 200, "status line off the mask");
+
+    appendDataMask(Plough_CalWidthMask, kBlack, Plough_CalWidthSoftKeyMask, 10);
+    appendObjRef(Label_CalWidthTitle, LBL_X, TITLE_Y);
+    appendObjRef(Label_CalWidthPoint, LBL_X, POINT_Y);
+    appendObjRef(Out_CalWidthPoint, VAL_X, POINT_Y);
+    appendObjRef(Label_CalWidthOf, VAL_X + 2 * kCharW, POINT_Y);
+    appendObjRef(Label_CalWidthTarget, LBL_X, TARGET_Y);
+    appendObjRef(Out_CalWidthTarget, VAL_X, TARGET_Y);
+    appendObjRef(Str_CalCm, VAL_X + VAL_W + 2, TARGET_Y + 6);
+    appendObjRef(Label_CalWidthSensor, LBL_X, SENSOR_Y);
+    appendObjRef(Out_CalWidthSensor, VAL_X, SENSOR_Y);
+    appendObjRef(Ptr_CalWidthStatus, LBL_X, STATUS_Y);
+
+    appendSoftKeyMask(Plough_CalWidthSoftKeyMask, kBlack, 4);
+    pu16(Key_CalNarrower); pu16(Key_CalWider); pu16(Key_CalCapture); pu16(Key_CalWidthBack);
+    appendKey(Key_CalNarrower, kBlack, KeyCode_CalNarrower, Label_CalNarrower);
+    appendKey(Key_CalWider, kBlack, KeyCode_CalWider, Label_CalWider);
+    appendKey(Key_CalCapture, kBlack, KeyCode_CalCapture, Label_CalCapture);
+    appendKey(Key_CalWidthBack, kBlack, KeyCode_CalWidthBack, Label_CalWidthBack);
+    appendOutputString(Label_CalNarrower, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "SMALLER");
+    appendOutputString(Label_CalWider, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREDER");
+    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "VASTLEG");
+    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "TERUG");
+
+    appendOutputString(Label_CalWidthTitle, 196, ROW_H, Font_White_Medium, 0, "BREEDTE");
+    appendOutputString(Label_CalWidthPoint, LBL_W, ROW_H, Font_White_Medium, 0, "PUNT");
+    appendOutputString(Label_CalWidthOf, 72, ROW_H, Font_White_Medium, 0, "VAN 3");
+    appendOutputString(Label_CalWidthTarget, LBL_W, ROW_H, Font_White_Medium, 0, "NAAR");
+    appendOutputString(Label_CalWidthSensor, LBL_W, ROW_H, Font_White_Medium, 0, "SENSOR");
+    appendNumberVariable(Var_CalWidthPoint, 1);
+    appendNumberVariable(Var_CalWidthTarget, 1000);
+    appendNumberVariable(Var_CalWidthSensor, 0);
+    appendOutputNumber(Out_CalWidthPoint, kCharW + 2, ROW_H, Font_White_Medium, Var_CalWidthPoint, 0, 1.0f, 0);
+    appendOutputNumber(Out_CalWidthTarget, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthTarget, -1000, 1.0f, 0);
+    appendOutputNumber(Out_CalWidthSensor, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthSensor, 0, 1.0f, 0);
+    appendObjectPointer(Ptr_CalWidthStatus, Str_CalBlank);
+    appendOutputString(Str_CalBlank, 196, ROW_H, Font_White_Medium, 0, " ");
+    appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, "ONGELDIG");
 }
 
 FLASHMEM void BuildObjectPool() {
@@ -698,6 +752,7 @@ FLASHMEM void BuildObjectPool() {
     appendOutputNumber(Out_Speed, 48, 20, Font_White_Medium, Var_Speed, 0, 0.1f, 1);
 
     appendCalibrationPage();
+    appendCalibrationWidthPage();
 
     VT3PoolData = poolBuffer;
     VT3PoolSize = poolPos;

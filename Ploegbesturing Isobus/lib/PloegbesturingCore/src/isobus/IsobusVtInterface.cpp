@@ -198,6 +198,9 @@ void IsobusVtInterface::Update() {
     updateFailover();
 }
 
+static_assert(IsobusVtCalibration::kHeldTimeoutMs == IsobusVtInterface::kSoftKeyHeldTimeoutMs,
+              "the width procedure's held keys time out like the main soft keys");
+
 bool IsobusVtInterface::ChangeActiveMask(uint16_t dataMask) {
     return vtClient && vtClient->send_change_active_mask(Plough_WorkingSet, dataMask);
 }
@@ -568,6 +571,16 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
         return;
     }
 
+    // The width procedure's Smaller / Breder (#240): held levels too, kept
+    // by the calibration page.
+    if (event.objectID == Key_CalWider || event.objectID == Key_CalNarrower) {
+        if (calibration != nullptr) {
+            calibration->OnWidthKey(event.objectID, event.keyEvent == Code::ButtonPressedOrLatched ||
+                                                        event.keyEvent == Code::ButtonStillHeld);
+        }
+        return;
+    }
+
     if (event.keyEvent != Code::ButtonUnlatchedOrReleased) return;
 
     // Calibrate opens the calibration page (#240), Opslaan and Annuleren
@@ -583,6 +596,9 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
             break;
         case Key_CalSave:
         case Key_CalCancel:
+        case Key_CalWidth:
+        case Key_CalCapture:
+        case Key_CalWidthBack:
             // A saved page may have changed the preferred VT (#255).
             if (calibration != nullptr && calibration->OnSoftKey(event.objectID)) LoadPreferredVt();
             break;
