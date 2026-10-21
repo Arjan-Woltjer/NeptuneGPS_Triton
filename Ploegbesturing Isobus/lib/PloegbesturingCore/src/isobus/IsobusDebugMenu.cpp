@@ -486,7 +486,24 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->print(" claim requests=");
         serialDebug->print(vtInterface->GetVtClaimRequestCount());
         serialDebug->print(" rejoins=");
-        serialDebug->println(vtInterface->GetVtRejoinCount());
+        serialDebug->print(vtInterface->GetVtRejoinCount());
+        // Preferred VT (#255): the number, and where it was last seen.
+        serialDebug->print(" preferred=");
+        if (vtInterface->GetPreferredVt() == 0) {
+            serialDebug->println("none");
+        }
+        else {
+            serialDebug->print("VT");
+            serialDebug->print(vtInterface->GetPreferredVt());
+            if (vtInterface->GetPreferredVtAddress() == VtFailoverPolicy::kNoAddress) {
+                serialDebug->println(" (not seen)");
+            }
+            else {
+                serialDebug->print(" at 0x");
+                serialDebug->print(vtInterface->GetPreferredVtAddress(), HEX);
+                serialDebug->println(vtInterface->GetPreferredVtAddress() == vtInterface->GetPartnerAddress() ? " (bound)" : " (not bound)");
+            }
+        }
     }
 
     serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");

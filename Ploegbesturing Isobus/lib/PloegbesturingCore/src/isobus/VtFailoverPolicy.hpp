@@ -72,6 +72,13 @@ public:
     static constexpr unsigned long kRejoinGraceMs = 120000UL;
 
     static constexpr uint8_t kNoAddress = 0xFE;
+    // The operator's preferred VT (#255) is moved to once its VT Status has
+    // come in without a gap (kCandidateFreshMs) for this long, and no sooner
+    // than this after any switch. Owner: no wait at boot, bind to the first
+    // VT, and move to the preferred one as soon as it has finished booting
+    // or is back. Five statuses: a VT still booting, or one that flaps, is
+    // not chased, and a fresh binding gets time to resolve its partner.
+    static constexpr unsigned long kPreferredSettledMs = 5000UL;
 
     enum class Action : uint8_t {
         None,
@@ -96,6 +103,11 @@ public:
     // starts kRejoinGraceMs. Call it before OnVtStatus() for the same frame.
     void OnBusTraffic(unsigned long nowMs);
 
+    // The preferred VT's address, or kNoAddress: no preference set, or that
+    // VT is not on the bus. IsobusVtInterface finds it by function instance.
+    void SetPreferredAddress(uint8_t address) { preferredAddress = address; }
+    uint8_t GetPreferredAddress() const { return preferredAddress; }
+
     // What to do now. `partnerAddress` and `partnerValid` describe the bound
     // partner as AgIsoStack sees it.
     Decision Evaluate(unsigned long nowMs, bool connected, uint8_t partnerAddress, bool partnerValid) const;
@@ -115,6 +127,10 @@ private:
     // ever has (0 is a valid millis() value, so it cannot double as "never").
     unsigned long lastStatusMs[256] = {};
     bool          heard[256]        = {};
+    // When each address's current unbroken run of statuses began.
+    unsigned long aliveSinceMs[256] = {};
+
+    uint8_t       preferredAddress = kNoAddress;
 
     unsigned long startMs       = 0;
     unsigned long lastRequestMs = 0;

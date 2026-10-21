@@ -20,6 +20,7 @@
 #include <AUnit.h>
 
 #include "isobus/VtFailoverPolicy.hpp"
+#include "isobus/PreferredVt.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -322,4 +323,143 @@ test(VtFailoverPolicy, survivesMillisWraparound) {
     assertEqual(d.address, kInCommand);
     assertTrue(policy.Evaluate(nearWrap + 1000 + VtFailoverPolicy::kPartnerSilentMs - 1, false, kCnhVt, true).action ==
                Action::None);
+}
+
+// ---------------------------------------------------------------------------
+// Preferred VT (#255): the operator's choice wins once that VT is up. Owner:
+// no wait at boot (bind to the first VT), and move back to the preferred one
+// as soon as it is available again.
+// ---------------------------------------------------------------------------
+namespace {
+// Both VTs broadcast their status at 1 Hz from `fromMs` to `toMs`.
+void BothVtsTalk(VtFailoverPolicy& policy, unsigned long fromMs, unsigned long toMs) {
+    for (unsigned long t = fromMs; t <= toMs; t += 1000) {
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kInCommand, t);
+    }
+}
+}  // namespace
+
+test(VtFailoverPolicy, preferred_settled_movesFromTheOtherVt) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + VtFailoverPolicy::kPreferredSettledMs);
+    policy.SetPreferredAddress(kCnhVt);
+    // Bound to the InCommand, connected and talking: only the preference moves it.
+    const VtFailoverPolicy::Decision d =
+        policy.Evaluate(kT0 + VtFailoverPolicy::kPreferredSettledMs, true, kInCommand, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kCnhVt);
+}
+
+test(VtFailoverPolicy, preferred_stillBooting_staysPut) {
+    // The CNH VT only just started broadcasting: not settled yet.
+    VtFailoverPolicy fresh;
+    fresh.Start(kT0);
+    for (unsigned long t = kT0; t <= kT0 + 10000; t += 1000) fresh.OnVtStatus(kInCommand, t);
+    fresh.OnVtStatus(kCnhVt, kT0 + 8000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 9000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 10000);
+    fresh.SetPreferredAddress(kCnhVt);
+    assertTrue(fresh.Evaluate(kT0 + 10000, true, kInCommand, true).action == Action::None);
+    fresh.OnVtStatus(kCnhVt, kT0 + 11000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 12000);
+    fresh.OnVtStatus(kCnhVt, kT0 + 13000);
+    assertTrue(fresh.Evaluate(kT0 + 13000, true, kInCommand, true).action == Action::SwitchTo);
+}
+
+test(VtFailoverPolicy, preferred_alreadyBound_noAction) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 10000);
+    policy.SetPreferredAddress(kCnhVt);
+    assertTrue(policy.Evaluate(kT0 + 10000, true, kCnhVt, true).action == Action::None);
+}
+
+test(VtFailoverPolicy, noPreference_staysOnTheOtherVt) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 10000);
+    policy.SetPreferredAddress(VtFailoverPolicy::kNoAddress);
+    assertTrue(policy.Evaluate(kT0 + 10000, true, kInCommand, true).action == Action::None);
+}
+
+// A gap in the preferred VT's status (it rebooted, or flaps) starts the
+// settling over, so a flapping VT is not chased.
+test(VtFailoverPolicy, preferred_gapRestartsTheSettling) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    for (unsigned long t = kT0; t <= kT0 + 2000; t += 1000) policy.OnVtStatus(kCnhVt, t);
+    // 5 s without the CNH VT's status (longer than kCandidateFreshMs), then back from kT0 + 7000.
+    for (unsigned long t = kT0; t <= kT0 + 11000; t += 1000) policy.OnVtStatus(kInCommand, t);
+    for (unsigned long t = kT0 + 7000; t <= kT0 + 11000; t += 1000) policy.OnVtStatus(kCnhVt, t);
+    policy.SetPreferredAddress(kCnhVt);
+    assertTrue(policy.Evaluate(kT0 + 11000, true, kInCommand, true).action == Action::None);   // 4 s since it came back
+    policy.OnVtStatus(kInCommand, kT0 + 12000);
+    policy.OnVtStatus(kCnhVt, kT0 + 12000);
+    assertTrue(policy.Evaluate(kT0 + 12000, true, kInCommand, true).action == Action::SwitchTo);
+}
+
+// Right after any switch the new binding is left alone for a while, so the
+// client is never rebuilt twice in a row while its partner resolves.
+test(VtFailoverPolicy, preferred_notRightAfterASwitch) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 24000);
+    policy.SetPreferredAddress(kCnhVt);
+    policy.OnSwitched(kT0 + 20000);
+    // Partner not resolved yet (invalid): still no second switch inside the hold-off.
+    assertTrue(policy.Evaluate(kT0 + 20000 + VtFailoverPolicy::kPreferredSettledMs - 1, true, kCnhVt, false).action ==
+               Action::None);
+    BothVtsTalk(policy, kT0 + 25000, kT0 + 25000);
+    assertTrue(policy.Evaluate(kT0 + 20000 + VtFailoverPolicy::kPreferredSettledMs, true, kInCommand, true).action ==
+               Action::SwitchTo);
+}
+
+test(VtFailoverPolicy, preferred_silent_noMove) {
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    BothVtsTalk(policy, kT0, kT0 + 10000);
+    for (unsigned long t = kT0 + 11000; t <= kT0 + 20000; t += 1000) policy.OnVtStatus(kInCommand, t);
+    policy.SetPreferredAddress(kCnhVt);                   // last heard at kT0 + 10000
+    assertTrue(policy.Evaluate(kT0 + 20000, true, kInCommand, true).action == Action::None);
+}
+
+// The bound VT goes silent and the preferred one is up: the failover goes to
+// the preferred VT, not to the lowest live address.
+test(VtFailoverPolicy, partnerSilent_preferredUp_goesToThePreferred) {
+    constexpr uint8_t kThirdVt = 0x10;
+    VtFailoverPolicy policy;
+    policy.Start(kT0);
+    policy.OnVtStatus(kInCommand, kT0);                   // bound VT, then silent
+    for (unsigned long t = kT0; t <= kT0 + 20000; t += 1000) {
+        policy.OnVtStatus(kCnhVt, t);
+        policy.OnVtStatus(kThirdVt, t);
+    }
+    policy.SetPreferredAddress(kCnhVt);
+    const VtFailoverPolicy::Decision d = policy.Evaluate(kT0 + 20000, false, kInCommand, true);
+    assertTrue(d.action == Action::SwitchTo);
+    assertEqual(d.address, kCnhVt);
+}
+
+// The setting is the VT number as the terminals show it: function instance + 1
+// (owner: the 1200, instance 0, is VT 1; the CNH VT, instance 1, is VT 2).
+test(PreferredVt, matchesTheVtNumberAsTheTerminalsShowIt) {
+    assertTrue(IsPreferredVt(true, 0, 1));     // the InCommand 1200
+    assertTrue(IsPreferredVt(true, 1, 2));     // the CNH VT
+    assertFalse(IsPreferredVt(true, 1, 1));
+    assertFalse(IsPreferredVt(true, 0, 0));    // 0 = no preference
+    assertFalse(IsPreferredVt(false, 1, 2));   // not a Virtual Terminal
+}
+
+test(PreferredVt, storedAsTheNumber_erasedOrOutOfRangeIsNone) {
+    EEPROM.eepromReset();
+    assertEqual((int)ReadPreferredVt(), 0);    // erased (255)
+    WritePreferredVt(2);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 2);
+    assertEqual((int)ReadPreferredVt(), 2);
+    EEPROM.write(kEepromPreferredVt, kHighestPreferredVt + 1);
+    assertEqual((int)ReadPreferredVt(), 0);
+    WritePreferredVt(kHighestPreferredVt + 1);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 0);
 }

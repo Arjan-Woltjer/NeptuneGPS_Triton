@@ -44,12 +44,19 @@ bool CalibrationPlough::loadGuidanceCalibration() {
         guidance->SetRtkQuality(storedRtk);
         found = true;
     }
+#ifdef ISOBUS
+    // Not a calibration value: "found" stays as it was.
+    preferredVt = ReadPreferredVt();
+#endif
     return found;
 }
 
 void CalibrationPlough::CommitGuidanceCalibration() {
     EEPROM.write(kEepromGpsBaudIndex, gpsBaudIndex);
     EEPROM.write(kEepromRtkQuality, guidance->GetRtkQuality());
+#ifdef ISOBUS
+    WritePreferredVt(preferredVt);
+#endif
 }
 
 FLASHMEM void CalibrationPlough::PrintCalibrationData() {
@@ -63,6 +70,11 @@ FLASHMEM void CalibrationPlough::PrintCalibrationData() {
     serialDebug->println("RTK Quality");
     serialDebug->println(guidance->GetRtkQuality());
     serialDebug->println("-------------------------------");
+#ifdef ISOBUS
+    serialDebug->println("Preferred VT (0 = none)");
+    serialDebug->println(preferredVt);
+    serialDebug->println("-------------------------------");
+#endif
 }
 
 // --------------------------------
@@ -774,6 +786,68 @@ FLASHMEM void CalibrationPlough::Calibrate() {
     }
     delay(1000);
 
+#ifdef ISOBUS
+    // ----------------------------------------------------
+    // Preferred VT (#255): 0 = none, else the VT number the
+    // terminals show (function instance + 1)
+    // ----------------------------------------------------
+    lcd->WriteBuffer(L_CAL_VT, 0);
+    lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+    lcd->WriteBuffer(L_CAL_DECLINE, 2);
+    lcd->WriteBuffer(L_BLANK, 3);
+
+    lcd->WriteScreen(-1);
+
+    while (interface->CheckButtons(0, 0) != 0) {
+    }
+
+    while (true) {
+        if (interface->CheckButtons(0, 0) == -1) {
+            // print message to LCD
+            lcd->WriteBuffer(L_CAL_DECLINED, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+
+            lcd->WriteScreen(-1);
+            break;
+        }
+        else if (interface->CheckButtons(0, 0) == 1) {
+            lcd->WriteBuffer(L_CAL_ADJUST, 1);
+            lcd->WriteBuffer(L_CAL_ENTER, 2);
+            lcd->WriteBuffer(L_CAL_VT_AD, 3);
+
+            lcd->WriteScreen(-1);
+
+            temp = preferredVt;
+
+            while (interface->CheckButtons(0, 0) != 0) {
+            }
+
+            // Adjust loop
+            while (true) {
+                lcd->WriteScreen(1);
+                interface->CheckButtons(0, 255);
+
+                if (interface->GetButtons() == 2) {
+                    break;
+                }
+                temp = StepWithin(temp, interface->GetButtons(), 1, 0, kHighestPreferredVt);
+
+                // Write to screen
+                lcd->WriteBuffer(temp + '0', 3, 16);
+            }
+            lcd->WriteBuffer(L_CAL_DONE, 1);
+            lcd->WriteBuffer(L_BLANK, 2);
+            lcd->WriteBuffer(temp + '0', 3, 16);
+
+            lcd->WriteScreen(-1);
+
+            preferredVt = byte(temp);
+            break;
+        }
+    }
+    delay(1000);
+#endif
+
     // -----------------------
     // Adjust program
     // -----------------------
@@ -886,6 +960,9 @@ FLASHMEM void CalibrationPlough::Calibrate() {
 
             implement->ResetCalibration();
             tractor->ResetCalibration();
+#ifdef ISOBUS
+            preferredVt = ReadPreferredVt();
+#endif
 
             break;
         }

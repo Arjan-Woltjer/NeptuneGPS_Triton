@@ -327,6 +327,10 @@ void loop() {
     // costs the ISOBUS stack when the trigger came from the VT.
     if (gInterface->GetButtons() == 2) {
         gCalibration->Calibrate();
+#ifdef ISOBUS
+        // The wizard may have changed the preferred VT (#255).
+        gVtInterface->LoadPreferredVt();
+#endif
     }
 }
 
