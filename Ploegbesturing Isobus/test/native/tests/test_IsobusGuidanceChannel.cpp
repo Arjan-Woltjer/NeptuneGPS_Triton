@@ -847,3 +847,20 @@ test(IsobusGuidanceChannel, counters_totalAddsUpAndResets) {
 }
 
 #endif  // ISOBUS
+
+// #248: without threads (Arduino, and this native build) the stack used to
+// take ONE frame off the CAN driver per CANHardwareInterface::update(), and
+// the plough calls update() once per loop pass. The bus brings bursts of 7
+// frames in 4 ms (the lightbar plus the 1200's GNSS group, 10 Hz); the
+// Teensy's driver holds 4, so a loop pass longer than ~1.4 ms during a burst
+// lost frames, and when the lost one was the VT's answer the VT client waited
+// out its 1.5 s timeout. One update must drain everything the driver holds.
+test(IsobusGuidanceChannel, canReceive_oneUpdateReadsEveryQueuedFrame) {
+    FakeCanPlugin* bus = SharedTestBus();
+    bus->Clear();
+    const std::uint8_t d[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    for (int i = 0; i < 10; i++) bus->Feed(0x18FEF100u, d, 8);   // PGN 65265 from 0x00: nobody listens
+    isobus::CANHardwareInterface::update();
+    assertEqual((int)bus->GetReadCount(), 10);
+    bus->Clear();
+}

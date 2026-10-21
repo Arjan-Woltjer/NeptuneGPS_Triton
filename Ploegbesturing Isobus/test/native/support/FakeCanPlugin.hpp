@@ -75,6 +75,9 @@ public:
         rx.push_back(frame);
     }
 
+    // How many queued frames the stack has read so far (since Clear()).
+    std::size_t GetReadCount() const { return rxPos; }
+
     void Clear() {
         rx.clear();
         tx.clear();
