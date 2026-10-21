@@ -215,11 +215,31 @@ public:
         return bypass;
     }
 
+    // The stored swap, not the side it gives: GetSide() is the plough-side
+    // input XOR this.
+    inline bool GetSwap() {
+        return swap;
+    }
+
+    // Width sensor readings the boot load keeps: within the 10-bit ADC, and
+    // adjacent points distinct, or the interpolation divides by zero.
+    static boolean IsValidPositionCalibration(const short int adc[3]) {
+        for (int i = 0; i < 3; i++) {
+            if (adc[i] < 0 || adc[i] > kAdcMaxCount) return false;
+        }
+        return adc[0] != adc[1] && adc[1] != adc[2];
+    }
+
     // -------
     // Setters
     // -------
     inline void SetPositionCalibrationData(short int i) {
         positionCalibrationData[i] = analogRead(POSITION_SENS_PIN_2);
+    }
+
+    // A reading taken earlier, for a draft applied on Save (PloughSettings).
+    inline void SetPositionCalibrationValue(short int i, short int adc) {
+        positionCalibrationData[i] = adc;
     }
 
 #ifdef ROTATION
