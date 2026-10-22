@@ -123,6 +123,12 @@ struct IsobusVtInterfaceTestAccess {
 
     static void UpdateFailover(IsobusVtInterface& vt) { vt.updateFailover(); }
 
+    // The page's pass, as Update() runs it while connected; the sends fail
+    // here (no VT), the driving does not.
+    static void UpdateCalibration(IsobusVtInterface& vt) {
+        if (vt.calibration != nullptr) vt.calibration->Update(vt);
+    }
+
     static void ResetFailover(IsobusVtInterface& vt) {
         vt.failover = VtFailoverPolicy();
         vt.failover.Start(millis());
@@ -723,3 +729,24 @@ test(IsobusVtInterface, failover_switchesToTheVtThatIsStillTalking) {
 }
 
 #endif  // ISOBUS
+
+// The width procedure's Smaller / Breder are held levels that reach the
+// page on press, still-held and release (#240 PR 4).
+test(IsobusVtInterface, key_widthKeysReachThePage_asHeldLevels) {
+    Reset();
+    Fixture().AttachCalibration(&Page());
+    Release(Key_Calibrate);
+    Release(Key_CalWidth);
+    assertTrue(Page().IsWidthProcedureOpen());
+    KeyCode(Key_CalWider, kPressed);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(Fixture());
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    Release(Key_CalWider);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(Fixture());
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    // Nor do they move the main screen's held levels.
+    assertFalse(Fixture().IsWiderHeld());
+    Release(Key_CalWidthBack);
+    Release(Key_CalCancel);
+    assertFalse(Page().IsOpen());
+}
