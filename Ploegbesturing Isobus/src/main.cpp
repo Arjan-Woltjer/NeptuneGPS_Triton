@@ -307,30 +307,41 @@ void loop() {
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();
+    // ConsumeCalibratePress() must run on every iteration: it is the only
+    // thing that clears the pending tap, which counts for nothing while the
+    // wizard is already open.
+    const bool vtCalibrate = gVtInterface->ConsumeCalibratePress();
+#endif
 
+    // The calibration wizard is a step runner (#31): while it is open it
+    // takes the buttons and the LCD instead of InterfacePlough, one pass per
+    // loop(), and everything above keeps running. See CalibrationPlough.hpp.
+    if (gCalibration->IsActive()) {
+        gCalibration->Step();
+#ifdef ISOBUS
+        // The wizard may have changed the preferred VT (#255).
+        if (!gCalibration->IsActive()) gVtInterface->LoadPreferredVt();
+#endif
+        return;
+    }
+
+#ifdef ISOBUS
     // Update interface -- the VT's Wider/Narrower soft keys (held levels, #245)
     // and Calibrate tap feed InterfacePlough's button handling, see
-    // IsobusVtInterface.hpp. ConsumeCalibratePress() must run on every
-    // iteration: it is the only thing that clears the pending tap.
+    // IsobusVtInterface.hpp.
     gInterface->Update(gVtInterface->IsWiderHeld(),
                        gVtInterface->IsNarrowerHeld(),
-                       gVtInterface->ConsumeCalibratePress());
+                       vtCalibrate);
 #else
     // Update interface
     gInterface->Update();
 #endif
 
-    // Both buttons held (or the VT's Calibrate soft key) -> enter the
-    // calibration wizard (blocking until it finishes/is cancelled). See
-    // CalibrationPlough.hpp for why this trigger lives here instead of inside
-    // InterfacePlough itself, and GitHub issue #31 for what blocking here
-    // costs the ISOBUS stack when the trigger came from the VT.
+    // Both buttons held (or the VT's Calibrate soft key) -> open the
+    // calibration wizard. See CalibrationPlough.hpp for why this trigger lives
+    // here instead of inside InterfacePlough itself.
     if (gInterface->GetButtons() == 2) {
-        gCalibration->Calibrate();
-#ifdef ISOBUS
-        // The wizard may have changed the preferred VT (#255).
-        gVtInterface->LoadPreferredVt();
-#endif
+        gCalibration->Start();
     }
 }
 
