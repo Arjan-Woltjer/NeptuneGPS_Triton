@@ -74,6 +74,8 @@
 #define L_CAL_SPEED_AD  "Accelereer tot 10kmh"
 
 #define L_CAL_COMPLETE  "Calibratie afronden "
+#define L_CAL_ON_VT     "Calibratie op de VT "
+#define L_CAL_ON_VT_2   "Opslaan of annuleren"
 
 // -----------
 // Taal ENGELS
@@ -116,5 +118,7 @@
 #define L_CAL_SPEED_AD  "Accelerate to 10kph "
 
 #define L_CAL_COMPLETE  "Finish calibration  "
+#define L_CAL_ON_VT     "Calibrating on VT   "
+#define L_CAL_ON_VT_2   "Save or cancel there"
 
 #endif

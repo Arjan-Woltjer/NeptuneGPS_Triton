@@ -461,3 +461,32 @@ testF(CalibrationWizard, start_isRefused_whileTheVtHoldsTheSession) {
     assertFalse(w.cal.Start());
     assertFalse(w.cal.IsActive());
 }
+
+// While the VT calibration page holds the session (#240): the control holds
+// (valves off), the cab says the calibration is on the VT, and when the page
+// closes the main screen comes back.
+testF(CalibrationWizard, vtSession_holdsTheControl_andTheCabSaysSo) {
+    resetAll();
+    Wizard w;
+    digitalWrite(OUTPUT_NARROW_2, HIGH);          // a valve that was on
+    assertFalse(w.cal.HoldWhileVtCalibrates());
+    assertTrue(w.cal.GetSettings().Begin(SettingsOwner::Vt));
+    assertTrue(w.cal.HoldWhileVtCalibrates());
+    assertEqual(row(0).c_str(), L_CAL_ON_VT);
+    assertEqual(row(1).c_str(), L_CAL_ON_VT_2);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertTrue(w.cal.HoldWhileVtCalibrates());
+    w.cal.GetSettings().Cancel(SettingsOwner::Vt);
+    assertFalse(w.cal.HoldWhileVtCalibrates());
+    assertNotEqual(row(0).c_str(), L_CAL_ON_VT);
+    // Entering and leaving trickle out too: no whole-screen write.
+    assertEqual(wzLcd.multiCharWrites, 0);
+}
+
+testF(CalibrationWizard, vtSession_cabButtonsCannotOpenTheWizard) {
+    resetAll();
+    Wizard w;
+    assertTrue(w.cal.GetSettings().Begin(SettingsOwner::Vt));
+    assertFalse(w.cal.Start());
+    assertFalse(w.cal.IsActive());
+}

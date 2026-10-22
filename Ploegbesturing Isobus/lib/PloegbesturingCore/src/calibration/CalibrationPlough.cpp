@@ -103,7 +103,7 @@ static const char* const kEditLines[PloughSettings::kCount] = {
     nullptr,
 };
 
-bool CalibrationPlough::Start() {
+FLASHMEM bool CalibrationPlough::Start() {
     if (IsActive()) return true;
     if (!settings.Begin(SettingsOwner::Cab)) return false;
     implement->Stop();
@@ -111,7 +111,7 @@ bool CalibrationPlough::Start() {
     return true;
 }
 
-void CalibrationPlough::Step() {
+FLASHMEM void CalibrationPlough::Step() {
     if (!IsActive()) return;
 
     // Keeps the sensor readings live: the VT shows them, and the width
@@ -189,7 +189,29 @@ void CalibrationPlough::Step() {
     }
 }
 
-void CalibrationPlough::enterScreen(uint8_t next) {
+#ifdef ISOBUS
+FLASHMEM bool CalibrationPlough::HoldWhileVtCalibrates() {
+    const bool vtHolds = settings.GetOwner() == SettingsOwner::Vt;
+    if (vtHolds && !holdingForVt) {
+        implement->Stop();
+        lcd->WriteBuffer(L_CAL_ON_VT, 0);
+        lcd->WriteBuffer(L_CAL_ON_VT_2, 1);
+        lcd->WriteBuffer(L_BLANK, 2);
+        lcd->WriteBuffer(L_BLANK, 3);
+        holdingForVt = true;
+    }
+    else if (!vtHolds && holdingForVt) {
+        holdingForVt = false;
+        interface->UpdateScreen(1);
+    }
+    if (!vtHolds) return false;
+    implement->Update(2, 0);
+    lcd->WriteScreen(1);
+    return true;
+}
+#endif
+
+FLASHMEM void CalibrationPlough::enterScreen(uint8_t next) {
     screen = next;
     if (screen > kComplete) {
         finish();
@@ -205,7 +227,7 @@ void CalibrationPlough::enterScreen(uint8_t next) {
     phase = Phase::AskRelease;
 }
 
-void CalibrationPlough::accept() {
+FLASHMEM void CalibrationPlough::accept() {
     if (screen == kComplete) {
         settings.Save(SettingsOwner::Cab);
         lcd->WriteBuffer(L_CAL_DDONE, 1);
@@ -233,7 +255,7 @@ void CalibrationPlough::accept() {
     phase = Phase::EditRelease;
 }
 
-void CalibrationPlough::decline() {
+FLASHMEM void CalibrationPlough::decline() {
     lcd->WriteBuffer(L_CAL_DECLINED, 1);
     if (screen == kComplete) {
         settings.Cancel(SettingsOwner::Cab);
@@ -245,20 +267,20 @@ void CalibrationPlough::decline() {
     pause();
 }
 
-void CalibrationPlough::finish() {
+FLASHMEM void CalibrationPlough::finish() {
     screen = kIdle;
     // COMPLETE has already saved or dropped the draft; this is a no-op then.
     settings.Cancel(SettingsOwner::Cab);
     interface->UpdateScreen(1);
 }
 
-void CalibrationPlough::pause() {
+FLASHMEM void CalibrationPlough::pause() {
     pauseStartMs = millis();
     phase = Phase::Pause;
 }
 
 // The target of the width point being captured: sign and two digits in cm.
-void CalibrationPlough::showPoint() {
+FLASHMEM void CalibrationPlough::showPoint() {
     const short int target = implement->GetPositionCalibrationPoint(point);
     lcd->WriteBuffer(target < 0 ? '-' : ' ', 3, 12);
     lcd->WriteBuffer(abs(target / 10) + '0', 3, 13);
@@ -266,7 +288,7 @@ void CalibrationPlough::showPoint() {
     phase = Phase::PointRelease;
 }
 
-void CalibrationPlough::drawValue() {
+FLASHMEM void CalibrationPlough::drawValue() {
     switch (setting()) {
         case PloughSetting::Shares:
         case PloughSetting::Deadband:

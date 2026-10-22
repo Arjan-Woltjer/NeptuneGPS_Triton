@@ -154,7 +154,8 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // (below), then AgIsoStack's soft-key scaling fix (neptune-main a9453ff).
     // MW06 -> MW07, same day: the plough pictures and centred key labels.
     // MW07 -> MW08, same day: GPS and speed indicators, speed in km/h.
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW08");
+    // MW08 -> MW09, 2026-10-20: the calibration page (#240).
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW09");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
@@ -170,6 +171,10 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
+    numericValueListener = vtClient->get_vt_change_numeric_value_event_dispatcher().add_listener(
+        [this](const VirtualTerminalClient::VTChangeNumericValueEvent& e) {
+            if (calibration != nullptr) calibration->OnNumericValue(e.objectID, e.value);
+        });
     vtClient->initialize(false);
 }
 
@@ -184,8 +189,21 @@ void IsobusVtInterface::Update() {
 
     diagnostics->update();
     vtClient->update();
+    if (calibration != nullptr) {
+        // The page lives on this VT only: a lost connection drops its draft.
+        if (IsConnected()) calibration->Update(*this);
+        else if (calibration->IsOpen()) calibration->OnConnectionLost();
+    }
     updateReconnectWatchdog();
     updateFailover();
+}
+
+bool IsobusVtInterface::ChangeActiveMask(uint16_t dataMask) {
+    return vtClient && vtClient->send_change_active_mask(Plough_WorkingSet, dataMask);
+}
+
+bool IsobusVtInterface::ChangeNumericValue(uint16_t objectId, uint32_t value) {
+    return vtClient && vtClient->send_change_numeric_value(objectId, value);
 }
 
 // ----------------------------------------------------------------
@@ -274,6 +292,8 @@ void IsobusVtInterface::switchTo(std::uint8_t address) {
     // partner takes it out of the partner list, and the network manager puts
     // an ordinary external CF in its table slot, which the roll-call prune
     // may evict again like any other.
+    // An open calibration page belongs to the VT being left (#240).
+    if (calibration != nullptr) calibration->OnConnectionLost();
     vtClient->terminate();
     CANNetworkManager::CANNetwork.deactivate_control_function(partner);
     createClient(filters);
@@ -550,29 +570,27 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
 
     if (event.keyEvent != Code::ButtonUnlatchedOrReleased) return;
 
-    // Calibrate sets a consume-once pending flag, picked up by main.cpp's
-    // loop() and passed into InterfacePlough::CheckButtons(). Auto has no
-    // existing target (InterfacePlough's AUTO mode is derived, not
-    // user-settable) so stays log-only.
-    //
-    // Calibrate is a heavier action than the other two and carries two real
-    // caveats worth knowing before relying on it in the field:
-    //   1. It is a single tap, where the cab-button equivalent is holding
-    //      both buttons for delay1 * 4 = ~1 s. There is no hold gesture
-    //      available over a VT soft key (the VT reports discrete press and
-    //      release events, and this class acts on release), so an accidental
-    //      tap enters the wizard immediately.
-    //   2. It opens the cab-LCD wizard, which is driven from the LCD and the
-    //      physical buttons only (InterfacePlough::CheckButtons(0, 0), the VT
-    //      flags left at their defaults). Since #31 the wizard is a step
-    //      runner, so this class's Update() and CANNetworkManager keep
-    //      running while it is open, but the wizard itself still cannot be
-    //      driven from the VT: start it here, finish it at the cab display.
-    //      The VT calibration page (#240) replaces this.
+    // Calibrate opens the calibration page (#240), Opslaan and Annuleren
+    // close it; see IsobusVtCalibration. It is a single tap, where the
+    // cab's equivalent is both buttons held for about a second, but nothing
+    // changes before Opslaan, so a stray tap does no harm (#31 point 3).
+    // Auto has no target (InterfacePlough's AUTO mode is derived, not
+    // user-settable), so it is only logged.
     switch (event.objectID) {
-        case Key_Calibrate: pendingCalibratePress = true; serialDebug->println("VT: Calibrate pressed"); break;
-        case Key_Auto:      serialDebug->println("VT: Auto pressed (not wired to control)");             break;
-        default: break;
+        case Key_Calibrate:
+            serialDebug->println("VT: Calibrate pressed");
+            if (calibration != nullptr) calibration->OnCalibrateKey();
+            break;
+        case Key_CalSave:
+        case Key_CalCancel:
+            // A saved page may have changed the preferred VT (#255).
+            if (calibration != nullptr && calibration->OnSoftKey(event.objectID)) LoadPreferredVt();
+            break;
+        case Key_Auto:
+            serialDebug->println("VT: Auto pressed (not wired to control)");
+            break;
+        default:
+            break;
     }
 }
 

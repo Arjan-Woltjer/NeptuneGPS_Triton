@@ -66,6 +66,15 @@ public:
 
     PloughSettings& GetSettings() { return settings; }
 
+#ifdef ISOBUS
+    // While the VT calibration page (#240) holds the settings session: the
+    // control holds, the cab shows that the calibration is on the VT, and
+    // main.cpp calls this instead of InterfacePlough::Update(), so the cab
+    // buttons do nothing. True while the VT holds it; the pass after it
+    // lets go redraws the main screen and returns false.
+    bool HoldWhileVtCalibrates();
+#endif
+
     // The two guidance values this board persists, as in the regular
     // Ploegbesturing. GuidanceSource is a shared data model with no storage
     // of its own (NeptuneGPS_Triton#78), so this class owns their EEPROM
@@ -140,6 +149,7 @@ private:
     uint8_t       point = 0;
     short int     widthAdc[3] = {};
     unsigned long pauseStartMs = 0;
+    bool          holdingForVt = false;
 
     bool loadGuidanceCalibration();
     void enterScreen(uint8_t next);
