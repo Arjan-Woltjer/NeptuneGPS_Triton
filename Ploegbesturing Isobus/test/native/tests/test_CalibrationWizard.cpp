@@ -479,6 +479,8 @@ testF(CalibrationWizard, vtSession_holdsTheControl_andTheCabSaysSo) {
     w.cal.GetSettings().Cancel(SettingsOwner::Vt);
     assertFalse(w.cal.HoldWhileVtCalibrates());
     assertNotEqual(row(0).c_str(), L_CAL_ON_VT);
+    // Entering and leaving trickle out too: no whole-screen write.
+    assertEqual(wzLcd.multiCharWrites, 0);
 }
 
 testF(CalibrationWizard, vtSession_cabButtonsCannotOpenTheWizard) {

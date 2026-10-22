@@ -198,13 +198,11 @@ FLASHMEM bool CalibrationPlough::HoldWhileVtCalibrates() {
         lcd->WriteBuffer(L_CAL_ON_VT_2, 1);
         lcd->WriteBuffer(L_BLANK, 2);
         lcd->WriteBuffer(L_BLANK, 3);
-        lcd->WriteScreen(-1);
         holdingForVt = true;
     }
     else if (!vtHolds && holdingForVt) {
         holdingForVt = false;
         interface->UpdateScreen(1);
-        lcd->WriteScreen(-1);
     }
     if (!vtHolds) return false;
     implement->Update(2, 0);
