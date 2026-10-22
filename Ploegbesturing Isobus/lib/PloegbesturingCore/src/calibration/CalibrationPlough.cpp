@@ -119,6 +119,10 @@ void CalibrationPlough::Step() {
     // refreshed them, so 3 s of driving latched it however far the plough
     // moved). In manual, Update() leaves the width alone.
     implement->Update(2, 0);
+    // One changed LCD character per pass, as the main screen does: a
+    // whole screen at once is ~150 ms of I2C on the board, a pass that
+    // long fills most of the CAN receive queue (bench 2026-10-22). A new
+    // screen builds up in a fraction of a second this way.
     lcd->WriteScreen(1);
 
     switch (phase) {
@@ -145,7 +149,6 @@ void CalibrationPlough::Step() {
                 lcd->WriteBuffer(L_CAL_DONE, 1);
                 lcd->WriteBuffer(L_BLANK, 2);
                 drawValue();
-                lcd->WriteScreen(-1);
                 pause();
                 break;
             }
@@ -170,7 +173,6 @@ void CalibrationPlough::Step() {
                 lcd->WriteBuffer(staged ? L_CAL_DONE : L_CAL_DECLINED, 1);
                 lcd->WriteBuffer(L_BLANK, 2);
                 lcd->WriteBuffer(L_BLANK, 3);
-                lcd->WriteScreen(-1);
                 pause();
                 break;
             }
@@ -200,7 +202,6 @@ void CalibrationPlough::enterScreen(uint8_t next) {
     lcd->WriteBuffer(L_CAL_ACCEPT, 1);
     lcd->WriteBuffer(L_CAL_DECLINE, 2);
     lcd->WriteBuffer(L_BLANK, 3);
-    lcd->WriteScreen(-1);
     phase = Phase::AskRelease;
 }
 
@@ -209,7 +210,6 @@ void CalibrationPlough::accept() {
         settings.Save(SettingsOwner::Cab);
         lcd->WriteBuffer(L_CAL_DDONE, 1);
         lcd->WriteBuffer(L_CAL_SAVE, 2);
-        lcd->WriteScreen(-1);
         pause();
         return;
     }
@@ -217,7 +217,6 @@ void CalibrationPlough::accept() {
     lcd->WriteBuffer(L_CAL_ENTER, 2);
     if (screen == kWidth) {
         lcd->WriteBuffer(L_CAL_POS_AD, 3);
-        lcd->WriteScreen(-1);
         point = 0;
         showPoint();
         return;
@@ -231,7 +230,6 @@ void CalibrationPlough::accept() {
     const char* editLine = kEditLines[screen - 1];
     lcd->WriteBuffer(editLine != nullptr ? editLine : L_BLANK, 3);
     drawValue();
-    lcd->WriteScreen(-1);
     phase = Phase::EditRelease;
 }
 
@@ -244,7 +242,6 @@ void CalibrationPlough::decline() {
     else {
         lcd->WriteBuffer(L_BLANK, 2);
     }
-    lcd->WriteScreen(-1);
     pause();
 }
 
@@ -253,7 +250,6 @@ void CalibrationPlough::finish() {
     // COMPLETE has already saved or dropped the draft; this is a no-op then.
     settings.Cancel(SettingsOwner::Cab);
     interface->UpdateScreen(1);
-    lcd->WriteScreen(-1);
 }
 
 void CalibrationPlough::pause() {
@@ -267,7 +263,6 @@ void CalibrationPlough::showPoint() {
     lcd->WriteBuffer(target < 0 ? '-' : ' ', 3, 12);
     lcd->WriteBuffer(abs(target / 10) + '0', 3, 13);
     lcd->WriteBuffer(abs(target) % 10 + '0', 3, 14);
-    lcd->WriteScreen(3);
     phase = Phase::PointRelease;
 }
 

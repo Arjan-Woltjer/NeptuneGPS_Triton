@@ -21,11 +21,16 @@ class InterfaceI2CLCD {
     void WriteBuffer(char c, uint8_t lineNo, uint8_t colNo) {
         if (lineNo < 4 && colNo < 20) rows[lineNo][colNo] = c;
     }
-    void WriteScreen(uint8_t) {}
+    // A call that may write more than one character in one go: on the board
+    // each changed character costs about 3 ms of I2C, so a whole screen holds
+    // loop() up for ~150 ms. Counted so tests can require one per pass.
+    void WriteScreen(uint8_t n) { if (n > 1) multiCharWrites++; }
+    int multiCharWrites = 0;
 
     // The row as 20 characters, null-terminated.
     const char* Row(uint8_t lineNo) const { return rows[lineNo]; }
     void Clear() {
+        multiCharWrites = 0;
         for (uint8_t r = 0; r < 4; r++) {
             for (uint8_t c = 0; c < 20; c++) rows[r][c] = ' ';
             rows[r][20] = '\0';

@@ -414,6 +414,30 @@ testF(CalibrationWizard, width_stalledPlough_isCutOffAfterTheShutoffTime) {
     assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
 }
 
+// No pass writes more than one LCD character: a whole-screen write holds
+// loop() up for ~150 ms on the board (bench 2026-10-22: 131-165 ms passes,
+// against ~0.17 ms idle), long enough to fill most of the CAN receive queue.
+// The screen trickles out one character per pass instead, as the main
+// screen always has.
+testF(CalibrationWizard, noPass_writesMoreThanOneLcdCharacter) {
+    resetAll();
+    Wizard w;
+    assertTrue(w.cal.Start());
+    accept(w);                         // the width procedure
+    capture(w, 610);
+    capture(w, 455);
+    capture(w, 290);
+    later(1000); w.pass();
+    accept(w);                         // shares: an edit screen
+    step(w, true);
+    finish(w);
+    skipTo(w, L_CAL_COMPLETE);
+    accept(w);                         // save
+    later(1000); w.pass();             // and back to the main screen
+    assertFalse(w.cal.IsActive());
+    assertEqual(wzLcd.multiCharWrites, 0);
+}
+
 // #31: every pass returns. A held button kept the blocking wizard spinning
 // inside Calibrate(); here each Step() comes back while it is held, so
 // loop() keeps pumping the CAN stack, the VT and the TC.
