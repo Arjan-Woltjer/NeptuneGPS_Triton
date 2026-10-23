@@ -160,6 +160,10 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ2");
 #elif VT_JD_BISECT == 3
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ3");
+#elif VT_JD_BISECT == 4
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ4");
+#elif VT_JD_BISECT == 5
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ5");
 #else
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW08");
 #endif
@@ -173,7 +177,7 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // and so a change in how the pool SCALES (these numbers, or AgIsoStack's
     // scaling code) needs a label bump just like a change to the pool itself:
     // the bench VT kept showing MW05 scaled by the pre-fix library.
-#if VT_JD_BISECT != 1 && VT_JD_BISECT != 3
+#if VT_JD_BISECT != 1 && VT_JD_BISECT != 3 && VT_JD_BISECT != 4 && VT_JD_BISECT != 5
     vtClient->set_object_pool_scaling(0, 200, 60);
 #endif
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(

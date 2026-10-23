@@ -64,7 +64,11 @@ namespace triton
 #ifndef DMAMEM
 #define DMAMEM
 #endif
+#if VT_JD_BISECT == 5
+DMAMEM static uint8_t poolBuffer[32768];   // DIAGNOSTIC: the uncompressed pictures need ~19 kB
+#else
 DMAMEM static uint8_t poolBuffer[16384];
+#endif
 static uint32_t poolPos = 0;
 
 const uint8_t* VT3PoolData = nullptr;
@@ -258,8 +262,25 @@ static void appendPictureGraphicRle8(uint16_t id, uint16_t width, uint16_t heigh
     pu16(width);         // actual width
     pu16(height);        // actual height
     pu8(2);              // format: 8-bit colour
+#if VT_JD_BISECT == 5
+    // DIAGNOSTIC: the same pixels, uncompressed.
+    pu8(0);              // options: opaque, not flashing, raw
+    pu8(0);              // transparency colour (unused)
+    pu32(uint32_t(width) * height);
+    pu8(0);              // 0 macros
+    for (uint32_t i = 0; i + 1 < rleDataLen; i += 2) {
+        for (uint8_t n = 0; n < rleData[i]; n++) pu8(rleData[i + 1]);
+    }
+    return;
+#elif VT_JD_BISECT == 4
+    // DIAGNOSTIC: as John Deere's own RLE pictures: transparent bit set. Colour
+    // 0 is black, the mask's background, so the screen looks the same.
+    pu8((1 << 2) | 1);   // options: transparent, not flashing, run-length encoded
+    pu8(0);              // transparency colour: black
+#else
     pu8(1 << 2);         // options: opaque, not flashing, run-length encoded
     pu8(0);              // transparency colour (unused, opaque)
+#endif
     pu32(rleDataLen);
     pu8(0);              // 0 macros
     for (uint32_t i = 0; i < rleDataLen; i++) pu8(rleData[i]);

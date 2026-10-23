@@ -256,8 +256,14 @@ void setup() {
     // only means something to the error-register readout. On the bench the
     // wrong one made the stack retry the claim every loop on a port it does
     // not have, flooding the serial log (2026-10-09).
+#ifndef NO_LIGHTBAR
     gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance);
     gLightbarChannel->Begin();
+#else
+    // DIAGNOSTIC (Mookhoek 57): no Ag Leader lightbar emulation on a JD rig.
+    gLightbarChannel = nullptr;
+    gSerialDebug->println("Lightbar: left out (NO_LIGHTBAR)");
+#endif
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
 
@@ -331,7 +337,7 @@ void loop() {
 #endif
     gGuidanceChannel->Update();
 #ifdef ISOBUS
-    gLightbarChannel->Update();
+    if (gLightbarChannel != nullptr) gLightbarChannel->Update();
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();
