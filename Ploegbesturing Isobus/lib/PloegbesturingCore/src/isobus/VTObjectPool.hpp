@@ -126,7 +126,12 @@ enum PloughVtObjectId : uint16_t {
 //   9  variant 7's pool, sent as several pools of at   label MWJ9
 //      most 1 700 B (cut on object boundaries): each a
 //      TP transfer, no ETP
-//   6-9 keep the autoscaling (variant 2 cleared it).
+//  10  the full MW08 content as TP-sized transfers:    label MWJ10
+//      each plough picture as 8-bit RLE strips of at
+//      most 1 500 B in a Container that keeps its id
+//  11  the full MW08 pool, one ETP transfer, with 255   label MWJ11
+//      packets per DPO instead of AgIsoStack's 16
+//   6-11 keep the autoscaling (variant 2 cleared it).
 // 0 (default) is the production pool, MW08. -D NO_LIGHTBAR leaves the
 // Ag Leader lightbar emulation (0xDC) out; it combines with any variant.
 #ifndef VT_JD_BISECT

@@ -289,6 +289,74 @@ static void appendPictureMonoFromRle(uint16_t id, uint16_t width, uint16_t heigh
 }
 #endif
 
+#if VT_JD_BISECT == 10
+// DIAGNOSTIC: one 8-bit RLE image as a Container (type 3) with the image's
+// id, holding horizontal 8-bit RLE strips of at most kStripMaxBytes each,
+// so no object is too big for a TP transfer. Strip ids from firstStripId.
+DMAMEM static uint8_t stripScratch[120 * 76];
+static const uint32_t kStripMaxBytes = 1500;
+static uint32_t rowRleBytes(const uint8_t* row, uint16_t width) {
+    uint32_t bytes = 0;
+    for (uint16_t x = 0; x < width;) {
+        uint16_t n = 1;
+        while (x + n < width && n < 255 && row[x + n] == row[x]) n++;
+        bytes += 2;
+        x += n;
+    }
+    return bytes;
+}
+static void appendPictureStrips(uint16_t containerId, uint16_t width, uint16_t height, const uint8_t* rle,
+                                uint32_t rleLen, uint16_t firstStripId) {
+    uint32_t px = 0;
+    for (uint32_t i = 0; i + 1 < rleLen; i += 2) {
+        for (uint8_t k = 0; k < rle[i] && px < sizeof(stripScratch); k++) stripScratch[px++] = rle[i + 1];
+    }
+    // Pass 1: the strips' first rows and sizes.
+    uint16_t stripStart[16];
+    uint32_t stripBytes[16];
+    uint8_t strips = 0;
+    uint32_t bytes = 0;
+    stripStart[0] = 0;
+    for (uint16_t y = 0; y < height; y++) {
+        const uint32_t r = rowRleBytes(stripScratch + uint32_t(y) * width, width);
+        if (bytes > 0 && bytes + r > kStripMaxBytes && strips < 15) {
+            stripBytes[strips++] = bytes;
+            stripStart[strips] = y;
+            bytes = 0;
+        }
+        bytes += r;
+    }
+    stripBytes[strips++] = bytes;
+    // The Container, then each strip.
+    pu16(containerId); pu8(3);
+    pu16(width); pu16(height);
+    pu8(0);              // not hidden
+    pu8(strips); pu8(0); // children, 0 macros
+    for (uint8_t s = 0; s < strips; s++) appendObjRef(firstStripId + s, 0, stripStart[s]);
+    for (uint8_t s = 0; s < strips; s++) {
+        const uint16_t y0 = stripStart[s];
+        const uint16_t y1 = s + 1 < strips ? stripStart[s + 1] : height;
+        pu16(firstStripId + s); pu8(20);
+        pu16(width); pu16(width); pu16(y1 - y0);
+        pu8(2);          // 8-bit colour
+        pu8(1 << 2);     // RLE, opaque, as production
+        pu8(0);
+        pu32(stripBytes[s]);
+        pu8(0);          // 0 macros
+        for (uint16_t y = y0; y < y1; y++) {
+            const uint8_t* row = stripScratch + uint32_t(y) * width;
+            for (uint16_t x = 0; x < width;) {
+                uint16_t n = 1;
+                while (x + n < width && n < 255 && row[x + n] == row[x]) n++;
+                pu8(uint8_t(n));
+                pu8(row[x]);
+                x += n;
+            }
+        }
+    }
+}
+#endif
+
 // Type 20: PictureGraphic, 8-bit standard palette, run-length encoded
 // ((count, colour) pairs -- ISO 11783-6 B.12.2; same layout as above, format
 // 2 and option bit 2). For the plough pictures in VTImages.hpp.
@@ -426,6 +494,7 @@ static uint32_t objectLength(const uint8_t* b) {
     switch (b[2]) {
         case 0:  return 10 + b[7] * 6 + b[8] * 2 + b[9] * 2;   // WorkingSet
         case 1:  return 8 + b[6] * 6 + b[7] * 2;               // DataMask
+        case 3:  return 10 + b[8] * 6 + b[9] * 2;              // Container
         case 4:  return 6 + b[4] * 2 + b[5] * 2;               // SoftKeyMask
         case 5:  return 7 + b[5] * 6 + b[6] * 2;               // Key
         case 11: {                                             // OutputString
@@ -631,7 +700,17 @@ void BuildObjectPool() {
     // inside the 60 px key label box.
     appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "CALIBR");
 
-#if VT_JD_BISECT == 6
+#if VT_JD_BISECT == 10
+    // DIAGNOSTIC: the production pictures, as strips in Containers.
+    appendPictureStrips(Img_PloughLeft, kPloughImageWidth, kPloughImageHeight, kPloughLeftImage,
+                        kPloughLeftImageSize, 200);
+    appendPictureStrips(Img_PloughRight, kPloughImageWidth, kPloughImageHeight, kPloughRightImage,
+                        kPloughRightImageSize, 216);
+    appendObjectPointer(Ptr_PloughImage, Img_PloughLeft);
+    appendPictureGraphicRle8(Img_StatusOk, kStatusIconSize, kStatusIconSize, kStatusOkImage, kStatusOkImageSize);
+    appendPictureGraphicRle8(Img_StatusWarn, kStatusIconSize, kStatusIconSize, kStatusWarnImage,
+                             kStatusWarnImageSize);
+#elif VT_JD_BISECT == 6
     // DIAGNOSTIC: 8-bit pictures, but small: the plough pictures as the icon.
     appendPictureGraphic(Img_PloughLeft, 16, 16, kIconPloughData, sizeof(kIconPloughData));
     appendPictureGraphic(Img_PloughRight, 16, 16, kIconPloughData, sizeof(kIconPloughData));
