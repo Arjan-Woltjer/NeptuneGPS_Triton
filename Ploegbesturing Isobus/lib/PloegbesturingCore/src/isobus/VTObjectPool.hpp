@@ -116,6 +116,14 @@ enum PloughVtObjectId : uint16_t {
 //      8-bit RLE picture in John Deere's own pools is
 //   5  no autoscaling; the pictures 8-bit uncompressed  label MWJ5
 //      (a ~19 kB pool, no RLE: RLE versus pool size)
+//   6  the plough pictures as the 1-bit icon, the two   label MWJ6
+//      status icons kept 8-bit RLE: 8-bit pictures in a
+//      ~1 kB pool (one TP transfer, no ETP)
+//   7  the plough pictures 1-bit, 120x76, status icons  label MWJ7
+//      1-bit: a ~3 kB pool (ETP), no 8-bit at all
+//   8  as 7, the plough pictures stored 240x152 (shown  label MWJ8
+//      120 wide): a ~10 kB pool, no 8-bit
+//   6-8 keep the autoscaling (variant 2 cleared it).
 // 0 (default) is the production pool, MW08. -D NO_LIGHTBAR leaves the
 // Ag Leader lightbar emulation (0xDC) out; it combines with any variant.
 #ifndef VT_JD_BISECT

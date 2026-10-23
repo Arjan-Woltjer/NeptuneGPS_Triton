@@ -164,6 +164,12 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ4");
 #elif VT_JD_BISECT == 5
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ5");
+#elif VT_JD_BISECT == 6
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ6");
+#elif VT_JD_BISECT == 7
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ7");
+#elif VT_JD_BISECT == 8
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ8");
 #else
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW08");
 #endif

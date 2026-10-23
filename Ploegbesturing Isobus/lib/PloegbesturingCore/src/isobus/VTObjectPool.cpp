@@ -252,6 +252,43 @@ static void appendPictureGraphic(uint16_t id, uint16_t width, uint16_t height,
     for (uint32_t i = 0; i < rawDataLen; i++) pu8(rawData[i]);
 }
 
+#if VT_JD_BISECT == 7 || VT_JD_BISECT == 8
+// DIAGNOSTIC: one of the 8-bit RLE images as a monochrome picture, every pixel
+// that isn't the background colour (the top-left pixel's) white, stored
+// `scale` times larger and shown `width` wide.
+DMAMEM static uint8_t monoScratch[120 * 76];
+static void appendPictureMonoFromRle(uint16_t id, uint16_t width, uint16_t height, const uint8_t* rle,
+                                     uint32_t rleLen, uint8_t scale) {
+    uint32_t n = 0;
+    for (uint32_t i = 0; i + 1 < rleLen; i += 2) {
+        for (uint8_t k = 0; k < rle[i] && n < sizeof(monoScratch); k++) monoScratch[n++] = rle[i + 1];
+    }
+    const uint8_t background = monoScratch[0];
+    const uint16_t aw = width * scale, ah = height * scale;
+    const uint16_t rowBytes = (aw + 7) / 8;
+    pu16(id); pu8(20);
+    pu16(width);         // shown width
+    pu16(aw);            // actual width
+    pu16(ah);            // actual height
+    pu8(0);              // format: monochrome
+    pu8(0);              // options: opaque, not flashing, not RLE
+    pu8(0);              // transparency colour (unused)
+    pu32(uint32_t(rowBytes) * ah);
+    pu8(0);              // 0 macros
+    for (uint16_t y = 0; y < ah; y++) {
+        for (uint16_t b = 0; b < rowBytes; b++) {
+            uint8_t v = 0;
+            for (uint8_t bit = 0; bit < 8; bit++) {
+                const uint16_t x = b * 8 + bit;
+                const bool on = x < aw && monoScratch[(y / scale) * width + (x / scale)] != background;
+                if (on) v |= uint8_t(0x80 >> bit);
+            }
+            pu8(v);
+        }
+    }
+}
+#endif
+
 // Type 20: PictureGraphic, 8-bit standard palette, run-length encoded
 // ((count, colour) pairs -- ISO 11783-6 B.12.2; same layout as above, format
 // 2 and option bit 2). For the plough pictures in VTImages.hpp.
@@ -548,7 +585,25 @@ void BuildObjectPool() {
     // inside the 60 px key label box.
     appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "CALIBR");
 
-#if VT_JD_BISECT == 2 || VT_JD_BISECT == 3
+#if VT_JD_BISECT == 6
+    // DIAGNOSTIC: 8-bit pictures, but small: the plough pictures as the icon.
+    appendPictureGraphic(Img_PloughLeft, 16, 16, kIconPloughData, sizeof(kIconPloughData));
+    appendPictureGraphic(Img_PloughRight, 16, 16, kIconPloughData, sizeof(kIconPloughData));
+    appendObjectPointer(Ptr_PloughImage, Img_PloughLeft);
+    appendPictureGraphicRle8(Img_StatusOk, kStatusIconSize, kStatusIconSize, kStatusOkImage, kStatusOkImageSize);
+    appendPictureGraphicRle8(Img_StatusWarn, kStatusIconSize, kStatusIconSize, kStatusWarnImage,
+                             kStatusWarnImageSize);
+#elif VT_JD_BISECT == 7 || VT_JD_BISECT == 8
+    // DIAGNOSTIC: no 8-bit pictures; the real images as 1-bit, 8 stored twice the size.
+    appendPictureMonoFromRle(Img_PloughLeft, kPloughImageWidth, kPloughImageHeight, kPloughLeftImage,
+                             kPloughLeftImageSize, VT_JD_BISECT == 8 ? 2 : 1);
+    appendPictureMonoFromRle(Img_PloughRight, kPloughImageWidth, kPloughImageHeight, kPloughRightImage,
+                             kPloughRightImageSize, VT_JD_BISECT == 8 ? 2 : 1);
+    appendObjectPointer(Ptr_PloughImage, Img_PloughLeft);
+    appendPictureMonoFromRle(Img_StatusOk, kStatusIconSize, kStatusIconSize, kStatusOkImage, kStatusOkImageSize, 1);
+    appendPictureMonoFromRle(Img_StatusWarn, kStatusIconSize, kStatusIconSize, kStatusWarnImage,
+                             kStatusWarnImageSize, 1);
+#elif VT_JD_BISECT == 2 || VT_JD_BISECT == 3
     // DIAGNOSTIC: no 8-bit RLE pictures; all four are the 1-bit icon MW04 had.
     appendPictureGraphic(Img_PloughLeft, 16, 16, kIconPloughData, sizeof(kIconPloughData));
     appendPictureGraphic(Img_PloughRight, 16, 16, kIconPloughData, sizeof(kIconPloughData));
