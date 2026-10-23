@@ -252,7 +252,7 @@ static void appendPictureGraphic(uint16_t id, uint16_t width, uint16_t height,
     for (uint32_t i = 0; i < rawDataLen; i++) pu8(rawData[i]);
 }
 
-#if VT_JD_BISECT == 7 || VT_JD_BISECT == 8
+#if VT_JD_BISECT == 7 || VT_JD_BISECT == 8 || VT_JD_BISECT == 9
 // DIAGNOSTIC: one of the 8-bit RLE images as a monochrome picture, every pixel
 // that isn't the background colour (the top-left pixel's) white, stored
 // `scale` times larger and shown `width` wide.
@@ -419,6 +419,52 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // ----------------------------------------------------------------
 // Public entry point -- call once in setup() before VT init
 // ----------------------------------------------------------------
+// The length of the object at `b`, by AgIsoStack's
+// VirtualTerminalClient::get_number_bytes_in_object() rules, for the object
+// types this pool uses; 0 for any other.
+static uint32_t objectLength(const uint8_t* b) {
+    switch (b[2]) {
+        case 0:  return 10 + b[7] * 6 + b[8] * 2 + b[9] * 2;   // WorkingSet
+        case 1:  return 8 + b[6] * 6 + b[7] * 2;               // DataMask
+        case 4:  return 6 + b[4] * 2 + b[5] * 2;               // SoftKeyMask
+        case 5:  return 7 + b[5] * 6 + b[6] * 2;               // Key
+        case 11: {                                             // OutputString
+            const uint32_t n = uint32_t(b[14] | (b[15] << 8));
+            return 17 + n + b[16 + n] * 2;
+        }
+        case 12: return 29 + b[28] * 2;                        // OutputNumber
+        case 20: {                                             // PictureGraphic
+            const uint32_t raw = uint32_t(b[12]) | (uint32_t(b[13]) << 8) | (uint32_t(b[14]) << 16) |
+                                 (uint32_t(b[15]) << 24);
+            return 17 + raw + b[16] * 2;
+        }
+        case 21: return 7;                                     // NumberVariable
+        case 23: return 8 + b[7] * 2;                          // FontAttributes
+        case 27: return 5;                                     // ObjectPointer
+        default: return 0;
+    }
+}
+
+uint8_t SplitObjectPool(uint32_t maxBytes, const uint8_t** starts, uint32_t* sizes, uint8_t maxPieces) {
+    uint8_t pieces = 0;
+    uint32_t at = 0, pieceStart = 0;
+    while (at < VT3PoolSize) {
+        const uint32_t len = objectLength(VT3PoolData + at);
+        if (len == 0 || len > maxBytes || at + len > VT3PoolSize) return 0;
+        if (at + len - pieceStart > maxBytes) {
+            if (pieces == maxPieces) return 0;
+            starts[pieces] = VT3PoolData + pieceStart;
+            sizes[pieces++] = at - pieceStart;
+            pieceStart = at;
+        }
+        at += len;
+    }
+    if (pieces == maxPieces) return 0;
+    starts[pieces] = VT3PoolData + pieceStart;
+    sizes[pieces++] = at - pieceStart;
+    return pieces;
+}
+
 void BuildObjectPool() {
     poolPos = 0;
 
@@ -593,7 +639,7 @@ void BuildObjectPool() {
     appendPictureGraphicRle8(Img_StatusOk, kStatusIconSize, kStatusIconSize, kStatusOkImage, kStatusOkImageSize);
     appendPictureGraphicRle8(Img_StatusWarn, kStatusIconSize, kStatusIconSize, kStatusWarnImage,
                              kStatusWarnImageSize);
-#elif VT_JD_BISECT == 7 || VT_JD_BISECT == 8
+#elif VT_JD_BISECT == 7 || VT_JD_BISECT == 8 || VT_JD_BISECT == 9
     // DIAGNOSTIC: no 8-bit pictures; the real images as 1-bit, 8 stored twice the size.
     appendPictureMonoFromRle(Img_PloughLeft, kPloughImageWidth, kPloughImageHeight, kPloughLeftImage,
                              kPloughLeftImageSize, VT_JD_BISECT == 8 ? 2 : 1);

@@ -170,6 +170,24 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ7");
 #elif VT_JD_BISECT == 8
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ8");
+#elif VT_JD_BISECT == 9
+    // DIAGNOSTIC: the pool as several TP-sized transfers.
+    {
+        const uint8_t* starts[8];
+        uint32_t sizes[8];
+        const uint8_t pieces = SplitObjectPool(1700, starts, sizes, 8);
+        serialDebug->print("VT pool split into ");
+        serialDebug->print(pieces);
+        serialDebug->print(" pieces:");
+        for (uint8_t i = 0; i < pieces; i++) {
+            serialDebug->print(" ");
+            serialDebug->print(sizes[i]);
+            vtClient->set_object_pool(i, starts[i], sizes[i], "MWJ9");
+            vtClient->set_object_pool_scaling(i, 200, 60);
+        }
+        serialDebug->println(" bytes");
+        if (pieces == 0) vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ9");
+    }
 #else
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW08");
 #endif

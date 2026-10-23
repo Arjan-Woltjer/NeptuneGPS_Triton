@@ -123,7 +123,10 @@ enum PloughVtObjectId : uint16_t {
 //      1-bit: a ~3 kB pool (ETP), no 8-bit at all
 //   8  as 7, the plough pictures stored 240x152 (shown  label MWJ8
 //      120 wide): a ~10 kB pool, no 8-bit
-//   6-8 keep the autoscaling (variant 2 cleared it).
+//   9  variant 7's pool, sent as several pools of at   label MWJ9
+//      most 1 700 B (cut on object boundaries): each a
+//      TP transfer, no ETP
+//   6-9 keep the autoscaling (variant 2 cleared it).
 // 0 (default) is the production pool, MW08. -D NO_LIGHTBAR leaves the
 // Ag Leader lightbar emulation (0xDC) out; it combines with any variant.
 #ifndef VT_JD_BISECT
@@ -144,6 +147,11 @@ extern uint32_t       VT3PoolSize;
 
 // Call once in setup(), before VT client initialization.
 void BuildObjectPool();
+
+// DIAGNOSTIC (VT_JD_BISECT 9): cuts the built pool on object boundaries into
+// pieces of at most maxBytes. Returns the number of pieces (0 if an object
+// type is unknown or one object alone is larger than maxBytes).
+uint8_t SplitObjectPool(uint32_t maxBytes, const uint8_t** starts, uint32_t* sizes, uint8_t maxPieces);
 
 }  // namespace triton
 
