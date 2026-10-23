@@ -527,6 +527,14 @@ void BuildObjectPool() {
     // inside the 60 px key label box.
     appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "CALIBR");
 
+#if VT_JD_BISECT == 2 || VT_JD_BISECT == 3
+    // DIAGNOSTIC: no 8-bit RLE pictures; all four are the 1-bit icon MW04 had.
+    appendPictureGraphic(Img_PloughLeft, 16, 16, kIconPloughData, sizeof(kIconPloughData));
+    appendPictureGraphic(Img_PloughRight, 16, 16, kIconPloughData, sizeof(kIconPloughData));
+    appendObjectPointer(Ptr_PloughImage, Img_PloughLeft);
+    appendPictureGraphic(Img_StatusOk, 16, 16, kIconPloughData, sizeof(kIconPloughData));
+    appendPictureGraphic(Img_StatusWarn, 16, 16, kIconPloughData, sizeof(kIconPloughData));
+#else
     // ---- Plough pictures and the pointer that shows one of them ----
     appendPictureGraphicRle8(Img_PloughLeft, kPloughImageWidth, kPloughImageHeight, kPloughLeftImage,
                              kPloughLeftImageSize);
@@ -538,6 +546,7 @@ void BuildObjectPool() {
     appendPictureGraphicRle8(Img_StatusOk, kStatusIconSize, kStatusIconSize, kStatusOkImage, kStatusOkImageSize);
     appendPictureGraphicRle8(Img_StatusWarn, kStatusIconSize, kStatusIconSize, kStatusWarnImage,
                              kStatusWarnImageSize);
+#endif
     // Not OK until IsobusVtInterface reports otherwise.
     appendObjectPointer(Ptr_GpsStatus, Img_StatusWarn);
     appendObjectPointer(Ptr_SpeedStatus, Img_StatusWarn);

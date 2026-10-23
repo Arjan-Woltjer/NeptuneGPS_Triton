@@ -154,7 +154,15 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // (below), then AgIsoStack's soft-key scaling fix (neptune-main a9453ff).
     // MW06 -> MW07, same day: the plough pictures and centred key labels.
     // MW07 -> MW08, same day: GPS and speed indicators, speed in km/h.
+#if VT_JD_BISECT == 1
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ1");
+#elif VT_JD_BISECT == 2
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ2");
+#elif VT_JD_BISECT == 3
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MWJ3");
+#else
     vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW08");
+#endif
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
@@ -165,7 +173,9 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // and so a change in how the pool SCALES (these numbers, or AgIsoStack's
     // scaling code) needs a label bump just like a change to the pool itself:
     // the bench VT kept showing MW05 scaled by the pre-fix library.
+#if VT_JD_BISECT != 1 && VT_JD_BISECT != 3
     vtClient->set_object_pool_scaling(0, 200, 60);
+#endif
     softKeyListener = vtClient->get_vt_soft_key_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::VTKeyEvent& e) { onVtKeyEvent(e); });
     buttonListener = vtClient->get_vt_button_event_dispatcher().add_listener(
@@ -469,6 +479,45 @@ const char* IsobusVtInterface::GetStateName() const {
     int index = static_cast<int>(vtClient->get_state());
     if (index < 0 || index >= kVtStateCount) return "(unknown)";
     return kVtStateNames[index];
+}
+
+// What the VT answered in the handshake (Get Number of Soft Keys, Get Text
+// Font Data, Get Hardware): kept by the client, printed nowhere else.
+void IsobusVtInterface::PrintVtCapabilities(Stream* out) const {
+    if (!vtClient) return;
+    out->print("  VT screen:    ");
+    out->print(vtClient->get_number_x_pixels());
+    out->print(" x ");
+    out->print(vtClient->get_number_y_pixels());
+    out->print(" px, graphics ");
+    switch (vtClient->get_graphic_mode()) {
+        case VirtualTerminalClient::GraphicMode::Monochrome:               out->print("monochrome"); break;
+        case VirtualTerminalClient::GraphicMode::SixteenColour:            out->print("16 colour"); break;
+        case VirtualTerminalClient::GraphicMode::TwoHundredFiftySixColour: out->print("256 colour"); break;
+    }
+    out->print(", soft keys ");
+    out->print(vtClient->get_softkey_x_axis_pixels());
+    out->print(" x ");
+    out->print(vtClient->get_softkey_y_axis_pixels());
+    out->print(" px, ");
+    out->print(vtClient->get_number_virtual_softkeys());
+    out->print(" virtual / ");
+    out->print(vtClient->get_number_physical_softkeys());
+    out->println(" physical");
+    out->print("  VT fonts:     ");
+    static const char* const names[] = { "6x8", "8x8", "8x12", "12x16", "16x16", "16x24", "24x32", "32x32",
+                                         "32x48", "48x64", "64x64", "64x96", "96x128", "128x128", "128x192" };
+    for (uint8_t i = 0; i < 15; i++) {
+        if (vtClient->get_font_size_supported(static_cast<VirtualTerminalClient::FontSize>(i))) {
+            out->print(names[i]);
+            out->print(" ");
+        }
+    }
+    out->println();
+    out->print("  Pool:         ");
+    out->print(VT3PoolSize);
+    out->print(" bytes, bisect variant ");
+    out->println(VT_JD_BISECT);
 }
 
 const char* IsobusVtInterface::GetVtVersionName() const {

@@ -104,6 +104,18 @@ enum PloughVtObjectId : uint16_t {
     Font_White_Unit  = 37,
 };
 
+// DIAGNOSTIC (Mookhoek 57, 2026-10-23): a John Deere VT4 rejects the pool with
+// "any other error" and no faulting object, MW08 and MW09 alike. Build with
+// PLATFORMIO_BUILD_FLAGS="-D VT_JD_BISECT=n" to try:
+//   1  no autoscaling (the pool as drawn, 200 px)       label MWJ1
+//   2  the plough pictures and status icons as the old  label MWJ2
+//      1-bit 16x16 icon instead of 8-bit RLE pictures
+//   3  both                                             label MWJ3
+// 0 (default) is the production pool, MW08.
+#ifndef VT_JD_BISECT
+#define VT_JD_BISECT 0
+#endif
+
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
 enum PloughKeyCode : uint8_t {
     KeyCode_Wider     = 1,

@@ -105,6 +105,8 @@ public:
     // confirming what VT version is on the other end when the VT rejects the
     // pool (see VTObjectPool.cpp).
     const char* GetVtVersionName() const;
+    // DIAGNOSTIC (Mookhoek 57): the VT's handshake answers, for the dump.
+    void PrintVtCapabilities(Stream* out) const;
 
     // Raw count/age of VT Status Messages (PGN 0xE600/VirtualTerminalToECU,
     // function 0xFE) actually seen on the bus, independent of AgIsoStack's

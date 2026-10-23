@@ -464,6 +464,7 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
         serialDebug->println(vtInterface->GetStateName());
         serialDebug->print("  VT version:  ");
         serialDebug->println(vtInterface->GetVtVersionName());
+        vtInterface->PrintVtCapabilities(serialDebug);
         serialDebug->print("  VT status msgs: ");
         serialDebug->print(vtInterface->GetVtStatusMessageCount());
         serialDebug->print("   last ");
