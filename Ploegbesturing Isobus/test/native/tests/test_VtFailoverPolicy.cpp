@@ -452,6 +452,30 @@ test(PreferredVt, matchesTheVtNumberAsTheTerminalsShowIt) {
     assertFalse(IsPreferredVt(false, 1, 2));   // not a Virtual Terminal
 }
 
+// Block 1 of the EEPROM map, next to the GPS bytes and the lightbar mode.
+test(PreferredVt, atByte14_inBlock1) {
+    assertEqual(kEepromPreferredVt, 14);
+}
+
+// Boards that stored their VT at 70 before the move keep it until the next
+// save; after that 14 is the only byte read, a stored 0 (no preference)
+// included.
+test(PreferredVt, byte14Erased_readsTheOldByte70_untilTheNextSave) {
+    EEPROM.eepromReset();
+    EEPROM.write(kEepromPreferredVtBefore, 2);
+    assertEqual((int)ReadPreferredVt(), 2);
+    WritePreferredVt(1);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 1);
+    assertEqual((int)EEPROM.read(kEepromPreferredVtBefore), 2);   // left alone
+    assertEqual((int)ReadPreferredVt(), 1);
+    WritePreferredVt(0);
+    assertEqual((int)ReadPreferredVt(), 0);
+    EEPROM.eepromReset();
+    EEPROM.write(kEepromPreferredVtBefore, kHighestPreferredVt + 1);
+    assertEqual((int)ReadPreferredVt(), 0);
+    EEPROM.eepromReset();
+}
+
 test(PreferredVt, storedAsTheNumber_erasedOrOutOfRangeIsNone) {
     EEPROM.eepromReset();
     assertEqual((int)ReadPreferredVt(), 0);    // erased (255)

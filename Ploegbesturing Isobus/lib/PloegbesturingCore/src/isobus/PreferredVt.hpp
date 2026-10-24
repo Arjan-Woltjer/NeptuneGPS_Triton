@@ -29,15 +29,24 @@ namespace triton
 // instance 0, is VT 1; the CNH VT, instance 1, is VT 2). 0 = no preference.
 // Set in the calibration wizard, read by IsobusVtInterface.
 //
-// EEPROM 70 in today's layout: free on a plough board (52-56, the removed
-// PWM/KP settings, still hold old values on boards in the field). Block 3's
-// 42 after the #78 move.
-constexpr int     kEepromPreferredVt  = 70;
-constexpr uint8_t kHighestPreferredVt = 9;
+// EEPROM 14, in block 1 (GPS + ISOBUS, 10-19) of the EEPROM map: a VT
+// preference is an ISOBUS setting, not a plough one, and block 1 keeps its
+// addresses through the #78 layout move. 15 stays free so the field can grow
+// to a word.
+//
+// Until 2026-10-24 it was at 70, which the #78 layout gives to the Planter
+// block. While 14 is still erased the old byte is read instead, so a board
+// keeps the VT it had; the next save writes 14, and 70 is not read again.
+// The fallback goes when the plough block moves (#78): those boards are
+// recalibrated anyway.
+constexpr int     kEepromPreferredVt       = 14;
+constexpr int     kEepromPreferredVtBefore = 70;
+constexpr uint8_t kHighestPreferredVt      = 9;
 
 // An erased (255) or out-of-range byte reads as no preference.
 inline uint8_t ReadPreferredVt() {
-    const uint8_t stored = EEPROM.read(kEepromPreferredVt);
+    uint8_t stored = EEPROM.read(kEepromPreferredVt);
+    if (stored == 0xFF) stored = EEPROM.read(kEepromPreferredVtBefore);
     return stored <= kHighestPreferredVt ? stored : 0;
 }
 
