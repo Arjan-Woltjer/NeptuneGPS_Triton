@@ -312,7 +312,7 @@ testF(CalibrationWizard, preferredVt_andRtkQuality_oneDigit_andSaved) {
     finish(w);
     assertTitle(L_CAL_COMPLETE);
     accept(w);
-    assertEqual((int)EEPROM.read(70), 2);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 2);
     assertEqual((int)EEPROM.read(11), 2);
     assertEqual((int)wzGuidance.GetRtkQuality(), 2);
 }

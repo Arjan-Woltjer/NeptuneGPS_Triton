@@ -179,7 +179,7 @@ test(IsobusVtCalibration, lists_mapTheirEntriesToTheSettings) {
 }
 
 // #272: the lightbar list's index is the mode (AUTO, AAN, UIT); a fourth
-// entry does not exist, and Opslaan stores the mode at 71.
+// entry does not exist, and Opslaan stores the mode at 12.
 test(IsobusVtCalibration, lightbarList_isTheMode_andIsSaved) {
     resetAll();
     Rig r;
@@ -226,7 +226,7 @@ test(IsobusVtCalibration, opslaan_savesTheDraft_andGoesBackToTheMainMask) {
     assertEqual((int)r.impl.GetShares(), 10);
     assertEqual((int)r.impl.GetOffset(), 400);   // #247, as at the cab
     assertEqual((int)EEPROM.read(64), 10);
-    assertEqual((int)EEPROM.read(70), 2);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 2);
     r.page.Update(r.out);
     assertEqual((int)r.out.masks.size(), 1);
     assertEqual((int)r.out.masks[0], (int)Plough_DataMask);

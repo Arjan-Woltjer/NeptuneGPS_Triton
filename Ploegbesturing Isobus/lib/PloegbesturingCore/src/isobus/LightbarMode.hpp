@@ -40,8 +40,10 @@ enum class LightbarMode : uint8_t {
 };
 constexpr uint8_t kHighestLightbarMode = uint8_t(LightbarMode::Off);
 
-// EEPROM 71, next to the preferred VT (70); free on a plough board.
-constexpr int kEepromLightbarMode = 71;
+// EEPROM 12, in block 1 (GPS + ISOBUS, 10-19): a guidance setting, not a
+// plough one, and block 1 keeps its addresses through the #78 layout move.
+// 13 stays free so the field can grow to a word.
+constexpr int kEepromLightbarMode = 12;
 
 // An erased (255) or out-of-range byte reads as Auto.
 inline LightbarMode ReadLightbarMode() {

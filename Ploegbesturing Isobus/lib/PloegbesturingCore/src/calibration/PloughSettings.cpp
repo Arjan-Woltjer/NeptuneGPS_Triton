@@ -29,7 +29,7 @@ namespace triton
 
 // The bounds are the ones the boot loads apply: ImplementPlough's
 // readCalibrationData() (58-68), VehicleTractor's (28), CalibrationPlough's
-// (11), ReadPreferredVt() (70) and ReadLightbarMode() (71). test_PloughSettings
+// (11), ReadPreferredVt() and ReadLightbarMode() (12). test_PloughSettings
 // checks every byte value against those loads.
 static const PloughSettingLine kLines[PloughSettings::kCount] = {
     { PloughSetting::Shares,                "shares",   SettingKind::Number,     kLowestShares,   kHighestShares,   1, 64 },
