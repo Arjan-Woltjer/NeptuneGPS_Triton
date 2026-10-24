@@ -36,7 +36,7 @@
 // ---------------
 #if defined NEDERLANDS
 
-#define L_DEVICE        "Triton PB-ISO   v0.1"
+#define L_DEVICE        "Triton PB-ISO  v0.21"
 
 #define L_POS           "Ploegbreedte:       "
 #define L_ROTATION      "Rotatie:            "
@@ -86,7 +86,7 @@
 // -----------
 #elif defined ENGLISH
 
-#define L_DEVICE        " Ploughcontrol v1.31"
+#define L_DEVICE        "Triton PB-ISO  v0.21"
 
 #define L_POS           "Set width:          "
 #define L_ROTATION      "Rotation:           "
