@@ -43,8 +43,10 @@ This session decides:
   the same command. Not bb22076: its soft keys are swapped.
 - **Shared git folder:** the laptop's and the workstation's Triton checkouts share one OneDrive-synced
   `.git`. Don't run git on both at once.
-- **Boot print right after flashing:** copy it whole into the timeline. The EEPROM layout is unchanged,
-  so the values set on 2026-10-20 carry over: preferred VT **2**, plough-side swap as set in session 20's
+- **Boot print right after flashing:** copy it whole into the timeline. Two settings now live in EEPROM
+  block 1 (GPS + ISOBUS): the lightbar mode at 12 (erased, so Auto) and the preferred VT at 14 (#274). Byte
+  14 is still erased on this board, so the preferred VT is read from its old byte 70 until the first
+  save. Everything else is unchanged, so the values set on 2026-10-20 carry over: preferred VT **2**, plough-side swap as set in session 20's
   P1, the position calibration from 2026-10-20 14:36. Anything unexpected: **stop and report** before
   driving.
 - **Pool upload (MW10):** the first connection to each VT uploads the pool (13 kB), now in long bursts (#269). Note the time from
@@ -138,7 +140,7 @@ the 1200.
 
 SETUP
 - [ ] Build: `test/session21` @ ________ flashed (teensy40_isobus); soft key BREDER widens Y/N
-- [ ] Boot print copied; shares __ deadband __ max corr __/__ bypass __ inversion __ RTK q __ width __ swap __ preferred VT __
+- [ ] Boot print copied; shares __ deadband __ max corr __/__ bypass __ inversion __ RTK q __ width __ swap __ preferred VT __ (2 expected, from byte 70)
 - [ ] Pool MW10 on the CNH VT: boot -> main screen __ s; main screen as before Y/N; no pool error Y/N (#269)
 - [ ] CANedge on: new session ____ uploading
 
