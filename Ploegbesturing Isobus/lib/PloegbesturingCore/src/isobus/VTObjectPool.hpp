@@ -115,8 +115,8 @@ enum PloughVtObjectId : uint16_t {
     Label_CalCancel       = 105,
     Key_CalWidth          = 106,  // opens the width procedure
     Label_CalWidth        = 107,
-    Label_Cal0            = 110,  // .. 117
-    Input_Cal0            = 120,  // .. 127: InputNumber or InputList
+    Label_Cal0            = 110,  // .. 119 at most
+    Input_Cal0            = 120,  // .. 129 at most: InputNumber or InputList
     // The list entries and units, shared by the inputs that use them.
     Str_CalNo             = 130,
     Str_CalYes            = 131,
@@ -154,6 +154,11 @@ enum PloughVtObjectId : uint16_t {
     Ptr_CalWidthStatus         = 161,
     Str_CalBlank               = 162,
     Str_CalInvalid             = 163,
+
+    // The lightbar setting's list entries (#272), after the width procedure's.
+    Str_CalAuto                = 164,
+    Str_CalOn                  = 165,
+    Str_CalOff                 = 166,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.

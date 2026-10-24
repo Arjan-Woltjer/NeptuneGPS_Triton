@@ -54,12 +54,13 @@ static int16_t storedByte(PloughSetting id) {
     return EEPROM.read(PloughSettings::Line(id).eepromAddress);
 }
 
-// A valid value other than the default for every line, in table order.
-static const int16_t kEdited[PloughSettings::kCount] = { 6, 1, 1, 1, 5, 75, 2, 2 };
+// A valid value other than the default for every line, in table order. The
+// lightbar's 2 is Off (#272).
+static const int16_t kEdited[PloughSettings::kCount] = { 6, 1, 1, 1, 5, 75, 2, 2, 2 };
 
 test(PloughSettings, table_followsTheWizardOrder_withUniqueKeys) {
-    static const char* const expected[] = { "shares", "side", "hitchinv", "bypass", "deadband", "maxcorr", "vt", "rtkq" };
-    assertEqual((int)PloughSettings::kCount, 8);
+    static const char* const expected[] = { "shares", "side", "hitchinv", "bypass", "deadband", "maxcorr", "vt", "lightbar", "rtkq" };
+    assertEqual((int)PloughSettings::kCount, 9);
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         const PloughSettingLine& line = PloughSettings::Line(PloughSetting(i));
         assertEqual((int)line.id, (int)i);
@@ -114,6 +115,7 @@ test(PloughSettings, set_isStagedOnly_nothingReachesThePloughOrEepromBeforeSave)
     assertEqual((int)r.impl.GetDeadband(), (int)kDefaultDeadband);
     assertEqual((int)r.impl.GetMaxCorrectionPerShare(), (int)kDefaultMaxCorrectionPerShareMm);
     assertEqual((int)r.cal.GetPreferredVt(), 0);
+    assertEqual((int)r.cal.GetLightbarMode(), (int)LightbarMode::Auto);
     assertEqual((int)psGuidance.GetRtkQuality(), 4);
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         assertEqual(storedByte(PloughSetting(i)), (int16_t)255);
@@ -137,6 +139,7 @@ test(PloughSettings, save_appliesTheDraft_andWritesEachValueAtItsTableAddress) {
     assertEqual((int)r.impl.GetDeadband(), 5);
     assertEqual((int)r.impl.GetMaxCorrectionPerShare(), 75);
     assertEqual((int)r.cal.GetPreferredVt(), 2);
+    assertEqual((int)r.cal.GetLightbarMode(), (int)LightbarMode::Off);
     assertEqual((int)psGuidance.GetRtkQuality(), 2);
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         assertEqual(storedByte(PloughSetting(i)), kEdited[i]);
@@ -174,6 +177,8 @@ test(PloughSettings, set_outOfRange_isRefused_andTheDraftKeepsItsValue) {
     assertFalse(r.settings.Set(SettingsOwner::Cab, PloughSetting::MaxCorrectionPerShare, 101));
     assertFalse(r.settings.Set(SettingsOwner::Cab, PloughSetting::Swap, 2));
     assertFalse(r.settings.Set(SettingsOwner::Cab, PloughSetting::PreferredVt, 10));
+    assertFalse(r.settings.Set(SettingsOwner::Cab, PloughSetting::Lightbar, 3));
+    assertFalse(r.settings.Set(SettingsOwner::Cab, PloughSetting::Lightbar, -1));
     assertFalse(r.settings.Set(SettingsOwner::Cab, PloughSetting::RtkQuality, 3));
     assertEqual(r.settings.Get(PloughSetting::Shares), (int16_t)kDefaultShares);
     assertEqual(r.settings.Get(PloughSetting::RtkQuality), (int16_t)4);
@@ -229,6 +234,12 @@ test(PloughSettings, step_staysInsideTheBounds_andJumpsForTwoValueSettings) {
     assertEqual(PloughSettings::Step(PloughSetting::MaxCorrectionPerShare, 25, -1), (int16_t)25);
     assertEqual(PloughSettings::Step(PloughSetting::PreferredVt, 9, 1), (int16_t)9);
     assertEqual(PloughSettings::Step(PloughSetting::PreferredVt, 0, -1), (int16_t)0);
+    // The lightbar has three values (#272): stepped one at a time, not jumped.
+    assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 0, 1), (int16_t)1);
+    assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 1, 1), (int16_t)2);
+    assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 2, 1), (int16_t)2);
+    assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 2, -1), (int16_t)1);
+    assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 0, -1), (int16_t)0);
     // The wizard's screens: + is yes / swap / RTK fixed, - is no / no swap / DGPS.
     assertEqual(PloughSettings::Step(PloughSetting::Bypass, 0, 1), (int16_t)1);
     assertEqual(PloughSettings::Step(PloughSetting::Bypass, 1, 1), (int16_t)1);

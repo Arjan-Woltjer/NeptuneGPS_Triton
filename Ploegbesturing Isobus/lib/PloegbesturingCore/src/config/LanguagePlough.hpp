@@ -65,6 +65,10 @@
 #define L_CAL_BYPASS    "Bypassventiel       "
 #define L_CAL_VT        "Wijzig voorkeurs-VT "
 #define L_CAL_VT_AD     "VT (0 = geen):      "
+#define L_CAL_LIGHTBAR  "Ag Leader lichtbalk "
+#define L_CAL_LB_AUTO   "                auto"
+#define L_CAL_LB_ON     "                 aan"
+#define L_CAL_LB_OFF    "                 uit"
 
 #define L_CAL_INVERSION    "Inverteer hefsignaal"
 #define L_CAL_INVERSION_AD "Inversie:           "
@@ -111,6 +115,10 @@
 #define L_CAL_BYPASS    "Bypass valve        "
 #define L_CAL_VT        "Adj. preferred VT   "
 #define L_CAL_VT_AD     "VT (0 = none):      "
+#define L_CAL_LIGHTBAR  "Ag Leader lightbar  "
+#define L_CAL_LB_AUTO   "                auto"
+#define L_CAL_LB_ON     "                  on"
+#define L_CAL_LB_OFF    "                 off"
 
 #define L_CAL_INVERSION    "Invert hitch signal "
 #define L_CAL_INVERSION_AD "Inversion:          "

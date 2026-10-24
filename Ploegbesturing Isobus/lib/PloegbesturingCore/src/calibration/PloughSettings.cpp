@@ -29,8 +29,8 @@ namespace triton
 
 // The bounds are the ones the boot loads apply: ImplementPlough's
 // readCalibrationData() (58-68), VehicleTractor's (28), CalibrationPlough's
-// (11) and ReadPreferredVt() (70). test_PloughSettings checks every byte
-// value against those loads.
+// (11), ReadPreferredVt() (70) and ReadLightbarMode() (71). test_PloughSettings
+// checks every byte value against those loads.
 static const PloughSettingLine kLines[PloughSettings::kCount] = {
     { PloughSetting::Shares,                "shares",   SettingKind::Number,     kLowestShares,   kHighestShares,   1, 64 },
     { PloughSetting::Swap,                  "side",     SettingKind::PloughSide, 0,               1,                1, 62 },
@@ -41,6 +41,7 @@ static const PloughSettingLine kLines[PloughSettings::kCount] = {
       kLowestMaxCorrectionPerShareMm, kHighestMaxCorrectionPerShareMm, 5, 60 },
 #ifdef ISOBUS
     { PloughSetting::PreferredVt,           "vt",       SettingKind::Number,     0,               kHighestPreferredVt, 1, kEepromPreferredVt },
+    { PloughSetting::Lightbar,              "lightbar", SettingKind::LightbarMode, 0,             kHighestLightbarMode, 1, kEepromLightbarMode },
 #endif
     { PloughSetting::RtkQuality,            "rtkq",     SettingKind::RtkQuality, 2,               4,                2,
       CalibrationPlough::kEepromRtkQuality },
@@ -65,7 +66,7 @@ FLASHMEM bool PloughSettings::IsValid(PloughSetting id, int16_t value) {
 
 FLASHMEM int16_t PloughSettings::Step(PloughSetting id, int16_t value, int direction) {
     const PloughSettingLine& line = Line(id);
-    if (line.kind != SettingKind::Number) {
+    if (line.kind != SettingKind::Number && line.kind != SettingKind::LightbarMode) {
         if (direction == 1) return line.highest;
         if (direction == -1) return line.lowest;
         return value;
@@ -89,6 +90,7 @@ FLASHMEM int16_t PloughSettings::held(PloughSetting id) const {
         case PloughSetting::MaxCorrectionPerShare: return implement->GetMaxCorrectionPerShare();
 #ifdef ISOBUS
         case PloughSetting::PreferredVt:           return calibration->GetPreferredVt();
+        case PloughSetting::Lightbar:              return int16_t(calibration->GetLightbarMode());
 #endif
         case PloughSetting::RtkQuality:            return guidance->GetRtkQuality();
         default:                                   return 0;
@@ -137,6 +139,7 @@ FLASHMEM bool PloughSettings::Save(SettingsOwner who) {
     implement->SetMaxCorrectionPerShare(byte(draft[uint8_t(PloughSetting::MaxCorrectionPerShare)]));
 #ifdef ISOBUS
     calibration->SetPreferredVt(byte(draft[uint8_t(PloughSetting::PreferredVt)]));
+    calibration->SetLightbarMode(LightbarMode(draft[uint8_t(PloughSetting::Lightbar)]));
 #endif
     guidance->SetRtkQuality(byte(draft[uint8_t(PloughSetting::RtkQuality)]));
     if (widthStaged) {

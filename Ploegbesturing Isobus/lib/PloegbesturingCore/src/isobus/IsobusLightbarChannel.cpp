@@ -72,6 +72,20 @@ IsobusLightbarChannel::IsobusLightbarChannel(Stream* serialDebug, GuidanceSource
 }
 
 void IsobusLightbarChannel::Begin() {
+    // The display as a partner, not only an address: the stack's address-claim
+    // prune spares partners (AgIsoStack fork patch #4). Session 16 (log 56): the
+    // InCommand skipped one global request for address claim, and the prune
+    // took 0xF5 out of the table for 6 s while it kept transmitting; anything
+    // addressed to it in that window would have failed in Send(). It binds to
+    // a display already in the table as well as to one that claims later, and
+    // that binding is what Auto waits for (#272).
+    displayPartner = CANNetworkManager::CANNetwork.create_partnered_control_function(canPort, DisplayNameFilters());
+
+    serialDebug->print("Lightbar: Ag Leader L160 emulation, mode ");
+    serialDebug->println(LightbarModeName(mode));
+}
+
+void IsobusLightbarChannel::start() {
     NAME lightbarName(0);
     lightbarName.set_arbitrary_address_capable(true);
     lightbarName.set_industry_group(2);
@@ -86,13 +100,6 @@ void IsobusLightbarChannel::Begin() {
     // Through the factory, like the guidance channel's: only that registers
     // the control function for the stack's address-claim state machine.
     controlFunction = CANNetworkManager::CANNetwork.create_internal_control_function(lightbarName, canPort, kLightbarPreferredAddress);
-
-    // The display as a partner, not only an address: the stack's address-claim
-    // prune spares partners (AgIsoStack fork patch #4). Session 16 (log 56): the
-    // InCommand skipped one global request for address claim, and the prune
-    // took 0xF5 out of the table for 6 s while it kept transmitting; anything
-    // addressed to it in that window would have failed in Send().
-    displayPartner = CANNetworkManager::CANNetwork.create_partnered_control_function(canPort, DisplayNameFilters());
 
     // Addressed traffic: the display's identification reads and its one
     // Proprietary A frame. Global: the cross-track error. All three go through
@@ -115,7 +122,28 @@ void IsobusLightbarChannel::Begin() {
         protocol->register_pgn_request_callback(0xEE00,                                                   OnIgnoredRequest,    this);
     }
 
-    serialDebug->println("Lightbar: presenting as an Ag Leader L160, claiming 0xDC");
+    serialDebug->print("Lightbar: presenting as an Ag Leader L160, claiming 0xDC (mode ");
+    serialDebug->print(LightbarModeName(mode));
+    serialDebug->println(displaySeen ? ", Ag Leader display seen)" : ")");
+}
+
+void IsobusLightbarChannel::stop() {
+    CANNetworkManager::CANNetwork.remove_any_control_function_parameter_group_number_callback(AgLeaderLightbarEmulation::kPgnDiagnostic,   OnDiagnostic,   this);
+    CANNetworkManager::CANNetwork.remove_any_control_function_parameter_group_number_callback(AgLeaderLightbarEmulation::kPgnProprietaryA, OnProprietaryA, this);
+    CANNetworkManager::CANNetwork.remove_any_control_function_parameter_group_number_callback(kPgnXteAgLeaderLightbar,                     OnXte,          this);
+    // Also drops the control function's request protocol, and with it the
+    // four request callbacks start() registered.
+    CANNetworkManager::CANNetwork.deactivate_control_function(controlFunction);
+    controlFunction.reset();
+
+    // A later start() is a new bar to the display: claim, software
+    // identification and the identification exchange from the beginning.
+    claimedAddress = 0xFF;
+    claimAnnounced = false;
+    counters.softwareIdSent = false;
+    emulation = AgLeaderLightbarEmulation();
+
+    serialDebug->println("Lightbar: off, 0xDC released");
 }
 
 bool IsobusLightbarChannel::IsClaimed() const {
@@ -135,6 +163,11 @@ std::uint8_t IsobusLightbarChannel::GetDisplayPartnerAddress() const {
 }
 
 void IsobusLightbarChannel::Update() {
+    if (IsDisplayPartnerBound()) displaySeen = true;
+    const bool wanted = LightbarShouldRun(mode, displaySeen);
+    if (wanted && !IsRunning()) start();
+    else if (!wanted && IsRunning()) stop();
+
     if (!IsClaimed()) return;
     const unsigned long now = millis();
 

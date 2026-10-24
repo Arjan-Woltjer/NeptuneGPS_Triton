@@ -178,6 +178,24 @@ test(IsobusVtCalibration, lists_mapTheirEntriesToTheSettings) {
     assertEqual(r.settings().Get(PloughSetting::Swap), (int16_t)1);
 }
 
+// #272: the lightbar list's index is the mode (AUTO, AAN, UIT); a fourth
+// entry does not exist, and Opslaan stores the mode at 71.
+test(IsobusVtCalibration, lightbarList_isTheMode_andIsSaved) {
+    resetAll();
+    Rig r;
+    r.page.OnCalibrateKey();
+    r.page.Update(r.out);
+    assertEqual(r.out.last(input(PloughSetting::Lightbar)), 0L);   // erased EEPROM: AUTO
+    r.page.OnNumericValue(input(PloughSetting::Lightbar), 3);
+    assertEqual(r.settings().Get(PloughSetting::Lightbar), (int16_t)0);
+    r.page.OnNumericValue(input(PloughSetting::Lightbar), 2);
+    assertEqual(r.settings().Get(PloughSetting::Lightbar), (int16_t)2);
+    assertEqual((int)EEPROM.read(kEepromLightbarMode), 255);       // staged only
+    assertTrue(r.page.OnSoftKey(Key_CalSave));
+    assertEqual((int)EEPROM.read(kEepromLightbarMode), 2);
+    assertEqual((int)r.cal.GetLightbarMode(), (int)LightbarMode::Off);
+}
+
 // The side list shows the side the plough gives, which follows the
 // plough-side input while the page is open.
 test(IsobusVtCalibration, sideList_followsThePloughSideInput) {

@@ -330,6 +330,15 @@ test(VTObjectPool, calibrationPage_hasARowPerSetting_withTheTablesBounds) {
             assertEqual(poolI32(at + 21), (int32_t)line.highest);
             assertEqual((int)VT3PoolData[at + 36], 1);   // enabled
         }
+        else if (line.kind == SettingKind::LightbarMode) {
+            // #272: AUTO, AAN, UIT, the list index being the LightbarMode value.
+            assertTrue(isType(objects, Input_Cal0 + i, 10));
+            const uint32_t at = objects.at(Input_Cal0 + i).at;
+            assertEqual((int)VT3PoolData[at + 10], 3);
+            assertEqual((int)poolU16(at + 13), (int)Str_CalAuto);
+            assertEqual((int)poolU16(at + 15), (int)Str_CalOn);
+            assertEqual((int)poolU16(at + 17), (int)Str_CalOff);
+        }
         else {
             assertTrue(isType(objects, Input_Cal0 + i, 10));
             assertEqual((int)VT3PoolData[objects.at(Input_Cal0 + i).at + 10], 2);
@@ -346,6 +355,7 @@ test(VTObjectPool, calibrationIds_startAt100_clearOfTheMainScreen) {
     assertTrue((int)Plough_CalDataMask > (int)Font_White_Unit);
     for (uint16_t id = Plough_CalDataMask; id <= Label_CalCancel; id++) assertTrue(poolContainsId(id));
     for (uint16_t id = Str_CalNo; id <= Str_CalMm; id++) assertTrue(poolContainsId(id));
+    for (uint16_t id = Str_CalAuto; id <= Str_CalOff; id++) assertTrue(poolContainsId(id));
     assertTrue(Label_Cal0 + PloughSettings::kCount <= Input_Cal0);
     assertTrue(Input_Cal0 + PloughSettings::kCount <= Str_CalNo);
 }
