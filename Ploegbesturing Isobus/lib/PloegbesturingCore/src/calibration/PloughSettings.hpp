@@ -46,18 +46,21 @@ enum class PloughSetting : uint8_t {
     MaxCorrectionPerShare,
 #ifdef ISOBUS
     PreferredVt,
+    Lightbar,          // the Ag Leader lightbar emulation (#272)
 #endif
     RtkQuality,
     Count
 };
 
 // How a value is shown and stepped. RtkQuality has two values only, 4 (RTK
-// fixed) and 2 (DGPS, the old Autofarm A5 units).
+// fixed) and 2 (DGPS, the old Autofarm A5 units). LightbarMode is one of
+// Auto (0), On (1), Off (2), stepped like a number.
 enum class SettingKind : uint8_t {
     Number,
     YesNo,
     PloughSide,
     RtkQuality,
+    LightbarMode,
 };
 
 struct PloughSettingLine {

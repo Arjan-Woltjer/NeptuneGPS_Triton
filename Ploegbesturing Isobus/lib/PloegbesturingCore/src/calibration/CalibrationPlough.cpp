@@ -48,6 +48,7 @@ bool CalibrationPlough::loadGuidanceCalibration() {
 #ifdef ISOBUS
     // Not a calibration value: "found" stays as it was.
     preferredVt = ReadPreferredVt();
+    lightbarMode = ReadLightbarMode();
 #endif
     return found;
 }
@@ -57,6 +58,7 @@ void CalibrationPlough::CommitGuidanceCalibration() {
     EEPROM.write(kEepromRtkQuality, guidance->GetRtkQuality());
 #ifdef ISOBUS
     WritePreferredVt(preferredVt);
+    WriteLightbarMode(lightbarMode);
 #endif
 }
 
@@ -75,6 +77,9 @@ FLASHMEM void CalibrationPlough::PrintCalibrationData() {
     serialDebug->println("Preferred VT (0 = none)");
     serialDebug->println(preferredVt);
     serialDebug->println("-------------------------------");
+    serialDebug->println("Ag Leader lightbar");
+    serialDebug->println(LightbarModeName(lightbarMode));
+    serialDebug->println("-------------------------------");
 #endif
 }
 
@@ -87,18 +92,18 @@ FLASHMEM void CalibrationPlough::PrintCalibrationData() {
 // procedure captures three points, COMPLETE saves or drops the draft.
 
 // Title and row-3 text per settings line, in table order. nullptr: row 3
-// carries only the value (yes/no, RTK quality).
+// carries only the value (yes/no, RTK quality, the lightbar mode).
 static const char* const kTitles[PloughSettings::kCount] = {
     L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_BYPASS, L_CAL_DEADBAND, L_CAL_MAXCOR,
 #ifdef ISOBUS
-    L_CAL_VT,
+    L_CAL_VT, L_CAL_LIGHTBAR,
 #endif
     L_CAL_QUAL,
 };
 static const char* const kEditLines[PloughSettings::kCount] = {
     L_CAL_SHARES_AD, L_CAL_SWAP_AD, nullptr, nullptr, L_CAL_DEADBAND_AD, L_CAL_MAXCOR_AD,
 #ifdef ISOBUS
-    L_CAL_VT_AD,
+    L_CAL_VT_AD, nullptr,
 #endif
     nullptr,
 };
@@ -307,6 +312,13 @@ FLASHMEM void CalibrationPlough::drawValue() {
         case PloughSetting::Bypass:
             lcd->WriteBuffer(value ? L_CAL_YES : L_CAL_NO, 3);
             break;
+#ifdef ISOBUS
+        case PloughSetting::Lightbar:
+            lcd->WriteBuffer(value == int(LightbarMode::On)  ? L_CAL_LB_ON
+                           : value == int(LightbarMode::Off) ? L_CAL_LB_OFF
+                                                             : L_CAL_LB_AUTO, 3);
+            break;
+#endif
         default:  // the preferred VT, the RTK quality: one digit
             lcd->WriteBuffer(value + '0', 3, 16);
             break;

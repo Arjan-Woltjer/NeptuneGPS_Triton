@@ -229,7 +229,11 @@ void setup() {
     // only means something to the error-register readout. On the bench the
     // wrong one made the stack retry the claim every loop on a port it does
     // not have, flooding the serial log (2026-10-09).
+    // Whether it runs is the lightbar setting (#272): Auto (the default)
+    // starts it once the InCommand's display is on the bus, so a John Deere
+    // or CNH bus never sees our L160.
     gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance);
+    gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Begin();
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
@@ -308,6 +312,8 @@ void loop() {
 #endif
     gGuidanceChannel->Update();
 #ifdef ISOBUS
+    // The saved setting: the wizard's or the VT page's Save changes it.
+    gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Update();
     gVtInterface->Update();
     gTcInterface->Update();

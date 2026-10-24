@@ -141,7 +141,7 @@ testF(CalibrationWizard, screens_inTheOwnersOrder_declineAll_savesNothing) {
     assertTrue(w.cal.Start());
     static const char* const order[] = {
         L_CAL_POS, L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_BYPASS,
-        L_CAL_DEADBAND, L_CAL_MAXCOR, L_CAL_VT, L_CAL_QUAL,
+        L_CAL_DEADBAND, L_CAL_MAXCOR, L_CAL_VT, L_CAL_LIGHTBAR, L_CAL_QUAL,
     };
     for (const char* title : order) {
         assertTitle(title);
@@ -302,6 +302,8 @@ testF(CalibrationWizard, preferredVt_andRtkQuality_oneDigit_andSaved) {
     step(w, true);
     assertEqual(row(3).c_str(), editRow(L_CAL_VT_AD, 16, "2").c_str());
     finish(w);
+    assertTitle(L_CAL_LIGHTBAR);
+    decline(w);
     assertTitle(L_CAL_QUAL);
     accept(w);
     assertEqual(row(3).c_str(), editRow(L_BLANK, 16, "4").c_str());
@@ -310,9 +312,34 @@ testF(CalibrationWizard, preferredVt_andRtkQuality_oneDigit_andSaved) {
     finish(w);
     assertTitle(L_CAL_COMPLETE);
     accept(w);
-    assertEqual((int)EEPROM.read(70), 2);
+    assertEqual((int)EEPROM.read(kEepromPreferredVt), 2);
     assertEqual((int)EEPROM.read(11), 2);
     assertEqual((int)wzGuidance.GetRtkQuality(), 2);
+}
+
+// #272: auto, aan, uit, one step per press and no wrap; saved at COMPLETE.
+testF(CalibrationWizard, lightbar_autoOnOff_steppedAndSaved) {
+    resetAll();
+    Wizard w;
+    assertTrue(w.cal.Start());
+    skipTo(w, L_CAL_LIGHTBAR);
+    accept(w);
+    assertEqual(row(3).c_str(), L_CAL_LB_AUTO);   // erased EEPROM: Auto
+    step(w, true);
+    assertEqual(row(3).c_str(), L_CAL_LB_ON);
+    step(w, true);
+    assertEqual(row(3).c_str(), L_CAL_LB_OFF);
+    step(w, true);
+    assertEqual(row(3).c_str(), L_CAL_LB_OFF);
+    step(w, false);
+    step(w, true);
+    assertEqual(row(3).c_str(), L_CAL_LB_OFF);
+    finish(w);
+    assertEqual((int)w.cal.GetLightbarMode(), (int)LightbarMode::Auto);   // staged only
+    skipTo(w, L_CAL_COMPLETE);
+    accept(w);
+    assertEqual((int)w.cal.GetLightbarMode(), (int)LightbarMode::Off);
+    assertEqual((int)EEPROM.read(kEepromLightbarMode), 2);
 }
 
 // The width procedure: three points, each captured with both held, staged,

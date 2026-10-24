@@ -410,7 +410,7 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 static constexpr const char* kCalLabels[PloughSettings::kCount] = {
     "SCHAREN", "PLOEGZIJDE", "HEF INVERT", "BYPASS", "DODE BAND", "CORR/SCH.",
 #ifdef ISOBUS
-    "VOORK. VT",
+    "VOORK. VT", "AG LEADER",
 #endif
     "RTK IDENT",
 };
@@ -424,26 +424,31 @@ static constexpr bool calLabelsFit(size_t maxChars, size_t i = 0) {
 // The list entries of each two-value kind, index 0 first: a yes/no list's
 // index is the value, the side list's is the side the plough gives (R = 0,
 // L = 1, as the cab wizard's L/R), the RTK list's is 0 for DGPS (2) and 1
-// for RTK (4). IsobusVtCalibration maps them.
+// for RTK (4). IsobusVtCalibration maps them. The lightbar list's index is
+// the LightbarMode value: Auto, On, Off.
 static const uint16_t kCalYesNoItems[2] = { Str_CalNo, Str_CalYes };
 static const uint16_t kCalSideItems[2]  = { Str_CalRight, Str_CalLeft };
 static const uint16_t kCalRtkItems[2]   = { Str_CalDgps, Str_CalRtk };
+static const uint16_t kCalLightbarItems[3] = { Str_CalAuto, Str_CalOn, Str_CalOff };
 
 // Run once at boot, so from flash, not RAM1 (#192).
 FLASHMEM static void appendCalibrationPage() {
-    // 8 rows of 24 px on the 200 px mask: a 124 px label column and a 72 px
-    // value column, wide enough for RECHTS at 12x16.
+    // 9 rows of 22 px on the 200 px mask (8 of 24 px until #272): a 124 px
+    // label column and a 72 px value column, wide enough for RECHTS at 12x16.
     constexpr uint16_t kCharW = 12;
     constexpr uint16_t LBL_X = 2, LBL_W = 124;
     constexpr uint16_t VAL_X = 128, VAL_W = 72, NUM_W = 40;
     constexpr uint16_t UNIT_X = VAL_X + NUM_W + 4;
-    constexpr uint16_t ROW_TOP = 4, ROW_H = 24;
+    constexpr uint16_t ROW_TOP = 1, ROW_H = 22;
     static_assert(calLabelsFit(LBL_W / kCharW), "calibration label too wide for its column");
     static_assert(6 * kCharW <= VAL_W, "value column narrower than RECHTS");
     static_assert(3 * kCharW <= NUM_W, "number field narrower than 3 digits");
     static_assert(UNIT_X + 2 * 8 <= 200 && LBL_X + LBL_W <= VAL_X && VAL_X + VAL_W <= 200,
                   "columns overlap or leave the mask");
     static_assert(ROW_TOP + PloughSettings::kCount * ROW_H <= 200, "rows leave the mask");
+    static_assert(ROW_H >= 16, "rows lower than the 12x16 font");
+    static_assert(Label_Cal0 + PloughSettings::kCount <= Input_Cal0 && Input_Cal0 + PloughSettings::kCount <= Str_CalNo,
+                  "calibration labels or inputs run into the next id block");
 
     uint8_t units = 0;
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
@@ -486,6 +491,9 @@ FLASHMEM static void appendCalibrationPage() {
             case SettingKind::RtkQuality:
                 appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 1, kCalRtkItems, 2);
                 break;
+            case SettingKind::LightbarMode:
+                appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalLightbarItems, 3);
+                break;
         }
     }
 
@@ -495,6 +503,9 @@ FLASHMEM static void appendCalibrationPage() {
     appendOutputString(Str_CalLeft, VAL_W, ROW_H, Font_White_Medium, 0, "LINKS");
     appendOutputString(Str_CalDgps, VAL_W, ROW_H, Font_White_Medium, 0, "DGPS");
     appendOutputString(Str_CalRtk, VAL_W, ROW_H, Font_White_Medium, 0, "RTK");
+    appendOutputString(Str_CalAuto, VAL_W, ROW_H, Font_White_Medium, 0, "AUTO");
+    appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, "AAN");
+    appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, "UIT");
     appendOutputString(Str_CalCm, 16, 10, Font_White_Unit, 0, "cm");
     appendOutputString(Str_CalMm, 16, 10, Font_White_Unit, 0, "mm");
 }

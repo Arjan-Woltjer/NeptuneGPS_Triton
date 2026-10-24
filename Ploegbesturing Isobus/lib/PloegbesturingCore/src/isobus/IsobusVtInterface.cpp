@@ -155,7 +155,8 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // MW06 -> MW07, same day: the plough pictures and centred key labels.
     // MW07 -> MW08, same day: GPS and speed indicators, speed in km/h.
     // MW08 -> MW09, 2026-10-20: the calibration page (#240).
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW09");
+    // MW09 -> MW10, 2026-10-24: the Ag Leader lightbar setting, 9 rows (#272).
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW10");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed

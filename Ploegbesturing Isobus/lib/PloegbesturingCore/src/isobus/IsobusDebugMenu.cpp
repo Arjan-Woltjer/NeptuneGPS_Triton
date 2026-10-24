@@ -512,6 +512,11 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
     } else {
         const auto& lc = lightbarChannel->GetCounters();
         const auto& em = lightbarChannel->GetEmulation();
+        serialDebug->print("  Mode: ");
+        serialDebug->print(LightbarModeName(lightbarChannel->GetMode()));
+        serialDebug->print(lightbarChannel->IsRunning() ? "  RUNNING" : "  NOT RUNNING");
+        serialDebug->println(lightbarChannel->IsAgLeaderDisplaySeen() ? "  (Ag Leader display seen)"
+                                                                      : "  (no Ag Leader display seen)");
         serialDebug->print("  Address claim: ");
         serialDebug->print(lightbarChannel->IsClaimed() ? "CLAIMED  address=0x" : "NOT CLAIMED");
         if (lightbarChannel->IsClaimed()) serialDebug->print(lightbarChannel->GetAddress(), HEX);
