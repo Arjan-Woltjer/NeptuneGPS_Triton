@@ -174,7 +174,7 @@ void setup() {
     gSerialDebug->println("--------------------------------");
     gSerialDebug->println("-----------MeijWorks------------");
     gSerialDebug->println("--------------------------------");
-    gSerialDebug->println("Triton PB-ISO       version 0.21");
+    gSerialDebug->println("   Triton PB-ISO version 0.21   ");
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
 #endif
