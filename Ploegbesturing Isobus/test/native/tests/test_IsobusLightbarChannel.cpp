@@ -294,6 +294,7 @@ test(IsobusLightbarChannel, requestCallbacks_handledWithoutAcknowledgement) {
 // ---------------------------------------------------------------------------
 
 test(LightbarMode, storedAsItsValue_erasedOrOutOfRangeIsAuto) {
+    assertEqual(kEepromLightbarMode, 12);   // block 1, GPS + ISOBUS (EEPROM map)
     EEPROM.eepromReset();
     assertEqual((int)ReadLightbarMode(), (int)LightbarMode::Auto);   // erased (255)
     WriteLightbarMode(LightbarMode::Off);
