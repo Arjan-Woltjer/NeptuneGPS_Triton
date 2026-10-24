@@ -18,12 +18,15 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #ifdef ISOBUS
+#include <cstring>
 #include <vector>
 #include <AUnit.h>
 #pragma push_macro("min")
 #pragma push_macro("max")
 #undef min
 #undef max
+#include <isobus/hardware_integration/can_hardware_interface.hpp>
+#include <isobus/isobus/can_network_manager.hpp>
 #include <isobus/isobus/can_identifier.hpp>
 #include <isobus/isobus/can_message.hpp>
 #include <isobus/isobus/can_NAME.hpp>
@@ -31,7 +34,9 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+#include "TestBus.hpp"
 #include "isobus/IsobusLightbarChannel.hpp"
+#include "isobus/LightbarMode.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -76,6 +81,47 @@ constexpr std::uint64_t kName2B        = 0x800081000C206EB1ULL;   // same unit, 
 constexpr std::uint64_t kNameVt80      = 0x80001D000C206EB1ULL;   // InCommand VT
 constexpr std::uint64_t kNameTcF7      = 0xA00082000C206EB1ULL;   // InCommand TC
 constexpr std::uint64_t kNameCnhVt26   = 0xA0001D080BC23101ULL;   // CNH VT
+
+class LbCaptureStream : public Stream {
+public:
+    size_t write(uint8_t c) override {
+        if (len < sizeof(text) - 1) text[len++] = (char)c;
+        text[len] = '\0';
+        return 1;
+    }
+    bool Contains(const char* needle) const { return strstr(text, needle) != nullptr; }
+
+    char   text[2048] = {};
+    size_t len = 0;
+};
+
+// Our L160 control function is in the stack's own list (claiming or claimed).
+bool StackHas(const std::shared_ptr<isobus::InternalControlFunction>& cf) {
+    if (cf == nullptr) return false;
+    for (const auto& icf : isobus::CANNetworkManager::CANNetwork.get_internal_control_functions()) {
+        if (icf == cf) return true;
+    }
+    return false;
+}
+
+// The InCommand's display claims 0xF5, straight into the network manager's
+// receive path as the guidance channel's tests do.
+void DeliverDisplayClaim() {
+    isobus::CANMessageFrame claim = {};
+    claim.identifier      = 0x18EEFFF5u;
+    claim.isExtendedFrame = true;
+    claim.dataLength      = 8;
+    for (int i = 0; i < 8; i++) claim.data[i] = static_cast<std::uint8_t>(kNameDisplayF5 >> (8 * i));
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(claim);
+    isobus::CANNetworkManager::CANNetwork.update();
+}
+
+void PumpStack() {
+    for (int i = 0; i < 20; i++) {
+        isobus::CANNetworkManager::CANNetwork.update();
+        isobus::CANHardwareInterface::update();
+    }
+}
 
 // A partner binds when every filter matches (each parameter appears once).
 bool DisplayFiltersMatch(std::uint64_t rawName) {
@@ -242,4 +288,112 @@ test(IsobusLightbarChannel, requestCallbacks_handledWithoutAcknowledgement) {
     assertEqual(channel.GetEmulation().GetIgnoredRequests(), (std::uint32_t)2);
     assertEqual(channel.GetEmulation().GetLastIgnoredPgn(), (std::uint32_t)0xEE00);
 }
+
+// ---------------------------------------------------------------------------
+// The lightbar setting (#272)
+// ---------------------------------------------------------------------------
+
+test(LightbarMode, storedAsItsValue_erasedOrOutOfRangeIsAuto) {
+    EEPROM.eepromReset();
+    assertEqual((int)ReadLightbarMode(), (int)LightbarMode::Auto);   // erased (255)
+    WriteLightbarMode(LightbarMode::Off);
+    assertEqual((int)EEPROM.read(kEepromLightbarMode), 2);
+    assertEqual((int)ReadLightbarMode(), (int)LightbarMode::Off);
+    WriteLightbarMode(LightbarMode::On);
+    assertEqual((int)ReadLightbarMode(), (int)LightbarMode::On);
+    EEPROM.write(kEepromLightbarMode, kHighestLightbarMode + 1);
+    assertEqual((int)ReadLightbarMode(), (int)LightbarMode::Auto);
+    EEPROM.eepromReset();
+}
+
+test(LightbarMode, shouldRun_onAlways_autoOnceTheDisplayIsSeen_offNever) {
+    assertTrue(LightbarShouldRun(LightbarMode::On, false));
+    assertTrue(LightbarShouldRun(LightbarMode::On, true));
+    assertFalse(LightbarShouldRun(LightbarMode::Auto, false));
+    assertTrue(LightbarShouldRun(LightbarMode::Auto, true));
+    assertFalse(LightbarShouldRun(LightbarMode::Off, false));
+    assertFalse(LightbarShouldRun(LightbarMode::Off, true));
+}
+
+// Auto, the default: nothing of ours on the bus until the InCommand's display
+// claims (a JD or CNH bus never sees the L160), then the emulation starts.
+// Off takes the control function off the bus again; Auto brings it back,
+// the display having been seen. Runs before the mode_off / mode_on tests
+// (AUnit: by name), which leave 0xF5 in the stack's table.
+test(IsobusLightbarChannel, mode_autoWaitsForTheInCommand_offReleases) {
+    SharedTestBus();
+    GuidanceSource guidance;
+    LbCaptureStream debug;
+    IsobusLightbarChannel channel(&debug, &guidance);
+    channel.Begin();
+    assertEqual((int)channel.GetMode(), (int)LightbarMode::Auto);
+    assertFalse(channel.IsDisplayPartnerBound());   // no earlier test put 0xF5 on the bus
+    channel.Update();
+    PumpStack();
+    channel.Update();
+    assertFalse(channel.IsRunning());
+    assertFalse(channel.IsAgLeaderDisplaySeen());
+    assertTrue(channel.GetControlFunction() == nullptr);
+    assertFalse(debug.Contains("claiming 0xDC"));
+
+    DeliverDisplayClaim();
+    channel.Update();
+    assertTrue(channel.IsAgLeaderDisplaySeen());
+    assertTrue(channel.IsRunning());
+    const auto first = channel.GetControlFunction();
+    assertTrue(StackHas(first));
+    assertTrue(debug.Contains("claiming 0xDC"));
+    PumpStack();
+
+    channel.SetMode(LightbarMode::Off);
+    channel.Update();
+    assertFalse(channel.IsRunning());
+    assertFalse(StackHas(first));
+    assertTrue(debug.Contains("0xDC released"));
+    PumpStack();
+    channel.Update();
+    assertFalse(channel.IsRunning());
+
+    channel.SetMode(LightbarMode::Auto);
+    channel.Update();
+    assertTrue(channel.IsRunning());
+    assertTrue(StackHas(channel.GetControlFunction()));
+
+    channel.SetMode(LightbarMode::Off);   // nothing left claiming for later tests
+    channel.Update();
+    assertFalse(channel.IsRunning());
+}
+
+// Off: never, with the InCommand's display on the bus or not.
+test(IsobusLightbarChannel, mode_off_neverStarts) {
+    SharedTestBus();
+    GuidanceSource guidance;
+    LbCaptureStream debug;
+    IsobusLightbarChannel channel(&debug, &guidance);
+    channel.SetMode(LightbarMode::Off);
+    channel.Begin();
+    DeliverDisplayClaim();
+    channel.Update();
+    PumpStack();
+    channel.Update();
+    assertFalse(channel.IsRunning());
+    assertFalse(debug.Contains("claiming 0xDC"));
+}
+
+// On: at once, as before #272, whatever is on the bus.
+test(IsobusLightbarChannel, mode_on_startsAtOnce) {
+    SharedTestBus();
+    GuidanceSource guidance;
+    LbCaptureStream debug;
+    IsobusLightbarChannel channel(&debug, &guidance);
+    channel.SetMode(LightbarMode::On);
+    channel.Begin();
+    channel.Update();
+    assertTrue(channel.IsRunning());
+    assertTrue(StackHas(channel.GetControlFunction()));
+    channel.SetMode(LightbarMode::Off);
+    channel.Update();
+    assertFalse(channel.IsRunning());
+}
+
 #endif  // ISOBUS

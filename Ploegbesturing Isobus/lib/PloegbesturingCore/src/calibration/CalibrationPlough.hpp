@@ -35,6 +35,7 @@
 #include "WidthProcedure.hpp"
 #ifdef ISOBUS
 #include "isobus/PreferredVt.hpp"
+#include "isobus/LightbarMode.hpp"
 #endif
 
 #if defined(ROTATION) || defined(SPEED_L)
@@ -97,6 +98,10 @@ public:
     // The preferred VT number (#255), held until CommitGuidanceCalibration().
     byte GetPreferredVt() const   { return preferredVt; }
     void SetPreferredVt(byte vt)  { preferredVt = vt <= kHighestPreferredVt ? vt : 0; }
+
+    // The Ag Leader lightbar setting (#272), held until CommitGuidanceCalibration().
+    LightbarMode GetLightbarMode() const     { return lightbarMode; }
+    void SetLightbarMode(LightbarMode value) { lightbarMode = uint8_t(value) <= kHighestLightbarMode ? value : LightbarMode::Auto; }
 #endif
 
     // One + or - press on a number screen: one step, never past the bounds
@@ -121,6 +126,7 @@ private:
     byte gpsBaudIndex = 0;
 #ifdef ISOBUS
     byte             preferredVt = 0;  // #255: the VT number, 0 = none
+    LightbarMode     lightbarMode = LightbarMode::Auto;  // #272
 #endif
 
     PloughSettings settings;

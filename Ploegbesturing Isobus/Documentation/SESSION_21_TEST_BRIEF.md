@@ -19,20 +19,23 @@ All of session 20 is on main (9842f4a). `test/session21` adds the calibration wo
 | **The cab wizard no longer blocks.** It runs one step per loop pass, so the CAN stack, the VT, the TC and guidance keep running while it is open. Same screens, texts, order and buttons | #264 (#31) | Open the wizard and leave it open for a minute: the VT and the TC stay connected and the 1 Hz serial line keeps running. Session 19: 63 s open, VT and TC dropped |
 | **Edits are a draft.** Nothing reaches the plough or EEPROM until COMPLETE's accept; declining COMPLETE drops everything. The control holds while the wizard is open | #263, #264 | A value changed and then declined at COMPLETE is unchanged after a power cycle. Before, each value acted on the plough as soon as it was stepped |
 | **Four deliberate differences in the cab wizard** | #264 | (1) A long + press that accepts a yes/no or RTK screen no longer also sets "ja"/4. (2) The width procedure re-reads the sensor, so the end shutoff only cuts a plough that has stopped moving (before: after 3 s of driving, wherever it was). (3) A width capture with two equal neighbouring points shows "geannuleerd" and keeps the old width. (4) The width procedure always drives in manual |
-| **Calibration page on the VT.** CALIBR opens a page with all eight settings: number fields with the table's limits, lists for ja/nee, RECHTS/LINKS and DGPS/RTK. OPSLAAN saves, ANNUL. drops. While it is open the cab shows "Calibratie op de VT" and its buttons do nothing. CALIBR no longer opens the cab wizard | #265 (#240, #31) | New pool label **MW09**: each VT uploads the pool once. The first input objects either VT has seen from us |
+| **Calibration page on the VT.** CALIBR opens a page with all nine settings: number fields with the table's limits, lists for ja/nee, RECHTS/LINKS, DGPS/RTK and AUTO/AAN/UIT. OPSLAAN saves, ANNUL. drops. While it is open the cab shows "Calibratie op de VT" and its buttons do nothing. CALIBR no longer opens the cab wizard | #265 (#240, #31) | New pool label **MW10** (MW09 plus #273's row): each VT uploads the pool once. The first input objects either VT has seen from us |
 | **Width calibration on the VT.** BREEDTE on the page: point 1 of 3, the target, the live sensor; SMALLER / BREDER drive while held, VASTLEG captures, TERUG goes back | #266 (#240) | The same three-point procedure as the cab (one piece of code for both) |
+| **Pool upload in long bursts.** ETP sends as many packets per burst as the VT's CTS allows (255 at most), not AgIsoStack's 16. It fixed the JD 4640's rejection at Mookhoek 57 (session 21, 2026-10-23); neither VT here has had it yet | #270 (#269) | MW10 loads on the CNH VT **and** the 1200 as MW09 did. A pool error in the log is a #269 regression: stop and report |
+| **Ag Leader lightbar setting.** The L160 emulation (0xDC) is a setting: **Auto** (default) starts it once the InCommand's display is on the bus, **Aan** at boot as before, **Uit** never. On the wizard after VT, and on the page as AG LEADER | #273 (#272) | Section 4b. In Auto it now claims *after* the display, where before it often claimed first |
 | **Soft keys the right way round on this board.** The rig ran bb22076 with BREDER and SMALLER swapped; this build has the bench-confirmed fix (#251) | on main | BREDER widens, like the cab's + |
 
 This session decides:
 1. **#264:** does the cab wizard keep everything connected, with the same screens, and do the four differences behave as described?
 2. **#265:** do the CNH VT **and** the InCommand 1200 render the calibration page and accept edits, and do OPSLAAN and ANNUL. do what they say?
 3. **#266:** does the width calibration work end to end from the VT, on both VTs?
-4. **Session 20's open steps** (section 5): E6, V7/V8, T3/T5/T6, the #258 figures, A1-A3.
+4. **#269 / #273:** do both VTs load MW10 with the long bursts, and does Auto still get the 1200's cross-track error (PGN 65462)?
+5. **Session 20's open steps** (section 5): E6, V7/V8, T3/T5/T6, the #258 figures, A1-A3.
 
 ## 1. Kit and build
 
-- **Flash:** the rig's plough control (the **Teensy 4.0**) must run **`test/session21`** (`bc846f0` or
-  later). On the field laptop: `git fetch && git switch test/session21 && git pull`, then
+- **Flash:** the rig's plough control (the **Teensy 4.0**) must run **`test/session21`** with #273 merged
+  (the boot print shows `Lightbar: Ag Leader L160 emulation, mode AUTO`). On the field laptop: `git fetch && git switch test/session21 && git pull`, then
   `pio run -d "Ploegbesturing Isobus" -e teensy40_isobus -t upload`, **with only the plough's Teensy on
   USB**. Write down `git rev-parse --short HEAD`. Close the Teensy Loader only once the board is back on
   its serial port.
@@ -44,7 +47,7 @@ This session decides:
   so the values set on 2026-10-20 carry over: preferred VT **2**, plough-side swap as set in session 20's
   P1, the position calibration from 2026-10-20 14:36. Anything unexpected: **stop and report** before
   driving.
-- **Pool upload (MW09):** the first connection to each VT uploads the pool (13 kB). Note the time from
+- **Pool upload (MW10):** the first connection to each VT uploads the pool (13 kB), now in long bursts (#269). Note the time from
   boot to the main screen on the CNH VT, and later on the 1200. The main screen must look as before.
 - **CANedge AD4F266A:** on the plough's bus, uploads by itself over LTE. Check that a new session starts.
 - **Serial logger:** on the field laptop, with the 1 Hz line on by itself. Dump (menu 1) at the steps below.
@@ -55,7 +58,7 @@ Bound to the CNH VT, standing still, hitch up unless a step says otherwise. Wiza
 
 | Step | Do | Expect |
 |---|---|---|
-| C1 | Open the wizard. Walk every screen with - (decline), to COMPLETE, decline there too. | The order of session 20: POS, SHARES, SWAP, INVERSION, BYPASS, DEADBAND, MAXCOR, VT, RTK, COMPLETE. Texts as before. Nothing changed afterwards. |
+| C1 | Open the wizard. Walk every screen with - (decline), to COMPLETE, decline there too. | The order of session 20 plus the lightbar: POS, SHARES, SWAP, INVERSION, BYPASS, DEADBAND, MAXCOR, VT, `Ag Leader lichtbalk`, RTK, COMPLETE. Texts as before. Nothing changed afterwards. |
 | C2 | Open the wizard and **leave it on a title screen for 60 s**. Watch the VT and the serial log. | The VT keeps the main screen with live values, no `VT: partner ... silent`, the TC stays connected, the 1 Hz line keeps running. Session 19: VT and TC dropped after 63 s. |
 | C3 | Wizard: shares 4 -> 5, both held to finish that screen. Walk on to COMPLETE and **decline**. Power-cycle. | Shares 4 in the boot print. The main screen's width didn't change at any point. |
 | C4 | The same, but **accept** COMPLETE. | Shares 5 at once (width stays 160), and after a power cycle. Then set it back to 4 the same way. |
@@ -70,13 +73,13 @@ First on the **CNH VT (0x26)**, then K9 on the 1200. Standing still.
 
 | Step | Do | Expect |
 |---|---|---|
-| K1 | **CALIBR**. Photo of the page. | The calibration page: 8 rows, labels readable and not cut off, values as in the boot print. Soft keys OPSLAAN, ANNUL., BREEDTE. The cab LCD shows `Calibratie op de VT` / `Opslaan of annuleren`. Log: `VT: calibration page open`. |
+| K1 | **CALIBR**. Photo of the page. | The calibration page: 9 rows (AG LEADER the 8th), labels readable and not cut off, values as in the boot print. Soft keys OPSLAAN, ANNUL., BREEDTE. The cab LCD shows `Calibratie op de VT` / `Opslaan of annuleren`. Log: `VT: calibration page open`. |
 | K2 | DODE BAND 2 -> 3, OPSLAAN. Power-cycle. | Back on the main screen at once. Boot print: deadband 3. Then set it back to 2 the same way. |
 | K3 | In SCHAREN, enter **11**; in CORR/SCH., enter **20**. | The VT refuses both (its own limits 2-10 and 25-100). Note what the VT shows. |
 | K4 | Toggle BYPASS, HEF INVERT and RTK IDENT. Turn the plough over with the page open. Then **ANNUL.** Power-cycle. | The lists change as touched; PLOEGZIJDE follows the plough (RECHTS/LINKS). After ANNUL. and the power cycle nothing has changed. |
 | K5 | With the page open: press the cab buttons (one, then both held). | Nothing happens: no movement, no wizard. |
 | K6 | With the page open, watch the serial log and the TC for a minute. | The 1 Hz line keeps running, the TC stays connected. |
-| K7 | Page open, then **CNH VT off**. Wait for the switch to the 1200 (~15 s, plus the first MW09 upload to the 1200: note the time). | The 1200 shows the **main** screen. The cab is back to its main screen. Log: `VT: calibration dropped, the VT went away`. Then CNH VT on: the plough moves back after ~5 s (preferred VT 2). |
+| K7 | Page open, then **CNH VT off**. Wait for the switch to the 1200 (~15 s, plus the first MW10 upload to the 1200: note the time). | The 1200 shows the **main** screen. The cab is back to its main screen. Log: `VT: calibration dropped, the VT went away`. Then CNH VT on: the plough moves back after ~5 s (preferred VT 2). |
 | K8 | VOORK. VT 2 -> **1**, OPSLAAN. | The plough moves to the 1200 within ~5 s (this is session 20's **T5**). |
 | K9 | On the **1200** (VT3): K1, K2, K4. Photo of the page. | The same as on the CNH VT. If the page draws wrongly or an input doesn't respond, note exactly which. |
 | K10 | On the 1200: VOORK. VT 1 -> **2**, OPSLAAN. | The plough moves back to the CNH VT within ~5 s. |
@@ -94,6 +97,20 @@ Hitch up, **keep clear of the plough**. First on the CNH VT.
 | B5 | BREEDTE, VASTLEG once, then **TERUG**. ANNUL. | Back on the page; nothing changed after a power cycle. |
 | B6 | (Optional) BREEDTE, VASTLEG three times **without moving** the plough. | `ONGELDIG`, back to `PUNT 1`. TERUG. |
 | B7 | On the **1200**: B1-B3. | The same. **If the movement stutters** while a key is held, note it: the 1200's still-held messages may come slower than 600 ms (as V7 below). |
+
+## 4b. The Ag Leader lightbar setting (#273)
+
+The stored byte is erased on this board, so it starts in **Auto**. Bound to the CNH VT. L2 needs an AB line on
+the 1200.
+
+| Step | Do | Expect |
+|---|---|---|
+| L1 | Right after boot: the boot print, then a dump (menu 1). | `Lightbar: Ag Leader L160 emulation, mode AUTO`, then within seconds `presenting as an Ag Leader L160, claiming 0xDC (mode AUTO, Ag Leader display seen)`. Dump: `Mode: AUTO  RUNNING  (Ag Leader display seen)`, stack partner 0xF5, identification requests answered. |
+| L2 | 1200 on an AB line: dump twice, a minute apart. | The lightbar XTE frame count rises; the plough follows the line in AUTO as in session 20. Note the time from boot to the first 65462 (the 1 Hz line's XTE). |
+| L3 | On the page: AG LEADER -> **UIT**, OPSLAAN. Dump. Note the time. | Log `Lightbar: off, 0xDC released`; dump `Mode: OFF  NOT RUNNING`. **Note what the 1200 shows** (a lightbar alarm?); the CANedge shows whether 65462 stops. |
+| L4 | AG LEADER -> **AUTO**, OPSLAAN. Note the time. | It claims 0xDC again at once (the display was seen), the identification exchange runs, 65462 comes back. Note how long until it does. |
+| L5 | Power-cycle with AUTO stored. | As L1. |
+| L6 | (Optional) The cab wizard: `Ag Leader lichtbalk` auto -> aan -> uit with +, back to auto with -, accept COMPLETE. | One value per press, no wrap; `auto` after a power cycle. |
 
 ## 5. Session 20's open steps
 
@@ -122,7 +139,7 @@ Hitch up, **keep clear of the plough**. First on the CNH VT.
 SETUP
 - [ ] Build: `test/session21` @ ________ flashed (teensy40_isobus); soft key BREDER widens Y/N
 - [ ] Boot print copied; shares __ deadband __ max corr __/__ bypass __ inversion __ RTK q __ width __ swap __ preferred VT __
-- [ ] Pool MW09 on the CNH VT: boot -> main screen __ s; main screen as before Y/N
+- [ ] Pool MW10 on the CNH VT: boot -> main screen __ s; main screen as before Y/N; no pool error Y/N (#269)
 - [ ] CANedge on: new session ____ uploading
 
 CAB WIZARD (#264)
@@ -138,7 +155,7 @@ VT PAGE (#265)
 - [ ] K2 deadband 3 saved and back to 2 Y/N   - [ ] K3 11 and 20 refused Y/N; VT showed ________
 - [ ] K4 lists Y/N; side follows Y/N; ANNUL. kept everything Y/N
 - [ ] K5 cab buttons inert Y/N   - [ ] K6 1 Hz line Y/N, TC Y/N
-- [ ] K7 CNH off: 1200 main screen Y/N, cab main screen Y/N; back on: moved back in __ s
+- [ ] K7 CNH off: 1200 main screen Y/N (MW10 loaded, no pool error Y/N), cab main screen Y/N; back on: moved back in __ s
 - [ ] K8 VOORK. VT 1: moved to the 1200 in __ s (T5)
 - [ ] K9 1200: page drawn right Y/N (photo Y/N); K2 Y/N; K4 Y/N
 - [ ] K10 VOORK. VT 2: moved back in __ s
@@ -148,6 +165,13 @@ WIDTH ON THE VT (#266)
 - [ ] B3 end stop cut after __ s   - [ ] B4 points ____ / ____ / ____ saved Y/N; readout right Y/N
 - [ ] B5 TERUG kept the width Y/N   - [ ] B6 (optional) ONGELDIG Y/N
 - [ ] B7 1200: B1-B3 Y/N; stutter Y/N
+
+AG LEADER LIGHTBAR (#273)
+- [ ] L1 boot: AUTO, claimed after the display Y/N; dump RUNNING (display seen) Y/N
+- [ ] L2 65462 arriving Y/N; boot -> first XTE __ s; follows the line Y/N
+- [ ] L3 UIT at __:__:__: released Y/N; 1200 showed ________; 65462 stopped Y/N
+- [ ] L4 AUTO at __:__:__: claimed again Y/N; 65462 back after __ s   - [ ] L5 power cycle as L1 Y/N
+- [ ] L6 (optional) wizard auto/aan/uit Y/N
 
 SESSION 20'S OPEN STEPS
 - [ ] E6 (optional) Y/N   - [ ] V7 1200 soft keys Y/N; stutter Y/N
@@ -166,6 +190,7 @@ END
   `Ploegbesturing Isobus/Documentation/logs/`, named `<date>_session21_vanmastwijk_*`.
 - **MF4s** arrive in OneDrive `CANedge logs/bucket-AD4F266A/session-<n>/` by themselves.
 - **Handover:** if the workstation session isn't reachable, leave a `logs/session21_vanmastwijk_handover.md`.
-- **Where results go:** C1-C8 to #264, K1-K10 to #265, B1-B7 to #266 (#263 goes with #264). The stack
+- **Where results go:** C1-C8 to #264, K1-K10 to #265, B1-B7 to #266 (#263 goes with #264), L1-L6 to
+  #273, the MW10 uploads on both VTs to #269. The stack
   merges bottom up, each PR only on its own evidence: #263 <- #264 <- #265 <- #266. Session 20's steps go
   to their issues: T3/T6 to #255, V7 to #245, O1 to #248, A1-A3 to #254.
