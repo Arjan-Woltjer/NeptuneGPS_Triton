@@ -1,14 +1,18 @@
 # Session 21 test brief -- van Mastwijk: the cab wizard without the stall, calibration on the VT, and session 20's open steps
 
-Written 2026-10-21 after session 20. Same rig as sessions 13-20: CNH with the InCommand 1200,
+Written 2026-10-21 after session 20; **updated 2026-10-24 for the van Mastwijk run on 2026-10-25**
+(bench results, the Mookhoek 57 fixes, the lightbar setting, an order for a short day). Same rig as sessions 13-20: CNH with the InCommand 1200,
 SteerCommand Z2, one ISOBUS (CNH VT 0x26, InCommand VT 0x80, TC 0xF7, display function 0xF5). The
 CANedge AD4F266A stays installed at this rig (card in, on the plough's bus).
 
 Previous results:
 - `SESSION_20_TEST_BRIEF.md`, section 11 (results and what moved here)
 - `logs/2026-10-19_fieldday_vanmastwijk_capture.md`
+- `logs/2026-10-22_session21_bench.md`: this brief on the bench (section 0b)
+- `logs/session21_mookhoek57_handover.md`: the JD 4640 at Mookhoek 57 on 2026-10-23, where the pool upload
+  fix (#269) came from
 
-Both are on main. This session's notes go on **`test/session21`**, see section 8.
+The first two are on main, the others on `test/session21`. This session's notes go on **`test/session21`**, see section 8.
 
 ## 0. What changed since session 20, and what this session decides
 
@@ -23,6 +27,9 @@ All of session 20 is on main (9842f4a). `test/session21` adds the calibration wo
 | **Width calibration on the VT.** BREEDTE on the page: point 1 of 3, the target, the live sensor; SMALLER / BREDER drive while held, VASTLEG captures, TERUG goes back | #266 (#240) | The same three-point procedure as the cab (one piece of code for both) |
 | **Pool upload in long bursts.** ETP sends as many packets per burst as the VT's CTS allows (255 at most), not AgIsoStack's 16. It fixed the JD 4640's rejection at Mookhoek 57 (session 21, 2026-10-23); neither VT here has had it yet | #270 (#269) | MW10 loads on the CNH VT **and** the 1200 as MW09 did. A pool error in the log is a #269 regression: stop and report |
 | **Ag Leader lightbar setting.** The L160 emulation (0xDC) is a setting: **Auto** (default) starts it once the InCommand's display is on the bus, **Aan** at boot as before, **Uit** never. On the wizard after VT, and on the page as AG LEADER | #273 (#272) | Section 4b. In Auto it now claims *after* the display, where before it often claimed first |
+| **Preferred VT in EEPROM block 1.** Byte 14 instead of 70; while 14 is erased, 70 is still read | #274 (#255) | The boot print still says preferred VT 2. The first save (any OPSLAAN or COMPLETE) writes 14 |
+| **No more LCD stalls.** Wizard screens and the VT-page hold wrote the whole LCD in one go: 131-165 ms loop passes on the bench. Now one character per pass | #264, #265 | Longest loop pass in the dump stays a few ms, also after wizard and page use (bench: 2.7 ms) |
+| **Version on the splash.** LCD `Triton PB-ISO  v0.21`, serial banner `Triton PB-ISO version 0.21` | stack | The quick check that the session 21 build is on the board |
 | **Soft keys the right way round on this board.** The rig ran bb22076 with BREDER and SMALLER swapped; this build has the bench-confirmed fix (#251) | on main | BREDER widens, like the cab's + |
 
 This session decides:
@@ -30,17 +37,47 @@ This session decides:
 2. **#265:** do the CNH VT **and** the InCommand 1200 render the calibration page and accept edits, and do OPSLAAN and ANNUL. do what they say?
 3. **#266:** does the width calibration work end to end from the VT, on both VTs?
 4. **#269 / #273:** do both VTs load MW10 with the long bursts, and does Auto still get the 1200's cross-track error (PGN 65462)?
-5. **Session 20's open steps** (section 5): E6, V7/V8, T3/T5/T6, the #258 figures, A1-A3.
+5. **#274:** does the preferred VT 2 carry over from byte 70?
+6. **Session 20's open steps** (section 5): E6, V7/V8, T3/T5/T6, the #258 figures, A1-A3.
+
+## 0b. Already passed on the bench (2026-10-22)
+
+Bench Teensy 4.1 with AgISOVirtualTerminal (`logs/2026-10-22_session21_bench.md`): **C1, C3, C4, C5, C7, K1-K5,
+B1, B2, B3 (the reading-still half) and B6**. On the rig they only need a quick look, mostly for how the
+CNH VT and the 1200 draw things. What the bench could not do is what this day is for: the rig's bus, the
+two real VTs, the width sensor, the 1200's cross-track error, and failover.
+
+## 0c. If the day is short: in this order
+
+1. **Setup** (section 1): flash, boot print, MW10 on the CNH VT. If the pool doesn't load: stop, flash
+   the fallback, and report (#269).
+2. **L1, L2:** Auto finds the 1200 and the cross-track error arrives. Without it the plough can't follow
+   the 1200's line: if L2 fails, set AG LEADER to **AAN** and carry on.
+3. **C2, K6:** the wizard and the page each open for a minute on the rig's bus: VT and TC stay.
+4. **K1 photo, then K7 and K9:** the page on the CNH VT, then MW10 and the page on the 1200.
+5. **B4** (or C6): a real width calibration with the sensor, and B3's moving half.
+6. **T3, K8, K10:** failover and the preferred VT.
+7. Then the rest: L3-L5, B5, B7, C8, V7, T6/V8, O1, and last E6, A1-A3, L6.
 
 ## 1. Kit and build
 
-- **Flash:** the rig's plough control (the **Teensy 4.0**) must run **`test/session21`** with #273 merged
-  (the boot print shows `Lightbar: Ag Leader L160 emulation, mode AUTO`). On the field laptop: `git fetch && git switch test/session21 && git pull`, then
-  `pio run -d "Ploegbesturing Isobus" -e teensy40_isobus -t upload`, **with only the plough's Teensy on
-  USB**. Write down `git rev-parse --short HEAD`. Close the Teensy Loader only once the board is back on
-  its serial port.
-- **Fallback:** if the board doesn't claim, bind a VT or load the pool, flash **main** (`9842f4a`) with
-  the same command. Not bb22076: its soft keys are swapped.
+- **Flash:** the rig's plough control (the **Teensy 4.0**) must run **`test/session21`**, this brief's commit
+  or later. Two ways:
+  - **Ready-built (preferred):** OneDrive `MeijWorks Projects/Firmware builds/session21/` (outside every repo): `teensy40_isobus_<commit>.hex`, built
+    on the workstation from this brief's commit. Open it in the Teensy Loader, press the board's button.
+    No git and no library download needed in the field.
+  - **Build it:** `git fetch && git switch test/session21 && git pull`, then
+    `pio run -d "Ploegbesturing Isobus" -e teensy40_isobus -t upload`. On 2026-10-23 the laptop's
+    OneDrive `.git` failed a fetch (missing objects); if it does again, build from a fresh clone outside
+    OneDrive as at Mookhoek, or use the ready-built hex.
+  - Either way: **only the plough's Teensy on USB**, and **stop the serial logger first** (a logger holding
+    the port made the bench flash fail silently). Wait for the board to come back on its serial port
+    before closing the Teensy Loader.
+- **Right build?** The LCD splash reads `Triton PB-ISO  v0.21` and the serial banner
+  `Triton PB-ISO version 0.21`. Anything else: not this build, flash again.
+- **Fallback:** if the board doesn't claim, bind a VT or load the pool, flash **main** (`8cbcaf9`: session
+  20 plus the #269 pool fix, without the calibration work) the same way. Not bb22076: its soft keys are
+  swapped.
 - **Shared git folder:** the laptop's and the workstation's Triton checkouts share one OneDrive-synced
   `.git`. Don't run git on both at once.
 - **Boot print right after flashing:** copy it whole into the timeline. Two settings now live in EEPROM
@@ -122,7 +159,7 @@ the 1200.
 | V7 | On the **1200's main screen**, manual: hold BREDER and SMALLER ~2 s each; in AUTO/hold, hold BREDER ~2 s and note the width before and after. | The same as on the CNH VT (session 20, V1-V5). Note any stutter. |
 | T3 | Preferred VT **2**, bound to the CNH VT: **CNH VT off**. Dump. | Failover to the 1200 in ~15 s. Dump: `preferred=VT2 at 0x26 (not bound)` or `(not seen)`. |
 | T6 + V8 | Preferred VT **0** (page or wizard). CNH VT off and on again. | It stays where it is (on the 1200) when the CNH VT comes back. Then set the preference to what the owner wants for the field, and note it. |
-| O1 | At the end of the day: dump. | `CAN receive queue: high water __ of 64, dropped 0`, and the longest loop pass. Also with the wizard open (C2) and the page open (K6): the longest loop pass. |
+| O1 | Right after boot, and at the end of the day: dump. | `CAN receive queue: high water __ of 64, dropped __`. **Dropped is not 0 after a boot** (#268: the 2 s splash, nothing drains the queue) but must stay the **same** all day. The longest loop pass: a few ms, also after the wizard (C2) and the page (K6). |
 | A1 | On both VTs, look for an AUX / auxiliary-control assignment screen. | Present Y/N on each; what it lists. A photo helps. |
 | A2 | Press the armrest / joystick buttons one at a time; note the time (to the second) and which. | What happens, if anything. The CANedge shows whether they reach the ISOBUS. |
 | A3 | If A1 found a screen with inputs: learn mode, press a button. | Whether it picks the button up. |
@@ -139,7 +176,7 @@ the 1200.
 ## 7. Checklist (copy into the timeline, tick live)
 
 SETUP
-- [ ] Build: `test/session21` @ ________ flashed (teensy40_isobus); soft key BREDER widens Y/N
+- [ ] Build: `test/session21` @ ________ flashed (teensy40_isobus, hex / built); splash `v0.21` Y/N; soft key BREDER widens Y/N
 - [ ] Boot print copied; shares __ deadband __ max corr __/__ bypass __ inversion __ RTK q __ width __ swap __ preferred VT __ (2 expected, from byte 70)
 - [ ] Pool MW10 on the CNH VT: boot -> main screen __ s; main screen as before Y/N; no pool error Y/N (#269)
 - [ ] CANedge on: new session ____ uploading
@@ -179,7 +216,7 @@ SESSION 20'S OPEN STEPS
 - [ ] E6 (optional) Y/N   - [ ] V7 1200 soft keys Y/N; stutter Y/N
 - [ ] T3 failover in __ s; dump `preferred=` ________
 - [ ] T6+V8 preference 0: stays on the 1200 Y/N; preference left at __
-- [ ] O1 high water __ of 64, dropped __; longest loop ____ us (wizard open ____ us, page open ____ us)
+- [ ] O1 dropped after boot __, at the end __ (same Y/N); high water __ of 64; longest loop ____ us (wizard open ____ us, page open ____ us)
 - [ ] A1 AUX screen: CNH Y/N, 1200 Y/N; lists ______   - [ ] A2 presses (time, button): ________________
 - [ ] A3 learn mode Y/N (which ______)
 
@@ -193,6 +230,6 @@ END
 - **MF4s** arrive in OneDrive `CANedge logs/bucket-AD4F266A/session-<n>/` by themselves.
 - **Handover:** if the workstation session isn't reachable, leave a `logs/session21_vanmastwijk_handover.md`.
 - **Where results go:** C1-C8 to #264, K1-K10 to #265, B1-B7 to #266 (#263 goes with #264), L1-L6 to
-  #273, the MW10 uploads on both VTs to #269. The stack
+  #273, the MW10 uploads on both VTs to #269, the preferred VT carry-over to #274, O1's dropped count to #268. The stack
   merges bottom up, each PR only on its own evidence: #263 <- #264 <- #265 <- #266. Session 20's steps go
   to their issues: T3/T6 to #255, V7 to #245, O1 to #248, A1-A3 to #254.
