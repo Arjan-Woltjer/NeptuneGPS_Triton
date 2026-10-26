@@ -22,24 +22,26 @@
 namespace triton
 {
 
-// One copy of the lookup eleven routines in seven projects wrote out by hand
-// (NeptuneGPS_Triton#177): pick the segment between two calibration points,
-// then a = raw - x[i-1], b = x[i] - x[i-1], c = y[i] - y[i-1], d = y[i-1],
-// value = a * c / b + d. `x` holds the sensor readings captured at each
-// calibration point, `y` the value each point stands for.
+// Piecewise-linear calibration lookup. `x` holds the sensor readings captured
+// at each calibration point, `y` the value each point stands for. Pick the
+// segment with one of the Segment functions, then Evaluate() it:
+// a = raw - x[i-1], b = x[i] - x[i-1], c = y[i] - y[i-1], d = y[i-1],
+// value = a * c / b + d.
 //
-// Two ways of picking the segment exist, and both are kept as they were:
 //  - SegmentAscending(): the first point the reading does not exceed, at
-//    least 1, at most n - 1 -- assumes readings rise with the points (planter,
+//    least 1, at most n - 1. Assumes readings rise with the points (planter,
 //    kipper, scraper, rooier, sprayer).
 //  - SegmentAroundMiddle(): three points, readings rising OR falling; which
 //    side of the middle reading it is on picks the segment (plough).
-// Past the first and last point the end segments are extended, not clamped:
-// callers rely on that (the plough's end-shutoff, for one).
 //
-// Header-only templates so every copy keeps its own element types (int,
-// short int, byte) and with them the exact same arithmetic: the results are
-// bit-for-bit those of the copies, on AVR as well as ARM and ESP32.
+// Past the first and last point the end segments are extended, not clamped:
+// callers rely on that (the plough's end-shutoff needs the position to keep
+// changing past the calibrated range). Clamp the result in the caller if
+// needed, as the sprayer does for its PWM.
+//
+// Header-only templates, so each caller keeps its own element types (int,
+// short int, byte) and the arithmetic that goes with them, on AVR, ARM and
+// ESP32 alike.
 struct Interpolation {
     template <typename X>
     static int SegmentAscending(const X* x, int n, int raw) {

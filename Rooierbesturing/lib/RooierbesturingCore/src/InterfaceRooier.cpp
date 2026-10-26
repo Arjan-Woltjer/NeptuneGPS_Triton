@@ -48,7 +48,7 @@ InterfaceRooier::InterfaceRooier(InterfaceI2CLCD* lcd, ImplementRooier* implemen
     // Mode
     mode = 2;  // MANUAL
 
-    // Button flag and timer. button1Timer/button2Timer were never
+    // Button flag and timer. The button timers were never
     // initialized in the legacy code -- the very first CheckButtons() call
     // would measure elapsed time against garbage memory. Seeded to millis(),
     // same fix already applied to every sibling InterfaceX.
