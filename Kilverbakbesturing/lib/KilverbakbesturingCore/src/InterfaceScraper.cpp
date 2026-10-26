@@ -27,7 +27,7 @@ namespace triton
 // -----------
 InterfaceScraper::InterfaceScraper(InterfaceI2CLCD* lcd,
                                     ImplementScraper* implement,
-                                    VehicleTractor* tractor,
+                                    VehicleSensors* tractor,
                                     GuidanceSource* guidance) {
 #ifdef DEBUG
     Serial.println(S_DIVIDE);

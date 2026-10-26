@@ -28,7 +28,7 @@ namespace triton
 InterfacePlanter::InterfacePlanter(Stream* serialDebug,
                                     InterfaceI2CLCD* lcd,
                                     ImplementPlanter* implement,
-                                    VehicleTractor* tractor,
+                                    VehicleSensors* tractor,
                                     GuidanceSource* guidance) {
 #ifdef DEBUG
     serialDebug->println(S_DIVIDE);
@@ -73,7 +73,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
 InterfacePlanter::InterfacePlanter(Stream* serialDebug,
                                     InterfaceI2CLCD* lcd,
                                     ImplementPlanter* implement,
-                                    VehicleTractor* tractor) {
+                                    VehicleSensors* tractor) {
     // Pin assignments and configuration
     // Schmitt triggered inputs
     pinMode(LEFT_BUTTON_3, INPUT);

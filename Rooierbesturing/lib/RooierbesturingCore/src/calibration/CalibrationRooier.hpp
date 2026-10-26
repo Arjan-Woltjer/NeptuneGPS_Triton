@@ -29,7 +29,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "../InterfaceRooier.hpp"
 #include "../config/LanguageRooier.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -45,14 +45,14 @@ namespace triton
 class CalibrationRooier {
 public:
     CalibrationRooier(InterfaceI2CLCD* lcd, ImplementRooier* implement,
-                       VehicleTractor* tractor, InterfaceRooier* interface);
+                       VehicleSensors* tractor, InterfaceRooier* interface);
 
     void Calibrate();
 
 private:
     InterfaceI2CLCD*  lcd;
     ImplementRooier*  implement;
-    VehicleTractor*   tractor;
+    VehicleSensors*   tractor;
     InterfaceRooier*  interface;
 
     // Shared shape for every "accept/decline, then adjust a byte/int value

@@ -42,7 +42,7 @@ struct CalCaptureStream : public Stream {
 };
 
 static GuidanceSource  calGuidance;
-static VehicleTractor  calTractor;
+static VehicleSensors  calTractor;
 static InterfaceI2CLCD calLcd;
 
 static void resetAll() {

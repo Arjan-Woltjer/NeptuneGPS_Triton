@@ -22,7 +22,7 @@ namespace triton
 {
 
 CalibrationRooier::CalibrationRooier(InterfaceI2CLCD* lcd, ImplementRooier* implement,
-                                      VehicleTractor* tractor, InterfaceRooier* interface)
+                                      VehicleSensors* tractor, InterfaceRooier* interface)
     : lcd(lcd), implement(implement), tractor(tractor), interface(interface) {
 }
 

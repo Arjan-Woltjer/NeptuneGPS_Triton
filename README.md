@@ -14,7 +14,7 @@ repository is a submodule.
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and raw CAN frames (`CanFrameGuidanceChannel`). |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
 | `Spuitcomputer LD` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
-| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleTractor`, `InterfaceI2CLCD`, `TritonIo`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to the former `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders, `InterfaceGuidance`, the LCD baudrate autodetect, and `GuidanceGeometry`'s `DistanceBetween()`), used by every GPS-consuming project: `Ploegbesturing Isobus`, `Ploegbesturing`, `Pootmachinebesturing`, `Kilverbakbesturing` and `Spuitcomputer LD`. The former `VehicleGps` and `InterfaceGps` were removed once nothing used them (#177). |
+| `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `VehicleSensors`, `InterfaceI2CLCD`, `TritonIo`), consumed via `lib_extra_dirs`. `VehicleGuidance` is the split successor to the former `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders, `InterfaceGuidance`, the LCD baudrate autodetect, and `GuidanceGeometry`'s `DistanceBetween()`), used by every GPS-consuming project: `Ploegbesturing Isobus`, `Ploegbesturing`, `Pootmachinebesturing`, `Kilverbakbesturing` and `Spuitcomputer LD`. The former `VehicleGps` and `InterfaceGps` were removed once nothing used them (#177). |
 
 `Ploegbesturing` and `Ploegbesturing Isobus` currently hold near-identical copies
 of `lib/PloegbesturingCore` — see
@@ -95,7 +95,7 @@ library (#78):
   that owns the calibration menu or config class decides where a value is
   stored and hands it back at boot (`CalibrationPlough` for `GuidanceSource`'s
   RTK quality, `CalibrationPlanter`/`CalibrationScraper` for the receiver rate
-  index, `ConfigSprayer` for Spuitcomputer LD's settings). `VehicleTractor` predates
+  index, `ConfigSprayer` for Spuitcomputer LD's settings). `VehicleSensors` predates
   this rule and still writes its own bytes; the former `VehicleGps` did too. A storage *helper* is allowed in `MeijWorks Libs`: one that
   encodes and decodes values at an address its caller passes in, and owns none
   itself (#177).

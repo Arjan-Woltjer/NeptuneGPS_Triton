@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 #include "../config/ConfigImplementSprayer.hpp"
 
@@ -116,7 +116,7 @@ private:
     byte kd;  // EEPROM 172
 
     // Objects
-    VehicleTractor* tractor;
+    VehicleSensors* tractor;
 
     //-------------------------------------------------------------
     // private member functions implemented in ImplementSprayer.cpp
@@ -140,7 +140,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    explicit ImplementSprayer(VehicleTractor* tractor);
+    explicit ImplementSprayer(VehicleSensors* tractor);
 
     void Update(byte mode, int buttons);
     void Stop();

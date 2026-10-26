@@ -27,7 +27,7 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementSprayer::ImplementSprayer(VehicleTractor* tractor) {
+ImplementSprayer::ImplementSprayer(VehicleSensors* tractor) {
     Serial.println(S_DIVIDE);
     Serial.println("Initialising sprayer implement");
     Serial.println(S_DIVIDE);

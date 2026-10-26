@@ -32,7 +32,7 @@ using namespace triton;
 // resetAll() re-erases the fake EEPROM.
 // ---------------------------------------------------------------------------
 static GuidanceSource   mockGuidance;
-static VehicleTractor   mockTractor;
+static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {

@@ -1,5 +1,5 @@
 /*
-  ConfigVehicleTractor - config file for the VehicleTractor library
+  ConfigVehicleSensors - config file for the VehicleSensors library
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 

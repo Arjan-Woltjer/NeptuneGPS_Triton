@@ -30,7 +30,7 @@ namespace triton
 InterfacePlough::InterfacePlough(Stream* serialDebug,
                                  InterfaceI2CLCD* lcd,
                                  ImplementPlough* implement,
-                                 VehicleTractor* tractor,
+                                 VehicleSensors* tractor,
                                  GuidanceSource* guidance):
                                  serialDebug(serialDebug), 
                                  lcd(lcd), 

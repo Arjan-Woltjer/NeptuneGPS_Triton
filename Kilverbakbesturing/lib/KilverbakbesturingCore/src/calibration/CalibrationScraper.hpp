@@ -31,7 +31,7 @@
 #include "GuidanceSource.hpp"
 #include "../config/LanguageScraper.hpp"
 #include "SerialGuidanceChannel.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -48,7 +48,7 @@ public:
     // reference points are taken from a live position, as the wizard did
     // through VehicleGps::Update(). CAN frames are not dispatched while the
     // wizard blocks, as before.
-    CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement, VehicleTractor* tractor,
+    CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement, VehicleSensors* tractor,
                         GuidanceSource* guidance, SerialGuidanceChannel* gpsChannel, InterfaceScraper* interface);
 
     void Calibrate();
@@ -69,7 +69,7 @@ public:
 private:
     InterfaceI2CLCD*  lcd;
     ImplementScraper* implement;
-    VehicleTractor*        tractor;
+    VehicleSensors*        tractor;
     GuidanceSource*        guidance;
     SerialGuidanceChannel* gpsChannel;
     InterfaceScraper*      interface;

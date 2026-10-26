@@ -19,7 +19,7 @@
 #pragma once
 
 #include "InterfaceI2CLCD.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "ButtonPair.hpp"
 
 #include "config/ConfigInterfaceSprayer.hpp"
@@ -47,7 +47,7 @@ private:
     // Objects
     InterfaceI2CLCD* lcd;
     ImplementSprayer* implement;
-    VehicleTractor*  tractor;
+    VehicleSensors*  tractor;
 
 public:
     // -----------------------------------------------------------
@@ -55,7 +55,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    InterfaceSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement, VehicleTractor* tractor);
+    InterfaceSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement, VehicleSensors* tractor);
 
     void Update();
     void UpdateScreen(boolean rewrite);

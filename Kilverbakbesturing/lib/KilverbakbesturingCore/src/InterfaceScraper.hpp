@@ -20,7 +20,7 @@
 
 #include "InterfaceI2CLCD.hpp"
 #include "implement/ImplementScraper.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "GuidanceSource.hpp"
 #include "config/ConfigInterfaceScraper.hpp"
 #include "config/LanguageScraper.hpp"
@@ -45,7 +45,7 @@ private:
     // Objects
     InterfaceI2CLCD* lcd;
     ImplementScraper* implement;
-    VehicleTractor*  tractor;
+    VehicleSensors*  tractor;
     GuidanceSource*  guidance;
 
 public:
@@ -56,7 +56,7 @@ public:
     // Constructor
     InterfaceScraper(InterfaceI2CLCD* lcd,
                       ImplementScraper* implement,
-                      VehicleTractor* tractor,
+                      VehicleSensors* tractor,
                       GuidanceSource* guidance);
 
     void Update();
