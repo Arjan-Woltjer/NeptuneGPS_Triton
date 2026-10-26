@@ -59,7 +59,7 @@ static void resetAll() {
 }
 
 // ---------------------------------------------------------------------------
-// CheckButtons() -- shared button1Timer/button2Timer debounce + combo detection.
+// CheckButtons() -- ButtonPair combo/repeat timers: debounce + combo detection.
 // delay2 gates single-button detection; delay1*4 gates the combo (both held).
 // ---------------------------------------------------------------------------
 
@@ -218,16 +218,16 @@ test(InterfacePlough, checkButtons_vtCalibrateReseedsComboTimer) {
     ImplementPlough impl(nullptr, &mockGuidance);
     InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    // A VT Calibrate sets button1Flag, so button1Timer is re-seeded on the
-    // next call. Without that, the time the wizard was open would leave
-    // button1Timer stale and the first both-held read afterwards would clear
+    // A VT Calibrate sets restartComboTimer, so comboStartMs is re-seeded on
+    // the next call. Without that, the time the wizard was open would leave
+    // comboStartMs stale and the first both-held read afterwards would clear
     // delay1*4 instantly, re-entering the wizard the operator just left.
     assertEqual(iface.CheckButtons(10, 0, false, false, true), (short int)2);
 
     millisValue(5000);  // stands in for time spent in the wizard
     digitalReadValue(LEFT_BUTTON_2, true);
     digitalReadValue(RIGHT_BUTTON_2, true);
-    // This call re-seeds button1Timer to 5000 and reports "still waiting".
+    // This call re-seeds comboStartMs to 5000 and reports "still waiting".
     assertEqual(iface.CheckButtons(10, 0), (short int)0);
     // Only after a real 40 ms hold does the combo fire again.
     millisValue(5039);

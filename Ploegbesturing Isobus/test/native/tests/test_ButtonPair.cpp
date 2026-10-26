@@ -26,6 +26,10 @@ using namespace triton;
 
 namespace {
 
+// Legacy names kept on purpose: button1Flag/button1Timer are ButtonPair's
+// restartComboTimer/comboStartMs, button2Flag/button2Timer its
+// restartRepeatTimer/repeatStartMs.
+//
 // The three shapes of CheckButtons(), verbatim apart from the pins becoming
 // parameters and millis() becoming `now`: plough/planter/kipper/sprayer
 // (plain), scraper/rooier (joystick in the single-button branches) and

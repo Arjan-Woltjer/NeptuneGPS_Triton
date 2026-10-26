@@ -36,8 +36,10 @@ bool CanFrameGuidanceChannel::Decode(uint32_t id, const uint8_t* data, uint8_t l
     const uint8_t  sa  = SourceAddressFromId(id);
 
     switch (pgn) {
-        case kPgnPositionNmea2000:     return GApply(DecodePositionNmea2000(data, length), guidance);
-        case kPgnSpeedNmea2000:        return GApply(DecodeSpeedNmea2000(data, length), guidance);
+        case kPgnPositionNmea2000:
+            return GApply(DecodePositionNmea2000(data, length), guidance);
+        case kPgnSpeedNmea2000:
+            return GApply(DecodeSpeedNmea2000(data, length), guidance);
         case kPgnXteNmea2000:
             // Neither a directly read bus nor the serial CAN bridge has an
             // NMEA2000 quality message (129029 is a fast packet these paths
@@ -47,13 +49,17 @@ bool CanFrameGuidanceChannel::Decode(uint32_t id, const uint8_t* data, uint8_t l
             if (!GApply(DecodeXteNmea2000(data, length), guidance)) return false;
             guidance->SetQuality(4);
             return true;
-        case kPgnPositionLegacy:       return GApply(DecodeLegacyPosition(data, length), guidance);
-        case kPgnSpeedLegacy:          return GApply(DecodeLegacySpeed(data, length), guidance);
+        case kPgnPositionLegacy:
+            return GApply(DecodeLegacyPosition(data, length), guidance);
+        case kPgnSpeedLegacy:
+            return GApply(DecodeLegacySpeed(data, length), guidance);
         case kPgnXteJohnDeereLegacy:   // also the InCommand's GNSS status, selector 0x51
             return GApply(DecodeLegacyXteJohnDeere(sa, data, length), guidance) ||
                    GApply(DecodeGnssStatusAgLeader(sa, data, length), guidance);
-        case kPgnXteTrimbleLegacy:     return GApply(DecodeLegacyXteTrimble(sa, data, length), guidance);
-        default:                       return false;
+        case kPgnXteTrimbleLegacy:
+            return GApply(DecodeLegacyXteTrimble(sa, data, length), guidance);
+        default:
+            return false;
     }
 }
 
