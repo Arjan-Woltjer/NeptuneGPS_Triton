@@ -1,5 +1,5 @@
 #pragma once
-// Minimal VehicleTractor stub for native/MSVC unit tests. InterfaceKipper::
+// Minimal VehicleSensors stub for native/MSVC unit tests. InterfaceKipper::
 // Update() calls Update()/MinSpeed() on it, and ImplementKipper's D-term
 // uses GetSpeedKmh() -- CalibrateSpeed()/ResetWheelspeedPulses()/
 // ResetCalibration()/CommitCalibration() aren't used by this module at all
@@ -9,9 +9,9 @@
 
 class Stream;
 
-class VehicleTractor {
+class VehicleSensors {
   public:
-    VehicleTractor() : minSpeedFlag(true), speedKmh(0.0f) {}
+    VehicleSensors() : minSpeedFlag(true), speedKmh(0.0f) {}
 
     void Update(uint8_t) {}
 

@@ -35,7 +35,7 @@ using namespace triton;
 // angleCalibrationPoints={-45,0,45}, kp=50, ki=50, kd=0, offset=0 (see
 // ImplementKipper.cpp's constructor).
 // ---------------------------------------------------------------------------
-static VehicleTractor mockTractor;
+static VehicleSensors mockTractor;
 
 static void resetAll() {
     millisValue(0);

@@ -27,7 +27,7 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementKipper::ImplementKipper(VehicleTractor* tractor) {
+ImplementKipper::ImplementKipper(VehicleSensors* tractor) {
     // Pin configuration
     // Outputs
     pinMode(OUTPUT_WIDE_4, OUTPUT);

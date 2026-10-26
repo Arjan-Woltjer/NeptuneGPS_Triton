@@ -30,7 +30,7 @@ using namespace triton;
 // test_ImplementSprayer.cpp, every test constructs fresh instances after
 // resetAll() re-erases the fake EEPROM.
 // ---------------------------------------------------------------------------
-static VehicleTractor   mockTractor;
+static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {
@@ -140,7 +140,7 @@ test(InterfaceSprayer, update_hitchUp_selectsOff) {
     ImplementSprayer impl(&mockTractor);
     InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
 
-    // GetHitch() is the hitch after its configured inversion (VehicleTractor,
+    // GetHitch() is the hitch after its configured inversion (VehicleSensors,
     // EEPROM 28; the sprayer defaults to inverted): true = up -> off, as on
     // the plough and the rooier. It used to be a hard-wired !GetHitch().
     mockTractor.hitch = true;

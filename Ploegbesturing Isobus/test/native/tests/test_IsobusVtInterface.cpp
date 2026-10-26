@@ -182,7 +182,7 @@ IsobusVtInterface* vtInterface = nullptr;
 
 // The calibration page the Calibrate key opens (#240), on a settings table of
 // its own. Built on first use, after the fixture's implement.
-VehicleTractor       vtTractor;
+VehicleSensors       vtTractor;
 InterfaceI2CLCD      vtLcd;
 CalibrationPlough*   vtCalibration = nullptr;
 IsobusVtCalibration* vtPage = nullptr;

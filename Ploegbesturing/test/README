@@ -4,7 +4,7 @@
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
-  for the Arduino framework and MeijWorks Libs' `VehicleTractor`/
+  for the Arduino framework and MeijWorks Libs' `VehicleSensors`/
   `InterfaceI2CLCD`; `GuidanceSource` (MeijWorks Libs/VehicleGuidance) is the
   real header-only class, driven through its own setters -- there is no stub
   for it. The channels that feed it on the board (`SerialGuidanceChannel`,

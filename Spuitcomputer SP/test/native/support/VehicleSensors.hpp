@@ -1,6 +1,6 @@
 #pragma once
-// Minimal VehicleTractor stub for native/MSVC unit tests. Only exposes the
-// subset of the real triton::VehicleTractor API that ImplementSprayer/
+// Minimal VehicleSensors stub for native/MSVC unit tests. Only exposes the
+// subset of the real triton::VehicleSensors API that ImplementSprayer/
 // InterfaceSprayer actually call (CalibrationSprayer's larger surface --
 // EnableSim/DisableSim/SetVconst/CalibrateSpeed/etc. -- isn't needed here:
 // it's #ifdef ARDUINO-guarded and excluded from the native build, same as
@@ -9,7 +9,7 @@
 
 class Stream;
 
-class VehicleTractor {
+class VehicleSensors {
   public:
     float         speed = 0;
     bool          hitch = false;
@@ -18,12 +18,12 @@ class VehicleTractor {
     bool          sim = false;
     unsigned long distance = 0;
 
-    VehicleTractor() {}
+    VehicleSensors() {}
 
     void  Update(uint8_t) {}
     float GetSpeedMs() { return speed; }
-    // Matches the real triton::VehicleTractor::GetSpeedKmh()'s *36 factor
-    // (not *3.6 -- speed is stored pre-scaled, see VehicleTractor.cpp).
+    // Matches the real triton::VehicleSensors::GetSpeedKmh()'s *36 factor
+    // (not *3.6 -- speed is stored pre-scaled, see VehicleSensors.cpp).
     float GetSpeedKmh() { return speed * 36; }
     bool  GetHitch() { return hitch; }
     bool  SimSpeed() { return simSpeedFlag; }

@@ -25,7 +25,7 @@ namespace triton
 // -----------
 // Constructor
 // -----------
-InterfaceRooier::InterfaceRooier(InterfaceI2CLCD* lcd, ImplementRooier* implement, VehicleTractor* tractor) {
+InterfaceRooier::InterfaceRooier(InterfaceI2CLCD* lcd, ImplementRooier* implement, VehicleSensors* tractor) {
 #ifdef DEBUG
     Serial.println("Initialising rooier interface");
 #endif

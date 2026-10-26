@@ -1,5 +1,5 @@
 /*
-  ConfigVehicleTractor - config file for the VehicleTractor library
+  ConfigVehicleSensors - config file for the VehicleSensors library
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -31,10 +31,10 @@
 //#define TEENSYPROTO // Teensy 3.5 or 3.6 on protoboard
 //#define MICRO       // Arduino Micro
 //#define VOORSERIE   // Arduino Uno pre-series board
-//#define DEBUG       // Boot prints in VehicleTractor.cpp
+//#define DEBUG       // Boot prints in VehicleSensors.cpp
 
-// MinSpeed() is true above this speed, in VehicleTractor's speed scale (one
-// unit is 36 km/h, see VehicleTractor.hpp).
+// MinSpeed() is true above this speed, in the VehicleSensors speed scale (one
+// unit is 36 km/h, see VehicleSensors.hpp).
 #define MINSPEED_1            0.5f
 
 #ifdef TEENSY

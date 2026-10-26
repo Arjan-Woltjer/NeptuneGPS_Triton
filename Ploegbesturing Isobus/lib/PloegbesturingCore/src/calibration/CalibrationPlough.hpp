@@ -30,7 +30,7 @@
 #include "../InterfacePlough.hpp"
 #include "GuidanceSource.hpp"
 #include "../config/LanguagePlough.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "PloughSettings.hpp"
 #include "WidthProcedure.hpp"
 #ifdef ISOBUS
@@ -57,7 +57,7 @@ namespace triton
 class CalibrationPlough {
 public:
     CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                       VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface);
+                       VehicleSensors* tractor, GuidanceSource* guidance, InterfacePlough* interface);
 
     // Opens the wizard on its first screen. False, doing nothing, while
     // another front end holds the settings session.
@@ -117,7 +117,7 @@ private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
-    VehicleTractor*        tractor;
+    VehicleSensors*        tractor;
     GuidanceSource*  guidance;
     InterfacePlough*       interface;
 

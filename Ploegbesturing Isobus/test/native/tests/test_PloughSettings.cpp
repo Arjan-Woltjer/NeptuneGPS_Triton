@@ -29,14 +29,14 @@ using namespace aunit;
 using namespace triton;
 
 static GuidanceSource  psGuidance;
-static VehicleTractor  psTractor;
+static VehicleSensors  psTractor;
 static InterfaceI2CLCD psLcd;
 
 static void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
     psGuidance = GuidanceSource();
-    psTractor  = VehicleTractor();
+    psTractor  = VehicleSensors();
 }
 
 // What main.cpp builds at boot: the implement and the wizard read EEPROM in
@@ -73,7 +73,7 @@ test(PloughSettings, table_followsTheWizardOrder_withUniqueKeys) {
 // The one range check, held against the boot loads themselves: for every
 // byte a line's EEPROM address can hold, IsValid() says yes exactly when the
 // boot keeps that byte, and otherwise the boot falls back to the default.
-// The hitch inversion is left out: the native build stubs VehicleTractor,
+// The hitch inversion is left out: the native build stubs VehicleSensors,
 // whose real load (`EEPROM.read(28) == 1`) only runs on the board.
 test(PloughSettings, isValid_isWhatTheBootLoadKeeps_forEveryByte) {
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {

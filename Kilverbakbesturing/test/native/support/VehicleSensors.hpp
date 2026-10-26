@@ -1,5 +1,5 @@
 #pragma once
-// Minimal VehicleTractor stub for native/MSVC unit tests. InterfaceScraper::
+// Minimal VehicleSensors stub for native/MSVC unit tests. InterfaceScraper::
 // Update() only calls Update() on it -- CalibrateSpeed()/ResetWheelspeedPulses()/
 // ResetCalibration()/CommitCalibration() (used by CalibrationScraper's
 // #ifdef SPEED_L-gated speed-calibration step and the final save step) live
@@ -9,9 +9,9 @@
 
 class Stream;
 
-class VehicleTractor {
+class VehicleSensors {
   public:
-    VehicleTractor() {}
+    VehicleSensors() {}
 
     void Update(uint8_t) {}
     // The calibration wizard (CalibrationScraper, in the native build since

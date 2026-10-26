@@ -31,7 +31,7 @@ using namespace triton;
 // rather than sharing one static instance across tests.
 // ---------------------------------------------------------------------------
 static GuidanceSource   mockGuidance;
-static VehicleTractor   mockTractor;
+static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {

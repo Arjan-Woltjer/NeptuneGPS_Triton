@@ -24,7 +24,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceKipper.hpp"
 #include "config/LanguageKipper.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 // Serial ports
 HardwareSerial* gSerialDebug = &Serial2;
@@ -36,7 +36,7 @@ TwoWire* gLcdWire = &Wire;
 // Global objects
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
-triton::VehicleTractor*    gTractor;
+triton::VehicleSensors*    gTractor;
 triton::ImplementKipper*   gImplement;
 triton::InterfaceKipper*   gInterface;
 triton::CalibrationKipper* gCalibration;
@@ -55,7 +55,7 @@ void setup() {
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
     gLcd->Begin();
 
-    gTractor = new triton::VehicleTractor(gSerialDebug);
+    gTractor = new triton::VehicleSensors(gSerialDebug);
 
     gImplement = new triton::ImplementKipper(gTractor);
     gInterface = new triton::InterfaceKipper(gLcd, gImplement, gTractor);

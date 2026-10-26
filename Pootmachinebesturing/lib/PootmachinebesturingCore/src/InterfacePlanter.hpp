@@ -19,7 +19,7 @@
 #pragma once
 
 #include "InterfaceI2CLCD.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "GuidanceSource.hpp"
 #include "ButtonPair.hpp"
 
@@ -47,7 +47,7 @@ private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlanter* implement;
-    VehicleTractor*  tractor;
+    VehicleSensors*  tractor;
     GuidanceSource*  guidance;
 
 public:
@@ -59,7 +59,7 @@ public:
     InterfacePlanter(Stream* serialDebug,
                       InterfaceI2CLCD* lcd,
                       ImplementPlanter* implement,
-                      VehicleTractor* tractor,
+                      VehicleSensors* tractor,
                       GuidanceSource* guidance);
 
     // Guidance-less overload. Never called by src/main.cpp today (kept for
@@ -70,7 +70,7 @@ public:
     InterfacePlanter(Stream* serialDebug,
                       InterfaceI2CLCD* lcd,
                       ImplementPlanter* implement,
-                      VehicleTractor* tractor);
+                      VehicleSensors* tractor);
 
     void Update();
     void UpdateScreen(boolean rewrite);
