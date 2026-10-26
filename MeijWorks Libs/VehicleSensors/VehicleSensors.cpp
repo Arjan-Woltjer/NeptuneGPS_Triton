@@ -1,5 +1,5 @@
 /*
-  VehicleSensors - a library for a tractor
+  VehicleSensors - the tractor's wheel-speed and hitch inputs
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
