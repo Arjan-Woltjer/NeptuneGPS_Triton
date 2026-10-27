@@ -40,7 +40,7 @@ enum PloughVtObjectId : uint16_t {
     Key_Auto     = 5,
 
     // Font attribute objects
-    Font_White_Medium = 6,  // 8x12 for data fields
+    Font_White_Medium = 6,  // 12x16 for data fields
     Font_White_Small  = 7,  // 8x8 for soft key labels
 
     // Static label strings
@@ -55,13 +55,13 @@ enum PloughVtObjectId : uint16_t {
     // Output numbers (reference the variables below)
     Out_Position = 15,
     Out_Setpoint = 16,
-    Out_XTE      = 17,  // displayed in metres (variable biased +1000 cm)
+    Out_XTE      = 17,  // displayed in cm (variable biased +1000 cm)
     Out_Offset   = 18,
 
     // NumberVariables -- updated from loop() via send_change_numeric_value()
     Var_Position = 19,
     Var_Setpoint = 20,
-    Var_XTE      = 21,  // stored as (xte_cm + 1000); OutputNumber subtracts 1000 and scales to m
+    Var_XTE      = 21,  // stored as (xte_cm + 1000); OutputNumber subtracts 1000
     Var_Offset   = 22,
 
     // App-switcher icon -- see VTObjectPool.cpp's appendPictureGraphic() call
@@ -117,7 +117,8 @@ enum PloughVtObjectId : uint16_t {
     Label_CalWidth        = 107,
     Label_Cal0            = 110,  // .. 119 at most
     Input_Cal0            = 120,  // .. 129 at most: InputNumber or InputList
-    // The list entries and units, shared by the inputs that use them.
+    // The list entries and units, shared by the inputs that use them;
+    // Str_CalCm also follows the main screen's four values (#282).
     Str_CalNo             = 130,
     Str_CalYes            = 131,
     Str_CalRight          = 132,

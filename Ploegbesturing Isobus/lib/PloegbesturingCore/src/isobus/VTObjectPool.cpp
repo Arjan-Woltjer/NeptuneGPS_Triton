@@ -200,16 +200,22 @@ static void appendObjectPointer(uint16_t id, uint16_t value) {
     pu16(value);
 }
 
-// Type 11: OutputString (static text)
+// OutputString and OutputNumber options byte, bit 0: transparent background.
+constexpr uint8_t kTransparent = 0x01;
+constexpr uint8_t kOpaque      = 0x00;
+
+// Type 11: OutputString (static text). Transparent on our black masks; a
+// list entry is opaque instead, because the VT also draws it in its own
+// popup, on a light background (#282).
 static void appendOutputString(uint16_t id, uint16_t w, uint16_t h,
                                 uint16_t fontAttr, uint8_t justification,
-                                const char* text) {
+                                const char* text, uint8_t options = kTransparent) {
     uint8_t len = strlen(text);
     pu16(id); pu8(11);
     pu16(w); pu16(h);
-    pu8(kBlack);         // background colour (hidden by transparent flag)
+    pu8(kBlack);         // background colour, shown when opaque
     pu16(fontAttr);
-    pu8(0x01);           // options: transparent background
+    pu8(options);
     pu16(0xFFFF);        // no variable reference (static string)
     pu8(justification);  // 0=left, 1=middle, 2=right
     pu16(len);
@@ -220,19 +226,20 @@ static void appendOutputString(uint16_t id, uint16_t w, uint16_t h,
 // Type 12: OutputNumber
 static void appendOutputNumber(uint16_t id, uint16_t w, uint16_t h,
                                 uint16_t fontAttr, uint16_t varRef,
-                                int32_t offset, float scale, uint8_t decimals) {
+                                int32_t offset, float scale, uint8_t decimals,
+                                uint8_t justification = 0) {
     pu16(id); pu8(12);
     pu16(w); pu16(h);
     pu8(kBlack);  // background colour (hidden by transparent flag)
     pu16(fontAttr);
-    pu8(0x01);    // options: transparent background
+    pu8(kTransparent);
     pu16(varRef); // variable reference (NumberVariable ID)
     pu32(0);      // value (ignored when variable reference is active)
     pi32(offset); // display = (var + offset) * scale
     pf32(scale);
     pu8(decimals);
     pu8(0);  // format: fixed point
-    pu8(0);  // justification: left
+    pu8(justification);  // 0=left, 1=middle, 2=right
     pu8(0);  // 0 macros
 }
 
@@ -353,7 +360,7 @@ constexpr uint8_t kFont12x16 = 3;
 // time that each one fits its column.
 constexpr char kTextPosition[] = "POSITIE";
 constexpr char kTextSetpoint[] = "SETPUNT";
-constexpr char kTextXte[]      = "XTE (m)";
+constexpr char kTextXte[]      = "XTE";
 // ImplementPlough's "offset" is the plough's total working width in cm (the
 // owner's confirmation, 2026-09-25), so the screen says so; it was labelled
 // AFWIJKING until 2026-10-01.
@@ -446,6 +453,11 @@ static const uint16_t kCalSideItems[2]  = { Str_CalRight, Str_CalLeft };
 static const uint16_t kCalRtkItems[2]   = { Str_CalDgps, Str_CalRtk };
 static const uint16_t kCalLightbarItems[3] = { Str_CalAuto, Str_CalOn, Str_CalOff };
 
+// The unit texts `cm` and `mm`: two characters in the 12x16 font of the
+// values they follow (#282), top-aligned with them. Str_CalCm also follows
+// the four values on the main screen.
+constexpr uint16_t kUnitW = 2 * 12, kUnitH = 16;
+
 // Run once at boot, so from flash, not RAM1 (#192).
 FLASHMEM static void appendCalibrationPage() {
     // 9 rows of 22 px on the 200 px mask (8 of 24 px until #272): a 124 px
@@ -458,10 +470,10 @@ FLASHMEM static void appendCalibrationPage() {
     static_assert(calLabelsFit(LBL_W / kCharW), "calibration label too wide for its column");
     static_assert(6 * kCharW <= VAL_W, "value column narrower than RECHTS");
     static_assert(3 * kCharW <= NUM_W, "number field narrower than 3 digits");
-    static_assert(UNIT_X + 2 * 8 <= 200 && LBL_X + LBL_W <= VAL_X && VAL_X + VAL_W <= 200,
+    static_assert(UNIT_X + kUnitW <= 200 && LBL_X + LBL_W <= VAL_X && VAL_X + VAL_W <= 200,
                   "columns overlap or leave the mask");
     static_assert(ROW_TOP + PloughSettings::kCount * ROW_H <= 200, "rows leave the mask");
-    static_assert(ROW_H >= 16, "rows lower than the 12x16 font");
+    static_assert(ROW_H >= kUnitH, "rows lower than the 12x16 font");
     static_assert(Label_Cal0 + PloughSettings::kCount <= Input_Cal0 && Input_Cal0 + PloughSettings::kCount <= Str_CalNo,
                   "calibration labels or inputs run into the next id block");
 
@@ -476,8 +488,8 @@ FLASHMEM static void appendCalibrationPage() {
         const uint16_t y = ROW_TOP + i * ROW_H;
         appendObjRef(Label_Cal0 + i, LBL_X, y);
         appendObjRef(Input_Cal0 + i, VAL_X, y);
-        if (PloughSetting(i) == PloughSetting::Deadband) appendObjRef(Str_CalCm, UNIT_X, y + 6);
-        if (PloughSetting(i) == PloughSetting::MaxCorrectionPerShare) appendObjRef(Str_CalMm, UNIT_X, y + 6);
+        if (PloughSetting(i) == PloughSetting::Deadband) appendObjRef(Str_CalCm, UNIT_X, y);
+        if (PloughSetting(i) == PloughSetting::MaxCorrectionPerShare) appendObjRef(Str_CalMm, UNIT_X, y);
     }
 
     appendSoftKeyMask(Plough_CalSoftKeyMask, kBlack, 3);
@@ -512,17 +524,19 @@ FLASHMEM static void appendCalibrationPage() {
         }
     }
 
-    appendOutputString(Str_CalNo, VAL_W, ROW_H, Font_White_Medium, 0, "NEE");
-    appendOutputString(Str_CalYes, VAL_W, ROW_H, Font_White_Medium, 0, "JA");
-    appendOutputString(Str_CalRight, VAL_W, ROW_H, Font_White_Medium, 0, "RECHTS");
-    appendOutputString(Str_CalLeft, VAL_W, ROW_H, Font_White_Medium, 0, "LINKS");
-    appendOutputString(Str_CalDgps, VAL_W, ROW_H, Font_White_Medium, 0, "DGPS");
-    appendOutputString(Str_CalRtk, VAL_W, ROW_H, Font_White_Medium, 0, "RTK");
-    appendOutputString(Str_CalAuto, VAL_W, ROW_H, Font_White_Medium, 0, "AUTO");
-    appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, "AAN");
-    appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, "UIT");
-    appendOutputString(Str_CalCm, 16, 10, Font_White_Unit, 0, "cm");
-    appendOutputString(Str_CalMm, 16, 10, Font_White_Unit, 0, "mm");
+    // Opaque: the VTs draw an open list's entries on their own light popup,
+    // where white on transparent was invisible (CNH VT) or faint (1200).
+    appendOutputString(Str_CalNo, VAL_W, ROW_H, Font_White_Medium, 0, "NEE", kOpaque);
+    appendOutputString(Str_CalYes, VAL_W, ROW_H, Font_White_Medium, 0, "JA", kOpaque);
+    appendOutputString(Str_CalRight, VAL_W, ROW_H, Font_White_Medium, 0, "RECHTS", kOpaque);
+    appendOutputString(Str_CalLeft, VAL_W, ROW_H, Font_White_Medium, 0, "LINKS", kOpaque);
+    appendOutputString(Str_CalDgps, VAL_W, ROW_H, Font_White_Medium, 0, "DGPS", kOpaque);
+    appendOutputString(Str_CalRtk, VAL_W, ROW_H, Font_White_Medium, 0, "RTK", kOpaque);
+    appendOutputString(Str_CalAuto, VAL_W, ROW_H, Font_White_Medium, 0, "AUTO", kOpaque);
+    appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, "AAN", kOpaque);
+    appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, "UIT", kOpaque);
+    appendOutputString(Str_CalCm, kUnitW, kUnitH, Font_White_Medium, 0, "cm");
+    appendOutputString(Str_CalMm, kUnitW, kUnitH, Font_White_Medium, 0, "mm");
 }
 
 // The width procedure (#240): which of the three points, the width to drive
@@ -537,6 +551,7 @@ FLASHMEM static void appendCalibrationWidthPage() {
     static_assert(6 * kCharW <= LBL_W, "label column narrower than SENSOR");
     static_assert(4 * kCharW <= VAL_W && VAL_X + VAL_W <= 200, "value column too narrow or off the mask");
     static_assert(8 * kCharW <= 196 && STATUS_Y + ROW_H <= 200, "status line off the mask");
+    static_assert(VAL_X + VAL_W + 2 + kUnitW <= 200, "cm off the mask");
 
     appendDataMask(Plough_CalWidthMask, kBlack, Plough_CalWidthSoftKeyMask, 10);
     appendObjRef(Label_CalWidthTitle, LBL_X, TITLE_Y);
@@ -545,7 +560,7 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendObjRef(Label_CalWidthOf, VAL_X + 2 * kCharW, POINT_Y);
     appendObjRef(Label_CalWidthTarget, LBL_X, TARGET_Y);
     appendObjRef(Out_CalWidthTarget, VAL_X, TARGET_Y);
-    appendObjRef(Str_CalCm, VAL_X + VAL_W + 2, TARGET_Y + 6);
+    appendObjRef(Str_CalCm, VAL_X + VAL_W + 2, TARGET_Y);
     appendObjRef(Label_CalWidthSensor, LBL_X, SENSOR_Y);
     appendObjRef(Out_CalWidthSensor, VAL_X, SENSOR_Y);
     appendObjRef(Ptr_CalWidthStatus, LBL_X, STATUS_Y);
@@ -570,8 +585,9 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendNumberVariable(Var_CalWidthTarget, 1000);
     appendNumberVariable(Var_CalWidthSensor, 0);
     appendOutputNumber(Out_CalWidthPoint, kCharW + 2, ROW_H, Font_White_Medium, Var_CalWidthPoint, 0, 1.0f, 0);
-    appendOutputNumber(Out_CalWidthTarget, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthTarget, -1000, 1.0f, 0);
-    appendOutputNumber(Out_CalWidthSensor, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthSensor, 0, 1.0f, 0);
+    // Right-aligned, so the target sits next to its `cm`, and the sensor under it.
+    appendOutputNumber(Out_CalWidthTarget, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthTarget, -1000, 1.0f, 0, 2);
+    appendOutputNumber(Out_CalWidthSensor, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthSensor, 0, 1.0f, 0, 2);
     appendObjectPointer(Ptr_CalWidthStatus, Str_CalBlank);
     appendOutputString(Str_CalBlank, 196, ROW_H, Font_White_Medium, 0, " ");
     appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, "ONGELDIG");
@@ -613,14 +629,17 @@ FLASHMEM void BuildObjectPool() {
     // Screen layout (VT3 minimum area: 200x176 pixels). Labels and values use
     // the 12x16 font: at 8x12 (2:3) the InCommand 1200 drew them visibly too
     // narrow (session 13 repeat, 2026-10-01: "height was ok, but width not").
-    // 12x16 is half as wide again at about the same height. The label column
-    // is sized for WERKBREEDTE (11 characters, 132 px), which leaves the value
-    // column 5 characters: every value fits ("-9.99" is the widest XTE that
-    // matters), except an XTE of 10 m or more, which is clipped -- far off
-    // the line, never while ploughing.
+    // 12x16 is half as wide again at about the same height. Every row is in
+    // cm (#282): the values right-aligned against a `cm` in the last 24 px.
+    // The label column is sized for WERKBREEDTE (11 characters, 132 px), which
+    // leaves width, position and setpoint 3 characters. XTE has a short label,
+    // so its value starts further left: 5 characters, room for the -1000 to
+    // 1000 cm the interface clamps it to.
     constexpr uint16_t kMediumCharW = 12;  // 12x16
     constexpr uint16_t LBL_X = 2, LBL_W = 132, ROW_H = 28;
-    constexpr uint16_t VAL_X = 136, VAL_W = 64;
+    constexpr uint16_t UNIT_X = 200 - kUnitW, VAL_END = UNIT_X - 2;
+    constexpr uint16_t VAL_X = 136, VAL_W = VAL_END - VAL_X;
+    constexpr uint16_t XTE_W = 5 * kMediumCharW, XTE_X = VAL_END - XTE_W;
     // The plough picture top left; the GPS and speed indicators in the column
     // to its right; the four rows below, 29 px apart, the last one ending
     // inside the 200 px mask.
@@ -634,8 +653,9 @@ FLASHMEM void BuildObjectPool() {
     static_assert((sizeof(kTextSetpoint) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextXte) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextWorkingWidth) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
-    static_assert(5 * kMediumCharW <= VAL_W, "value column narrower than 5 characters");
-    static_assert(LBL_X + LBL_W <= VAL_X && VAL_X + VAL_W <= 200, "columns overlap or leave the mask");
+    static_assert(3 * kMediumCharW <= VAL_W, "value column narrower than 3 characters");
+    static_assert(LBL_X + LBL_W <= VAL_X && VAL_END < UNIT_X, "columns overlap or leave the mask");
+    static_assert(LBL_X + (sizeof(kTextXte) - 1) * kMediumCharW <= XTE_X, "XTE value runs into its label");
 
     // ---- Top-level structure ----
     // Field order after appendWorkingSet() is fixed: any child object
@@ -681,7 +701,7 @@ FLASHMEM void BuildObjectPool() {
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
-    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 14);
+    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 18);
     // The tractor-and-plough picture, through a pointer that IsobusVtInterface
     // switches to the side the plough is ploughing (left until it says so).
     appendObjRef(Ptr_PloughImage, IMG_X, IMG_Y);
@@ -697,12 +717,16 @@ FLASHMEM void BuildObjectPool() {
     // operator sets with Wider/Narrower.
     appendObjRef(Label_Offset, LBL_X, ROW_Y[0]);
     appendObjRef(Out_Offset, VAL_X, ROW_Y[0]);
+    appendObjRef(Str_CalCm, UNIT_X, ROW_Y[0]);
     appendObjRef(Label_Position, LBL_X, ROW_Y[1]);
     appendObjRef(Out_Position, VAL_X, ROW_Y[1]);
+    appendObjRef(Str_CalCm, UNIT_X, ROW_Y[1]);
     appendObjRef(Label_Setpoint, LBL_X, ROW_Y[2]);
     appendObjRef(Out_Setpoint, VAL_X, ROW_Y[2]);
+    appendObjRef(Str_CalCm, UNIT_X, ROW_Y[2]);
     appendObjRef(Label_XTE, LBL_X, ROW_Y[3]);
-    appendObjRef(Out_XTE, VAL_X, ROW_Y[3]);
+    appendObjRef(Out_XTE, XTE_X, ROW_Y[3]);
+    appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
 
     // 4 soft keys. ISO 11783-6 only guarantees a VT renders 6 per mask, so
     // this stays inside what every terminal must support -- but a VT is free
@@ -761,18 +785,18 @@ FLASHMEM void BuildObjectPool() {
     // ---- NumberVariables (initial values) ----
     appendNumberVariable(Var_Position, 0);
     appendNumberVariable(Var_Setpoint, 0);
-    appendNumberVariable(Var_XTE, 1000);  // 1000 = bias; OutputNumber offset -1000 -> 0.00 m at rest
+    appendNumberVariable(Var_XTE, 1000);  // 1000 = bias; OutputNumber offset -1000 -> 0 cm at rest
     appendNumberVariable(Var_Offset, 0);
     appendNumberVariable(Var_Speed, 0);
 
     // ---- Output numbers ----
-    // Position and setpoint: raw calibrated units
-    appendOutputNumber(Out_Position, VAL_W, ROW_H, Font_White_Medium, Var_Position, 0, 1.0f, 0);
-    appendOutputNumber(Out_Setpoint, VAL_W, ROW_H, Font_White_Medium, Var_Setpoint, 0, 1.0f, 0);
-    // XTE: variable holds (xte_cm + 1000); offset -1000 and scale 0.01 -> metres with 2 decimals
-    appendOutputNumber(Out_XTE, VAL_W, ROW_H, Font_White_Medium, Var_XTE, -1000, 0.01f, 2);
-    // Offset: raw value
-    appendOutputNumber(Out_Offset, VAL_W, ROW_H, Font_White_Medium, Var_Offset, 0, 1.0f, 0);
+    // All four in cm, right-aligned against their `cm`. Position and setpoint
+    // are the calibrated width, the offset is the working width.
+    appendOutputNumber(Out_Position, VAL_W, ROW_H, Font_White_Medium, Var_Position, 0, 1.0f, 0, 2);
+    appendOutputNumber(Out_Setpoint, VAL_W, ROW_H, Font_White_Medium, Var_Setpoint, 0, 1.0f, 0, 2);
+    // XTE: variable holds (xte_cm + 1000); offset -1000 -> whole cm
+    appendOutputNumber(Out_XTE, XTE_W, ROW_H, Font_White_Medium, Var_XTE, -1000, 1.0f, 0, 2);
+    appendOutputNumber(Out_Offset, VAL_W, ROW_H, Font_White_Medium, Var_Offset, 0, 1.0f, 0, 2);
     // Speed: the variable holds 0.1 km/h; scale 0.1, one decimal -> "12.3".
     // 48 px = 4 characters at 12x16, up to 99.9 km/h.
     appendOutputNumber(Out_Speed, 48, 20, Font_White_Medium, Var_Speed, 0, 0.1f, 1);
