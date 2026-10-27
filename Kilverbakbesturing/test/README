@@ -6,7 +6,7 @@
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point). These stand in for
-  the Arduino framework and MeijWorks Libs' `VehicleTractor`/`InterfaceI2CLCD`
+  the Arduino framework and MeijWorks Libs' `VehicleSensors`/`InterfaceI2CLCD`
   only: `GuidanceSource` and `DistanceBetween()` (MeijWorks Libs/
   VehicleGuidance, `GuidanceSource.hpp` and `GuidanceGeometry.hpp`) are the
   real header-only code, so this module's leveling calculation runs on the

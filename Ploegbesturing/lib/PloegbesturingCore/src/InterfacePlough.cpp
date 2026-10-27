@@ -28,7 +28,7 @@ namespace triton
 InterfacePlough::InterfacePlough(Stream* serialDebug,
                                   InterfaceI2CLCD* lcd,
                                   ImplementPlough* implement,
-                                  VehicleTractor* tractor,
+                                  VehicleSensors* tractor,
                                   GuidanceSource* guidance) {
     // Pin assignments and configuration
     // Schmitt triggered inputs

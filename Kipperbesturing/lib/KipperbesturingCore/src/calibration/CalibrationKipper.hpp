@@ -29,7 +29,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "../InterfaceKipper.hpp"
 #include "../config/LanguageKipper.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -43,14 +43,14 @@ namespace triton
 class CalibrationKipper {
 public:
     CalibrationKipper(InterfaceI2CLCD* lcd, ImplementKipper* implement,
-                       VehicleTractor* tractor, InterfaceKipper* interface);
+                       VehicleSensors* tractor, InterfaceKipper* interface);
 
     void Calibrate();
 
 private:
     InterfaceI2CLCD* lcd;
     ImplementKipper*  implement;
-    VehicleTractor*   tractor;
+    VehicleSensors*   tractor;
     InterfaceKipper*  interface;
 
     // Shared accept/decline + adjust-by-one-per-press shape every KP/KI/KD/

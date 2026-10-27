@@ -30,7 +30,7 @@
 #include "InterfacePlanter.hpp"
 #include "config/LanguagePlanter.hpp"
 #include "SerialGuidanceChannel.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 // Serial ports
 HardwareSerial* gSerialDebug = &Serial2;
@@ -47,7 +47,7 @@ TwoWire* gLcdWire = &Wire;
 // Global objects
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
-triton::VehicleTractor*    gTractor;
+triton::VehicleSensors*    gTractor;
 triton::ImplementPlanter*  gImplement;
 triton::InterfacePlanter*  gInterface;
 triton::CalibrationPlanter* gCalibration;
@@ -78,7 +78,7 @@ void setup() {
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
     gLcd->Begin();
 
-    gTractor = new triton::VehicleTractor(gSerialDebug);
+    gTractor = new triton::VehicleSensors(gSerialDebug);
     gGuidance = new triton::GuidanceSource();
     gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
     gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);

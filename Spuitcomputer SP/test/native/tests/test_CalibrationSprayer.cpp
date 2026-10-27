@@ -25,7 +25,7 @@
 using namespace aunit;
 using namespace triton;
 
-static VehicleTractor  calTractor;
+static VehicleSensors  calTractor;
 static InterfaceI2CLCD calLcd;
 
 // The wizard (Calibrate()) blocks on LCD buttons and on the timed pump

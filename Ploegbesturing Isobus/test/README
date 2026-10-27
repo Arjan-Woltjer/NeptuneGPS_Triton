@@ -22,7 +22,7 @@ Teensy attached):
 - `native/support/` -- a small, self-contained set of Arduino-shaped stubs
   (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
   `native_main.cpp` (the host `int main()` entry point). These stand in only
-  for *external* headers (the Arduino framework, MeijWorks Libs' `VehicleTractor`/
+  for *external* headers (the Arduino framework, MeijWorks Libs' `VehicleSensors`/
   `InterfaceI2CLCD`) -- `GuidanceSource` is not one of them: every test uses the
   real class from `MeijWorks Libs/VehicleGuidance/GuidanceSource.hpp` directly
   (`GuidanceSource mockGuidance;`, real `Set*()`/`Get*()` calls), same as

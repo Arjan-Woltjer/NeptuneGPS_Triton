@@ -21,7 +21,7 @@
 namespace triton
 {
 
-CalibrationScraper::CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement, VehicleTractor* tractor,
+CalibrationScraper::CalibrationScraper(InterfaceI2CLCD* lcd, ImplementScraper* implement, VehicleSensors* tractor,
                                         GuidanceSource* guidance, SerialGuidanceChannel* gpsChannel, InterfaceScraper* interface)
     : lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), gpsChannel(gpsChannel), interface(interface) {
     loadGuidanceCalibration();

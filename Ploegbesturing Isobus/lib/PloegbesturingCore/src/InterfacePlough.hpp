@@ -19,7 +19,7 @@
 #pragma once
 
 #include "InterfaceI2CLCD.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "GuidanceSource.hpp"
 #include "ButtonPair.hpp"
 
@@ -47,7 +47,7 @@ private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
-    VehicleTractor*        tractor;
+    VehicleSensors*        tractor;
     GuidanceSource*  guidance;
 
 public:
@@ -59,7 +59,7 @@ public:
     InterfacePlough(Stream* serialDebug,
                     InterfaceI2CLCD* lcd,
                     ImplementPlough* implement,
-                    VehicleTractor* tractor,
+                    VehicleSensors* tractor,
                     GuidanceSource* guidance);
 
     // vtWiderPressed/vtNarrowerPressed/vtCalibratePressed: an IsobusVtInterface's

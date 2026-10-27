@@ -27,7 +27,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
 #include "config/LanguagePlough.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 #ifdef ISOBUS
 // The FlexCAN plugin used to arrive through the AgIsoStack.hpp umbrella the
@@ -108,7 +108,7 @@ TwoWire* gLcdWire = &Wire;
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
 triton::GuidanceSource*    gGuidance;
-triton::VehicleTractor*    gTractor;
+triton::VehicleSensors*    gTractor;
 triton::ImplementPlough*   gImplement;
 triton::InterfacePlough*   gInterface;
 triton::CalibrationPlough* gCalibration;
@@ -200,7 +200,7 @@ void setup() {
     // ISOBUS one feeds gGuidance from its PGN callbacks and calls
     // gImplement->Stop() on AISO).
     gGuidance = new triton::GuidanceSource();
-    gTractor = new triton::VehicleTractor(gSerialDebug);
+    gTractor = new triton::VehicleSensors(gSerialDebug);
     gImplement = new triton::ImplementPlough(gSerialDebug, gGuidance);
 
 #ifndef MICRO

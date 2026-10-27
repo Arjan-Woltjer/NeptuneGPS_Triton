@@ -22,7 +22,7 @@ namespace triton
 {
 
 CalibrationSprayer::CalibrationSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement,
-                                        VehicleTractor* tractor, InterfaceSprayer* interface)
+                                        VehicleSensors* tractor, InterfaceSprayer* interface)
     : lcd(lcd), implement(implement), tractor(tractor), interface(interface) {
 }
 

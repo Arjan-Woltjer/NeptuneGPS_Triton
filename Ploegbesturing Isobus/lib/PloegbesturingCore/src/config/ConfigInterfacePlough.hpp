@@ -60,7 +60,7 @@ _7 are defines for sower
 // GP6 and GP7 have no input stage on Triton01 and read idle through the
 // expander pull-ups, which is where the two unused joystick inputs went.
 // DIN4 is the plough-side sensor, DIN5 the hitch (ConfigImplementPlough.hpp,
-// ConfigVehicleTractor.hpp).
+// ConfigVehicleSensors.hpp).
 #include "TritonIo.hpp"
 #define MODE_PIN_2          EXPANDER_PIN(0)   // DIN1
 #define LEFT_BUTTON_2       EXPANDER_PIN(1)   // DIN2

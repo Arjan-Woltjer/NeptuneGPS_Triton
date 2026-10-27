@@ -22,7 +22,7 @@ namespace triton
 {
 
 CalibrationPlanter::CalibrationPlanter(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlanter* implement,
-                                        VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlanter* interface)
+                                        VehicleSensors* tractor, GuidanceSource* guidance, InterfacePlanter* interface)
     : serialDebug(serialDebug), lcd(lcd), implement(implement), tractor(tractor), guidance(guidance), interface(interface) {
     loadGuidanceCalibration();
 }

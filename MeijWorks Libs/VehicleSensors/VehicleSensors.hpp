@@ -1,5 +1,5 @@
 /*
-  VehicleTractor - a library for a tractor
+  VehicleSensors - the tractor's wheel-speed and hitch inputs
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -21,7 +21,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "ConfigVehicleTractor.hpp"
+#include "ConfigVehicleSensors.hpp"
 #if defined(ESP32S3)
 #include "TritonIo.hpp"   // Triton01: the hitch input sits behind the MCP23008
 #endif
@@ -31,7 +31,7 @@ namespace triton
 // Reads one of the tractor inputs. Triton01 goes through TritonIo (MCP23008
 // for the hitch, opto polarity for both); every other board reads the GPIO
 // directly and needs nothing beyond Arduino.h.
-inline bool VehicleTractorReadInput(uint8_t pin) {
+inline bool VehicleSensorsReadInput(uint8_t pin) {
 #if defined(ESP32S3)
     return ReadDigital(pin);
 #else
@@ -43,7 +43,7 @@ inline bool VehicleTractorReadInput(uint8_t pin) {
 namespace triton
 {
 
-class VehicleTractor {
+class VehicleSensors {
 private:
     //-------------
     // data members
@@ -77,7 +77,7 @@ public:
     // data starts with. The stored setting (EEPROM 28, set in the calibration
     // wizard) always wins. Spuitcomputer SP passes true: its hitch signal used
     // to be inverted in code, hard-wired.
-    explicit VehicleTractor(Stream* serialDebug, bool defaultInversion = false);
+    explicit VehicleSensors(Stream* serialDebug, bool defaultInversion = false);
 
     void Update(byte mode);
 
@@ -100,7 +100,7 @@ public:
 
     inline void ResetWheelspeedPulses()   { wheelspeedPulses = 0; }
 
-    inline boolean GetHitch()             { return triton::VehicleTractorReadInput(HITCH_PIN_1) ^ inversion; }
+    inline boolean GetHitch()             { return triton::VehicleSensorsReadInput(HITCH_PIN_1) ^ inversion; }
     inline float   GetSpeedMs()           { return speed; }
     inline float   GetSpeedKmh()          { return speed * 36; }
     inline bool    GetSim()               { return sim; }

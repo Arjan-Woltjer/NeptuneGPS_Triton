@@ -30,7 +30,7 @@
 #include "../InterfacePlanter.hpp"
 #include "GuidanceSource.hpp"
 #include "../config/LanguagePlanter.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -43,7 +43,7 @@ namespace triton
 class CalibrationPlanter {
 public:
     CalibrationPlanter(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlanter* implement,
-                        VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlanter* interface);
+                        VehicleSensors* tractor, GuidanceSource* guidance, InterfacePlanter* interface);
 
     void Calibrate();
 
@@ -65,7 +65,7 @@ private:
     Stream*            serialDebug;
     InterfaceI2CLCD*   lcd;
     ImplementPlanter*  implement;
-    VehicleTractor*    tractor;
+    VehicleSensors*    tractor;
     GuidanceSource*    guidance;
     InterfacePlanter*  interface;
 

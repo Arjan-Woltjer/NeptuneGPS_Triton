@@ -43,7 +43,7 @@ using namespace triton;
 // ImplementPlanter.cpp's constructor).
 // ---------------------------------------------------------------------------
 static GuidanceSource mockGuidance;
-static VehicleTractor mockTractor;
+static VehicleSensors mockTractor;
 
 static void resetAll() {
     millisValue(0);
