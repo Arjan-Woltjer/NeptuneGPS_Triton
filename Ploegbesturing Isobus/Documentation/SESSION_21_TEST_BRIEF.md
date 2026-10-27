@@ -269,7 +269,8 @@ Full record: `logs/2026-10-27_session21_vanmastwijk_{timeline.md,serial.log}`, t
 
 **Accepted as run** (owner, 2026-10-27): C6's end-stop cut from the cab (the same code as B3, which passed
 with #279), K4's plough-side half (PLOEGZIJDE following a turned plough), B3 on the 1200, V7's AUTO/hold half,
-and B6 (bench-passed). Still to decide: N1 after a true cold power-up with USB out, and L6 (optional).
+and B6 (bench-passed). N1 passes at every start, cold ones included (owner). L6 (optional, the lightbar
+setting in the cab wizard) was not run; the same setting passed on the VT page (L3-L5).
 - **#274's carry-over from byte 70 is dropped** (owner, 2026-10-27: no unit in the field stored its VT
   there). Byte 14 is the only byte read; this board already has 2 there.
 
