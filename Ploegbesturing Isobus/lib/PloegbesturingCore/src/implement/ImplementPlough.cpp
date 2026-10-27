@@ -84,7 +84,7 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     positionCalibrationPoints[1] = 42;
     positionCalibrationPoints[2] = 50;
     position = 0;
-    lastPosition = 0;
+    shutoffPosition = 0;
 
 #ifdef ROTATION
     rotationCalibrationPoints[0] = 0;
@@ -250,7 +250,10 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
     // The end shutoff latches in every mode: a held button no longer drives
     // through it, so the hydraulics are protected in manual too (#244). A
     // latched direction drives again once the plough has moved the other way.
-    const bool positionChanged = position != lastPosition;
+    // Moving means kShutoffMoveCm away from where the timer last restarted, so
+    // a 1 cm flip on sensor noise doesn't keep restarting it at the stop.
+    const bool positionChanged = abs(position - shutoffPosition) >= kShutoffMoveCm;
+    if (positionChanged) shutoffPosition = position;
     if (actualPosition < setpoint - deadband && !endShutoff.Latched(EndShutoff::kNarrower)) {
         // Setpoint < actual position
         Narrower(pwm);
@@ -271,8 +274,8 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
 
         // Reset shutoff timer
         endShutoff.Stopped(millis());
+        shutoffPosition = position;
     }
-    lastPosition = position;
 }
 
 // ------------------------------------
