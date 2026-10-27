@@ -20,6 +20,7 @@
 */
 // Standard headers first: Arduino.h, which the plough headers pull in,
 // defines min/max macros that break GCC's.
+#include <cstring>
 #include <map>
 #include <vector>
 
@@ -406,6 +407,64 @@ test(VTObjectPool, widthProcedure_hasItsMask_andItsKeys) {
     // The status line starts blank.
     assertEqual((int)poolU16(objects.at(Ptr_CalWidthStatus).at + 3), (int)Str_CalBlank);
     for (uint16_t id = Plough_CalWidthMask; id <= Str_CalInvalid; id++) assertTrue(exists(objects, id));
+}
+
+// #282: the VTs draw an open list on their own light popup, so the entries
+// must bring their own black background; the units are 12x16 like the values.
+test(VTObjectPool, listEntries_areOpaque_andUnitsUseTheValueFont) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    const uint16_t entries[] = { Str_CalNo, Str_CalYes, Str_CalRight, Str_CalLeft, Str_CalDgps,
+                                 Str_CalRtk, Str_CalAuto, Str_CalOn, Str_CalOff };
+    for (uint16_t id : entries) {
+        assertTrue(isType(objects, id, 11));
+        const uint32_t at = objects.at(id).at;
+        assertEqual((int)VT3PoolData[at + 7], 0);             // background black
+        assertEqual((int)(VT3PoolData[at + 10] & 0x01), 0);   // opaque
+    }
+    for (uint16_t id : { Str_CalCm, Str_CalMm }) {
+        assertTrue(isType(objects, id, 11));
+        assertEqual((int)poolU16(objects.at(id).at + 8), (int)Font_White_Medium);
+    }
+}
+
+// #282: every main screen row in cm, the value right-aligned against a `cm`
+// to its right on the same row; XTE in whole cm under the label "XTE".
+test(VTObjectPool, mainScreen_everyRowInCm) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    const uint32_t mask = objects.at(Plough_DataMask).at;
+    const uint16_t values[4] = { Out_Offset, Out_Position, Out_Setpoint, Out_XTE };
+    for (uint16_t value : values) {
+        int16_t valueY = -1, valueEnd = -1;
+        for (uint8_t c = 0; c < VT3PoolData[mask + 6]; c++) {
+            const uint32_t ref = mask + 8 + c * 6;
+            if (poolU16(ref) != value) continue;
+            valueY = int16_t(poolU16(ref + 4));
+            valueEnd = int16_t(poolU16(ref + 2) + poolU16(objects.at(value).at + 3));
+        }
+        assertTrue(valueY >= 0);
+        bool unitFollows = false;
+        for (uint8_t c = 0; c < VT3PoolData[mask + 6]; c++) {
+            const uint32_t ref = mask + 8 + c * 6;
+            unitFollows |= poolU16(ref) == Str_CalCm && int16_t(poolU16(ref + 4)) == valueY &&
+                           int16_t(poolU16(ref + 2)) >= valueEnd && poolU16(ref + 2) + 24 <= 200;
+        }
+        assertTrue(unitFollows);
+        assertEqual((int)VT3PoolData[objects.at(value).at + 27], 2);  // right-aligned
+    }
+    const uint32_t xte = objects.at(Out_XTE).at;
+    assertEqual(poolI32(xte + 17), (int32_t)-1000);
+    float scale;
+    memcpy(&scale, VT3PoolData + xte + 21, sizeof(scale));
+    assertEqual(scale, 1.0f);
+    assertEqual((int)VT3PoolData[xte + 25], 0);                 // no decimals
+    assertTrue(poolU16(xte + 3) >= 5 * 12);                     // room for -1000
+    const uint32_t label = objects.at(Label_XTE).at;
+    assertEqual((int)poolU16(label + 14), 3);
+    assertEqual(memcmp(VT3PoolData + label + 16, "XTE", 3), 0);
 }
 
 test(VTObjectPool, keyCodes_ofAllSoftKeys_areDistinct) {

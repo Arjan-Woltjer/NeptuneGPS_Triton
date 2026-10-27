@@ -157,13 +157,15 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // MW08 -> MW09, 2026-10-20: the calibration page (#240).
     // MW09 -> MW10, 2026-10-24: the Ag Leader lightbar setting, 9 rows (#272).
     // MW10 -> MW11, 2026-10-27: AUX-N functions Breder and Smaller (#254).
+    // MW11 -> MW12, 2026-10-27: readable list popups, 12x16 units, every main
+    // screen row in cm (#282).
     // ETP bursts as long as the receiver's CTS allows (#269). AgIsoStack's
     // default sends 16 packets per DPO whatever the CTS says; the John Deere
     // 4640 (Mookhoek 57, session 21) then rebuilt our pool wrongly and
     // answered End of Object Pool "other error" with no object, on every pool
     // too big for TP. Still bounded by each receiver's own CTS window.
     CANNetworkManager::CANNetwork.get_configuration().set_number_of_packets_per_dpo_message(255);
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW11");
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW12");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
