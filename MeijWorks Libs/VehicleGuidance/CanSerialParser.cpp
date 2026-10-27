@@ -21,21 +21,11 @@
 #include <string.h>
 
 #include "CanFrameGuidanceChannel.hpp"
+#include "GuidanceCommit.hpp"
 #include "IsobusPgnDecode.hpp"
 
 namespace triton
 {
-
-bool CanSerialParser::termIsHex(const char* term, byte need) {
-    for (byte i = 0; i < need; i++) {
-        const char c = term[i];
-        const bool isHex = (c >= '0' && c <= '9') ||
-                           (c >= 'A' && c <= 'F') ||
-                           (c >= 'a' && c <= 'f');
-        if (!isHex) return false;   // the terminator of a short term included
-    }
-    return true;
-}
 
 bool CanSerialParser::claimsSentenceType(const char* header) {
     fieldsValid = false;
@@ -77,88 +67,31 @@ bool CanSerialParser::claimsSentenceType(const char* header) {
         return false;
     }
 
-    newLat = newLon = newSpeed = newCourse = newAlt = 0;
-    newXte = 0; newQuality = 0;
+    newXte = 0;
+    newQuality = 0;
     return true;
 }
 
 void CanSerialParser::parseTerm(byte termNumber, const char* term) {
     if (termNumber != 1) return;
 
-    unsigned long val = 0;
-
-    switch (type) {
-        case CAN_POS:
-            if (!termIsHex(term, 16)) return;
-            fieldsValid = true;
-            for (int i = 7; i >= 0; i -= 2)
-                val = (val << 8) + (hexToInt(term[i - 1]) << 4) + hexToInt(term[i]);
-            newLat = float(long(val - 2100000000)) / 10000000;
-
-            val = 0;
-            for (int i = 15; i >= 8; i -= 2)
-                val = (val << 8) + (hexToInt(term[i - 1]) << 4) + hexToInt(term[i]);
-            newLon = float(long(val - 2100000000)) / 10000000;
-            break;
-
-        case CAN_SPD:
-            if (!termIsHex(term, 16)) return;
-            fieldsValid = true;
-            val = ((unsigned long)hexToInt(term[2]) << 12) | ((unsigned long)hexToInt(term[3]) << 8)
-                | ((unsigned long)hexToInt(term[0]) << 4) | hexToInt(term[1]);
-            newCourse = float(val) / 128;
-
-            val = ((unsigned long)hexToInt(term[6]) << 12) | ((unsigned long)hexToInt(term[7]) << 8)
-                | ((unsigned long)hexToInt(term[4]) << 4) | hexToInt(term[5]);
-            newSpeed = float(val) / 256 / 1.852f;   // SPN 517 is 1/256 km/h; stored as knots (#204)
-
-            val = ((unsigned long)hexToInt(term[14]) << 12) | ((unsigned long)hexToInt(term[15]) << 8)
-                | ((unsigned long)hexToInt(term[12]) << 4) | hexToInt(term[13]);
-            newAlt = float(val) / 8 - 2500;
-            break;
-
-        case CAN_XTE: {
-            if (!termIsHex(term, 10)) return;
-            fieldsValid = true;
-            val = ((unsigned long)hexToInt(term[8]) << 12) | ((unsigned long)hexToInt(term[9]) << 8)
-                | ((unsigned long)hexToInt(term[6]) << 4) | hexToInt(term[7]);
-            newXte = int(val - 32000) >> 1;
-            newQuality = (term[2] == '1') ? 4 : 0;
-            break;
-        }
-
-        case CAN_XTE2: {
-            if (!termIsHex(term, 12)) return;
-            fieldsValid = true;
-            int temp = (hexToInt(term[0]) << 4) + hexToInt(term[1]);
-            int temp2 = (hexToInt(term[10]) << 4) + hexToInt(term[11]);
-            if (temp == 2 && temp2 == 7) {
-                union { unsigned long a; float b; } tofloat;
-                tofloat.a = ((unsigned long)hexToInt(term[2]) << 28)
-                          | ((unsigned long)hexToInt(term[3]) << 24)
-                          | ((unsigned long)hexToInt(term[4]) << 20)
-                          | ((unsigned long)hexToInt(term[5]) << 16)
-                          | ((unsigned long)hexToInt(term[6]) << 12)
-                          | ((unsigned long)hexToInt(term[7]) << 8)
-                          | ((unsigned long)hexToInt(term[8]) << 4)
-                          | hexToInt(term[9]);
-                newXte = (int)(tofloat.b * 100);
-            }
-            newQuality = 4;  // TODO: parse actual quality flag
-            break;
-        }
-
-        case NMEA2000:
-            // Sixteen hex digits back into the eight payload bytes; the
-            // layout is the decoder's business, not this parser's.
-            if (!termIsHex(term, 16)) return;
-            for (byte i = 0; i < 8; i++)
-                frameData[i] = uint8_t((hexToInt(term[2 * i]) << 4) | hexToInt(term[2 * i + 1]));
-            fieldsValid = true;
-            break;
-
-        case NONE: break;
+    if (type == CAN_XTE) {
+        // John Deere XTE: its own decode, see the header.
+        if (!termIsHex(term, 10)) return;
+        fieldsValid = true;
+        const unsigned long val = ((unsigned long)hexToInt(term[8]) << 12) | ((unsigned long)hexToInt(term[9]) << 8)
+                                | ((unsigned long)hexToInt(term[6]) << 4) | hexToInt(term[7]);
+        newXte = int(val - 32000) >> 1;
+        newQuality = (term[2] == '1') ? 4 : 0;
+        return;
     }
+
+    // Every other frame: sixteen hex digits back into the eight payload
+    // bytes; the layout is the decoder's business, not this parser's.
+    if (type == NONE || !termIsHex(term, 16)) return;
+    for (byte i = 0; i < 8; i++)
+        frameData[i] = uint8_t((hexToInt(term[2 * i]) << 4) | hexToInt(term[2 * i + 1]));
+    fieldsValid = true;
 }
 
 void CanSerialParser::commitTo(GuidanceSource* state) {
@@ -171,17 +104,21 @@ void CanSerialParser::commitTo(GuidanceSource* state) {
 #endif
             break;
         case CAN_POS:
-            state->SetPosition(newLat, newLon);
+            GApply(DecodeLegacyPosition(frameData, sizeof(frameData)), state);
             break;
         case CAN_SPD:
-            state->SetCourseDeg(newCourse);
-            state->SetSpeedKnots(newSpeed);
-            state->SetAltitude(newAlt);
+            GApply(DecodeLegacySpeed(frameData, sizeof(frameData)), state);
             break;
         case CAN_XTE:
-        case CAN_XTE2:
             state->SetXte(newXte);
             state->SetQuality(newQuality);
+            break;
+        case CAN_XTE2:
+            // Only the transfer's packet 2 with marker 7 carries the XTE; the
+            // decoder ignores the others. Its quality is still the fixed 4
+            // from the reverse-engineered layout: where the real quality
+            // flag sits needs a capture of this transfer.
+            GApply(DecodeLegacyXteTrimble(kSourceAddressTrimble, frameData, sizeof(frameData)), state);
             break;
         case NONE: break;
     }

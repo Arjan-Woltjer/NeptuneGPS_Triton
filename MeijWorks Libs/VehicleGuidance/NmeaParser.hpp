@@ -33,8 +33,12 @@ public:
 private:
     enum Type : byte { GGA, VTG, XTE, TXT, NONE } type = NONE;
 
-    float newTime = 0, newLat = 0, newLon = 0, newAlt = 0;
-    float newSpeed = 0, newCourse = 0;
+    float newTime = 0;
+    float newLat = 0;
+    float newLon = 0;
+    float newAlt = 0;
+    float newSpeed = 0;
+    float newCourse = 0;
     int   newXte = 0;
     byte  newQuality = 0;
 
@@ -48,6 +52,18 @@ private:
     // commit entirely when it isn't, the same as a sentence that never
     // arrived at all.
     bool newSpeedValid = false;
+    bool newCourseValid = false;
+
+    // The same rule for every other field: set only when the term held a
+    // value, and commitTo() only writes the fields that are set. A receiver
+    // without a fix sends GGA with position and altitude blank and quality 0;
+    // committing those as numbers put the machine at 0 N 0 E.
+    bool newTimeValid    = false;
+    bool newLatValid     = false;
+    bool newLonValid     = false;
+    bool newAltValid     = false;
+    bool newQualityValid = false;
+    bool newXteValid     = false;
 
     // ATGM336H-specific: it sends "$GPTXT,01,01,01,ANTENNA OPEN|OK|SHORT"
     // continuously, not just at boot, and it tracks the antenna's actual

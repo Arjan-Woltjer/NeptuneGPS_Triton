@@ -54,7 +54,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
     // Mode
     mode = 2;  // MANUAL
 
-    // Button flag and timer. button1Timer/button2Timer were never
+    // Button flag and timer. The button timers were never
     // initialized here in the legacy code (a real latent bug -- the very
     // first CheckButtons() call would measure elapsed time against garbage
     // memory); seeded to millis() now, matching ImplementPlanter's own

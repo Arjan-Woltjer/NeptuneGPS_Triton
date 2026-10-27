@@ -27,11 +27,18 @@ namespace triton
 // The sentence "type" is the CAN arbitration ID in hex (e.g. "0CFEF31C"),
 // the single data term the frame's eight payload bytes as sixteen hex digits.
 //
-// Two families arrive this way. The legacy JD proprietary frames keep the
-// layouts VehicleGps decoded. The standard NMEA2000 single-frame PGNs the
-// same receivers broadcast (129025 position, 129026 COG/SOG, 129283 XTE) are
-// rebuilt into bytes and handed to CanFrameGuidanceChannel::Decode(), so a
-// bridged bus commits exactly what a directly read bus would.
+// Every frame is rebuilt into its eight payload bytes and decoded by the same
+// IsobusPgnDecode functions a directly read bus uses, so a bridged bus
+// commits exactly what a direct one would, J1939 "not available" values and
+// plausibility checks per field included:
+//  - legacy position 65267, speed 65256 and Trimble XTE (1CEBACAA): the
+//    DecodeLegacy*() decoders, called directly so the Arduino Micro build
+//    (GUIDANCE_LEAN) links only these;
+//  - NMEA2000 single-frame PGNs (129025 position, 129026 COG/SOG, 129283
+//    XTE): CanFrameGuidanceChannel::Decode(), not under GUIDANCE_LEAN.
+// The John Deere XTE frame (0CFFFF2A) keeps its own decode: the CAN path's
+// decoder also checks the message selector in byte 0, which is unverified
+// on the serial bridges the Micro boards use.
 class CanSerialParser : public GpsParser {
 public:
     bool claimsSentenceType(const char* header) override;
@@ -44,18 +51,16 @@ private:
     // Set by parseTerm() only when the payload term had the full hex length
     // the layout needs; commitTo() leaves the source untouched otherwise. A
     // frame with DLC < 8, or a line cut short by a baudrate change, must not
-    // become a plausible but invented fix (VehicleGps guarded this with
-    // termIsHex()).
+    // become a plausible but invented fix (checked with GpsParser::termIsHex()).
+    // Which fields inside a complete frame are usable is the decoders' call.
     bool fieldsValid = false;
-    static bool termIsHex(const char* term, byte need);
 
-    // NMEA2000 lines: the 29-bit identifier from the header and the payload
+    // The 29-bit identifier from the header (NMEA2000 lines) and the payload
     // bytes from the term, decoded in commitTo().
     uint32_t frameId = 0;
     uint8_t  frameData[8] = {0};
 
-    float newLat = 0, newLon = 0;
-    float newSpeed = 0, newCourse = 0, newAlt = 0;
+    // John Deere XTE only (see above).
     int   newXte = 0;
     byte  newQuality = 0;
 };

@@ -45,61 +45,73 @@ class ButtonPair {
 public:
     // Timers started at nowMs, nothing pending: what the constructors did.
     void Begin(unsigned long nowMs) {
-        button1Flag = false;
-        button2Flag = false;
-        button1Timer = nowMs;
-        button2Timer = nowMs;
+        restartComboTimer = false;
+        restartRepeatTimer = false;
+        comboStartMs = nowMs;
+        repeatStartMs = nowMs;
     }
 
     int Check(bool leftButton, bool rightButton, unsigned char delay1, unsigned char delay2, unsigned long nowMs,
               bool leftJoystick = false, bool rightJoystick = false,
               bool vtCalibrate = false, bool vtWider = false, bool vtNarrower = false) {
-        if (button1Flag) {
-            button1Timer = nowMs;
-            button1Flag = false;
+        // Reset timers if their restart flags are set
+        if (restartComboTimer) {
+            comboStartMs = nowMs;
+            restartComboTimer = false;
         }
-        if (button2Flag) {
-            button2Timer = nowMs;
-            button2Flag = false;
+        if (restartRepeatTimer) {
+            repeatStartMs = nowMs;
+            restartRepeatTimer = false;
         }
 
+        // Decide which button(s) are held and update timers accordingly
+        // Both-held combo takes precedence (for calibration)
         if (leftButton && rightButton) {
-            if (nowMs - button1Timer >= static_cast<unsigned long>(delay1) * 4) {  // * 4: delay1 is a byte
-                button1Flag = true;
+            if (nowMs - comboStartMs >= static_cast<unsigned long>(delay1) * 4) {  // * 4: delay1 is a byte
+                restartComboTimer = true;
                 return 2;
             }
-            button2Flag = true;
+            restartRepeatTimer = true;
             return 0;
         }
+        // VT Calibrate takes precedence after the combo
         if (vtCalibrate) {
-            button1Flag = true;
+            restartComboTimer = true;
             return 2;
         }
+        // Single-button holds and VT adjustments follow
+        // Left button is - (decrement)
         if (leftButton || leftJoystick || vtNarrower) {
             return held(-1, delay2, nowMs);
         }
+        // Right button is + (increment)
         if (rightButton || rightJoystick || vtWider) {
             return held(1, delay2, nowMs);
         }
-        button1Flag = true;
-        button2Flag = true;
+
+        // No buttons held, no VT adjustments: reset both timers and return 0
+        restartComboTimer = true;
+        restartRepeatTimer = true;
         return 0;
     }
 
 private:
     int held(int direction, unsigned char delay2, unsigned long nowMs) {
-        if (nowMs - button2Timer >= delay2) {
-            button2Flag = true;
+        if (nowMs - repeatStartMs >= delay2) {
+            restartRepeatTimer = true;
             return direction;
         }
-        button1Flag = true;
+        restartComboTimer = true;
         return 0;
     }
 
-    bool          button1Flag = false;
-    bool          button2Flag = false;
-    unsigned long button1Timer = 0;
-    unsigned long button2Timer = 0;
+    // Two timers, one per kind of hold (not one per button). A restart flag
+    // is applied at the top of the next Check(), so the timer restarts at
+    // that call's nowMs.
+    bool          restartComboTimer = false;   // restart comboStartMs next Check()
+    bool          restartRepeatTimer = false;  // restart repeatStartMs next Check()
+    unsigned long comboStartMs = 0;   // both-held wait began; Check() returns 2 after delay1 * 4 ms
+    unsigned long repeatStartMs = 0;  // single-hold repeat interval began; fires every delay2 ms
 };
 
 }  // namespace triton

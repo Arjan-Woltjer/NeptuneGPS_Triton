@@ -18,22 +18,23 @@
 */
 #pragma once
 
-// Board selection. Guarded so a project-level build flag (-D TEENSY40,
-// -D TEENSY32, -D ESP32S3 or -D MICRO, the Ploegbesturing Isobus board envs)
-// is honoured no matter which config header a translation unit includes
-// first; without any flag the Teensy 4.1 production board applies, exactly as
-// before.
+// Board type. Every board but the default comes from a build flag in the
+// project's platformio.ini (-D TEENSY40, -D TEENSY32, -D ESP32S3 or -D MICRO),
+// so it is the same in every header whichever one a file includes first.
+// Without a board flag the Teensy 4.1 production board is the default.
 #if !defined(TEENSY40) && !defined(TEENSY32) && !defined(ESP32S3) && !defined(TEENSYPROTO) && !defined(MICRO) && !defined(VOORSERIE)
-#define TEENSY
+#define TEENSY      // Teensy 4.1 on the production board (besturing 0.1)
 #endif
-//#define TEENSY40
-//#define TEENSY32
-//#define ESP32S3
-//#define TEENSYPROTO
-//#define MICRO
-//#define VOORSERIE
-//#define DEBUG
+//#define TEENSY40    // Teensy 4.0 board
+//#define TEENSY32    // Teensy 3.2 board
+//#define ESP32S3     // Triton01: ESP32-S3, inputs on the MCP23008
+//#define TEENSYPROTO // Teensy 3.5 or 3.6 on protoboard
+//#define MICRO       // Arduino Micro
+//#define VOORSERIE   // Arduino Uno pre-series board
+//#define DEBUG       // Boot prints in VehicleTractor.cpp
 
+// MinSpeed() is true above this speed, in VehicleTractor's speed scale (one
+// unit is 36 km/h, see VehicleTractor.hpp).
 #define MINSPEED_1            0.5f
 
 #ifdef TEENSY
@@ -44,7 +45,7 @@
 #else
 
 #ifdef TEENSY40
-// Teensy 4.0 board: identical to the Teensy 4.1 production board.
+// Teensy 4.0 board: the same pins as the Teensy 4.1 board.
 // Digital inputs 12V -> 5V conversion
 #define WHEEL_SPEED_PIN_1     6
 #define HITCH_PIN_1           7
@@ -61,7 +62,7 @@
 #else
 
 #ifdef TEENSY32
-// Teensy 3.2 board: identical to the Teensy 4.1 production board.
+// Teensy 3.2 board: the same pins as the Teensy 4.1 board.
 // Digital inputs 12V -> 5V conversion
 #define WHEEL_SPEED_PIN_1     6
 #define HITCH_PIN_1           7

@@ -48,7 +48,7 @@ InterfacePlough::InterfacePlough(Stream* serialDebug,
     // Mode
     mode = 2;  // MANUAL
 
-    // Button flag and timer. button1Timer/button2Timer were never initialized
+    // Button flag and timer. The button timers were never initialized
     // here in the legacy code (a real latent bug -- CheckButtons()'s very
     // first call would measure elapsed time against garbage memory); seeded
     // to millis() now, matching how ImplementPlough seeds its own timers.
