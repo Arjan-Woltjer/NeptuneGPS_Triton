@@ -178,6 +178,21 @@ static void appendKey(uint16_t id, uint8_t bgColour, uint8_t keyCode, uint16_t l
     appendObjRef(labelID, 0, kKeyLabelY);
 }
 
+// Type 31: Auxiliary Function Type 2 (#254). The function type sits in bits
+// 0-4 of the attributes byte; no critical control, no assignment
+// restriction, not single-assignment. Its designator is a soft key label at
+// the top left: AgIsoStack scales the label like the key it also sits on,
+// but this object's child positions with the data mask, so an offset here
+// would land differently on every VT.
+static constexpr uint8_t kAuxBooleanMomentary = 2;
+static void appendAuxFunction2(uint16_t id, uint8_t functionType, uint16_t designatorID) {
+    pu16(id); pu8(31);
+    pu8(kBlack);              // background colour
+    pu8(functionType & 0x1F);
+    pu8(1);                   // 1 child object
+    appendObjRef(designatorID, 0, 0);
+}
+
 // Type 27: ObjectPointer -- shows whichever object `value` names; the VT
 // switches it on a Change Numeric Value command (IsobusVtInterface).
 static void appendObjectPointer(uint16_t id, uint16_t value) {
@@ -764,6 +779,10 @@ FLASHMEM void BuildObjectPool() {
 
     appendCalibrationPage();
     appendCalibrationWidthPage();
+
+    // ---- AUX-N functions (#254) ----
+    appendAuxFunction2(Aux_Wider, kAuxBooleanMomentary, Label_Wider);
+    appendAuxFunction2(Aux_Narrower, kAuxBooleanMomentary, Label_Narrower);
 
     VT3PoolData = poolBuffer;
     VT3PoolSize = poolPos;
