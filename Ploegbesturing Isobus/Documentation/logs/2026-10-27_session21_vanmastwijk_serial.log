@@ -11203,3 +11203,4 @@
 13:14:28.296 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=42759 aiso=1158(1294225ms) xte=-0.23m spd=0.00m/s q=4 ggaAge=128177 vtgAge=128173 xteAge=128177 xteraw=80:510302FF160B12FF x129283=CD:0:- lb=23R-p51L:170034004E019104 vt=N(22/22) vtstat=2172/128377ms tc=N drp=0mm tcq=0
 13:14:29.281 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=42759 aiso=1158(1295225ms) xte=-0.23m spd=0.00m/s q=4 ggaAge=129177 vtgAge=129173 xteAge=129177 xteraw=80:510302FF160B12FF x129283=CD:0:- lb=23R-p51L:170034004E019104 vt=N(22/22) vtstat=2172/129377ms tc=N drp=0mm tcq=0
 13:14:30.288 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=42759 aiso=1158(1296225ms) xte=-0.23m spd=0.00m/s q=4 ggaAge=130177 vtgAge=130173 xteAge=130177 xteraw=80:510302FF160B12FF x129283=CD:0:- lb=23R-p51L:170034004E019104 vt=N(22/22) vtstat=2172/130377ms tc=N drp=0mm tcq=0
+### 13:48:02.694 logger stopped: board unplugged, end of session 21 (van Mastwijk)
