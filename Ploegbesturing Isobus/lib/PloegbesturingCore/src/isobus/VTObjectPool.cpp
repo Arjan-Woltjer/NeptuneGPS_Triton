@@ -509,13 +509,13 @@ FLASHMEM static void appendCalibrationPage() {
         if (PloughSetting(i) == PloughSetting::MaxCorrectionPerShare) appendObjRef(Str_CalMm, UNIT_X, y);
     }
 
-    // BREEDTE where CALIBR is on the main screen, OPSLAAN below it, ANNUL. at
-    // the bottom (#282).
+    // Column 2 (#282): BREEDTE where CALIBR is on the main screen, OPSLAAN
+    // below it, ANNUL. at the bottom.
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
-    keys[SoftKeySlot(3, 1)] = Key_CalWidth;
-    keys[SoftKeySlot(4, 1)] = Key_CalSave;
-    keys[SoftKeySlot(6, 1)] = Key_CalCancel;
+    keys[SoftKeySlot(3, 2)] = Key_CalWidth;
+    keys[SoftKeySlot(4, 2)] = Key_CalSave;
+    keys[SoftKeySlot(6, 2)] = Key_CalCancel;
     appendSoftKeys(Plough_CalSoftKeyMask, kBlack, keys);
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
@@ -565,7 +565,7 @@ FLASHMEM static void appendCalibrationPage() {
 // The width procedure (#240): which of the three points, the width to drive
 // the plough to, the live sensor reading, and a status line that says when a
 // capture was not taken. Smaller / Breder drive the plough while held,
-// Vastleggen captures the point, Terug goes back to the page.
+// Opslaan captures the point, Annul. goes back to the page.
 FLASHMEM static void appendCalibrationWidthPage() {
     constexpr uint16_t kCharW = 12;
     constexpr uint16_t ROW_H = 28;
@@ -588,14 +588,15 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendObjRef(Out_CalWidthSensor, VAL_X, SENSOR_Y);
     appendObjRef(Ptr_CalWidthStatus, LBL_X, STATUS_Y);
 
-    // - and + on the first row as on the main screen, VASTLEG where OPSLAAN is
-    // on the page, TERUG where ANNUL. is (#282).
+    // - and + on the first row as on the main screen; capture and back in
+    // column 2 where the page has OPSLAAN and ANNUL., and labelled the same
+    // (#282: they were VASTLEG and TERUG).
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
     keys[SoftKeySlot(1, 2)] = Key_CalNarrower;
     keys[SoftKeySlot(1, 1)] = Key_CalWider;
-    keys[SoftKeySlot(4, 1)] = Key_CalCapture;
-    keys[SoftKeySlot(6, 1)] = Key_CalWidthBack;
+    keys[SoftKeySlot(4, 2)] = Key_CalCapture;
+    keys[SoftKeySlot(6, 2)] = Key_CalWidthBack;
     appendSoftKeys(Plough_CalWidthSoftKeyMask, kBlack, keys);
     appendKey(Key_CalNarrower, kBlack, KeyCode_CalNarrower, Label_CalNarrower, kKeySignH);
     appendKey(Key_CalWider, kBlack, KeyCode_CalWider, Label_CalWider, kKeySignH);
@@ -603,8 +604,8 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendKey(Key_CalWidthBack, kBlack, KeyCode_CalWidthBack, Label_CalWidthBack);
     appendOutputString(Label_CalNarrower, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
     appendOutputString(Label_CalWider, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
-    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "VASTLEG");
-    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "TERUG");
+    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "OPSLAAN");
+    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "ANNUL.");
 
     appendOutputString(Label_CalWidthTitle, 196, ROW_H, Font_White_Medium, 0, "BREEDTE");
     appendOutputString(Label_CalWidthPoint, LBL_W, ROW_H, Font_White_Medium, 0, "PUNT");
@@ -759,14 +760,14 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
 
     // Soft keys by position (#282): - and + on the first row, CALIBR on row 3
-    // of column 1. A one-column VT shows - alone on its first page, + and
-    // CALIBR on the second.
+    // of column 2. A one-column VT shows - and CALIBR on its first page, + on
+    // the second.
     {
         uint16_t keys[kSoftKeySlots];
         for (uint16_t& key : keys) key = kNoKey;
         keys[SoftKeySlot(1, 2)] = Key_Narrower;
         keys[SoftKeySlot(1, 1)] = Key_Wider;
-        keys[SoftKeySlot(3, 1)] = Key_Calibrate;
+        keys[SoftKeySlot(3, 2)] = Key_Calibrate;
         appendSoftKeys(Plough_SoftKeyMask, kBlack, keys);
     }
 

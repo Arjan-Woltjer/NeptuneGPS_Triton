@@ -46,8 +46,8 @@ public:
 // PloughSettings draft, the VT's own input fields edit it, and Opslaan saves
 // it through the same Save() as the cab wizard's COMPLETE; Annuleren drops
 // it. Breedte opens the width procedure (WidthProcedure, the same one the
-// cab wizard runs): Smaller / Breder drive the plough while held, Vastleggen
-// captures each point, and the three readings go into the draft; Terug goes
+// cab wizard runs): - and + drive the plough while held, Opslaan
+// captures each point, and the three readings go into the draft; Annul. goes
 // back to the page without them. While the page is open the VT holds the
 // settings session, so the cab wizard cannot open, and the control holds
 // (CalibrationPlough::HoldWhileVtCalibrates).
@@ -72,7 +72,7 @@ public:
     // holds the session.
     void OnCalibrateKey();
 
-    // Opslaan, Annuleren, Breedte, Vastleggen and Terug, on release. True
+    // Opslaan, Annuleren, Breedte, and the width screen's Opslaan and Annul., on release. True
     // when Opslaan saved the draft.
     bool OnSoftKey(uint16_t keyObjectId);
 
