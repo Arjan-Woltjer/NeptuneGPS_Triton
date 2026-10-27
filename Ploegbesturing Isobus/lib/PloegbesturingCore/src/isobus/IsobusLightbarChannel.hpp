@@ -40,6 +40,7 @@
 #include "AgLeaderLightbarEmulation.hpp"
 #include "GuidanceSource.hpp"
 #include "IsobusPgnDecode.hpp"
+#include "LightbarMode.hpp"
 
 namespace triton
 {
@@ -61,20 +62,33 @@ namespace triton
 // The stack is already running when this is constructed: IsobusGuidanceChannel
 // brought the hardware interface up and blocked on its own claim. This one's
 // claim is left to the stack and finishes within Update().
+//
+// Whether it runs at all is the lightbar setting (#272, LightbarMode.hpp).
+// The display partner is created in Begin() whatever the mode: it is local
+// bookkeeping, nothing on the bus, and it is how Auto sees the InCommand.
 class IsobusLightbarChannel {
 public:
     // canPort is AgIsoStack's CAN port index, the one the guidance channel
     // assigned the hardware plugin to (0) -- not the FlexCAN channel number.
     IsobusLightbarChannel(Stream* serialDebug, GuidanceSource* guidance, std::uint8_t canPort = 0);
 
-    // Creates the control function (its claim completes asynchronously) and
-    // registers the three PGN callbacks. Call once after
-    // IsobusGuidanceChannel::Begin().
+    // Creates the display partner. Call once after
+    // IsobusGuidanceChannel::Begin(). The emulation itself starts in Update().
     void Begin();
 
-    // Call every loop(): sends the software identification once the address
-    // is claimed, the heartbeat, and whatever the emulation has queued.
+    // The lightbar setting; Update() acts on a change. Auto until set.
+    inline void SetMode(LightbarMode value) { mode = value; }
+    inline LightbarMode GetMode() const { return mode; }
+
+    // Call every loop(): starts or stops the emulation as the mode and the
+    // display ask; while it runs, sends the software identification once the
+    // address is claimed, the heartbeat, and whatever the emulation has queued.
     void Update();
+
+    // Running: our L160 control function exists (claimed or claiming).
+    inline bool IsRunning() const { return controlFunction != nullptr; }
+    // The InCommand's display has been on the bus since boot (Auto's trigger).
+    inline bool IsAgLeaderDisplaySeen() const { return displaySeen; }
 
     inline std::shared_ptr<isobus::InternalControlFunction> GetControlFunction() { return controlFunction; }
     bool IsClaimed() const;
@@ -123,6 +137,14 @@ private:
     // until claimed. The native tests set it directly.
     std::uint8_t claimedAddress = 0xFF;
     bool         claimAnnounced = false;
+
+    LightbarMode mode = LightbarMode::Auto;
+    bool         displaySeen = false;   // latched: Auto keeps running through a display gap
+
+    // Claims the L160 control function and registers the callbacks; stop()
+    // takes it off the bus again and forgets the display's contact.
+    void start();
+    void stop();
 
     bool IsAddressedToUs(const isobus::CANMessage& msg) const;
     void Send(const AgLeaderLightbarEmulation::Outgoing& outgoing);

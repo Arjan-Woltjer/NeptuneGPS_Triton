@@ -102,6 +102,63 @@ enum PloughVtObjectId : uint16_t {
     // labels would make AgIsoStack scale those labels' font with the data
     // mask factor again (neptune-main a9453ff keeps shared fonts there).
     Font_White_Unit  = 37,
+
+    // ---- Calibration page (#240) ----
+    // A block of its own from 100, so no existing id moves. One label and
+    // one input per PloughSettings line, in table order: Label_Cal0 + i and
+    // Input_Cal0 + i for line i.
+    Plough_CalDataMask    = 100,
+    Plough_CalSoftKeyMask = 101,
+    Key_CalSave           = 102,
+    Key_CalCancel         = 103,
+    Label_CalSave         = 104,
+    Label_CalCancel       = 105,
+    Key_CalWidth          = 106,  // opens the width procedure
+    Label_CalWidth        = 107,
+    Label_Cal0            = 110,  // .. 119 at most
+    Input_Cal0            = 120,  // .. 129 at most: InputNumber or InputList
+    // The list entries and units, shared by the inputs that use them.
+    Str_CalNo             = 130,
+    Str_CalYes            = 131,
+    Str_CalRight          = 132,
+    Str_CalLeft           = 133,
+    Str_CalDgps           = 134,
+    Str_CalRtk            = 135,
+    Str_CalCm             = 136,
+    Str_CalMm             = 137,
+
+    // The width procedure (#240): the point being captured, its target, the
+    // live sensor and a status line, with Smaller / Breder / Vastleggen /
+    // Terug.
+    Plough_CalWidthMask        = 140,
+    Plough_CalWidthSoftKeyMask = 141,
+    Key_CalNarrower            = 142,
+    Key_CalWider               = 143,
+    Key_CalCapture             = 144,
+    Key_CalWidthBack           = 145,
+    Label_CalNarrower          = 146,
+    Label_CalWider             = 147,
+    Label_CalCapture           = 148,
+    Label_CalWidthBack         = 149,
+    Label_CalWidthTitle        = 150,
+    Label_CalWidthPoint        = 151,
+    Out_CalWidthPoint          = 152,
+    Var_CalWidthPoint          = 153,  // 1 to 3
+    Label_CalWidthOf           = 154,
+    Label_CalWidthTarget       = 155,
+    Out_CalWidthTarget         = 156,
+    Var_CalWidthTarget         = 157,  // target cm + 1000; the output subtracts it
+    Label_CalWidthSensor       = 158,
+    Out_CalWidthSensor         = 159,
+    Var_CalWidthSensor         = 160,  // the sensor reading (ADC)
+    Ptr_CalWidthStatus         = 161,
+    Str_CalBlank               = 162,
+    Str_CalInvalid             = 163,
+
+    // The lightbar setting's list entries (#272), after the width procedure's.
+    Str_CalAuto                = 164,
+    Str_CalOn                  = 165,
+    Str_CalOff                 = 166,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
@@ -110,6 +167,13 @@ enum PloughKeyCode : uint8_t {
     KeyCode_Narrower  = 2,
     KeyCode_Auto      = 3,
     KeyCode_Calibrate = 4,
+    KeyCode_CalSave   = 5,
+    KeyCode_CalCancel = 6,
+    KeyCode_CalWidth     = 7,
+    KeyCode_CalNarrower  = 8,
+    KeyCode_CalWider     = 9,
+    KeyCode_CalCapture   = 10,
+    KeyCode_CalWidthBack = 11,
 };
 
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().

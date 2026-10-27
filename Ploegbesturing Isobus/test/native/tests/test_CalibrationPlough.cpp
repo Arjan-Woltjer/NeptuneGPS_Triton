@@ -28,9 +28,9 @@
 using namespace aunit;
 using namespace triton;
 
-// The wizard itself (Calibrate()) blocks on LCD buttons and stays out of
-// these tests; what runs here is what main.cpp runs before loop(): the
-// constructor's EEPROM read, and the serial dump.
+// The persistence side: what main.cpp runs before loop(), the constructor's
+// EEPROM read, and the serial dump. The wizard's screens are in
+// test_CalibrationWizard.cpp.
 
 struct CalCaptureStream : public Stream {
     std::string out;

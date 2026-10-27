@@ -49,6 +49,7 @@
 #include "GuidanceSource.hpp"
 #include "VtFailoverPolicy.hpp"
 #include "PreferredVt.hpp"
+#include "IsobusVtCalibration.hpp"
 
 namespace triton
 {
@@ -58,22 +59,22 @@ namespace triton
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes.
 //
-// Soft-key handling: main.cpp's loop() passes IsWiderHeld()/IsNarrowerHeld()/
-// ConsumeCalibratePress() below into InterfacePlough::Update(), which lands
-// each where the physical button meaning the same thing goes (Wider -> the
-// LEFT_BUTTON_2 slot, Narrower -> RIGHT_BUTTON_2, Calibrate -> the both-held
-// outcome main.cpp turns into a CalibrationPlough::Calibrate() call).
+// Soft-key handling: main.cpp's loop() passes IsWiderHeld()/IsNarrowerHeld()
+// below into InterfacePlough::Update(), which lands each where the physical
+// button meaning the same thing goes (Wider -> the RIGHT_BUTTON_2 slot, the
+// cab's +; Narrower -> LEFT_BUTTON_2, the -). Calibrate opens the VT
+// calibration page (#240) instead, see AttachCalibration().
 // Wider/Narrower are held levels (#245): held from the VT's press until its
 // release, they go through the cab buttons' own hold-to-repeat, so a held
 // soft key drives in manual and steps the width every 200 ms in auto or
 // hold, exactly like a held cab button. Until #245 they were one-loop edges
-// on release and never moved the plough. Calibrate stays a tap, acting on
-// release.
+// on release and never moved the plough. Calibrate, Opslaan and Annuleren
+// act on release.
 //
 // Auto (Key_Auto) is deliberately NOT wired -- InterfacePlough's AUTO mode is
 // derived from GPS/hitch state, not user-settable via a button, so there's no
 // existing target for it; still display + log only.
-class IsobusVtInterface {
+class IsobusVtInterface : public VtCalibrationOutput {
 public:
     IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
                        std::shared_ptr<isobus::InternalControlFunction> controlFunction);
@@ -177,13 +178,14 @@ public:
     bool IsWiderHeld() const;
     bool IsNarrowerHeld() const;
 
-    // Consume-once Calibrate tap, set on key release and cleared by the call
-    // itself: it enters a blocking wizard, so one tap must enter it once.
-    inline bool ConsumeCalibratePress() {
-        bool v = pendingCalibratePress;
-        pendingCalibratePress = false;
-        return v;
-    }
+    // The calibration page (#240) the Calibrate key opens, and Opslaan /
+    // Annuleren and the page's inputs go to. Without one the key is only
+    // logged. main.cpp attaches it after Begin().
+    void AttachCalibration(IsobusVtCalibration* page) { calibration = page; }
+
+    // VtCalibrationOutput, over the VT client.
+    bool ChangeActiveMask(uint16_t dataMask) override;
+    bool ChangeNumericValue(uint16_t objectId, uint32_t value) override;
 
 private:
     // The native suite drives the VT-to-ECU callback, the key handler and the
@@ -211,6 +213,8 @@ private:
     // once check_src_filters finally brought this library into scope).
     isobus::EventCallbackHandle                         softKeyListener = 0;
     isobus::EventCallbackHandle                         buttonListener = 0;
+    isobus::EventCallbackHandle                         numericValueListener = 0;
+    IsobusVtCalibration*                                calibration = nullptr;
     Logger                                              logger;
 
     unsigned long lastVtUpdate = 0;
@@ -244,7 +248,6 @@ private:
     uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
     int32_t       lastSentSpeed       = 0;  // 0.1 km/h
 
-    bool pendingCalibratePress = false;
     bool          widerHeld       = false;
     bool          narrowerHeld    = false;
     unsigned long widerEventMs    = 0;

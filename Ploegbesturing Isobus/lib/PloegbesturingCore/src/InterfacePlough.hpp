@@ -80,7 +80,7 @@ public:
     };
 
     // Calibration wizard trigger: the caller (main.cpp) checks this after
-    // Update() and invokes CalibrationPlough::Calibrate() itself -- see
+    // Update() and calls CalibrationPlough::Start() itself -- see
     // CalibrationPlough.hpp for why that trigger lives outside this class.
     inline byte GetMode() {
         return mode;

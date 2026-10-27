@@ -116,6 +116,7 @@ triton::CalibrationPlough* gCalibration;
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusLightbarChannel* gLightbarChannel;
 triton::IsobusVtInterface*     gVtInterface;
+triton::IsobusVtCalibration*   gVtCalibration;
 triton::IsobusTcInterface*     gTcInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 #if !defined(ESP32S3)
@@ -173,7 +174,7 @@ void setup() {
     gSerialDebug->println("--------------------------------");
     gSerialDebug->println("-----------MeijWorks------------");
     gSerialDebug->println("--------------------------------");
-    gSerialDebug->println("Ploughcontrol ISOBUS version 0.1");
+    gSerialDebug->println("   Triton PB-ISO version 0.21   ");
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
 #endif
@@ -256,10 +257,18 @@ void setup() {
     // only means something to the error-register readout. On the bench the
     // wrong one made the stack retry the claim every loop on a port it does
     // not have, flooding the serial log (2026-10-09).
+    // Whether it runs is the lightbar setting (#272): Auto (the default)
+    // starts it once the InCommand's display is on the bus, so a John Deere
+    // or CNH bus never sees our L160.
     gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance);
+    gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Begin();
     gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
+    // The VT calibration page (#240) edits the same settings draft as the
+    // cab wizard.
+    gVtCalibration = new triton::IsobusVtCalibration(gSerialDebug, &gCalibration->GetSettings(), gImplement);
+    gVtInterface->AttachCalibration(gVtCalibration);
 
     // Constructed after gVtInterface->Begin() so the VT's partner exists --
     // the TC client uses it for language/unit data on TC servers older than
@@ -331,34 +340,44 @@ void loop() {
 #endif
     gGuidanceChannel->Update();
 #ifdef ISOBUS
+    // The saved setting: the wizard's or the VT page's Save changes it.
+    gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Update();
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();
+#endif
+
+    // The calibration wizard is a step runner (#31): while it is open it
+    // takes the buttons and the LCD instead of InterfacePlough, one pass per
+    // loop(), and everything above keeps running. See CalibrationPlough.hpp.
+    if (gCalibration->IsActive()) {
+        gCalibration->Step();
+#ifdef ISOBUS
+        // The wizard may have changed the preferred VT (#255).
+        if (!gCalibration->IsActive()) gVtInterface->LoadPreferredVt();
+#endif
+        return;
+    }
+
+#ifdef ISOBUS
+    // The VT calibration page is open (#240): the control holds and the cab
+    // buttons do nothing until it is saved or cancelled.
+    if (gCalibration->HoldWhileVtCalibrates()) return;
 
     // Update interface -- the VT's Wider/Narrower soft keys (held levels, #245)
-    // and Calibrate tap feed InterfacePlough's button handling, see
-    // IsobusVtInterface.hpp. ConsumeCalibratePress() must run on every
-    // iteration: it is the only thing that clears the pending tap.
-    gInterface->Update(gVtInterface->IsWiderHeld(),
-                       gVtInterface->IsNarrowerHeld(),
-                       gVtInterface->ConsumeCalibratePress());
+    // feed InterfacePlough's button handling, see IsobusVtInterface.hpp.
+    gInterface->Update(gVtInterface->IsWiderHeld(), gVtInterface->IsNarrowerHeld());
 #else
     // Update interface
     gInterface->Update();
 #endif
 
-    // Both buttons held (or the VT's Calibrate soft key) -> enter the
-    // calibration wizard (blocking until it finishes/is cancelled). See
-    // CalibrationPlough.hpp for why this trigger lives here instead of inside
-    // InterfacePlough itself, and GitHub issue #31 for what blocking here
-    // costs the ISOBUS stack when the trigger came from the VT.
+    // Both buttons held -> open the calibration wizard (the VT's Calibrate
+    // key opens the VT page instead). See CalibrationPlough.hpp for why this trigger lives
+    // here instead of inside InterfacePlough itself.
     if (gInterface->GetButtons() == 2) {
-        gCalibration->Calibrate();
-#ifdef ISOBUS
-        // The wizard may have changed the preferred VT (#255).
-        gVtInterface->LoadPreferredVt();
-#endif
+        gCalibration->Start();
     }
 }
 

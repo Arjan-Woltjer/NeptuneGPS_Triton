@@ -18,6 +18,8 @@
 */
 #include "VTObjectPool.hpp"
 #include "VTImages.hpp"
+#include "../calibration/PloughSettings.hpp"
+#include "../FlashMem.hpp"
 
 #include <string.h>
 
@@ -225,6 +227,44 @@ static void appendNumberVariable(uint16_t id, uint32_t initValue) {
     pu32(initValue);
 }
 
+// Type 9: InputNumber, holding its own value (no variable reference): the
+// VT refuses entries outside min..max, and IsobusVtCalibration sets the value
+// with Change Numeric Value on the object itself. 38 bytes, as AgIsoStack's
+// get_minimum_object_length() counts them.
+static void appendInputNumber(uint16_t id, uint16_t w, uint16_t h, uint16_t fontAttr,
+                              uint32_t value, int32_t minValue, int32_t maxValue) {
+    pu16(id); pu8(9);
+    pu16(w); pu16(h);
+    pu8(kBlack);    // background colour
+    pu16(fontAttr);
+    pu8(0x00);      // options: opaque, no leading zeros
+    pu16(0xFFFF);   // no variable reference: the object holds the value
+    pu32(value);
+    pi32(minValue);
+    pi32(maxValue);
+    pi32(0);        // offset
+    pf32(1.0f);     // scale
+    pu8(0);         // decimals
+    pu8(0);         // format: fixed point
+    pu8(0);         // justification: left
+    pu8(0x01);      // enabled (VT3); no real-time editing
+    pu8(0);         // 0 macros
+}
+
+// Type 10: InputList over OutputString entries; its value is the index of
+// the entry shown. 13 bytes, then the entries' ids.
+static void appendInputList(uint16_t id, uint16_t w, uint16_t h, uint8_t value,
+                            const uint16_t* items, uint8_t numItems) {
+    pu16(id); pu8(10);
+    pu16(w); pu16(h);
+    pu16(0xFFFF);   // no variable reference
+    pu8(value);
+    pu8(numItems);
+    pu8(0x01);      // options: enabled; no real-time editing
+    pu8(0);         // 0 macros
+    for (uint8_t i = 0; i < numItems; i++) pu16(items[i]);
+}
+
 // Type 20: PictureGraphic (bitmap) -- used for the WorkingSet's app-switcher
 // icon. Byte layout confirmed 2026-08-10 by decoding AgIsoStack's own
 // reference pool's "avatar" icon object by hand (id, type=20, width(2),
@@ -361,7 +401,168 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // ----------------------------------------------------------------
 // Public entry point -- call once in setup() before VT init
 // ----------------------------------------------------------------
-void BuildObjectPool() {
+// ----------------------------------------------------------------
+// Calibration page (#240): one row per PloughSettings line, label and input,
+// in table order, plus Opslaan / Annuleren. Generated from the table: the
+// inputs take their bounds from it, so the VT refuses what the plough would.
+// ----------------------------------------------------------------
+// Labels, at most 10 characters at 12x16 (120 px of the 124 px column).
+static constexpr const char* kCalLabels[PloughSettings::kCount] = {
+    "SCHAREN", "PLOEGZIJDE", "HEF INVERT", "BYPASS", "DODE BAND", "CORR/SCH.",
+#ifdef ISOBUS
+    "VOORK. VT", "AG LEADER",
+#endif
+    "RTK IDENT",
+};
+
+static constexpr size_t calLabelLength(const char* s) { return *s ? 1 + calLabelLength(s + 1) : 0; }
+static constexpr bool calLabelsFit(size_t maxChars, size_t i = 0) {
+    return i >= PloughSettings::kCount ||
+           (calLabelLength(kCalLabels[i]) <= maxChars && calLabelsFit(maxChars, i + 1));
+}
+
+// The list entries of each two-value kind, index 0 first: a yes/no list's
+// index is the value, the side list's is the side the plough gives (R = 0,
+// L = 1, as the cab wizard's L/R), the RTK list's is 0 for DGPS (2) and 1
+// for RTK (4). IsobusVtCalibration maps them. The lightbar list's index is
+// the LightbarMode value: Auto, On, Off.
+static const uint16_t kCalYesNoItems[2] = { Str_CalNo, Str_CalYes };
+static const uint16_t kCalSideItems[2]  = { Str_CalRight, Str_CalLeft };
+static const uint16_t kCalRtkItems[2]   = { Str_CalDgps, Str_CalRtk };
+static const uint16_t kCalLightbarItems[3] = { Str_CalAuto, Str_CalOn, Str_CalOff };
+
+// Run once at boot, so from flash, not RAM1 (#192).
+FLASHMEM static void appendCalibrationPage() {
+    // 9 rows of 22 px on the 200 px mask (8 of 24 px until #272): a 124 px
+    // label column and a 72 px value column, wide enough for RECHTS at 12x16.
+    constexpr uint16_t kCharW = 12;
+    constexpr uint16_t LBL_X = 2, LBL_W = 124;
+    constexpr uint16_t VAL_X = 128, VAL_W = 72, NUM_W = 40;
+    constexpr uint16_t UNIT_X = VAL_X + NUM_W + 4;
+    constexpr uint16_t ROW_TOP = 1, ROW_H = 22;
+    static_assert(calLabelsFit(LBL_W / kCharW), "calibration label too wide for its column");
+    static_assert(6 * kCharW <= VAL_W, "value column narrower than RECHTS");
+    static_assert(3 * kCharW <= NUM_W, "number field narrower than 3 digits");
+    static_assert(UNIT_X + 2 * 8 <= 200 && LBL_X + LBL_W <= VAL_X && VAL_X + VAL_W <= 200,
+                  "columns overlap or leave the mask");
+    static_assert(ROW_TOP + PloughSettings::kCount * ROW_H <= 200, "rows leave the mask");
+    static_assert(ROW_H >= 16, "rows lower than the 12x16 font");
+    static_assert(Label_Cal0 + PloughSettings::kCount <= Input_Cal0 && Input_Cal0 + PloughSettings::kCount <= Str_CalNo,
+                  "calibration labels or inputs run into the next id block");
+
+    uint8_t units = 0;
+    for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
+        const PloughSetting id = PloughSetting(i);
+        if (id == PloughSetting::Deadband || id == PloughSetting::MaxCorrectionPerShare) units++;
+    }
+
+    appendDataMask(Plough_CalDataMask, kBlack, Plough_CalSoftKeyMask, uint8_t(2 * PloughSettings::kCount + units));
+    for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
+        const uint16_t y = ROW_TOP + i * ROW_H;
+        appendObjRef(Label_Cal0 + i, LBL_X, y);
+        appendObjRef(Input_Cal0 + i, VAL_X, y);
+        if (PloughSetting(i) == PloughSetting::Deadband) appendObjRef(Str_CalCm, UNIT_X, y + 6);
+        if (PloughSetting(i) == PloughSetting::MaxCorrectionPerShare) appendObjRef(Str_CalMm, UNIT_X, y + 6);
+    }
+
+    appendSoftKeyMask(Plough_CalSoftKeyMask, kBlack, 3);
+    pu16(Key_CalSave); pu16(Key_CalCancel); pu16(Key_CalWidth);
+    appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
+    appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
+    appendKey(Key_CalWidth, kBlack, KeyCode_CalWidth, Label_CalWidth);
+    appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "OPSLAAN");
+    appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "ANNUL.");
+    appendOutputString(Label_CalWidth, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREEDTE");
+
+    for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
+        const PloughSettingLine& line = PloughSettings::Line(PloughSetting(i));
+        appendOutputString(Label_Cal0 + i, LBL_W, ROW_H, Font_White_Medium, 0, kCalLabels[i]);
+        switch (line.kind) {
+            case SettingKind::Number:
+                appendInputNumber(Input_Cal0 + i, NUM_W, ROW_H, Font_White_Medium, uint32_t(line.lowest),
+                                  line.lowest, line.highest);
+                break;
+            case SettingKind::YesNo:
+                appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalYesNoItems, 2);
+                break;
+            case SettingKind::PloughSide:
+                appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalSideItems, 2);
+                break;
+            case SettingKind::RtkQuality:
+                appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 1, kCalRtkItems, 2);
+                break;
+            case SettingKind::LightbarMode:
+                appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalLightbarItems, 3);
+                break;
+        }
+    }
+
+    appendOutputString(Str_CalNo, VAL_W, ROW_H, Font_White_Medium, 0, "NEE");
+    appendOutputString(Str_CalYes, VAL_W, ROW_H, Font_White_Medium, 0, "JA");
+    appendOutputString(Str_CalRight, VAL_W, ROW_H, Font_White_Medium, 0, "RECHTS");
+    appendOutputString(Str_CalLeft, VAL_W, ROW_H, Font_White_Medium, 0, "LINKS");
+    appendOutputString(Str_CalDgps, VAL_W, ROW_H, Font_White_Medium, 0, "DGPS");
+    appendOutputString(Str_CalRtk, VAL_W, ROW_H, Font_White_Medium, 0, "RTK");
+    appendOutputString(Str_CalAuto, VAL_W, ROW_H, Font_White_Medium, 0, "AUTO");
+    appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, "AAN");
+    appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, "UIT");
+    appendOutputString(Str_CalCm, 16, 10, Font_White_Unit, 0, "cm");
+    appendOutputString(Str_CalMm, 16, 10, Font_White_Unit, 0, "mm");
+}
+
+// The width procedure (#240): which of the three points, the width to drive
+// the plough to, the live sensor reading, and a status line that says when a
+// capture was not taken. Smaller / Breder drive the plough while held,
+// Vastleggen captures the point, Terug goes back to the page.
+FLASHMEM static void appendCalibrationWidthPage() {
+    constexpr uint16_t kCharW = 12;
+    constexpr uint16_t ROW_H = 28;
+    constexpr uint16_t TITLE_Y = 4, POINT_Y = 32, TARGET_Y = 60, SENSOR_Y = 88, STATUS_Y = 116;
+    constexpr uint16_t LBL_X = 2, LBL_W = 84, VAL_X = 90, VAL_W = 60;
+    static_assert(6 * kCharW <= LBL_W, "label column narrower than SENSOR");
+    static_assert(4 * kCharW <= VAL_W && VAL_X + VAL_W <= 200, "value column too narrow or off the mask");
+    static_assert(8 * kCharW <= 196 && STATUS_Y + ROW_H <= 200, "status line off the mask");
+
+    appendDataMask(Plough_CalWidthMask, kBlack, Plough_CalWidthSoftKeyMask, 10);
+    appendObjRef(Label_CalWidthTitle, LBL_X, TITLE_Y);
+    appendObjRef(Label_CalWidthPoint, LBL_X, POINT_Y);
+    appendObjRef(Out_CalWidthPoint, VAL_X, POINT_Y);
+    appendObjRef(Label_CalWidthOf, VAL_X + 2 * kCharW, POINT_Y);
+    appendObjRef(Label_CalWidthTarget, LBL_X, TARGET_Y);
+    appendObjRef(Out_CalWidthTarget, VAL_X, TARGET_Y);
+    appendObjRef(Str_CalCm, VAL_X + VAL_W + 2, TARGET_Y + 6);
+    appendObjRef(Label_CalWidthSensor, LBL_X, SENSOR_Y);
+    appendObjRef(Out_CalWidthSensor, VAL_X, SENSOR_Y);
+    appendObjRef(Ptr_CalWidthStatus, LBL_X, STATUS_Y);
+
+    appendSoftKeyMask(Plough_CalWidthSoftKeyMask, kBlack, 4);
+    pu16(Key_CalNarrower); pu16(Key_CalWider); pu16(Key_CalCapture); pu16(Key_CalWidthBack);
+    appendKey(Key_CalNarrower, kBlack, KeyCode_CalNarrower, Label_CalNarrower);
+    appendKey(Key_CalWider, kBlack, KeyCode_CalWider, Label_CalWider);
+    appendKey(Key_CalCapture, kBlack, KeyCode_CalCapture, Label_CalCapture);
+    appendKey(Key_CalWidthBack, kBlack, KeyCode_CalWidthBack, Label_CalWidthBack);
+    appendOutputString(Label_CalNarrower, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "SMALLER");
+    appendOutputString(Label_CalWider, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREDER");
+    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "VASTLEG");
+    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "TERUG");
+
+    appendOutputString(Label_CalWidthTitle, 196, ROW_H, Font_White_Medium, 0, "BREEDTE");
+    appendOutputString(Label_CalWidthPoint, LBL_W, ROW_H, Font_White_Medium, 0, "PUNT");
+    appendOutputString(Label_CalWidthOf, 72, ROW_H, Font_White_Medium, 0, "VAN 3");
+    appendOutputString(Label_CalWidthTarget, LBL_W, ROW_H, Font_White_Medium, 0, "NAAR");
+    appendOutputString(Label_CalWidthSensor, LBL_W, ROW_H, Font_White_Medium, 0, "SENSOR");
+    appendNumberVariable(Var_CalWidthPoint, 1);
+    appendNumberVariable(Var_CalWidthTarget, 1000);
+    appendNumberVariable(Var_CalWidthSensor, 0);
+    appendOutputNumber(Out_CalWidthPoint, kCharW + 2, ROW_H, Font_White_Medium, Var_CalWidthPoint, 0, 1.0f, 0);
+    appendOutputNumber(Out_CalWidthTarget, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthTarget, -1000, 1.0f, 0);
+    appendOutputNumber(Out_CalWidthSensor, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthSensor, 0, 1.0f, 0);
+    appendObjectPointer(Ptr_CalWidthStatus, Str_CalBlank);
+    appendOutputString(Str_CalBlank, 196, ROW_H, Font_White_Medium, 0, " ");
+    appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, "ONGELDIG");
+}
+
+FLASHMEM void BuildObjectPool() {
     poolPos = 0;
 
 #if VT_POOL_USE_AGISOSTACK_REFERENCE
@@ -500,9 +701,7 @@ void BuildObjectPool() {
     appendKey(Key_Wider, kBlack, KeyCode_Wider, Label_Wider);
     appendKey(Key_Narrower, kBlack, KeyCode_Narrower, Label_Narrower);
     appendKey(Key_Auto, kBlack, KeyCode_Auto, Label_Auto);
-    // Calibrate enters CalibrationPlough's blocking wizard -- see
-    // IsobusVtInterface::onVtKeyEvent() for the operational caveats that come
-    // with triggering it from the VT rather than from the cab buttons.
+    // Calibrate opens the calibration page below (#240).
     appendKey(Key_Calibrate, kBlack, KeyCode_Calibrate, Label_Calibrate);
 
     // ---- Font attributes ----
@@ -562,6 +761,9 @@ void BuildObjectPool() {
     // Speed: the variable holds 0.1 km/h; scale 0.1, one decimal -> "12.3".
     // 48 px = 4 characters at 12x16, up to 99.9 km/h.
     appendOutputNumber(Out_Speed, 48, 20, Font_White_Medium, Var_Speed, 0, 0.1f, 1);
+
+    appendCalibrationPage();
+    appendCalibrationWidthPage();
 
     VT3PoolData = poolBuffer;
     VT3PoolSize = poolPos;

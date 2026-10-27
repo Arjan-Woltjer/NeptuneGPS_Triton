@@ -150,8 +150,9 @@ void InterfacePlough::UpdateScreen(bool rewrite) {
 #else
         lcd->WriteBuffer(L_BLANK, 3);
 #endif
+        // No flush here: loop() writes one changed character per pass (below),
+        // so a rewritten screen builds up without holding a pass up ~150 ms.
 
-        lcd->WriteScreen(-1);
     }
 
     // Regel 0

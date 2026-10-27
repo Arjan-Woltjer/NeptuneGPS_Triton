@@ -31,24 +31,51 @@
 #include "GuidanceSource.hpp"
 #include "../config/LanguagePlough.hpp"
 #include "VehicleSensors.hpp"
+#include "PloughSettings.hpp"
+#include "WidthProcedure.hpp"
 #ifdef ISOBUS
 #include "isobus/PreferredVt.hpp"
+#include "isobus/LightbarMode.hpp"
+#endif
+
+#if defined(ROTATION) || defined(SPEED_L)
+#error "The calibration step runner has no rotation or speed screens (#240); add them before enabling ROTATION or SPEED_L."
 #endif
 
 namespace triton
 {
 
-// Extracted from InterfacePlough::Calibrate() so the LCD/button-driven wizard --
-// which can't run without real hardware -- stays out of the native test build,
-// matching CalibrationSprayer's role for Spuitcomputer LD. The caller (main.cpp) checks
-// InterfacePlough::GetButtons() after each InterfacePlough::Update() and invokes
-// Calibrate() itself; this class never triggers itself.
+// The cab-LCD calibration wizard, as a step runner (#31, #240): Start() opens
+// it, then main.cpp's loop() calls Step() once per pass instead of
+// InterfacePlough::Update(), so the CAN stack, the VT, the TC and guidance keep
+// running while it is open. The screens, their order (#260) and the buttons
+// are the wizard's own; the values are a PloughSettings draft, applied and
+// stored only by COMPLETE's accept. While it runs the control holds: no valve
+// moves except the width procedure's, which drives in manual. The caller
+// (main.cpp) starts it on InterfacePlough::GetButtons() == 2; this class never
+// triggers itself.
 class CalibrationPlough {
 public:
     CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
                        VehicleSensors* tractor, GuidanceSource* guidance, InterfacePlough* interface);
 
-    void Calibrate();
+    // Opens the wizard on its first screen. False, doing nothing, while
+    // another front end holds the settings session.
+    bool Start();
+    bool IsActive() const { return screen != kIdle; }
+    // One pass of the open wizard; nothing when it is closed.
+    void Step();
+
+    PloughSettings& GetSettings() { return settings; }
+
+#ifdef ISOBUS
+    // While the VT calibration page (#240) holds the settings session: the
+    // control holds, the cab shows that the calibration is on the VT, and
+    // main.cpp calls this instead of InterfacePlough::Update(), so the cab
+    // buttons do nothing. True while the VT holds it; the pass after it
+    // lets go redraws the main screen and returns false.
+    bool HoldWhileVtCalibrates();
+#endif
 
     // The two guidance values this board persists, as in the regular
     // Ploegbesturing. GuidanceSource is a shared data model with no storage
@@ -66,6 +93,16 @@ public:
     void CommitGuidanceCalibration();
 
     void PrintCalibrationData();
+
+#ifdef ISOBUS
+    // The preferred VT number (#255), held until CommitGuidanceCalibration().
+    byte GetPreferredVt() const   { return preferredVt; }
+    void SetPreferredVt(byte vt)  { preferredVt = vt <= kHighestPreferredVt ? vt : 0; }
+
+    // The Ag Leader lightbar setting (#272), held until CommitGuidanceCalibration().
+    LightbarMode GetLightbarMode() const     { return lightbarMode; }
+    void SetLightbarMode(LightbarMode value) { lightbarMode = uint8_t(value) <= kHighestLightbarMode ? value : LightbarMode::Auto; }
+#endif
 
     // One + or - press on a number screen: one step, never past the bounds
     // the boot load accepts, so a saved value always survives the next boot
@@ -89,9 +126,46 @@ private:
     byte gpsBaudIndex = 0;
 #ifdef ISOBUS
     byte             preferredVt = 0;  // #255: the VT number, 0 = none
+    LightbarMode     lightbarMode = LightbarMode::Auto;  // #272
 #endif
 
+    PloughSettings settings;
+    WidthProcedure width;
+
+    // The wizard's screens: the width procedure, one per settings line in
+    // table order, then COMPLETE.
+    static constexpr uint8_t kWidth    = 0;
+    static constexpr uint8_t kComplete = PloughSettings::kCount + 1;
+    static constexpr uint8_t kIdle     = 0xFF;
+    // The pause after a screen's done / declined line, as the wizard's
+    // delay(1000) did; Step() just waits it out.
+    static constexpr unsigned long kPauseMs = 1000;
+
+    enum class Phase : uint8_t {
+        AskRelease,    // title shown, waiting for both buttons up
+        Ask,           // + accepts, - declines
+        EditRelease,   // edit screen shown, waiting for both buttons up
+        Edit,          // + / - change the value, both held finishes
+        PointRelease,  // width point shown, waiting for both buttons up
+        Point,         // + / - drive the plough, both held captures
+        Pause,         // done / declined shown for kPauseMs
+    };
+
+    uint8_t       screen = kIdle;
+    Phase         phase = Phase::AskRelease;
+    int16_t       value = 0;
+    unsigned long pauseStartMs = 0;
+    bool          holdingForVt = false;
+
     bool loadGuidanceCalibration();
+    void enterScreen(uint8_t next);
+    void accept();
+    void decline();
+    void finish();
+    void pause();
+    void showPoint();
+    void drawValue();
+    PloughSetting setting() const { return PloughSetting(screen - 1); }
 };
 
 }  // namespace triton
