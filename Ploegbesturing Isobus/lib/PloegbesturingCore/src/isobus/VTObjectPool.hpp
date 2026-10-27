@@ -34,10 +34,10 @@ enum PloughVtObjectId : uint16_t {
     Plough_DataMask    = 1,
     Plough_SoftKeyMask = 2,
 
-    // Soft key objects
+    // Soft key objects. 5 was the AUTO key and 14 its label until #282: never
+    // reused, so a VT's cached pool can't mistake a new object for them.
     Key_Wider    = 3,
     Key_Narrower = 4,
-    Key_Auto     = 5,
 
     // Font attribute objects
     Font_White_Medium = 6,  // 12x16 for data fields
@@ -50,7 +50,6 @@ enum PloughVtObjectId : uint16_t {
     Label_Offset   = 11,
     Label_Wider    = 12,
     Label_Narrower = 13,
-    Label_Auto     = 14,
 
     // Output numbers (reference the variables below)
     Out_Position = 15,
@@ -102,6 +101,13 @@ enum PloughVtObjectId : uint16_t {
     // labels would make AgIsoStack scale those labels' font with the data
     // mask factor again (neptune-main a9453ff keeps shared fonts there).
     Font_White_Unit  = 37,
+
+    // The + and - key labels' 24x32 font (#282), used on keys only, so it
+    // scales with the soft keys like Font_White_Small.
+    Font_White_Large = 38,
+    // Blank soft key positions: NULL object pointers, Ptr_KeyBlank0 + i for
+    // position i of any soft key mask (VTObjectPool.cpp, appendSoftKeys()).
+    Ptr_KeyBlank0    = 39,  // .. 50
 
     // ---- Calibration page (#240) ----
     // A block of its own from 100, so no existing id moves. One label and
@@ -168,11 +174,20 @@ enum PloughVtObjectId : uint16_t {
     Aux_Narrower               = 171,
 };
 
+// Soft key positions per mask. The owner's layout (#282) counts on a VT
+// with two key columns filling each row from column 2, then column 1:
+// position 2(r - 1) is column 2 of row r, position 2(r - 1) + 1 column 1.
+// A one-column VT takes the positions in order, row by row.
+constexpr uint8_t kSoftKeySlots = 12;
+constexpr uint8_t SoftKeySlot(uint8_t row, uint8_t column) {
+    return uint8_t(2 * (row - 1) + (column == 1 ? 1 : 0));
+}
+
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
+// 3 was the AUTO key's until #282.
 enum PloughKeyCode : uint8_t {
     KeyCode_Wider     = 1,
     KeyCode_Narrower  = 2,
-    KeyCode_Auto      = 3,
     KeyCode_Calibrate = 4,
     KeyCode_CalSave   = 5,
     KeyCode_CalCancel = 6,
