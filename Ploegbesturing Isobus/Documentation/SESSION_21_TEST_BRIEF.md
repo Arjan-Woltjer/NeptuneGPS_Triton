@@ -261,9 +261,9 @@ Full record: `logs/2026-10-27_session21_vanmastwijk_{timeline.md,serial.log}`, t
 - **C8** (the control holds while the wizard is open, driving on the line in AUTO).
 - **E6** (AUTO with a setpoint beyond an end stop).
 - **L2's driving half**: following the 1200's line in AUTO (65462 committed and xte == lb, standing still).
-- **#281 / #254 AUX-N** (MW11): listed on the 1200, not assignable; not on main.
+- **#281 / #254 AUX-N** (MW11): listed on the 1200, not assignable. On main with #282 (#283, owner).
 - **#282** (MW12-MW16): readable list popups, 12x16 units, the main screen in cm, the soft key layout. Bench-passed
-  on AgISOVirtualTerminal (2 x 6 and 1 x 6), not yet on the CNH VT or the 1200; not on main.
+  on AgISOVirtualTerminal (2 x 6 and 1 x 6), not yet on the CNH VT or the 1200. On main through #283 (owner).
 - **N2's wheel speed** (#276): the hitch half passed; the speed needs the tractor moving.
 - **A2**: the armrest buttons pressed one at a time, with the time to the second, for the CANedge (#254).
 
