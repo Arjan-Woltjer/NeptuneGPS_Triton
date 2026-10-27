@@ -135,8 +135,8 @@ enum PloughVtObjectId : uint16_t {
     Str_CalMm             = 137,
 
     // The width procedure (#240): the point being captured, its target, the
-    // live sensor and a status line, with Smaller / Breder / Vastleggen /
-    // Terug.
+    // live sensor and a status line, with - / + / Opslaan (capture) /
+    // Annul. (back).
     Plough_CalWidthMask        = 140,
     Plough_CalWidthSoftKeyMask = 141,
     Key_CalNarrower            = 142,

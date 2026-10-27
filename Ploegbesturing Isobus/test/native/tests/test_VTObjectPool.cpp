@@ -484,8 +484,8 @@ test(VTObjectPool, mainScreen_everyRowInCm) {
 // #282, the owner's layout on a 2 x 6 VT that fills column 2 top to bottom,
 // then column 1 (the bench VT): column 2 row r is position r - 1, column 1
 // row r position 5 + r. - at column 2 row 1 (0), + at column 1 row 1 (6),
-// CALIBR and BREEDTE at column 1 row 3 (8), OPSLAAN and VASTLEG row 4 (9),
-// ANNUL. and TERUG row 6 (11). Every other position up to the last key is a
+// CALIBR and BREEDTE at column 2 row 3 (2), both OPSLAANs row 4 (3), both
+// ANNUL.s row 6 (5). Every other position up to the last key is a
 // blank NULL pointer.
 namespace {
 bool softKeysAre(const std::map<uint16_t, PoolObject>& objects, uint16_t mask,
@@ -505,12 +505,12 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
     const auto objects = walkPool();
     assertFalse(objects.empty());
     assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
-                           { { 0, Key_Narrower }, { 6, Key_Wider }, { 8, Key_Calibrate } }, 9));
+                           { { 0, Key_Narrower }, { 2, Key_Calibrate }, { 6, Key_Wider } }, 7));
     assertTrue(softKeysAre(objects, Plough_CalSoftKeyMask,
-                           { { 8, Key_CalWidth }, { 9, Key_CalSave }, { 11, Key_CalCancel } }, 12));
+                           { { 2, Key_CalWidth }, { 3, Key_CalSave }, { 5, Key_CalCancel } }, 6));
     assertTrue(softKeysAre(objects, Plough_CalWidthSoftKeyMask,
-                           { { 0, Key_CalNarrower }, { 6, Key_CalWider }, { 9, Key_CalCapture },
-                             { 11, Key_CalWidthBack } }, 12));
+                           { { 0, Key_CalNarrower }, { 3, Key_CalCapture }, { 5, Key_CalWidthBack },
+                             { 6, Key_CalWider } }, 7));
     // The blanks are NULL pointers, and - and + are one large character each.
     for (uint8_t i = 0; i < kSoftKeySlots; i++) {
         assertTrue(isType(objects, Ptr_KeyBlank0 + i, 27));
