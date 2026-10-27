@@ -30,7 +30,7 @@ namespace triton
 {
 // Reads one of the tractor inputs. Triton01 goes through TritonIo (MCP23008
 // for the hitch, opto polarity for both); every other board reads the GPIO
-// directly, exactly as before, and needs nothing beyond Arduino.h.
+// directly and needs nothing beyond Arduino.h.
 inline bool VehicleSensorsReadInput(uint8_t pin) {
 #if defined(ESP32S3)
     return ReadDigital(pin);
@@ -51,6 +51,10 @@ private:
 
     Stream*       serialDebug;
 
+    // speed and simspeed keep the scale of the pulse formula in Update()
+    // (pulses * 40 / vConst), chosen for integer maths on the 8-bit MCUs:
+    // one unit is 36 km/h, hence the * 36 and / 36 in the km/h accessors.
+    // GetSpeedMs() and MINSPEED_1 use this same scale, not m/s.
     float         speed;
     float         simspeed;
     byte          simtime;

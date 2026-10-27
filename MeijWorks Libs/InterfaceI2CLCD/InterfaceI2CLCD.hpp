@@ -77,12 +77,14 @@ private:
     uint8_t  sdaPin;
     uint8_t  sclPin;
     uint8_t  deviceAddress;
+
+    uint8_t  cols;
+    uint8_t  rows;
+
     uint8_t  displayfunction;
     uint8_t  displaycontrol;
     uint8_t  displaymode;
-    uint8_t  numlines;
-    uint8_t  cols;
-    uint8_t  rows;
+
     uint8_t  backlightval;
 
     uint8_t screencounter;
@@ -91,6 +93,7 @@ private:
     char    buffer[4][21];
     char    screen[4][21];
 
+    void enterFourBitMode();
     void send(uint8_t, uint8_t);
     void write4bits(uint8_t);
     void expanderWrite(uint8_t);
@@ -108,31 +111,30 @@ public:
     size_t write(uint8_t value) override;
 
     void Command(uint8_t value);
-    void WriteDirect(uint8_t value);
 
     void Clear();
     void Home();
-    void NoDisplay();
     void Display();
-    void NoCursor();
+    void NoDisplay();
     void Cursor();
-    void NoBlink();
+    void NoCursor();
     void Blink();
-    void NoBacklight();
+    void NoBlink();
     void Backlight();
+    void NoBacklight();
     void ScrollDisplayLeft();
     void ScrollDisplayRight();
     void LeftToRight();
     void RightToLeft();
-    void PrintLeft();
-    void PrintRight();
     void Autoscroll();
     void NoAutoscroll();
 
     void CreateChar(uint8_t location, uint8_t charmap[]);
+    void WriteDirect(uint8_t value);
     void SetCursor(uint8_t col, uint8_t row);
 
-    // Buffered screen output — WriteScreen(n) flushes row n; -1 flushes all rows
+    // Buffered screen output: WriteBuffer() fills the buffer, WriteScreen(n)
+    // sends up to n changed characters to the LCD; 0xFF rewrites the whole screen.
     void WriteScreen(uint8_t n);
     void WriteBuffer(const char line[], uint8_t lineNo);
     void WriteBuffer(char character, uint8_t lineNo, uint8_t colNo);

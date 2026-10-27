@@ -178,7 +178,7 @@ test(ImplementPlough, adjust_autoMode_endShutoff_latchesAfterShutoffTime) {
 
     // setpoint stays at its untouched default (0); error=2 -> position(-92) is
     // far below setpoint-error(-2), so every call below takes the "Narrower" branch.
-    impl.Adjust(0, 0);  // 1st call: lastPosition(0) != actualPosition(-92) -> shutoffTimer resets to millis()=0
+    impl.Adjust(0, 0);  // 1st call: -92 is far from the shutoff position (0) -> shutoffTimer resets to millis()=0
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
 
     impl.Adjust(0, 0);  // 2nd call, same millis(): actualPosition unchanged -> shutoffTimer NOT reset; still narrows
@@ -279,6 +279,55 @@ test(ImplementPlough, adjust_manualMode_endShutoff_movingPloughNeverLatches) {
         impl.Adjust(2, 1);
     }
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+}
+
+// Calibration [0,100,200] -> [34,42,50] cm per share, 4 shares: the width is
+// 136 + 0.32 * raw cm, truncated. Raw 97 reads 167 and raw 100 reads 168.
+static void calibrateLinear(ImplementPlough& impl) {
+    analogReadValue(POSITION_SENS_PIN_2, 0);
+    impl.SetPositionCalibrationData(0);
+    analogReadValue(POSITION_SENS_PIN_2, 100);
+    impl.SetPositionCalibrationData(1);
+    analogReadValue(POSITION_SENS_PIN_2, 200);
+    impl.SetPositionCalibrationData(2);
+}
+
+// Session 21 B3 (#279): at the end stop the sensor wiggles a few counts and the
+// filtered width flips by 1 cm. That is not movement: the valve is still cut.
+test(ImplementPlough, adjust_manualMode_endShutoff_sensorJitterStillLatches) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    calibrateLinear(impl);
+    bool cut = false;
+    for (unsigned long t = 0; t <= 4000; t += 100) {
+        millisValue(t);
+        analogReadValue(POSITION_SENS_PIN_2, (t / 100) % 2 ? 97 : 100);   // 167 / 168 cm
+        impl.Update(2, 0);
+        impl.Update(2, 0);
+        impl.Adjust(2, 1);                               // Narrower held against the stop
+        if (digitalWriteValue(OUTPUT_NARROW_2) == LOW) {
+            assertMore(t, (unsigned long)SHUTOFF_2);     // not before the shutoff time
+            cut = true;
+            break;
+        }
+    }
+    assertTrue(cut);
+}
+
+// A slow real move (about 1 cm/s) passes kShutoffMoveCm well inside the
+// shutoff time, so it keeps driving.
+test(ImplementPlough, adjust_manualMode_endShutoff_slowMoveNeverLatches) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    calibrateLinear(impl);
+    for (unsigned long t = 0; t <= 8000; t += 100) {
+        millisValue(t);
+        analogReadValue(POSITION_SENS_PIN_2, 50 + (int)(t / 333));   // +1 count per 333 ms
+        impl.Update(2, 0);
+        impl.Update(2, 0);
+        impl.Adjust(2, 1);
+        assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    }
 }
 
 // ---------------------------------------------------------------------------

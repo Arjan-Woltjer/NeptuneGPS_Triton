@@ -54,7 +54,7 @@ static void resetAll() {
 }
 
 // ---------------------------------------------------------------------------
-// CheckButtons() -- shared button1Timer/button2Timer debounce + combo detection.
+// CheckButtons() -- ButtonPair combo/repeat timers: debounce + combo detection.
 // delay2 gates single-button detection; delay1*4 gates the combo (both held).
 // ---------------------------------------------------------------------------
 

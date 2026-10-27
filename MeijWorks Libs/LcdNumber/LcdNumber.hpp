@@ -23,8 +23,7 @@
 namespace triton
 {
 
-// One copy of the number rendering the interface screens wrote out digit by
-// digit (NeptuneGPS_Triton#177: 30 blocks in seven projects, ~750 lines):
+// Writes a fixed-width number into the LCD buffer, right-aligned:
 //
 //   LcdWriteNumber(lcd, value, row, col, width)          "  -7", " -42", "-123"
 //   LcdWriteNumber(lcd, v, row, col, 7, 2, ',')          "  -1,23", "-123,45"
