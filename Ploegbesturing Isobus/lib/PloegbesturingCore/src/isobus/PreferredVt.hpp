@@ -33,20 +33,12 @@ namespace triton
 // preference is an ISOBUS setting, not a plough one, and block 1 keeps its
 // addresses through the #78 layout move. 15 stays free so the field can grow
 // to a word.
-//
-// Until 2026-10-24 it was at 70, which the #78 layout gives to the Planter
-// block. While 14 is still erased the old byte is read instead, so a board
-// keeps the VT it had; the next save writes 14, and 70 is not read again.
-// The fallback goes when the plough block moves (#78): those boards are
-// recalibrated anyway.
-constexpr int     kEepromPreferredVt       = 14;
-constexpr int     kEepromPreferredVtBefore = 70;
-constexpr uint8_t kHighestPreferredVt      = 9;
+constexpr int     kEepromPreferredVt  = 14;
+constexpr uint8_t kHighestPreferredVt = 9;
 
 // An erased (255) or out-of-range byte reads as no preference.
 inline uint8_t ReadPreferredVt() {
-    uint8_t stored = EEPROM.read(kEepromPreferredVt);
-    if (stored == 0xFF) stored = EEPROM.read(kEepromPreferredVtBefore);
+    const uint8_t stored = EEPROM.read(kEepromPreferredVt);
     return stored <= kHighestPreferredVt ? stored : 0;
 }
 
