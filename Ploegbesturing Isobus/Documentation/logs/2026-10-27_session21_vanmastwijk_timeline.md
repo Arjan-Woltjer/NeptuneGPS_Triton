@@ -215,3 +215,4 @@ END
 | 13:09 | AUX | After the 1200 reboot: still nothing assignable; long presses on several armrest buttons do nothing (no assignment, so no status to us). Dump: AUX-N events 0/0. **#254 result: functions accepted and listed on the 1200, no compatible input on this armrest for Boolean momentary.** Next: the Auxiliary Capabilities request to learn the armrest's input types (not in AgIsoStack), or a bench input unit |
 | 13:10:42 | end | VOORK. VT back to **2**, saved; 13:10:43 `preferred VT 2 up at 0x26 -- moving to it`. Field settings: shares 4, deadband 2, bypass 1, inversion 1, RTK 4, preferred VT 2, lightbar AUTO, points 21/144/266 |
 | 13:15 | CANedge | Uploaded: session 96 (15 pieces, 11:25:31-~12:35), 97 (12:35:08-~12:55), 98 (12:55:07-, last piece seen 13:05:09). The AUX test (12:57-13:09) is in 98 |
+| ~13:12 | end | ISOBUS unplugged (bus quiet from ~13:12:20, last 1 Hz line 13:14:30), then USB. Logger stopped 13:48 |
