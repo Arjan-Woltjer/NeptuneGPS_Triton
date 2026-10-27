@@ -34,7 +34,11 @@ public:
     bool useParityAsChecksum() const override { return true; }
 
 private:
-    int newXte = 0;
+    int  newXte = 0;
+    // Set only when the XTE field held a value. A blank field means the
+    // receiver has nothing to report, not 0 cm, so commitTo() leaves the
+    // source (and its XTE timestamp) untouched, as NmeaParser does for VTG.
+    bool xteValid = false;
 };
 
 }  // namespace triton

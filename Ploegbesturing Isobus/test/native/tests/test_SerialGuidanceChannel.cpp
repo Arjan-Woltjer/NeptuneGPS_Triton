@@ -146,6 +146,24 @@ test(SerialGuidanceChannel, bad_nmea_checksum_is_not_committed) {
     assertEqual(g.GetVtgTimestamp(), (unsigned long)0);
 }
 
+// The checksum digits must be hex: ';' to '?' follow '9' in ASCII, so read
+// as digits they are worth 11 to 15, the same as 'B' to 'F', and a corrupted
+// "*6C" arriving as "*6<" would still verify.
+test(SerialGuidanceChannel, non_hex_nmea_checksum_is_not_committed) {
+    FakeGpsSerial serial;
+    GuidanceSource g;
+    SerialGuidanceChannel ch(nullptr, &serial, &g);
+
+    serial.Feed("$GPVTG,213.0,T,,M,002.98,N,005.39,K*6<\r\n");   // really *6C
+    assertFalse(ch.Update());
+    assertTrue(near(g.GetSpeed(), 0.0f));
+    assertEqual(g.GetVtgTimestamp(), (unsigned long)0);
+
+    serial.Feed("$GPVTG,213.0,T,,M,002.98,N,005.39,K*6C\r\n");
+    assertTrue(ch.Update());
+    assertTrue(near(g.GetSpeed(), 2.98f));
+}
+
 test(SerialGuidanceChannel, can_over_serial_position) {
     FakeGpsSerial serial;
     GuidanceSource g;

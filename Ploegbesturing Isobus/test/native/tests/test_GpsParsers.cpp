@@ -54,6 +54,36 @@ test(NmeaParser, gga_lat_lon_quality_alt) {
     assertTrue(near(state.GetAltitude(), 44.05f));
 }
 
+// $GPGGA,151504.00,,,,,0,00,99.99,,,,,,*xx -- a receiver without a fix keeps
+// sending GGA with the position and altitude blank. Committing atof("") put
+// the machine at 0 N 0 E and stamped a fresh GGA fix. Position, altitude and
+// GGA timestamp keep their last real values; quality 0 is a genuine "no
+// fix" report and does commit.
+test(NmeaParser, gga_noFix_keepsPositionCommitsQualityZero) {
+    GuidanceSource state;
+    millisValue(1000);
+    state.SetPosition(53.4413f, 6.7532f);
+    state.SetAltitude(44.05f);
+    state.SetQuality(4);
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPGGA"));
+    p.parseTerm(1, "151504.00");
+    p.parseTerm(2, "");
+    p.parseTerm(3, "");
+    p.parseTerm(4, "");
+    p.parseTerm(5, "");
+    p.parseTerm(6, "0");
+    p.parseTerm(9, "");
+    millisValue(3000);
+    p.commitTo(&state);
+    assertTrue(near(state.GetLatitude(), 53.4413f));
+    assertTrue(near(state.GetLongitude(), 6.7532f));
+    assertTrue(near(state.GetAltitude(), 44.05f));
+    assertEqual(state.GetGgaTimestamp(), (unsigned long)1000);
+    assertEqual((int)state.GetQuality(), 0);
+    assertEqual(state.GetQualityTimestamp(), (unsigned long)3000);
+}
+
 // $GPVTG,213.4,T,,M,002.91,N,005.39,K*61
 test(NmeaParser, vtg_course_speed) {
     GuidanceSource state;
@@ -85,6 +115,21 @@ test(NmeaParser, vtg_blank_fields_commitsNothing) {
     p.commitTo(&state);
     assertTrue(near(state.GetSpeed(), 2.91f));                  // unchanged
     assertEqual(state.GetVtgTimestamp(), (unsigned long)1000);  // not restamped
+}
+
+// $GPVTG,,T,,M,0.05,N,0.09,K,A -- many receivers leave the course blank when
+// standing still but keep reporting speed. The speed commits; the course is
+// not overwritten with 0, it keeps the last real heading.
+test(NmeaParser, vtg_blankCourse_commitsSpeedKeepsCourse) {
+    GuidanceSource state;
+    state.SetCourseDeg(54.7f);
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPVTG"));
+    p.parseTerm(1, "");
+    p.parseTerm(5, "0.05");
+    p.commitTo(&state);
+    assertTrue(near(state.GetCourse(), 54.7f));
+    assertTrue(near(state.GetSpeed(), 0.05f));
 }
 
 // $GPTXT,01,01,01,ANTENNA OPEN*25 -- the ATGM336H's antenna supervisor,
@@ -144,6 +189,21 @@ test(NmeaParser, xte) {
     assertEqual(state.GetXte(), 15);  // int(0.159523 * 100) = 15
 }
 
+// $GPXTE,A,A,,L,N -- a blank XTE field is nothing to report, not 0 cm: the
+// source keeps its last XTE and timestamp, as for a blank ROXTE.
+test(NmeaParser, xte_blank_commitsNothing) {
+    GuidanceSource state;
+    millisValue(1000);
+    state.SetXte(25);
+    NmeaParser p;
+    assertTrue(p.claimsSentenceType("GPXTE"));
+    p.parseTerm(3, "");
+    millisValue(3000);
+    p.commitTo(&state);
+    assertEqual(state.GetXte(), 25);
+    assertEqual(state.GetXteTimestamp(), (unsigned long)1000);
+}
+
 test(NmeaParser, rejects_unknown_header) {
     NmeaParser p;
     assertFalse(p.claimsSentenceType("GPRMC"));
@@ -196,6 +256,22 @@ test(TrimbleParser, xte_zero) {
     p.parseTerm(1, "0.000");
     p.commitTo(&state);
     assertEqual(state.GetXte(), 0);
+}
+
+// ROXTE, with a blank XTE field: nothing to report, not a genuine 0 cm. The
+// source keeps its last XTE and timestamp, so a lost XTE stays visible to the
+// guidance-timeout check instead of reading as "exactly on the line".
+test(TrimbleParser, blank_xte_is_not_committed) {
+    GuidanceSource state;
+    millisValue(1000);
+    state.SetXte(25);             // a real XTE on record at t=1000...
+    TrimbleParser p;
+    p.claimsSentenceType("ROXTE");
+    p.parseTerm(1, "");
+    millisValue(3000);            // ...well before this blank sentence arrives
+    p.commitTo(&state);
+    assertEqual(state.GetXte(), 25);
+    assertEqual(state.GetXteTimestamp(), (unsigned long)1000);
 }
 
 // ---------------------------------------------------------------------------
@@ -379,12 +455,47 @@ test(CanSerialParser, xte2_markerMatch_commitsFloatMetresAsHundredths) {
     assertEqual((int)state.GetQuality(), 4);
 }
 
-test(CanSerialParser, xte2_markerMismatch_doesNotReadTheFloat) {
+// The other packets of the same transfer carry no XTE: they commit nothing,
+// instead of an XTE of 0 at RTK quality. Same rule as the CAN path
+// (DecodeLegacyXteTrimble).
+test(CanSerialParser, xte2_markerMismatch_commitsNothing) {
     GuidanceSource state;
-    state.SetXte(321);
+    millisValue(1000);
+    state.SetXte(321, 4);
     CanSerialParser p;
     assertTrue(p.claimsSentenceType("1CEBACAA"));
     p.parseTerm(1, "013F80000006FFFF");      // markers 0x01 / 0x06
+    millisValue(3000);
     p.commitTo(&state);
-    assertEqual(state.GetXte(), 0);
+    assertEqual(state.GetXte(), 321);
+    assertEqual(state.GetXteTimestamp(), (unsigned long)1000);
+}
+
+// Legacy PGN 65256 with speed "not available" (0xFFFF) but a real course and
+// altitude: each field has its own J1939 sentinel, so the course and altitude
+// commit and the speed is left alone (as DecodeLegacySpeed on the CAN path).
+test(CanSerialParser, legacySpeed_notAvailable_keepsSpeedCommitsCourse) {
+    GuidanceSource state;
+    state.SetSpeedKnots(1.5f);
+    CanSerialParser p;
+    assertTrue(p.claimsSentenceType("0CFEE81C"));
+    p.parseTerm(1, "002DFFFF0000804F");      // course 90.0, speed n/a, alt 44.0
+    p.commitTo(&state);
+    assertTrue(near(state.GetSpeed(), 1.5f, 1e-6f));
+    assertTrue(near(state.GetCourse(), 90.0f, 0.01f));
+    assertTrue(near(state.GetAltitude(), 44.0f, 0.01f));
+}
+
+// Legacy PGN 65267 with latitude and longitude "not available"
+// (0xFFFFFFFF): decoded they would be 219.5 deg, so the coordinates are not
+// committed and the last real position stays.
+test(CanSerialParser, legacyPosition_notAvailable_keepsPosition) {
+    GuidanceSource state;
+    state.SetPosition(52.0f, 5.0f);
+    CanSerialParser p;
+    assertTrue(p.claimsSentenceType("0CFEF31C"));
+    p.parseTerm(1, "FFFFFFFFFFFFFFFF");
+    p.commitTo(&state);
+    assertTrue(near(state.GetLatitude(), 52.0f, 1e-5f));
+    assertTrue(near(state.GetLongitude(), 5.0f, 1e-5f));
 }

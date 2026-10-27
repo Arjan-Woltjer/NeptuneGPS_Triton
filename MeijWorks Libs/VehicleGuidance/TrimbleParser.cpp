@@ -26,14 +26,19 @@ namespace triton
 bool TrimbleParser::claimsSentenceType(const char* header) {
     if (strcmp(header, "ROXTE") != 0) return false;
     newXte = 0;
+    xteValid = false;
     return true;
 }
 
 void TrimbleParser::parseTerm(byte termNumber, const char* term) {
-    if (termNumber == 1) newXte = (int)(atof(term) * 100);
+    if (termNumber == 1 && term[0]) {
+        newXte = (int)(atof(term) * 100);
+        xteValid = true;
+    }
 }
 
 void TrimbleParser::commitTo(GuidanceSource* state) {
+    if (!xteValid) return;
     state->SetXte(newXte);
 }
 
