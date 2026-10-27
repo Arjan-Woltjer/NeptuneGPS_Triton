@@ -44,6 +44,13 @@ bool NmeaParser::claimsSentenceType(const char* header) {
     newXte = 0;
     newQuality = 0;
     newSpeedValid = false;
+    newCourseValid = false;
+    newTimeValid = false;
+    newLatValid = false;
+    newLonValid = false;
+    newAltValid = false;
+    newQualityValid = false;
+    newXteValid = false;
     sawAntennaText = false;
     return true;
 }
@@ -52,21 +59,21 @@ void NmeaParser::parseTerm(byte termNumber, const char* term) {
     switch (type) {
         case GGA:
             switch (termNumber) {
-                case 1: newTime = atof(term); break;
-                case 2: { float f = atof(term); int d = int(f) / 100; newLat = d + (f - d * 100) / 60.0f; } break;
+                case 1: if (term[0]) { newTime = atof(term); newTimeValid = true; } break;
+                case 2: if (term[0]) { float f = atof(term); int d = int(f) / 100; newLat = d + (f - d * 100) / 60.0f; newLatValid = true; } break;
                 case 3: if (term[0] == 'S') newLat = -newLat; break;
-                case 4: { float f = atof(term); int d = int(f) / 100; newLon = d + (f - d * 100) / 60.0f; } break;
+                case 4: if (term[0]) { float f = atof(term); int d = int(f) / 100; newLon = d + (f - d * 100) / 60.0f; newLonValid = true; } break;
                 case 5: if (term[0] == 'W') newLon = -newLon; break;
-                case 6: newQuality = atoi(term); break;
-                case 9: newAlt = atof(term); break;
+                case 6: if (term[0]) { newQuality = atoi(term); newQualityValid = true; } break;
+                case 9: if (term[0]) { newAlt = atof(term); newAltValid = true; } break;
             }
             break;
         case VTG:
-            if (termNumber == 1) newCourse = atof(term);
+            if (termNumber == 1 && term[0]) { newCourse = atof(term); newCourseValid = true; }
             if (termNumber == 5 && term[0]) { newSpeed = atof(term); newSpeedValid = true; }
             break;
         case XTE:
-            if (termNumber == 3) newXte = (int)(atof(term) * 100);
+            if (termNumber == 3 && term[0]) { newXte = (int)(atof(term) * 100); newXteValid = true; }
             break;
         case TXT:
             // $GPTXT,msgTotal,msgNum,severity,text -- text is term 4. Only
@@ -91,23 +98,30 @@ void NmeaParser::parseTerm(byte termNumber, const char* term) {
 void NmeaParser::commitTo(GuidanceSource* state) {
     switch (type) {
         case GGA:
-            state->SetPosition(newLat, newLon);
-            state->SetAltitude(newAlt);
-            state->SetTime(newTime);
-            state->SetQuality(newQuality);
-            break;
-        case VTG:
-            // A blank speed field means the receiver has nothing to report
-            // (typically antenna loss), not a genuine zero -- committing it
-            // would stamp GuidanceSource's fix timestamp anyway and mask a
-            // real loss of signal from the guidance-timeout check.
-            if (newSpeedValid) {
-                state->SetCourseDeg(newCourse);
-                state->SetSpeedKnots(newSpeed);
+            // Same meaning as the ISOBUS path (GuidanceCommit.hpp GApply):
+            // the GGA timestamp is the fix age, stamped only when the
+            // receiver reports a fix (quality > 0). Quality 0 is a genuine
+            // "no fix" report and is committed; it just doesn't refresh the
+            // fix age, so the 2000 ms interlocks see the fix go stale.
+            if (newQualityValid) state->SetQuality(newQuality);
+            if (newTimeValid) state->SetTime(newTime);
+            if (newQualityValid && newQuality > 0) {
+                state->NoteGgaFixReceived();
+                if (newLatValid && newLonValid) state->SetPosition(newLat, newLon);
+                if (newAltValid) state->SetAltitude(newAlt);
             }
             break;
+        case VTG:
+            // A blank field means the receiver has nothing to report
+            // (typically antenna loss, or no course while standing still),
+            // not a genuine zero -- committing it would stamp
+            // GuidanceSource's fix timestamp anyway and mask a real loss of
+            // signal from the guidance-timeout check.
+            if (newCourseValid) state->SetCourseDeg(newCourse);
+            if (newSpeedValid) state->SetSpeedKnots(newSpeed);
+            break;
         case XTE:
-            state->SetXte(newXte);
+            if (newXteValid) state->SetXte(newXte);
             break;
         case TXT:
             if (sawAntennaText) state->SetAntennaOk(newAntennaOk);

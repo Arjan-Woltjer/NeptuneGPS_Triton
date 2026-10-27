@@ -208,7 +208,8 @@ bool SerialGuidanceChannel::dispatchTerm() {
             return false;
         }
 
-        if ((GpsParser::hexToInt(term[0]) << 4) + GpsParser::hexToInt(term[1]) == parity) {
+        if (GpsParser::termIsHex(term, 2) &&
+            (GpsParser::hexToInt(term[0]) << 4) + GpsParser::hexToInt(term[1]) == parity) {
             activeParse->commitTo(guidance);
             return true;
         }

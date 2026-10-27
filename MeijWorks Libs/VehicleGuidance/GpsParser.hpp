@@ -49,11 +49,27 @@ public:
     // integrity, so the inner ROXTE checksum is always parity itself.
     virtual bool useParityAsChecksum() const { return false; }
 
-    // Shared hex utility, available to all parsers via GpsParser::hexToInt().
+    // The value of one hex digit, 0 for anything else. A 0 cannot tell a bad
+    // digit from a real '0', so callers check the term with termIsHex() first.
     static byte hexToInt(char c) {
+        if (c >= '0' && c <= '9') return c - '0';
         if (c >= 'A' && c <= 'F') return c - 'A' + 10;
         if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-        return c - '0';
+        return 0;
+    }
+
+    // True when the first `need` characters of term are all hex digits. A
+    // term shorter than `need` fails on its terminator, so a short payload is
+    // caught before hexToInt() reads past it.
+    static bool termIsHex(const char* term, byte need) {
+        for (byte i = 0; i < need; i++) {
+            const char c = term[i];
+            const bool isHex = (c >= '0' && c <= '9') ||
+                               (c >= 'A' && c <= 'F') ||
+                               (c >= 'a' && c <= 'f');
+            if (!isHex) return false;
+        }
+        return true;
     }
 };
 
