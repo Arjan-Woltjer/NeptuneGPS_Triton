@@ -94,6 +94,7 @@ public:
     // which stands until a message changes it, this lets a gate tell a
     // confirmed quality from one left over by a source that went quiet.
     inline unsigned long GetQualityTimestamp() { return lastQualityFix; }
+
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
     inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
