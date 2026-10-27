@@ -588,13 +588,13 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendObjRef(Out_CalWidthSensor, VAL_X, SENSOR_Y);
     appendObjRef(Ptr_CalWidthStatus, LBL_X, STATUS_Y);
 
-    // - and + on the first row as on the main screen; capture and back in
-    // column 2 where the page has OPSLAAN and ANNUL., and labelled the same
-    // (#282: they were VASTLEG and TERUG).
+    // + and - on rows 1 and 2 as on the main screen; capture and back where
+    // the page has OPSLAAN and ANNUL., and labelled the same (#282: they were
+    // VASTLEG and TERUG).
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
-    keys[SoftKeySlot(1, 2)] = Key_CalNarrower;
-    keys[SoftKeySlot(1, 1)] = Key_CalWider;
+    keys[SoftKeySlot(1, 2)] = Key_CalWider;
+    keys[SoftKeySlot(2, 2)] = Key_CalNarrower;
     keys[SoftKeySlot(4, 2)] = Key_CalCapture;
     keys[SoftKeySlot(6, 2)] = Key_CalWidthBack;
     appendSoftKeys(Plough_CalWidthSoftKeyMask, kBlack, keys);
@@ -759,14 +759,14 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Out_XTE, XTE_X, ROW_Y[3]);
     appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
 
-    // Soft keys by position (#282): - and + on the first row, CALIBR on row 3
-    // of column 2. A one-column VT shows - and CALIBR on its first page, + on
-    // the second.
+    // Soft keys by position (#282): + above -, as the cab buttons, then
+    // CALIBR on row 3. All in the first column a VT fills, so a 1 x 6 VT
+    // shows them without paging.
     {
         uint16_t keys[kSoftKeySlots];
         for (uint16_t& key : keys) key = kNoKey;
-        keys[SoftKeySlot(1, 2)] = Key_Narrower;
-        keys[SoftKeySlot(1, 1)] = Key_Wider;
+        keys[SoftKeySlot(1, 2)] = Key_Wider;
+        keys[SoftKeySlot(2, 2)] = Key_Narrower;
         keys[SoftKeySlot(3, 2)] = Key_Calibrate;
         appendSoftKeys(Plough_SoftKeyMask, kBlack, keys);
     }
