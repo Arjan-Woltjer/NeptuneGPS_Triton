@@ -20,7 +20,7 @@
 
 #include "InterfaceI2CLCD.hpp"
 #include "implement/ImplementKipper.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "config/ConfigInterfaceKipper.hpp"
 #include "config/LanguageKipper.hpp"
 #include "ButtonPair.hpp"
@@ -44,7 +44,7 @@ private:
     // Objects
     InterfaceI2CLCD* lcd;
     ImplementKipper*  implement;
-    VehicleTractor*   tractor;
+    VehicleSensors*   tractor;
 
     void writeValue(int value, byte row, byte col);
 
@@ -54,7 +54,7 @@ public:
     // -------------------------------------------------------------
 
     // Constructor
-    InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implement, VehicleTractor* tractor);
+    InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implement, VehicleSensors* tractor);
 
     void Update();
     void UpdateScreen(boolean rewrite);

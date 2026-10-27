@@ -1,5 +1,5 @@
 /*
-  VehicleTractor - a library for a tractor
+  VehicleSensors - the tractor's wheel-speed and hitch inputs
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -16,16 +16,16 @@
   You should have received a copy of the GNU Lesser General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "EepromStore.hpp"
 
 namespace triton
 {
 
-VehicleTractor::VehicleTractor(Stream* serialDebug)
+VehicleSensors::VehicleSensors(Stream* serialDebug, bool defaultInversion)
     : serialDebug(serialDebug),
       speed(0), simspeed(1.0f), simtime(2),
-      sim(true), inversion(false),
+      sim(true), inversion(defaultInversion),
       vConst(250), wheelspeedPulses(0), distance(0),
       wheelspeedPulse(false), updateAge(0) {
 #ifdef DEBUG
@@ -60,9 +60,9 @@ VehicleTractor::VehicleTractor(Stream* serialDebug)
 #endif
 }
 
-void VehicleTractor::Update(byte mode) {
+void VehicleSensors::Update(byte mode) {
     if (mode != 4) {
-        if (wheelspeedPulse != triton::VehicleTractorReadInput(WHEEL_SPEED_PIN_1)) {
+        if (wheelspeedPulse != triton::VehicleSensorsReadInput(WHEEL_SPEED_PIN_1)) {
             wheelspeedPulses++;
             wheelspeedPulse = !wheelspeedPulse;
         }
@@ -84,8 +84,8 @@ void VehicleTractor::Update(byte mode) {
     }
 }
 
-unsigned int VehicleTractor::CalibrateSpeed(int buttons) {
-    if (wheelspeedPulse != triton::VehicleTractorReadInput(WHEEL_SPEED_PIN_1)) {
+unsigned int VehicleSensors::CalibrateSpeed(int buttons) {
+    if (wheelspeedPulse != triton::VehicleSensorsReadInput(WHEEL_SPEED_PIN_1)) {
         wheelspeedPulses++;
         wheelspeedPulse = !wheelspeedPulse;
     }
@@ -97,7 +97,7 @@ unsigned int VehicleTractor::CalibrateSpeed(int buttons) {
     return wheelspeedPulses;
 }
 
-bool VehicleTractor::readCalibrationData() {
+bool VehicleSensors::readCalibrationData() {
     if (EEPROM.read(20) != 255 || EEPROM.read(21) != 255
         || EEPROM.read(22) != 255 || EEPROM.read(24) != 255
         || EEPROM.read(26) != 255 || EEPROM.read(28) != 255) {
@@ -115,7 +115,7 @@ bool VehicleTractor::readCalibrationData() {
     return false;
 }
 
-void VehicleTractor::PrintCalibrationData() {
+void VehicleSensors::PrintCalibrationData() {
     serialDebug->println("-------------------------------");
     serialDebug->println("Tractor using following data:");
     serialDebug->println("-------------------------------");
@@ -136,7 +136,7 @@ void VehicleTractor::PrintCalibrationData() {
     serialDebug->println("-------------------------------");
 }
 
-void VehicleTractor::writeCalibrationData() {
+void VehicleSensors::writeCalibrationData() {
     EepromStore::WriteUint16Be(20, vConst);
     EEPROM.write(22, byte(simspeed * 10));
     EEPROM.write(24, simtime);

@@ -22,7 +22,7 @@ namespace triton
 {
 
 CalibrationSprayer::CalibrationSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement,
-                                        VehicleTractor* tractor, InterfaceSprayer* interface)
+                                        VehicleSensors* tractor, InterfaceSprayer* interface)
     : lcd(lcd), implement(implement), tractor(tractor), interface(interface) {
 }
 
@@ -700,6 +700,64 @@ void CalibrationSprayer::Calibrate() {
                         lcd->WriteScreen(-1);
 
                         implement->SetWidth(temp);
+                        saveFlag = false;
+                        delay(1000);
+                        break;
+                    }
+                }
+
+                // ----------------------
+                // Hitch signal inversion
+                // ----------------------
+                lcd->WriteBuffer(L_CAL_INVERSION, 0);
+                lcd->WriteBuffer(L_CAL_ACCEPT, 1);
+                lcd->WriteBuffer(L_CAL_DECLINE, 2);
+                lcd->WriteBuffer(L_BLANK, 3);
+
+                lcd->WriteScreen(-1);
+
+                while (interface->CheckButtons(0, 0) != 0) {
+                }
+
+                while (true) {
+                    if (interface->CheckButtons(0, 0) == -1) {
+                        break;
+                    }
+                    else if (interface->CheckButtons(0, 0) == 1) {
+                        // Hitch signal inverted: yes / no
+                        lcd->WriteBuffer(L_CAL_ADJUST, 1);
+                        lcd->WriteBuffer(L_CAL_ENTER, 2);
+                        lcd->WriteBuffer(tractor->GetInversion() ? L_CAL_YES : L_CAL_NO, 3);
+
+                        lcd->WriteScreen(-1);
+
+                        temp = tractor->GetInversion();
+
+                        while (interface->CheckButtons(0, 0) != 0) {
+                        }
+
+                        while (true) {
+                            lcd->WriteScreen(1);
+                            interface->CheckButtons(0, 255);
+
+                            if (interface->GetButtons() == 1) {
+                                temp = 1;
+                            }
+                            else if (interface->GetButtons() == -1) {
+                                temp = 0;
+                            }
+                            else if (interface->GetButtons() == 2) {
+                                break;
+                            }
+
+                            lcd->WriteBuffer(temp ? L_CAL_YES : L_CAL_NO, 3);
+                        }
+                        lcd->WriteBuffer(L_CAL_DONE, 1);
+                        lcd->WriteBuffer(L_BLANK, 2);
+
+                        lcd->WriteScreen(-1);
+
+                        tractor->SetInversion(temp != 0);
                         saveFlag = false;
                         delay(1000);
                         break;

@@ -29,10 +29,11 @@ namespace triton
 // instance 0, is VT 1; the CNH VT, instance 1, is VT 2). 0 = no preference.
 // Set in the calibration wizard, read by IsobusVtInterface.
 //
-// EEPROM 70 in today's layout: free on a plough board (52-56, the removed
-// PWM/KP settings, still hold old values on boards in the field). Block 3's
-// 42 after the #78 move.
-constexpr int     kEepromPreferredVt  = 70;
+// EEPROM 14, in block 1 (GPS + ISOBUS, 10-19) of the EEPROM map: a VT
+// preference is an ISOBUS setting, not a plough one, and block 1 keeps its
+// addresses through the #78 layout move. 15 stays free so the field can grow
+// to a word.
+constexpr int     kEepromPreferredVt  = 14;
 constexpr uint8_t kHighestPreferredVt = 9;
 
 // An erased (255) or out-of-range byte reads as no preference.

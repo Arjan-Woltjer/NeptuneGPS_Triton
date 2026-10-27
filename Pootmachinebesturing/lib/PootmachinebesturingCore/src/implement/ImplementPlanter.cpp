@@ -27,7 +27,7 @@ namespace triton
 //------------
 // Constructor
 //------------
-ImplementPlanter::ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor, GuidanceSource* guidance) {
+ImplementPlanter::ImplementPlanter(Stream* serialDebug, VehicleSensors* tractor, GuidanceSource* guidance) {
     // Connected classes
     this->serialDebug = serialDebug;
     this->guidance = guidance;

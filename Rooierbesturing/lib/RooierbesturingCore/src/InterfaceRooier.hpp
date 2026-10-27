@@ -27,7 +27,7 @@
 
 #include "InterfaceI2CLCD.hpp"
 #include "implement/ImplementRooier.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "config/ConfigInterfaceRooier.hpp"
 #include "config/LanguageRooier.hpp"
 #include "ButtonPair.hpp"
@@ -51,7 +51,7 @@ private:
     // Objects
     InterfaceI2CLCD* lcd;
     ImplementRooier*  implement;
-    VehicleTractor*   tractor;
+    VehicleSensors*   tractor;
 
     // UpdateScreen()'s three value fields (setpoint/heightL/heightR) all
     // render identically, just on different rows -- the legacy source
@@ -66,7 +66,7 @@ public:
     // -------------------------------------------------------------
 
     // Constructor
-    InterfaceRooier(InterfaceI2CLCD* lcd, ImplementRooier* implement, VehicleTractor* tractor);
+    InterfaceRooier(InterfaceI2CLCD* lcd, ImplementRooier* implement, VehicleSensors* tractor);
 
     void Update();
     void UpdateScreen(boolean rewrite);

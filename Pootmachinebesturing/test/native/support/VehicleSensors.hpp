@@ -1,5 +1,5 @@
 #pragma once
-// Minimal VehicleTractor stub for native/MSVC unit tests. Only exposes the
+// Minimal VehicleSensors stub for native/MSVC unit tests. Only exposes the
 // two members ImplementPlanter::Update()/InterfacePlanter::Update() call --
 // GetInversion()/SetInversion() (used by the hitch-signal calibration step)
 // live in CalibrationPlanter, which is #ifdef ARDUINO-guarded and excluded
@@ -8,11 +8,11 @@
 
 class Stream;
 
-class VehicleTractor {
+class VehicleSensors {
   public:
     float speed = 0;
 
-    VehicleTractor() {}
+    VehicleSensors() {}
 
     void  Update(uint8_t) {}
     float GetSpeedMs() { return speed; }

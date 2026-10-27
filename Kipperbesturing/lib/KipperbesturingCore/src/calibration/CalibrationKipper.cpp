@@ -22,7 +22,7 @@ namespace triton
 {
 
 CalibrationKipper::CalibrationKipper(InterfaceI2CLCD* lcd, ImplementKipper* implement,
-                                      VehicleTractor* tractor, InterfaceKipper* interface)
+                                      VehicleSensors* tractor, InterfaceKipper* interface)
     : lcd(lcd), implement(implement), tractor(tractor), interface(interface) {
 }
 

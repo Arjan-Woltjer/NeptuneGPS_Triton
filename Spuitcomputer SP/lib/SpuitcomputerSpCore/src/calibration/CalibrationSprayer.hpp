@@ -29,7 +29,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "../InterfaceSprayer.hpp"
 #include "../config/LanguageSprayer.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -48,14 +48,14 @@ namespace triton
 class CalibrationSprayer {
 public:
     CalibrationSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement,
-                        VehicleTractor* tractor, InterfaceSprayer* interface);
+                        VehicleSensors* tractor, InterfaceSprayer* interface);
 
     void Calibrate();
 
 private:
     InterfaceI2CLCD*  lcd;
     ImplementSprayer* implement;
-    VehicleTractor*   tractor;
+    VehicleSensors*   tractor;
     InterfaceSprayer* interface;
 };
 

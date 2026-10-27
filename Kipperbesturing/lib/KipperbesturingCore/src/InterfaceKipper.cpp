@@ -25,7 +25,7 @@ namespace triton
 // -----------
 // Constructor
 // -----------
-InterfaceKipper::InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implement, VehicleTractor* tractor) {
+InterfaceKipper::InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implement, VehicleSensors* tractor) {
 #ifdef DEBUG
     Serial.println("Initialising kipper interface");
 #endif
@@ -42,7 +42,7 @@ InterfaceKipper::InterfaceKipper(InterfaceI2CLCD* lcd, ImplementKipper* implemen
     // Mode
     mode = 2;  // MANUAL
 
-    // Button flag and timer. button1Timer/button2Timer were never
+    // Button flag and timer. The button timers were never
     // initialized here in the legacy code -- the very first CheckButtons()
     // call would measure elapsed time against garbage memory. Seeded to
     // millis(), same fix already applied to every sibling InterfaceX.
@@ -88,7 +88,7 @@ void InterfaceKipper::Update() {
     // never actually set mode to 1, so this safety interlock was dead code.
     // GPS itself was otherwise unused anywhere in ImplementKipper (see
     // Kipperbesturing distillation plan/commit). Reimplemented using
-    // VehicleTractor::MinSpeed() (already real, already used by this
+    // VehicleSensors::MinSpeed() (already real, already used by this
     // module's own D-term) instead of reintroducing GPS: auto-steering
     // pauses while the tractor is stationary.
     else if (!tractor->MinSpeed()) {

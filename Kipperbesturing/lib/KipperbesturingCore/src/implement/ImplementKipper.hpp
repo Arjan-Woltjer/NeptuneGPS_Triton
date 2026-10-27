@@ -26,7 +26,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementKipper.hpp"
@@ -84,7 +84,7 @@ private:
     EndShutoff endShutoff;
 
     // Objects
-    VehicleTractor* tractor;
+    VehicleSensors* tractor;
 
     //-------------------------------------------------------------
     // private member functions implemented in ImplementKipper.cpp
@@ -104,7 +104,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    explicit ImplementKipper(VehicleTractor* tractor);
+    explicit ImplementKipper(VehicleSensors* tractor);
 
     void Update(byte mode);
     void Adjust(int direction);

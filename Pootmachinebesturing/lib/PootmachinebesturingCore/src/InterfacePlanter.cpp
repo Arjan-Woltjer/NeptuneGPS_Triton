@@ -28,7 +28,7 @@ namespace triton
 InterfacePlanter::InterfacePlanter(Stream* serialDebug,
                                     InterfaceI2CLCD* lcd,
                                     ImplementPlanter* implement,
-                                    VehicleTractor* tractor,
+                                    VehicleSensors* tractor,
                                     GuidanceSource* guidance) {
 #ifdef DEBUG
     serialDebug->println(S_DIVIDE);
@@ -54,7 +54,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
     // Mode
     mode = 2;  // MANUAL
 
-    // Button flag and timer. button1Timer/button2Timer were never
+    // Button flag and timer. The button timers were never
     // initialized here in the legacy code (a real latent bug -- the very
     // first CheckButtons() call would measure elapsed time against garbage
     // memory); seeded to millis() now, matching ImplementPlanter's own
@@ -73,7 +73,7 @@ InterfacePlanter::InterfacePlanter(Stream* serialDebug,
 InterfacePlanter::InterfacePlanter(Stream* serialDebug,
                                     InterfaceI2CLCD* lcd,
                                     ImplementPlanter* implement,
-                                    VehicleTractor* tractor) {
+                                    VehicleSensors* tractor) {
     // Pin assignments and configuration
     // Schmitt triggered inputs
     pinMode(LEFT_BUTTON_3, INPUT);

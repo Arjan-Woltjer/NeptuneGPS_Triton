@@ -452,6 +452,23 @@ test(PreferredVt, matchesTheVtNumberAsTheTerminalsShowIt) {
     assertFalse(IsPreferredVt(false, 1, 2));   // not a Virtual Terminal
 }
 
+// Block 1 of the EEPROM map, next to the GPS bytes and the lightbar mode.
+test(PreferredVt, atByte14_inBlock1) {
+    assertEqual(kEepromPreferredVt, 14);
+}
+
+// 14 is the only byte read: with 14 erased there is no preference, whatever
+// another byte holds (70 belongs to the Planter block in the EEPROM map).
+test(PreferredVt, onlyByte14IsRead) {
+    EEPROM.eepromReset();
+    EEPROM.write(70, 2);
+    assertEqual((int)ReadPreferredVt(), 0);
+    WritePreferredVt(1);
+    assertEqual((int)ReadPreferredVt(), 1);
+    assertEqual((int)EEPROM.read(70), 2);   // left alone
+    EEPROM.eepromReset();
+}
+
 test(PreferredVt, storedAsTheNumber_erasedOrOutOfRangeIsNone) {
     EEPROM.eepromReset();
     assertEqual((int)ReadPreferredVt(), 0);    // erased (255)

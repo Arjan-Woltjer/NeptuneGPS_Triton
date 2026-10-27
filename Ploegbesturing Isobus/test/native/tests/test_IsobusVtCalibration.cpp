@@ -64,7 +64,7 @@ struct FakeVtOutput : public VtCalibrationOutput {
 };
 
 GuidanceSource    pgGuidance;
-VehicleTractor    pgTractor;
+VehicleSensors    pgTractor;
 InterfaceI2CLCD   pgLcd;
 PageCaptureStream pgDebug;
 
@@ -72,7 +72,7 @@ void resetAll() {
     millisValue(0);
     EEPROM.eepromReset();
     pgGuidance = GuidanceSource();
-    pgTractor  = VehicleTractor();
+    pgTractor  = VehicleSensors();
     pgDebug.out.clear();
     digitalReadValue(PLOUGHSIDE_PIN_2, false);
 }

@@ -24,7 +24,7 @@
 #include "InterfaceI2CLCD.hpp"
 #include "InterfaceSprayer.hpp"
 #include "config/LanguageSprayer.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 // I2C
 TwoWire* gLcdWire = &Wire;
@@ -33,7 +33,7 @@ TwoWire* gLcdWire = &Wire;
 // Global objects
 // --------------
 triton::InterfaceI2CLCD*   gLcd;
-triton::VehicleTractor*    gTractor;
+triton::VehicleSensors*    gTractor;
 triton::ImplementSprayer*  gImplement;
 triton::InterfaceSprayer*  gInterface;
 triton::CalibrationSprayer* gCalibration;
@@ -52,7 +52,10 @@ void setup() {
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
     gLcd->Begin();
 
-    gTractor = new triton::VehicleTractor(&Serial);
+    // The hitch signal is inverted on the sprayer by default -- it used to be
+    // a hard-wired !GetHitch() in InterfaceSprayer -- and is now the
+    // calibration wizard's hitch-inversion setting like on the other machines.
+    gTractor = new triton::VehicleSensors(&Serial, true);
 
     gImplement = new triton::ImplementSprayer(gTractor);
     gInterface = new triton::InterfaceSprayer(gLcd, gImplement, gTractor);

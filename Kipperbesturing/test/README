@@ -45,7 +45,7 @@ this project uses.
     -- but `update()`'s mode ladder never actually transitioned to Hold, and
     nothing in `ImplementKipper` ever used GPS for real. Dropped GPS
     entirely and implemented a real Hold transition using
-    `VehicleTractor::MinSpeed()` (already real, already used by this
+    `VehicleSensors::MinSpeed()` (already real, already used by this
     module's own D-term) -- auto-steering now genuinely pauses while the
     tractor is stationary. Not validated against real hardware.
   - **The `TEENSY` board pin assignment in `ConfigKipper.hpp`/

@@ -30,7 +30,7 @@ using namespace triton;
 // test_ImplementSprayer.cpp, every test constructs fresh instances after
 // resetAll() re-erases the fake EEPROM.
 // ---------------------------------------------------------------------------
-static VehicleTractor   mockTractor;
+static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {
@@ -38,7 +38,7 @@ static void resetAll() {
     EEPROM.eepromReset();
 
     mockTractor.speed = 0;
-    mockTractor.hitch = true;          // "not off" by default
+    mockTractor.hitch = false;         // hitch down: "not off" by default
     mockTractor.simSpeedFlag = true;   // SimSpeed() true -> not the sim condition's first operand
     mockTractor.simTime = 10;          // GetSimTime() -- seconds
     mockTractor.sim = false;
@@ -53,7 +53,7 @@ static void resetAll() {
 }
 
 // ---------------------------------------------------------------------------
-// CheckButtons() -- shared button1Timer/button2Timer debounce + combo detection.
+// CheckButtons() -- ButtonPair combo/repeat timers: debounce + combo detection.
 // delay2 gates single-button detection; delay1*4 gates the combo (both held).
 // ---------------------------------------------------------------------------
 
@@ -135,12 +135,15 @@ test(InterfaceSprayer, update_modePinLow_selectsOff) {
     assertEqual(iface.GetMode(), (byte)2);
 }
 
-test(InterfaceSprayer, update_hitchNotEngaged_selectsOff) {
+test(InterfaceSprayer, update_hitchUp_selectsOff) {
     resetAll();
     ImplementSprayer impl(&mockTractor);
     InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
 
-    mockTractor.hitch = false;  // !GetHitch() -> true -> off
+    // GetHitch() is the hitch after its configured inversion (VehicleSensors,
+    // EEPROM 28; the sprayer defaults to inverted): true = up -> off, as on
+    // the plough and the rooier. It used to be a hard-wired !GetHitch().
+    mockTractor.hitch = true;
     iface.Update();
     assertEqual(iface.GetMode(), (byte)2);
 }
@@ -150,7 +153,7 @@ test(InterfaceSprayer, update_allConditionsGood_selectsAuto) {
     ImplementSprayer impl(&mockTractor);
     InterfaceSprayer iface(&mockLcd, &impl, &mockTractor);
 
-    // Not off (MODE_PIN true, hitch true); SimSpeed() true and GetSim()
+    // Not off (MODE_PIN true, hitch down); SimSpeed() true and GetSim()
     // false, per resetAll() -> neither sim condition holds -> Auto.
     iface.Update();
     assertEqual(iface.GetMode(), (byte)0);

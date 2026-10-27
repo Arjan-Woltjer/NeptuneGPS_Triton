@@ -30,7 +30,7 @@
 #include "../InterfacePlough.hpp"
 #include "GuidanceSource.hpp"
 #include "../config/LanguagePlough.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -43,7 +43,7 @@ namespace triton
 class CalibrationPlough {
 public:
     CalibrationPlough(Stream* serialDebug, InterfaceI2CLCD* lcd, ImplementPlough* implement,
-                       VehicleTractor* tractor, GuidanceSource* guidance, InterfacePlough* interface);
+                       VehicleSensors* tractor, GuidanceSource* guidance, InterfacePlough* interface);
 
     void Calibrate();
 
@@ -76,7 +76,7 @@ private:
     Stream*          serialDebug;
     InterfaceI2CLCD* lcd;
     ImplementPlough* implement;
-    VehicleTractor*  tractor;
+    VehicleSensors*  tractor;
     GuidanceSource*  guidance;
     InterfacePlough* interface;
 

@@ -31,7 +31,7 @@ using namespace triton;
 // rather than sharing one static instance across tests.
 // ---------------------------------------------------------------------------
 static GuidanceSource   mockGuidance;
-static VehicleTractor   mockTractor;
+static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {
@@ -59,7 +59,7 @@ static void resetAll() {
 }
 
 // ---------------------------------------------------------------------------
-// CheckButtons() -- shared button1Timer/button2Timer debounce + combo detection.
+// CheckButtons() -- ButtonPair combo/repeat timers: debounce + combo detection.
 // delay2 gates single-button detection; delay1*4 gates the combo (both held).
 // ---------------------------------------------------------------------------
 

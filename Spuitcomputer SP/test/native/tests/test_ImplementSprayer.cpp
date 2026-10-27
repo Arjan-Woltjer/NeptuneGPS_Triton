@@ -37,7 +37,7 @@ using namespace triton;
 // dose=200 (readDose()'s own "no dose stored" default), histCount=histSize=5
 // (see ImplementSprayer.cpp's constructor).
 // ---------------------------------------------------------------------------
-static VehicleTractor mockTractor;
+static VehicleSensors mockTractor;
 
 static void resetAll() {
     millisValue(0);

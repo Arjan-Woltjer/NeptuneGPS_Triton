@@ -25,7 +25,7 @@ namespace triton
 // -----------
 // Constructor
 // -----------
-InterfaceSprayer::InterfaceSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement, VehicleTractor* tractor) {
+InterfaceSprayer::InterfaceSprayer(InterfaceI2CLCD* lcd, ImplementSprayer* implement, VehicleSensors* tractor) {
     // Pin assignments and configuration
     // Schmitt triggered inputs
     pinMode(LEFT_BUTTON, INPUT);
@@ -67,7 +67,10 @@ void InterfaceSprayer::Update() {
     // ---
     // Off
     // ---
-    if (!digitalRead(MODE_PIN) || !tractor->GetHitch()) {
+    // GetHitch() is true with the hitch up, after the inversion the
+    // calibration wizard sets (VehicleSensors; inverted by default on the
+    // sprayer, which used to hard-wire it here as !GetHitch()).
+    if (!digitalRead(MODE_PIN) || tractor->GetHitch()) {
         mode = 2;
         simTime = millis();
     }

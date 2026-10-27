@@ -22,7 +22,7 @@
 #include <EEPROM.h>
 
 #include "GuidanceSource.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 #include "EndShutoff.hpp"
 
 #include "../config/ConfigImplementPlanter.hpp"
@@ -105,7 +105,7 @@ private:
 
     // Objects
     Stream*         serialDebug;
-    VehicleTractor* tractor;
+    VehicleSensors* tractor;
     GuidanceSource* guidance;
 
     //-------------------------------------------------------------
@@ -126,7 +126,7 @@ public:
     // -----------------------------------------------------------
 
     // Constructor
-    ImplementPlanter(Stream* serialDebug, VehicleTractor* tractor, GuidanceSource* guidance);
+    ImplementPlanter(Stream* serialDebug, VehicleSensors* tractor, GuidanceSource* guidance);
 
     void Update();
     void Adjust(byte mode, int direction);

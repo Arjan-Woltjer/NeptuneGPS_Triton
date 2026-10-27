@@ -83,7 +83,7 @@ $testSources = Get-ChildItem "$tests\test_*.cpp" | ForEach-Object { Quote $_.Ful
 $flags = @("/std:c++17", "/Zc:preprocessor", "/EHsc", "/nologo", "/W1", "/DEPOXY_DUINO=1")
 $flags += $Defines | ForEach-Object { "/D$_" }
 # The native stubs come first, so a same-named fake (Arduino.h, EEPROM.h,
-# VehicleTractor.hpp, ...) always wins over the real header it stands in for.
+# VehicleSensors.hpp, ...) always wins over the real header it stands in for.
 $flags += @($aunit, $stubs) + ($Includes | ForEach-Object { Resolve-ProjectPath $_ }) | ForEach-Object { "/I" + (Quote $_) }
 
 # One binary for every test_*.cpp under test/native/tests/, as platformio.ini's

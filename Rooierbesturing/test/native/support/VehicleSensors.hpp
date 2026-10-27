@@ -1,5 +1,5 @@
 #pragma once
-// Minimal VehicleTractor stub for native/MSVC unit tests. InterfaceRooier::
+// Minimal VehicleSensors stub for native/MSVC unit tests. InterfaceRooier::
 // Update() calls Update() and GetHitch() on it -- CalibrateSpeed()/
 // ResetWheelspeedPulses()/ResetCalibration()/CommitCalibration() aren't used
 // by this module at all (Rooierbesturing has no speed-calibration wizard
@@ -8,9 +8,9 @@
 
 class Stream;
 
-class VehicleTractor {
+class VehicleSensors {
   public:
-    VehicleTractor() : hitch(false) {}
+    VehicleSensors() : hitch(false) {}
 
     void Update(uint8_t) {}
 
@@ -22,4 +22,9 @@ class VehicleTractor {
     // on, the wizard is never run.
     bool ResetCalibration() { return false; }
     void CommitCalibration() {}
+    // The wizard's hitch-inversion step. `hitch` above is GetHitch()'s result
+    // after the inversion, so this is not applied to it.
+    bool inversion = false;
+    bool GetInversion() { return inversion; }
+    void SetInversion(bool value) { inversion = value; }
 };

@@ -29,7 +29,7 @@ using namespace aunit;
 using namespace triton;
 
 static GuidanceSource  wzGuidance;
-static VehicleTractor  wzTractor;
+static VehicleSensors  wzTractor;
 static InterfaceI2CLCD wzLcd;
 static unsigned long   wzNow = 0;
 
@@ -49,7 +49,7 @@ static void resetAll() {
     at(0);
     EEPROM.eepromReset();
     wzGuidance = GuidanceSource();
-    wzTractor  = VehicleTractor();
+    wzTractor  = VehicleSensors();
     wzLcd.Clear();
     buttons(false, false);
     digitalReadValue(MODE_PIN_2, true);

@@ -30,7 +30,7 @@ using namespace triton;
 // test_ImplementKipper.cpp, every test constructs fresh instances after
 // resetAll() re-erases the fake EEPROM.
 // ---------------------------------------------------------------------------
-static VehicleTractor   mockTractor;
+static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {
@@ -50,7 +50,7 @@ static void resetAll() {
 }
 
 // ---------------------------------------------------------------------------
-// CheckButtons() -- shared button1Timer/button2Timer debounce + combo detection.
+// CheckButtons() -- ButtonPair combo/repeat timers: debounce + combo detection.
 // delay2 gates single-button detection; delay1*4 gates the combo (both held).
 // ---------------------------------------------------------------------------
 

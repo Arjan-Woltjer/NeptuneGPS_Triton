@@ -27,7 +27,7 @@
 
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
-#include "VehicleTractor.hpp"
+#include "VehicleSensors.hpp"
 
 namespace triton
 {
@@ -97,7 +97,7 @@ public:
     // that key, as the wizard's screens do.
     static int16_t Step(PloughSetting id, int16_t value, int direction);
 
-    PloughSettings(ImplementPlough* implement, VehicleTractor* tractor,
+    PloughSettings(ImplementPlough* implement, VehicleSensors* tractor,
                    GuidanceSource* guidance, CalibrationPlough* calibration);
 
     // Opens a session for `who` with a draft of the values the plough holds.
@@ -129,7 +129,7 @@ public:
 
 private:
     ImplementPlough*   implement;
-    VehicleTractor*    tractor;
+    VehicleSensors*    tractor;
     GuidanceSource*    guidance;
     CalibrationPlough* calibration;
 

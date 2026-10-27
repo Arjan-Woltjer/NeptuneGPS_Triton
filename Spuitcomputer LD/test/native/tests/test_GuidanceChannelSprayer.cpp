@@ -93,14 +93,16 @@ test(GuidanceChannelSprayer, south_and_west_are_negative) {
     assertTrue(near(g.GetLongitude(), -5.0f));
 }
 
-test(GuidanceChannelSprayer, gga_without_fix_commits_quality_zero_and_stamps) {
+// No fix: quality 0 commits, but the GGA timestamp is the fix age (as on the
+// ISOBUS path) and stays where it was, so the fix goes stale after 2 s.
+test(GuidanceChannelSprayer, gga_without_fix_commits_quality_zero_without_stamping) {
     millisValue(777);
     GuidanceSource g; GpsPort port; SerialGuidanceChannel ch(nullptr, &port, &g);
     g.SetQuality(4);
     port.Feed(nmea("GPGGA,123519,,,,,0,00,,,M,,M,,"));
     ch.Update();
     assertEqual((int)g.GetQuality(), 0);
-    assertEqual(g.GetGgaTimestamp(), (unsigned long)777);
+    assertEqual(g.GetGgaTimestamp(), (unsigned long)0);
 }
 
 test(GuidanceChannelSprayer, xte_sentences_commit_hundredths_of_a_metre) {

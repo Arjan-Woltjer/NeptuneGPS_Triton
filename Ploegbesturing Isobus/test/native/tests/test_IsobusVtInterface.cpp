@@ -182,7 +182,7 @@ IsobusVtInterface* vtInterface = nullptr;
 
 // The calibration page the Calibrate key opens (#240), on a settings table of
 // its own. Built on first use, after the fixture's implement.
-VehicleTractor       vtTractor;
+VehicleSensors       vtTractor;
 InterfaceI2CLCD      vtLcd;
 CalibrationPlough*   vtCalibration = nullptr;
 IsobusVtCalibration* vtPage = nullptr;
@@ -268,6 +268,21 @@ void Release(std::uint16_t objectId) {
 // whole value is counting what is on the wire and nothing else, so what it
 // must NOT count is as much of the contract as what it must.
 // ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// ETP burst length (#269)
+//
+// AgIsoStack's default sends 16 packets per DPO whatever the VT's CTS allows.
+// The John Deere 4640 (Mookhoek 57, session 21) rebuilt our pool wrongly from
+// those bursts and rejected every pool too big for TP. The sender still takes
+// the smaller of this and each receiver's CTS, so 255 means "what the VT asks".
+// ---------------------------------------------------------------------------
+
+test(IsobusVtInterface, begin_letsEtpBurstsRunToTheReceiversCts) {
+    Fixture();
+    assertEqual((int)isobus::CANNetworkManager::CANNetwork.get_configuration().get_number_of_packets_per_dpo_message(),
+                255);
+}
 
 test(IsobusVtInterface, vtStatus_countsVtStatusMessages) {
     Reset();

@@ -46,7 +46,7 @@ struct SilentPort : public HardwareSerial {
 };
 
 static GuidanceSource        calGuidance;
-static VehicleTractor        calTractor;
+static VehicleSensors        calTractor;
 static InterfaceI2CLCD       calLcd;
 static SilentPort            calPort;
 static SerialGuidanceChannel calChannel(nullptr, &calPort, &calGuidance);
