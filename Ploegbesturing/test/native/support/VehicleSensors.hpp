@@ -22,6 +22,6 @@ class VehicleSensors {
     void SetInversion(bool value) { inversion = value; }
     bool ResetCalibration() { return false; }
     // Writes the one byte of the real tractor block the plough's settings
-    // table edits: the hitch inversion at 28, as VehicleTractor.cpp does.
+    // table edits: the hitch inversion at 28, as VehicleSensors.cpp does.
     void CommitCalibration() { EEPROM.write(28, inversion); }
 };
