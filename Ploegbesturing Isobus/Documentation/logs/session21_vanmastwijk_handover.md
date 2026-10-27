@@ -55,6 +55,10 @@ the top of the timeline).
   0xF0 during the AUX test, 12:57-13:09 (session 98): any assignment-related messages, any 0x26 status at all? (b) the
   1200's first MW10 upload (11:37:47, session 96) and MW11 upload (12:57:32, session 98): DPO/CTS sequence with the
   255-packet bursts. (c) the 12:53 boot (session 98): what the plough sent in the 124 ms pass.
+  **Answered 2026-10-27 (desktop) in `2026-10-27_session21_vanmastwijk_capture.md`.** The armrest has ten
+  Boolean momentary inputs, so the incompatible-type explanation in finding 2 is ruled out. Each upload
+  used DPO = CTS (1200 50, CNH VT 30) with no errors. The 124 ms pass is most likely the Teensy USB serial
+  120 ms transmit timeout (port closed after the flash).
 - **Branches:** `fix/279-end-shutoff-jitter` and `feat/254-aux-n` (both off test/session21, merged into it) are
   superseded by the PR branches `fix/279-end-shutoff-main` and `feat/254-aux-n-stack`.
 - Leftover git worktree admin folders `.git/worktrees/wt254`, `wt279` (OneDrive lock): `git worktree prune` later.
