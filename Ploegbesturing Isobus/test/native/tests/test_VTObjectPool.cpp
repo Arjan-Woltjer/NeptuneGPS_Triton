@@ -108,6 +108,22 @@ int32_t findObject(uint16_t id, uint8_t type) {
 }
 }  // namespace
 
+// AUX-N (#254): two Auxiliary Function Type 2 objects (type 31), Boolean
+// momentary (2), each with one designator: the soft key's own label at 0,0.
+test(VTObjectPool, auxFunctions_areBooleanMomentaryWithTheKeyLabels) {
+    BuildObjectPool();
+    const uint16_t ids[2]    = { Aux_Wider, Aux_Narrower };
+    const uint16_t labels[2] = { Label_Wider, Label_Narrower };
+    for (int i = 0; i < 2; i++) {
+        const int32_t at = findObject(ids[i], 31);
+        assertTrue(at >= 0);
+        assertEqual((int)VT3PoolData[at + 4], 2);        // function type, no attribute bits
+        assertEqual((int)VT3PoolData[at + 5], 1);        // one child
+        assertEqual((int)(VT3PoolData[at + 6] | (VT3PoolData[at + 7] << 8)), (int)labels[i]);
+        for (int b = 8; b < 12; b++) assertEqual((int)VT3PoolData[at + b], 0);
+    }
+}
+
 test(VTObjectPool, ploughImages_decodeToWholeRows) {
     assertEqual(kPloughLeftImageSize % 2, (uint32_t)0);
     assertEqual((uint32_t)rowsOf(kPloughLeftImage, kPloughLeftImageSize, kPloughImageWidth).size(),
@@ -229,6 +245,7 @@ uint32_t objectLength(uint32_t at) {
         case 21: return 7;                                     // NumberVariable
         case 23: return 8 + b[7] * 2;                          // FontAttributes
         case 27: return 5;                                     // ObjectPointer
+        case 31: return 6 + b[5] * 6;                          // AuxiliaryFunction2
         default: return 0;
     }
 }
@@ -300,6 +317,9 @@ test(VTObjectPool, everyReference_namesAnObjectOfTheRightType) {
                 break;
             case 27:  // ObjectPointer
                 assertTrue(exists(objects, poolU16(at + 3)));
+                break;
+            case 31:  // AuxiliaryFunction2: its designators, soft key labels
+                for (uint8_t c = 0; c < b[5]; c++) assertTrue(isType(objects, poolU16(at + 6 + c * 6), 11));
                 break;
             default:
                 break;

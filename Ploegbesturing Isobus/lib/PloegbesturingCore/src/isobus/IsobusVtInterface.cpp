@@ -156,7 +156,8 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // MW07 -> MW08, same day: GPS and speed indicators, speed in km/h.
     // MW08 -> MW09, 2026-10-20: the calibration page (#240).
     // MW09 -> MW10, 2026-10-24: the Ag Leader lightbar setting, 9 rows (#272).
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW10");
+    // MW10 -> MW11, 2026-10-27: AUX-N functions Breder and Smaller (#254).
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW11");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
@@ -176,6 +177,8 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
         [this](const VirtualTerminalClient::VTChangeNumericValueEvent& e) {
             if (calibration != nullptr) calibration->OnNumericValue(e.objectID, e.value);
         });
+    auxFunctionListener = vtClient->get_auxiliary_function_event_dispatcher().add_listener(
+        [this](const VirtualTerminalClient::AuxiliaryFunctionEvent& e) { onAuxFunctionEvent(e); });
     vtClient->initialize(false);
 }
 
@@ -509,9 +512,16 @@ const char* IsobusVtInterface::GetVtVersionName() const {
 
 void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parentPointer) {
     if (parentPointer == nullptr || message.get_data_length() < 1) return;
+    IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
+
+    // An AUX input unit's status (#254), assigned to us or not: only its
+    // learn-mode bit is read here; AgIsoStack dispatches the values.
+    if (message.get_uint8_at(0) == static_cast<std::uint8_t>(VirtualTerminalClient::Function::AuxiliaryInputTypeTwoStatusMessage)) {
+        if (message.get_data_length() >= 8) self->aux.OnInputStatus(message.get_uint8_at(7), millis());
+        return;
+    }
     if (message.get_uint8_at(0) != static_cast<std::uint8_t>(VirtualTerminalClient::Function::VTStatusMessage)) return;
 
-    IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
     self->vtStatusMessageCount++;
     self->lastVtStatusMessageMs = millis();
     // Every VT's status, not only our partner's: the policy needs to know
@@ -545,11 +555,33 @@ void IsobusVtInterface::notePreferredCandidate(std::uint8_t source) {
 }
 
 bool IsobusVtInterface::IsWiderHeld() const {
-    return widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs;
+    return (widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs) || aux.IsWiderHeld(millis());
 }
 
 bool IsobusVtInterface::IsNarrowerHeld() const {
-    return narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs;
+    return (narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs) || aux.IsNarrowerHeld(millis());
+}
+
+// A status of an input assigned to one of our AUX functions (#254). Logged on
+// press and release, as the soft keys are.
+void IsobusVtInterface::onAuxFunctionEvent(const VirtualTerminalClient::AuxiliaryFunctionEvent& event) {
+    const std::uint16_t function = event.function.functionObjectID;
+    if (function != Aux_Wider && function != Aux_Narrower) return;
+    const bool wider = function == Aux_Wider;
+    const unsigned long now = millis();
+    const bool wasHeld = wider ? aux.IsWiderHeld(now) : aux.IsNarrowerHeld(now);
+    aux.OnFunctionValue(wider, event.value1, now);
+    (wider ? auxWiderEvents : auxNarrowerEvents)++;
+    const bool isHeld = wider ? aux.IsWiderHeld(now) : aux.IsNarrowerHeld(now);
+    if (isHeld != wasHeld) {
+        serialDebug->print(wider ? "VT: AUX Breder " : "VT: AUX Smaller ");
+        serialDebug->print(isHeld ? "pressed" : "released");
+        serialDebug->print(" (input ");
+        serialDebug->print(event.function.inputObjectID);
+        serialDebug->print(", value ");
+        serialDebug->print(event.value1);
+        serialDebug->println(aux.InLearnMode(now) ? ", learn mode)" : ")");
+    }
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
