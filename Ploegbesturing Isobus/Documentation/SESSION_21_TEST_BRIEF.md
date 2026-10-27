@@ -264,9 +264,12 @@ Full record: `logs/2026-10-27_session21_vanmastwijk_{timeline.md,serial.log}`, t
 - **#281 / #254 AUX-N** (MW11): listed on the 1200, not assignable; not on main.
 - **#282** (MW12-MW16): readable list popups, 12x16 units, the main screen in cm, the soft key layout. Bench-passed
   on AgISOVirtualTerminal (2 x 6 and 1 x 6), not yet on the CNH VT or the 1200; not on main.
-- Smaller gaps, for the same visit: C6's end-stop cut from the cab with #279; K4's plough-side half (PLOEGZIJDE
-  following a turned plough) on both VTs; B3 on the 1200; V7's AUTO/hold half; wheel speed (N2); the LCD after a
-  true cold power-up with USB out (N1); B6 and L6 (optional, B6 bench-passed); A2's press times.
+- **N2's wheel speed** (#276): the hitch half passed; the speed needs the tractor moving.
+- **A2**: the armrest buttons pressed one at a time, with the time to the second, for the CANedge (#254).
+
+**Accepted as run** (owner, 2026-10-27): C6's end-stop cut from the cab (the same code as B3, which passed
+with #279), K4's plough-side half (PLOEGZIJDE following a turned plough), B3 on the 1200, V7's AUTO/hold half,
+and B6 (bench-passed). Still to decide: N1 after a true cold power-up with USB out, and L6 (optional).
 - **#274's carry-over from byte 70 is dropped** (owner, 2026-10-27: no unit in the field stored its VT
   there). Byte 14 is the only byte read; this board already has 2 there.
 
