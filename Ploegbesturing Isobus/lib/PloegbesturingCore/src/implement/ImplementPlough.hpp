@@ -60,6 +60,12 @@ static constexpr byte kDefaultDeadband = 2;
 // duty, in manual and automatic alike.
 static constexpr byte kValvePwm = 255;
 
+// The end shutoff sees the plough as moving once its width has changed by at
+// least this much (cm) since the shutoff timer last restarted. The filtered
+// width flips by 1 cm on a few counts of sensor noise; a real move covers
+// this in well under the shutoff time.
+static constexpr short int kShutoffMoveCm = 2;
+
 class ImplementPlough {
 private:
     //-------------
@@ -70,7 +76,8 @@ private:
     short int positionCalibrationData[3];
     short int positionCalibrationPoints[3];
     short int position;
-    short int lastPosition;
+    // Width where the end-shutoff timer last restarted
+    short int shutoffPosition;
 
 #ifdef ROTATION
     // Default rotation calibration set
