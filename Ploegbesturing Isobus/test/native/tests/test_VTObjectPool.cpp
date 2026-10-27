@@ -481,11 +481,12 @@ test(VTObjectPool, mainScreen_everyRowInCm) {
     assertEqual(memcmp(VT3PoolData + label + 16, "XTE", 3), 0);
 }
 
-// #282, the owner's layout. On a two-column VT positions fill each row from
-// column 2, so position 0 is row 1 column 2, position 1 row 1 column 1, and
-// row r column 1 is position 2r - 1: - and + on row 1, CALIBR and BREEDTE on
-// row 3 (5), OPSLAAN and VASTLEG on row 4 (7), ANNUL. and TERUG on row 6 (11).
-// Every other position up to the last key is a blank NULL pointer.
+// #282, the owner's layout on a 2 x 6 VT that fills column 2 top to bottom,
+// then column 1 (the bench VT): column 2 row r is position r - 1, column 1
+// row r position 5 + r. - at column 2 row 1 (0), + at column 1 row 1 (6),
+// CALIBR and BREEDTE at column 1 row 3 (8), OPSLAAN and VASTLEG row 4 (9),
+// ANNUL. and TERUG row 6 (11). Every other position up to the last key is a
+// blank NULL pointer.
 namespace {
 bool softKeysAre(const std::map<uint16_t, PoolObject>& objects, uint16_t mask,
                  std::map<uint8_t, uint16_t> keyAt, uint8_t count) {
@@ -504,11 +505,11 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
     const auto objects = walkPool();
     assertFalse(objects.empty());
     assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
-                           { { 0, Key_Narrower }, { 1, Key_Wider }, { 5, Key_Calibrate } }, 6));
+                           { { 0, Key_Narrower }, { 6, Key_Wider }, { 8, Key_Calibrate } }, 9));
     assertTrue(softKeysAre(objects, Plough_CalSoftKeyMask,
-                           { { 5, Key_CalWidth }, { 7, Key_CalSave }, { 11, Key_CalCancel } }, 12));
+                           { { 8, Key_CalWidth }, { 9, Key_CalSave }, { 11, Key_CalCancel } }, 12));
     assertTrue(softKeysAre(objects, Plough_CalWidthSoftKeyMask,
-                           { { 0, Key_CalNarrower }, { 1, Key_CalWider }, { 7, Key_CalCapture },
+                           { { 0, Key_CalNarrower }, { 6, Key_CalWider }, { 9, Key_CalCapture },
                              { 11, Key_CalWidthBack } }, 12));
     // The blanks are NULL pointers, and - and + are one large character each.
     for (uint8_t i = 0; i < kSoftKeySlots; i++) {

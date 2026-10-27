@@ -174,13 +174,15 @@ enum PloughVtObjectId : uint16_t {
     Aux_Narrower               = 171,
 };
 
-// Soft key positions per mask. The owner's layout (#282) counts on a VT
-// with two key columns filling each row from column 2, then column 1:
-// position 2(r - 1) is column 2 of row r, position 2(r - 1) + 1 column 1.
-// A one-column VT takes the positions in order, row by row.
-constexpr uint8_t kSoftKeySlots = 12;
+// Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
+// (#282). The bench VT (AgISOVirtualTerminal) fills column 2 top to bottom,
+// then column 1: positions 0-5 are column 2 rows 1-6, 6-11 column 1. A
+// one-column VT takes the positions in order, six to a page, so column 1
+// lands on its second page.
+constexpr uint8_t kSoftKeyRows  = 6;
+constexpr uint8_t kSoftKeySlots = 2 * kSoftKeyRows;
 constexpr uint8_t SoftKeySlot(uint8_t row, uint8_t column) {
-    return uint8_t(2 * (row - 1) + (column == 1 ? 1 : 0));
+    return uint8_t((column == 1 ? kSoftKeyRows : 0) + (row - 1));
 }
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.

@@ -759,7 +759,8 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
 
     // Soft keys by position (#282): - and + on the first row, CALIBR on row 3
-    // of column 1. The first six positions are all a VT has to show at once.
+    // of column 1. A one-column VT shows - alone on its first page, + and
+    // CALIBR on the second.
     {
         uint16_t keys[kSoftKeySlots];
         for (uint16_t& key : keys) key = kNoKey;
