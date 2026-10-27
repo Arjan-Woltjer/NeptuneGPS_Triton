@@ -159,6 +159,12 @@ enum PloughVtObjectId : uint16_t {
     Str_CalAuto                = 164,
     Str_CalOn                  = 165,
     Str_CalOff                 = 166,
+
+    // AUX-N (#254): Breder and Smaller as Auxiliary Function Type 2 objects,
+    // assignable to joystick or armrest inputs on the VT. Their designators
+    // are the soft keys' own labels.
+    Aux_Wider                  = 170,
+    Aux_Narrower               = 171,
 };
 
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
