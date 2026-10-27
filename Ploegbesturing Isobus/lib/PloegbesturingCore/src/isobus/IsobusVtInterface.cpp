@@ -165,7 +165,9 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // order, column 2 top to bottom, then column 1 (#282; MW13 bench only).
     // MW14 -> MW15, same day: CALIBR, BREEDTE, OPSLAAN and ANNUL. in column 2;
     // the width screen's VASTLEG and TERUG read OPSLAAN and ANNUL. (#282).
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW15");
+    // MW15 -> MW16, same day: + above - in rows 1 and 2, as the cab buttons,
+    // so every key fits a 1 x 6 VT (#282).
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW16");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
