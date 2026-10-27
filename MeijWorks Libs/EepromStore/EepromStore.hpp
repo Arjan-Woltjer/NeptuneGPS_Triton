@@ -20,30 +20,26 @@
 #pragma once
 
 #include <stdint.h>
-#include <string.h>
 
 #include <EEPROM.h>
 
 namespace triton
 {
 
-// One copy of the byte layouts every implement used to write out by hand
-// (NeptuneGPS_Triton#177): readInt/writeInt in six projects, readFloat/
-// writeFloat, wipeCalibrationData in three, and 22 inline word()/highByte()
-// pairs. It owns no addresses -- those stay with the caller and the EEPROM
-// memory map (#78, #178) -- and it keeps every byte where it already is:
+// Reads and writes typed values in EEPROM at an address the caller passes in.
+// It holds no state and owns no addresses: where each value lives is up to
+// the caller and the EEPROM memory map. Byte layouts:
 //
-//   Int16Le   int16, low byte first: what readInt()/writeInt() stored
-//   Uint16Be  uint16, high byte first: what word(EEPROM.read(a),
-//             EEPROM.read(a + 1)) read and highByte()/lowByte() wrote
-//   Float     IEEE 754 single, low byte first: what readFloat()/writeFloat()
-//             stored (all Triton targets are little-endian)
+//   Uint8     one byte
+//   Int16Le   int16, low byte first
+//   Uint16Be  uint16, high byte first
+//   Float     IEEE 754 single, low byte first
+//   Fill      sets a range of bytes to one value (e.g. wiping a block)
 //
-// The map's decision to use little-endian everywhere is a separate step: a
-// block's byte order changes together with its layout-version check, never
-// before it (#177's constraints). Header-only, so it builds for AVR (the
-// Arduino Micro) as well as the Teensy and ESP32 boards, with no source file
-// to add to any build.
+// Changing a block's byte order changes what is already stored on the
+// device, so do it only together with that block's layout-version check.
+// Header-only, so it builds for AVR (Arduino Micro), Teensy and ESP32
+// without adding a source file to any build.
 struct EepromStore {
     static uint8_t ReadUint8(uint16_t addr) {
         return EEPROM.read(addr);
@@ -66,7 +62,7 @@ struct EepromStore {
 
     static uint16_t ReadUint16Be(uint16_t addr) {
         return static_cast<uint16_t>(static_cast<uint16_t>(EEPROM.read(addr)) << 8 |
-                                     EEPROM.read(addr + 1));
+                                     static_cast<uint16_t>(EEPROM.read(addr + 1)));
     }
 
     static void WriteUint16Be(uint16_t addr, uint16_t value) {
@@ -75,20 +71,26 @@ struct EepromStore {
     }
 
     static float ReadFloat(uint16_t addr) {
-        uint8_t bytes[sizeof(float)];
-        for (uint8_t i = 0; i < sizeof(float); i++) {
-            bytes[i] = EEPROM.read(addr + i);
+        union {
+            float value;
+            uint8_t bytes[sizeof(float)];
+        } u;
+
+        for (uint8_t i = 0; i < sizeof(u.bytes); i++) {
+            u.bytes[i] = EEPROM.read(addr + i);
         }
-        float value;
-        memcpy(&value, bytes, sizeof(float));
-        return value;
+        return u.value;
     }
 
     static void WriteFloat(uint16_t addr, float value) {
-        uint8_t bytes[sizeof(float)];
-        memcpy(bytes, &value, sizeof(float));
-        for (uint8_t i = 0; i < sizeof(float); i++) {
-            EEPROM.write(addr + i, bytes[i]);
+        union {
+            float value;
+            uint8_t bytes[sizeof(float)];
+        } u;
+
+        u.value = value;
+        for (uint8_t i = 0; i < sizeof(u.bytes); i++) {
+            EEPROM.write(addr + i, u.bytes[i]);
         }
     }
 

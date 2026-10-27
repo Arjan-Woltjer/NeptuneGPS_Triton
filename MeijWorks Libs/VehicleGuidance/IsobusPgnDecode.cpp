@@ -323,20 +323,28 @@ GuidanceMachineInfoResult DecodeGuidanceMachineInfo(const uint8_t* data, uint8_t
 
 ProcessDataKind ClassifyProcessDataCommand(uint8_t byte0) {
     switch (byte0 & 0x0F) {
-        case 0:  return ProcessDataKind::TechnicalCapabilities;
-        case 1:  return ProcessDataKind::DeviceDescriptor;
-        case 2:  return ProcessDataKind::RequestValue;
-        case 3:  return ProcessDataKind::SetValue;
+        case 0:
+            return ProcessDataKind::TechnicalCapabilities;
+        case 1:
+            return ProcessDataKind::DeviceDescriptor;
+        case 2:
+            return ProcessDataKind::RequestValue;
+        case 3:
+            return ProcessDataKind::SetValue;
         case 4:  // measurement time interval
         case 5:  // measurement distance interval
         case 6:  // measurement minimum threshold
         case 7:  // measurement maximum threshold
         case 8:  // measurement change threshold
             return ProcessDataKind::Measurement;
-        case 10: return ProcessDataKind::SetValue;   // set value and acknowledge
-        case 14: return ProcessDataKind::TaskControllerStatus;
-        case 15: return ProcessDataKind::WorkingSetTask;
-        default: return ProcessDataKind::Other;
+        case 10:
+            return ProcessDataKind::SetValue;   // set value and acknowledge
+        case 14:
+            return ProcessDataKind::TaskControllerStatus;
+        case 15:
+            return ProcessDataKind::WorkingSetTask;
+        default:
+            return ProcessDataKind::Other;
     }
 }
 
