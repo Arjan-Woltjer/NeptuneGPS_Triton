@@ -504,6 +504,15 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
                 serialDebug->println(vtInterface->GetPreferredVtAddress() == vtInterface->GetPartnerAddress() ? " (bound)" : " (not bound)");
             }
         }
+        // AUX-N (#254): statuses of inputs assigned to Breder / Smaller.
+        serialDebug->print("  AUX-N: Breder events=");
+        serialDebug->print(vtInterface->GetAuxWiderEvents());
+        serialDebug->print(" Smaller events=");
+        serialDebug->print(vtInterface->GetAuxNarrowerEvents());
+        serialDebug->print(" held=");
+        serialDebug->print(vtInterface->IsWiderHeld() ? "B" : "-");
+        serialDebug->print(vtInterface->IsNarrowerHeld() ? "S" : "-");
+        serialDebug->println(vtInterface->IsAuxLearnMode() ? " learn mode" : "");
     }
 
     serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");

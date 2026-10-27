@@ -34,13 +34,13 @@ enum PloughVtObjectId : uint16_t {
     Plough_DataMask    = 1,
     Plough_SoftKeyMask = 2,
 
-    // Soft key objects
+    // Soft key objects. 5 was the AUTO key and 14 its label until #282: never
+    // reused, so a VT's cached pool can't mistake a new object for them.
     Key_Wider    = 3,
     Key_Narrower = 4,
-    Key_Auto     = 5,
 
     // Font attribute objects
-    Font_White_Medium = 6,  // 8x12 for data fields
+    Font_White_Medium = 6,  // 12x16 for data fields
     Font_White_Small  = 7,  // 8x8 for soft key labels
 
     // Static label strings
@@ -50,18 +50,17 @@ enum PloughVtObjectId : uint16_t {
     Label_Offset   = 11,
     Label_Wider    = 12,
     Label_Narrower = 13,
-    Label_Auto     = 14,
 
     // Output numbers (reference the variables below)
     Out_Position = 15,
     Out_Setpoint = 16,
-    Out_XTE      = 17,  // displayed in metres (variable biased +1000 cm)
+    Out_XTE      = 17,  // displayed in cm (variable biased +1000 cm)
     Out_Offset   = 18,
 
     // NumberVariables -- updated from loop() via send_change_numeric_value()
     Var_Position = 19,
     Var_Setpoint = 20,
-    Var_XTE      = 21,  // stored as (xte_cm + 1000); OutputNumber subtracts 1000 and scales to m
+    Var_XTE      = 21,  // stored as (xte_cm + 1000); OutputNumber subtracts 1000
     Var_Offset   = 22,
 
     // App-switcher icon -- see VTObjectPool.cpp's appendPictureGraphic() call
@@ -103,6 +102,13 @@ enum PloughVtObjectId : uint16_t {
     // mask factor again (neptune-main a9453ff keeps shared fonts there).
     Font_White_Unit  = 37,
 
+    // The + and - key labels' 24x32 font (#282), used on keys only, so it
+    // scales with the soft keys like Font_White_Small.
+    Font_White_Large = 38,
+    // Blank soft key positions: NULL object pointers, Ptr_KeyBlank0 + i for
+    // position i of any soft key mask (VTObjectPool.cpp, appendSoftKeys()).
+    Ptr_KeyBlank0    = 39,  // .. 50
+
     // ---- Calibration page (#240) ----
     // A block of its own from 100, so no existing id moves. One label and
     // one input per PloughSettings line, in table order: Label_Cal0 + i and
@@ -117,7 +123,8 @@ enum PloughVtObjectId : uint16_t {
     Label_CalWidth        = 107,
     Label_Cal0            = 110,  // .. 119 at most
     Input_Cal0            = 120,  // .. 129 at most: InputNumber or InputList
-    // The list entries and units, shared by the inputs that use them.
+    // The list entries and units, shared by the inputs that use them;
+    // Str_CalCm also follows the main screen's four values (#282).
     Str_CalNo             = 130,
     Str_CalYes            = 131,
     Str_CalRight          = 132,
@@ -128,8 +135,8 @@ enum PloughVtObjectId : uint16_t {
     Str_CalMm             = 137,
 
     // The width procedure (#240): the point being captured, its target, the
-    // live sensor and a status line, with Smaller / Breder / Vastleggen /
-    // Terug.
+    // live sensor and a status line, with - / + / Opslaan (capture) /
+    // Annul. (back).
     Plough_CalWidthMask        = 140,
     Plough_CalWidthSoftKeyMask = 141,
     Key_CalNarrower            = 142,
@@ -159,13 +166,30 @@ enum PloughVtObjectId : uint16_t {
     Str_CalAuto                = 164,
     Str_CalOn                  = 165,
     Str_CalOff                 = 166,
+
+    // AUX-N (#254): Breder and Smaller as Auxiliary Function Type 2 objects,
+    // assignable to joystick or armrest inputs on the VT. Their designators
+    // are the soft keys' own labels.
+    Aux_Wider                  = 170,
+    Aux_Narrower               = 171,
 };
 
+// Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
+// (#282). The bench VT (AgISOVirtualTerminal) fills column 2 top to bottom,
+// then column 1: positions 0-5 are column 2 rows 1-6, 6-11 column 1. A
+// one-column VT takes the positions in order, six to a page, so column 1
+// lands on its second page.
+constexpr uint8_t kSoftKeyRows  = 6;
+constexpr uint8_t kSoftKeySlots = 2 * kSoftKeyRows;
+constexpr uint8_t SoftKeySlot(uint8_t row, uint8_t column) {
+    return uint8_t((column == 1 ? kSoftKeyRows : 0) + (row - 1));
+}
+
 // Key codes embedded in Key objects; reported back in VTKeyEvent::keyNumber.
+// 3 was the AUTO key's until #282.
 enum PloughKeyCode : uint8_t {
     KeyCode_Wider     = 1,
     KeyCode_Narrower  = 2,
-    KeyCode_Auto      = 3,
     KeyCode_Calibrate = 4,
     KeyCode_CalSave   = 5,
     KeyCode_CalCancel = 6,

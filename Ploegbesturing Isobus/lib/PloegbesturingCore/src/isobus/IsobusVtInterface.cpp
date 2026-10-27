@@ -156,13 +156,24 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // MW07 -> MW08, same day: GPS and speed indicators, speed in km/h.
     // MW08 -> MW09, 2026-10-20: the calibration page (#240).
     // MW09 -> MW10, 2026-10-24: the Ag Leader lightbar setting, 9 rows (#272).
+    // MW10 -> MW11, 2026-10-27: AUX-N functions Breder and Smaller (#254).
+    // MW11 -> MW12, 2026-10-27: readable list popups, 12x16 units, every main
+    // screen row in cm (#282).
+    // MW12 -> MW13, same day: soft keys by position, large + and -, no AUTO
+    // key (#282; MW12 was only ever on the bench VT).
+    // MW13 -> MW14, same day: the key positions follow the bench VT's fill
+    // order, column 2 top to bottom, then column 1 (#282; MW13 bench only).
+    // MW14 -> MW15, same day: CALIBR, BREEDTE, OPSLAAN and ANNUL. in column 2;
+    // the width screen's VASTLEG and TERUG read OPSLAAN and ANNUL. (#282).
+    // MW15 -> MW16, same day: + above - in rows 1 and 2, as the cab buttons,
+    // so every key fits a 1 x 6 VT (#282).
     // ETP bursts as long as the receiver's CTS allows (#269). AgIsoStack's
     // default sends 16 packets per DPO whatever the CTS says; the John Deere
     // 4640 (Mookhoek 57, session 21) then rebuilt our pool wrongly and
     // answered End of Object Pool "other error" with no object, on every pool
     // too big for TP. Still bounded by each receiver's own CTS window.
     CANNetworkManager::CANNetwork.get_configuration().set_number_of_packets_per_dpo_message(255);
-    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW10");
+    vtClient->set_object_pool(0, VT3PoolData, VT3PoolSize, "MW16");
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's
     // layout); unscaled, the InCommand 1200 showed it small and squeezed
@@ -182,6 +193,8 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
         [this](const VirtualTerminalClient::VTChangeNumericValueEvent& e) {
             if (calibration != nullptr) calibration->OnNumericValue(e.objectID, e.value);
         });
+    auxFunctionListener = vtClient->get_auxiliary_function_event_dispatcher().add_listener(
+        [this](const VirtualTerminalClient::AuxiliaryFunctionEvent& e) { onAuxFunctionEvent(e); });
     vtClient->initialize(false);
 }
 
@@ -515,9 +528,16 @@ const char* IsobusVtInterface::GetVtVersionName() const {
 
 void IsobusVtInterface::OnVtToEcuMessage(const CANMessage& message, void* parentPointer) {
     if (parentPointer == nullptr || message.get_data_length() < 1) return;
+    IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
+
+    // An AUX input unit's status (#254), assigned to us or not: only its
+    // learn-mode bit is read here; AgIsoStack dispatches the values.
+    if (message.get_uint8_at(0) == static_cast<std::uint8_t>(VirtualTerminalClient::Function::AuxiliaryInputTypeTwoStatusMessage)) {
+        if (message.get_data_length() >= 8) self->aux.OnInputStatus(message.get_uint8_at(7), millis());
+        return;
+    }
     if (message.get_uint8_at(0) != static_cast<std::uint8_t>(VirtualTerminalClient::Function::VTStatusMessage)) return;
 
-    IsobusVtInterface* self = static_cast<IsobusVtInterface*>(parentPointer);
     self->vtStatusMessageCount++;
     self->lastVtStatusMessageMs = millis();
     // Every VT's status, not only our partner's: the policy needs to know
@@ -551,11 +571,33 @@ void IsobusVtInterface::notePreferredCandidate(std::uint8_t source) {
 }
 
 bool IsobusVtInterface::IsWiderHeld() const {
-    return widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs;
+    return (widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs) || aux.IsWiderHeld(millis());
 }
 
 bool IsobusVtInterface::IsNarrowerHeld() const {
-    return narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs;
+    return (narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs) || aux.IsNarrowerHeld(millis());
+}
+
+// A status of an input assigned to one of our AUX functions (#254). Logged on
+// press and release, as the soft keys are.
+void IsobusVtInterface::onAuxFunctionEvent(const VirtualTerminalClient::AuxiliaryFunctionEvent& event) {
+    const std::uint16_t function = event.function.functionObjectID;
+    if (function != Aux_Wider && function != Aux_Narrower) return;
+    const bool wider = function == Aux_Wider;
+    const unsigned long now = millis();
+    const bool wasHeld = wider ? aux.IsWiderHeld(now) : aux.IsNarrowerHeld(now);
+    aux.OnFunctionValue(wider, event.value1, now);
+    (wider ? auxWiderEvents : auxNarrowerEvents)++;
+    const bool isHeld = wider ? aux.IsWiderHeld(now) : aux.IsNarrowerHeld(now);
+    if (isHeld != wasHeld) {
+        serialDebug->print(wider ? "VT: AUX Breder " : "VT: AUX Smaller ");
+        serialDebug->print(isHeld ? "pressed" : "released");
+        serialDebug->print(" (input ");
+        serialDebug->print(event.function.inputObjectID);
+        serialDebug->print(", value ");
+        serialDebug->print(event.value1);
+        serialDebug->println(aux.InLearnMode(now) ? ", learn mode)" : ")");
+    }
 }
 
 void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
@@ -594,8 +636,6 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
     // close it; see IsobusVtCalibration. It is a single tap, where the
     // cab's equivalent is both buttons held for about a second, but nothing
     // changes before Opslaan, so a stray tap does no harm (#31 point 3).
-    // Auto has no target (InterfacePlough's AUTO mode is derived, not
-    // user-settable), so it is only logged.
     switch (event.objectID) {
         case Key_Calibrate:
             serialDebug->println("VT: Calibrate pressed");
@@ -608,9 +648,6 @@ void IsobusVtInterface::onVtKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
         case Key_CalWidthBack:
             // A saved page may have changed the preferred VT (#255).
             if (calibration != nullptr && calibration->OnSoftKey(event.objectID)) LoadPreferredVt();
-            break;
-        case Key_Auto:
-            serialDebug->println("VT: Auto pressed (not wired to control)");
             break;
         default:
             break;

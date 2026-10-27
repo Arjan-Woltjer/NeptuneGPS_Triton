@@ -50,6 +50,7 @@
 #include "VtFailoverPolicy.hpp"
 #include "PreferredVt.hpp"
 #include "IsobusVtCalibration.hpp"
+#include "AuxInputs.hpp"
 
 namespace triton
 {
@@ -69,11 +70,8 @@ namespace triton
 // soft key drives in manual and steps the width every 200 ms in auto or
 // hold, exactly like a held cab button. Until #245 they were one-loop edges
 // on release and never moved the plough. Calibrate, Opslaan and Annuleren
-// act on release.
-//
-// Auto (Key_Auto) is deliberately NOT wired -- InterfacePlough's AUTO mode is
-// derived from GPS/hitch state, not user-settable via a button, so there's no
-// existing target for it; still display + log only.
+// act on release. There is no AUTO key: the AUTO mode follows GPS and
+// hitch state, so a key had nothing to switch (removed in #282).
 class IsobusVtInterface : public VtCalibrationOutput {
 public:
     IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
@@ -175,8 +173,14 @@ public:
     // 194-206 ms); without one for kSoftKeyHeldTimeoutMs the key counts as
     // released, so a lost release stops the valve within 0.6 s.
     static constexpr unsigned long kSoftKeyHeldTimeoutMs = 600;
+    // The soft key, or an AUX-N input assigned to Breder / Smaller (#254).
     bool IsWiderHeld() const;
     bool IsNarrowerHeld() const;
+
+    // AUX-N events for the dump: assigned-input statuses per function.
+    unsigned int GetAuxWiderEvents() const { return auxWiderEvents; }
+    unsigned int GetAuxNarrowerEvents() const { return auxNarrowerEvents; }
+    bool         IsAuxLearnMode() const { return aux.InLearnMode(millis()); }
 
     // The calibration page (#240) the Calibrate key opens, and Opslaan /
     // Annuleren and the page's inputs go to. Without one the key is only
@@ -214,6 +218,7 @@ private:
     isobus::EventCallbackHandle                         softKeyListener = 0;
     isobus::EventCallbackHandle                         buttonListener = 0;
     isobus::EventCallbackHandle                         numericValueListener = 0;
+    isobus::EventCallbackHandle                         auxFunctionListener = 0;
     IsobusVtCalibration*                                calibration = nullptr;
     Logger                                              logger;
 
@@ -253,6 +258,10 @@ private:
     unsigned long widerEventMs    = 0;
     unsigned long narrowerEventMs = 0;
 
+    AuxInputs     aux;
+    unsigned int  auxWiderEvents    = 0;
+    unsigned int  auxNarrowerEvents = 0;
+
     std::uint8_t preferredVt = 0;
 
     unsigned int  vtStatusMessageCount  = 0;
@@ -286,6 +295,7 @@ private:
     void notePreferredCandidate(std::uint8_t source);
     void switchTo(std::uint8_t address);
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
+    void onAuxFunctionEvent(const isobus::VirtualTerminalClient::AuxiliaryFunctionEvent& event);
     static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);
 };
 
