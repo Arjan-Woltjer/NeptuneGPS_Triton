@@ -266,7 +266,8 @@ Full record: `logs/2026-10-27_session21_vanmastwijk_{timeline.md,serial.log}`, t
   on AgISOVirtualTerminal (2 x 6 and 1 x 6), not yet on the CNH VT or the 1200; not on main.
 - Smaller gaps, for the same visit: C6's end-stop cut from the cab with #279; K4's plough-side half (PLOEGZIJDE
   following a turned plough) on both VTs; B3 on the 1200; V7's AUTO/hold half; wheel speed (N2); the LCD after a
-  true cold power-up with USB out (N1); B6 and L6 (optional, B6 bench-passed); A2's press times; #274's carry-over
-  from byte 70 (this board's byte 70 was 0; covered by the native tests).
+  true cold power-up with USB out (N1); B6 and L6 (optional, B6 bench-passed); A2's press times.
+- **#274's carry-over from byte 70 is dropped** (owner, 2026-10-27: no unit in the field stored its VT
+  there). Byte 14 is the only byte read; this board already has 2 there.
 
 **Rig board:** left on `6dd5f2c` (MW11) with preferred VT 2, lightbar AUTO, points 21/144/266, width 160.
