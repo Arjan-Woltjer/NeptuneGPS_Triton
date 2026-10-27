@@ -63,7 +63,8 @@ test(VTObjectPool, build_isRepeatable) {
 
 test(VTObjectPool, everyDeclaredObjectId_appearsInThePool) {
     BuildObjectPool();
-    for (uint16_t id = Plough_WorkingSet; id <= Font_White_Unit; id++) {
+    for (uint16_t id = Plough_WorkingSet; id <= Ptr_KeyBlank0 + kSoftKeySlots - 1; id++) {
+        if (id == 5 || id == 14) continue;  // the AUTO key and its label until #282
         assertTrue(poolContainsId(id));
     }
 }
@@ -71,8 +72,7 @@ test(VTObjectPool, everyDeclaredObjectId_appearsInThePool) {
 test(VTObjectPool, softKeyCodes_areDistinctAndNonZero) {
     assertNotEqual((int)KeyCode_Wider, 0);
     assertNotEqual((int)KeyCode_Wider, (int)KeyCode_Narrower);
-    assertNotEqual((int)KeyCode_Narrower, (int)KeyCode_Auto);
-    assertNotEqual((int)KeyCode_Auto, (int)KeyCode_Calibrate);
+    assertNotEqual((int)KeyCode_Narrower, (int)KeyCode_Calibrate);
 }
 
 // The plough pictures are generated (tools/generate_vt_images.py): check the
@@ -181,25 +181,36 @@ test(VTObjectPool, softKeyFont_isUsedOnlyByTheSoftKeyLabels) {
     // AgIsoStack (neptune-main a9453ff) scales a font with the soft key factor
     // only if nothing off the keys uses it; one data mask string on
     // Font_White_Small would make the key labels outgrow their keys again.
+    // The same goes for Font_White_Large, the + and - (#282).
     BuildObjectPool();
-    const uint16_t keyLabels[] = { Label_Wider, Label_Narrower, Label_Auto, Label_Calibrate };
+    const uint16_t smallLabels[] = { Label_Calibrate, Label_CalSave, Label_CalCancel, Label_CalWidth,
+                                     Label_CalCapture, Label_CalWidthBack };
+    const uint16_t largeLabels[] = { Label_Wider, Label_Narrower, Label_CalWider, Label_CalNarrower };
     const uint16_t maskTexts[] = { Label_Position, Label_Setpoint, Label_XTE, Label_Offset, Label_Gps,
-                                   Label_SpeedUnit };
-    for (uint16_t id : keyLabels) {
+                                   Label_SpeedUnit, Str_CalCm, Str_CalMm };
+    auto fontOf = [](int32_t at) { return (int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)); };
+    for (uint16_t id : smallLabels) {
         const int32_t at = findObject(id, 11);
         assertTrue(at >= 0);
-        assertEqual((int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)), (int)Font_White_Small);
+        assertEqual(fontOf(at), (int)Font_White_Small);
+    }
+    for (uint16_t id : largeLabels) {
+        const int32_t at = findObject(id, 11);
+        assertTrue(at >= 0);
+        assertEqual(fontOf(at), (int)Font_White_Large);
     }
     for (uint16_t id : maskTexts) {
         const int32_t at = findObject(id, 11);
         assertTrue(at >= 0);
-        assertNotEqual((int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)), (int)Font_White_Small);
+        assertNotEqual(fontOf(at), (int)Font_White_Small);
+        assertNotEqual(fontOf(at), (int)Font_White_Large);
     }
     const uint16_t maskNumbers[] = { Out_Position, Out_Setpoint, Out_XTE, Out_Offset, Out_Speed };
     for (uint16_t id : maskNumbers) {
         const int32_t at = findObject(id, 12);
         assertTrue(at >= 0);
-        assertNotEqual((int)(VT3PoolData[at + 8] | (VT3PoolData[at + 9] << 8)), (int)Font_White_Small);
+        assertNotEqual(fontOf(at), (int)Font_White_Small);
+        assertNotEqual(fontOf(at), (int)Font_White_Large);
     }
 }
 
@@ -300,8 +311,12 @@ test(VTObjectPool, everyReference_namesAnObjectOfTheRightType) {
                     assertFalse(isType(objects, child, 21) || isType(objects, child, 23) || isType(objects, child, 5));
                 }
                 break;
-            case 4:  // SoftKeyMask: keys only
-                for (uint8_t c = 0; c < b[4]; c++) assertTrue(isType(objects, poolU16(at + 6 + c * 2), 5));
+            case 4:  // SoftKeyMask: keys, and NULL object pointers for blank positions
+                for (uint8_t c = 0; c < b[4]; c++) {
+                    const uint16_t child = poolU16(at + 6 + c * 2);
+                    if (isType(objects, child, 27)) assertEqual((int)poolU16(objects.at(child).at + 3), 0xFFFF);
+                    else assertTrue(isType(objects, child, 5));
+                }
                 break;
             case 5:  // Key: its label
                 for (uint8_t c = 0; c < b[5]; c++) assertTrue(isType(objects, poolU16(at + 7 + c * 6), 11));
@@ -316,8 +331,8 @@ test(VTObjectPool, everyReference_namesAnObjectOfTheRightType) {
                 assertTrue(poolU16(at + 7) == 0xFFFF || isType(objects, poolU16(at + 7), 21));
                 for (uint8_t c = 0; c < b[10]; c++) assertTrue(isType(objects, poolU16(at + 13 + c * 2), 11));
                 break;
-            case 27:  // ObjectPointer
-                assertTrue(exists(objects, poolU16(at + 3)));
+            case 27:  // ObjectPointer: an object, or NULL (a blank soft key position)
+                assertTrue(poolU16(at + 3) == 0xFFFF || exists(objects, poolU16(at + 3)));
                 break;
             case 31:  // AuxiliaryFunction2: its designators, soft key labels
                 for (uint8_t c = 0; c < b[5]; c++) assertTrue(isType(objects, poolU16(at + 6 + c * 6), 11));
@@ -390,12 +405,11 @@ test(VTObjectPool, widthProcedure_hasItsMask_andItsKeys) {
     assertTrue(isType(objects, Plough_CalWidthMask, 1));
     assertEqual((int)poolU16(objects.at(Plough_CalWidthMask).at + 4), (int)Plough_CalWidthSoftKeyMask);
     assertTrue(isType(objects, Plough_CalWidthSoftKeyMask, 4));
-    const uint32_t keys = objects.at(Plough_CalWidthSoftKeyMask).at;
-    assertEqual((int)VT3PoolData[keys + 4], 4);
+    // Where each key sits is softKeys_atTheOwnersPositions' job; here, the codes.
     const uint16_t expected[4] = { Key_CalNarrower, Key_CalWider, Key_CalCapture, Key_CalWidthBack };
     const uint8_t codes[4] = { KeyCode_CalNarrower, KeyCode_CalWider, KeyCode_CalCapture, KeyCode_CalWidthBack };
     for (int i = 0; i < 4; i++) {
-        assertEqual((int)poolU16(keys + 6 + i * 2), (int)expected[i]);
+        assertTrue(isType(objects, expected[i], 5));
         assertEqual((int)VT3PoolData[objects.at(expected[i]).at + 4], (int)codes[i]);
     }
     // The page reaches it through BREEDTE.
@@ -467,8 +481,53 @@ test(VTObjectPool, mainScreen_everyRowInCm) {
     assertEqual(memcmp(VT3PoolData + label + 16, "XTE", 3), 0);
 }
 
+// #282, the owner's layout. On a two-column VT positions fill each row from
+// column 2, so position 0 is row 1 column 2, position 1 row 1 column 1, and
+// row r column 1 is position 2r - 1: - and + on row 1, CALIBR and BREEDTE on
+// row 3 (5), OPSLAAN and VASTLEG on row 4 (7), ANNUL. and TERUG on row 6 (11).
+// Every other position up to the last key is a blank NULL pointer.
+namespace {
+bool softKeysAre(const std::map<uint16_t, PoolObject>& objects, uint16_t mask,
+                 std::map<uint8_t, uint16_t> keyAt, uint8_t count) {
+    const uint32_t at = objects.at(mask).at;
+    if (VT3PoolData[at + 4] != count) return false;
+    for (uint8_t i = 0; i < count; i++) {
+        const uint16_t child = poolU16(at + 6 + i * 2);
+        if (child != (keyAt.count(i) ? keyAt[i] : uint16_t(Ptr_KeyBlank0 + i))) return false;
+    }
+    return true;
+}
+}  // namespace
+
+test(VTObjectPool, softKeys_atTheOwnersPositions) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
+                           { { 0, Key_Narrower }, { 1, Key_Wider }, { 5, Key_Calibrate } }, 6));
+    assertTrue(softKeysAre(objects, Plough_CalSoftKeyMask,
+                           { { 5, Key_CalWidth }, { 7, Key_CalSave }, { 11, Key_CalCancel } }, 12));
+    assertTrue(softKeysAre(objects, Plough_CalWidthSoftKeyMask,
+                           { { 0, Key_CalNarrower }, { 1, Key_CalWider }, { 7, Key_CalCapture },
+                             { 11, Key_CalWidthBack } }, 12));
+    // The blanks are NULL pointers, and - and + are one large character each.
+    for (uint8_t i = 0; i < kSoftKeySlots; i++) {
+        assertTrue(isType(objects, Ptr_KeyBlank0 + i, 27));
+        assertEqual((int)poolU16(objects.at(Ptr_KeyBlank0 + i).at + 3), 0xFFFF);
+    }
+    const uint16_t minus[2] = { Label_Narrower, Label_CalNarrower };
+    const uint16_t plus[2]  = { Label_Wider, Label_CalWider };
+    for (int i = 0; i < 2; i++) {
+        assertEqual((int)VT3PoolData[objects.at(minus[i]).at + 16], (int)'-');
+        assertEqual((int)VT3PoolData[objects.at(plus[i]).at + 16], (int)'+');
+    }
+    // No AUTO key any more (#282).
+    assertFalse(exists(objects, 5));
+    assertFalse(exists(objects, 14));
+}
+
 test(VTObjectPool, keyCodes_ofAllSoftKeys_areDistinct) {
-    const uint8_t codes[] = { KeyCode_Wider, KeyCode_Narrower, KeyCode_Auto, KeyCode_Calibrate, KeyCode_CalSave,
+    const uint8_t codes[] = { KeyCode_Wider, KeyCode_Narrower, KeyCode_Calibrate, KeyCode_CalSave,
                               KeyCode_CalCancel, KeyCode_CalWidth, KeyCode_CalNarrower, KeyCode_CalWider,
                               KeyCode_CalCapture, KeyCode_CalWidthBack };
     for (size_t i = 0; i < sizeof(codes); i++) {

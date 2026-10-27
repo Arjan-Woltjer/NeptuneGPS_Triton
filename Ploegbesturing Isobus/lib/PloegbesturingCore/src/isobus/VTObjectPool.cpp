@@ -168,14 +168,29 @@ static void appendSoftKeyMask(uint16_t id, uint8_t bgColour, uint8_t nKeys) {
 static const uint16_t kKeyLabelW = 60;
 static const uint16_t kKeyLabelH = 10;
 static const uint16_t kKeyLabelY = (60 - kKeyLabelH) / 2;
+// The + and - labels (#282): one 24x32 character in a 32 px band.
+static const uint16_t kKeySignH = 32;
 
 // Type 5: Key
-static void appendKey(uint16_t id, uint8_t bgColour, uint8_t keyCode, uint16_t labelID) {
+static void appendKey(uint16_t id, uint8_t bgColour, uint8_t keyCode, uint16_t labelID,
+                      uint16_t labelH = kKeyLabelH) {
     pu16(id); pu8(5);
     pu8(bgColour);
     pu8(keyCode);
     pu8(1); pu8(0);  // 1 child object, 0 macros
-    appendObjRef(labelID, 0, kKeyLabelY);
+    appendObjRef(labelID, 0, (60 - labelH) / 2);
+}
+
+// A soft key mask laid out by position (#282): keys[i] is the key at
+// position i (SoftKeySlot()), kNoKey a blank, which the mask fills with the
+// NULL pointer Ptr_KeyBlank0 + i so the keys after it keep their places.
+// Blanks after the last key are left off.
+constexpr uint16_t kNoKey = 0xFFFF;
+static void appendSoftKeys(uint16_t id, uint8_t bgColour, const uint16_t (&keys)[kSoftKeySlots]) {
+    uint8_t count = kSoftKeySlots;
+    while (count > 0 && keys[count - 1] == kNoKey) count--;
+    appendSoftKeyMask(id, bgColour, count);
+    for (uint8_t i = 0; i < count; i++) pu16(keys[i] == kNoKey ? uint16_t(Ptr_KeyBlank0 + i) : keys[i]);
 }
 
 // Type 31: Auxiliary Function Type 2 (#254). The function type sits in bits
@@ -355,6 +370,8 @@ static const uint8_t kIconPloughData[32] = {
 // 2:3 (tall and thin), 8x8, 16x16 ... square, and 12x16 sits between at 3:4.
 constexpr uint8_t kFont8x8   = 1;
 constexpr uint8_t kFont12x16 = 3;
+// Not 32x32: the John Deere 4640 has every font but that one (Mookhoek).
+constexpr uint8_t kFont24x32 = 6;
 
 // The data-mask texts, as constants so the layout below can check at compile
 // time that each one fits its column.
@@ -492,8 +509,14 @@ FLASHMEM static void appendCalibrationPage() {
         if (PloughSetting(i) == PloughSetting::MaxCorrectionPerShare) appendObjRef(Str_CalMm, UNIT_X, y);
     }
 
-    appendSoftKeyMask(Plough_CalSoftKeyMask, kBlack, 3);
-    pu16(Key_CalSave); pu16(Key_CalCancel); pu16(Key_CalWidth);
+    // BREEDTE where CALIBR is on the main screen, OPSLAAN below it, ANNUL. at
+    // the bottom (#282).
+    uint16_t keys[kSoftKeySlots];
+    for (uint16_t& key : keys) key = kNoKey;
+    keys[SoftKeySlot(3, 1)] = Key_CalWidth;
+    keys[SoftKeySlot(4, 1)] = Key_CalSave;
+    keys[SoftKeySlot(6, 1)] = Key_CalCancel;
+    appendSoftKeys(Plough_CalSoftKeyMask, kBlack, keys);
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
     appendKey(Key_CalWidth, kBlack, KeyCode_CalWidth, Label_CalWidth);
@@ -565,14 +588,21 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendObjRef(Out_CalWidthSensor, VAL_X, SENSOR_Y);
     appendObjRef(Ptr_CalWidthStatus, LBL_X, STATUS_Y);
 
-    appendSoftKeyMask(Plough_CalWidthSoftKeyMask, kBlack, 4);
-    pu16(Key_CalNarrower); pu16(Key_CalWider); pu16(Key_CalCapture); pu16(Key_CalWidthBack);
-    appendKey(Key_CalNarrower, kBlack, KeyCode_CalNarrower, Label_CalNarrower);
-    appendKey(Key_CalWider, kBlack, KeyCode_CalWider, Label_CalWider);
+    // - and + on the first row as on the main screen, VASTLEG where OPSLAAN is
+    // on the page, TERUG where ANNUL. is (#282).
+    uint16_t keys[kSoftKeySlots];
+    for (uint16_t& key : keys) key = kNoKey;
+    keys[SoftKeySlot(1, 2)] = Key_CalNarrower;
+    keys[SoftKeySlot(1, 1)] = Key_CalWider;
+    keys[SoftKeySlot(4, 1)] = Key_CalCapture;
+    keys[SoftKeySlot(6, 1)] = Key_CalWidthBack;
+    appendSoftKeys(Plough_CalWidthSoftKeyMask, kBlack, keys);
+    appendKey(Key_CalNarrower, kBlack, KeyCode_CalNarrower, Label_CalNarrower, kKeySignH);
+    appendKey(Key_CalWider, kBlack, KeyCode_CalWider, Label_CalWider, kKeySignH);
     appendKey(Key_CalCapture, kBlack, KeyCode_CalCapture, Label_CalCapture);
     appendKey(Key_CalWidthBack, kBlack, KeyCode_CalWidthBack, Label_CalWidthBack);
-    appendOutputString(Label_CalNarrower, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "SMALLER");
-    appendOutputString(Label_CalWider, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREDER");
+    appendOutputString(Label_CalNarrower, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
+    appendOutputString(Label_CalWider, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
     appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "VASTLEG");
     appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "TERUG");
 
@@ -728,25 +758,30 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Out_XTE, XTE_X, ROW_Y[3]);
     appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
 
-    // 4 soft keys. ISO 11783-6 only guarantees a VT renders 6 per mask, so
-    // this stays inside what every terminal must support -- but a VT is free
-    // to expose fewer physical/soft key positions than a mask declares, in
-    // which case it pages them; nothing here depends on all four being
-    // visible at once.
-    appendSoftKeyMask(Plough_SoftKeyMask, kBlack, 4);
-    pu16(Key_Wider); pu16(Key_Narrower); pu16(Key_Auto); pu16(Key_Calibrate);
+    // Soft keys by position (#282): - and + on the first row, CALIBR on row 3
+    // of column 1. The first six positions are all a VT has to show at once.
+    {
+        uint16_t keys[kSoftKeySlots];
+        for (uint16_t& key : keys) key = kNoKey;
+        keys[SoftKeySlot(1, 2)] = Key_Narrower;
+        keys[SoftKeySlot(1, 1)] = Key_Wider;
+        keys[SoftKeySlot(3, 1)] = Key_Calibrate;
+        appendSoftKeys(Plough_SoftKeyMask, kBlack, keys);
+    }
 
     // ---- Soft keys ----
-    appendKey(Key_Wider, kBlack, KeyCode_Wider, Label_Wider);
-    appendKey(Key_Narrower, kBlack, KeyCode_Narrower, Label_Narrower);
-    appendKey(Key_Auto, kBlack, KeyCode_Auto, Label_Auto);
+    appendKey(Key_Wider, kBlack, KeyCode_Wider, Label_Wider, kKeySignH);
+    appendKey(Key_Narrower, kBlack, KeyCode_Narrower, Label_Narrower, kKeySignH);
     // Calibrate opens the calibration page below (#240).
     appendKey(Key_Calibrate, kBlack, KeyCode_Calibrate, Label_Calibrate);
+    // The blanks every soft key mask may hold at a position.
+    for (uint8_t i = 0; i < kSoftKeySlots; i++) appendObjectPointer(Ptr_KeyBlank0 + i, 0xFFFF);
 
     // ---- Font attributes ----
     appendFontAttributes(Font_White_Medium, kWhite, kFont12x16);
     appendFontAttributes(Font_White_Small, kWhite, kFont8x8);
     appendFontAttributes(Font_White_Unit, kWhite, kFont8x8);
+    appendFontAttributes(Font_White_Large, kWhite, kFont24x32);
 
     // ---- Static data labels ----
     appendOutputString(Label_Position, LBL_W, ROW_H, Font_White_Medium, 0, kTextPosition);
@@ -755,10 +790,10 @@ FLASHMEM void BuildObjectPool() {
     appendOutputString(Label_Offset, LBL_W, ROW_H, Font_White_Medium, 0, kTextWorkingWidth);
 
     // Soft key labels: horizontally centred by justification, vertically by
-    // their place in the key (appendKey(), kKeyLabelY).
-    appendOutputString(Label_Wider, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREDER");
-    appendOutputString(Label_Narrower, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "SMALLER");
-    appendOutputString(Label_Auto, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "AUTO");
+    // their place in the key (appendKey()). Breder and Smaller are a large +
+    // and - (#282); the AUX-N functions show the same labels.
+    appendOutputString(Label_Wider, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
+    appendOutputString(Label_Narrower, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
     // "CALIBR" not "KALIBR": LanguagePlough.hpp's own LCD wizard strings
     // already say "Breedte calibratie"/"Rotatie calibratie", so this matches
     // what the operator reads on the cab display. 6 chars at 8x8 = 48 px,

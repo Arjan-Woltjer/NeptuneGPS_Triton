@@ -441,18 +441,6 @@ test(IsobusVtInterface, key_calibrateWithoutAPageIsOnlyLogged) {
     assertFalse(vtDebug.Contains("calibration page open"));
 }
 
-test(IsobusVtInterface, key_autoIsLoggedButNotWired) {
-    Reset();
-    // InterfacePlough's AUTO mode is derived from GPS and hitch state, not
-    // user-settable, so this key has no control target by design -- see the
-    // class header.
-    KeyCode(Key_Auto, kPressed);
-    Release(Key_Auto);
-    assertFalse(Fixture().IsWiderHeld());
-    assertFalse(Fixture().IsNarrowerHeld());
-    assertFalse(vtDebug.Contains("VT: Calibrate pressed"));
-    assertTrue(vtDebug.Contains("VT: Auto pressed"));
-}
 
 test(IsobusVtInterface, key_unknownObjectIdIsIgnored) {
     Reset();

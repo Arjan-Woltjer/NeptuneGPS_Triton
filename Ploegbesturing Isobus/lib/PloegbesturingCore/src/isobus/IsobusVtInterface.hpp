@@ -70,11 +70,8 @@ namespace triton
 // soft key drives in manual and steps the width every 200 ms in auto or
 // hold, exactly like a held cab button. Until #245 they were one-loop edges
 // on release and never moved the plough. Calibrate, Opslaan and Annuleren
-// act on release.
-//
-// Auto (Key_Auto) is deliberately NOT wired -- InterfacePlough's AUTO mode is
-// derived from GPS/hitch state, not user-settable via a button, so there's no
-// existing target for it; still display + log only.
+// act on release. There is no AUTO key: the AUTO mode follows GPS and
+// hitch state, so a key had nothing to switch (removed in #282).
 class IsobusVtInterface : public VtCalibrationOutput {
 public:
     IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
