@@ -233,3 +233,40 @@ END
   #273, the MW10 uploads on both VTs to #269, the preferred VT carry-over to #274, O1's dropped count to #268. The stack
   merges bottom up, each PR only on its own evidence: #263 <- #264 <- #265 <- #266. Session 20's steps go
   to their issues: T3/T6 to #255, V7 to #245, O1 to #248, A1-A3 to #254.
+
+## 9. Results (2026-10-27, van Mastwijk)
+
+Run indoors, standing still, on the rig's **Teensy 4.1** (USB 13249100, FLEXCAN3 bodge, its own EEPROM),
+not the 4.0: `test/session21` @ `7b714f1` from 11:01, then `6dd5f2c` (+ #279, + #254 AUX-N) from 12:52.
+Full record: `logs/2026-10-27_session21_vanmastwijk_{timeline.md,serial.log}`, the handover
+`logs/session21_vanmastwijk_handover.md` and the CANedge analysis `logs/2026-10-27_session21_vanmastwijk_capture.md`
+(sessions 94-98). The Mookhoek run of 2026-10-23 (#269) is in `logs/session21_mookhoek57_handover.md`.
+
+| Steps | Result | PR |
+|---|---|---|
+| Setup | MW10 loaded on the CNH VT; boot print as stored on this board (preferred VT 0, bypass 0: its own EEPROM, set to the rig's values during the day) | |
+| C1-C5, C7 cab wizard | Pass. C2: 90 s open, VT, TC and the 1 Hz line held, longest loop 2.7 ms (session 19: dropped after 63 s). C5 with NEE | #263, #264 |
+| C6 cab width procedure | Works (owner). The end-stop cut failed here as in B3 (fixed by #279, retested on the VT only) | #264 |
+| K1-K10 VT page | Pass on both VTs. K3: the CNH VT says `waarde buiten bereik`, the 1200's numpad won't take 11. K7 as a variant (page open on the 1200, CNH VT on: `calibration dropped`, nothing saved). K8 0.25 s, K10 0.64 s | #265 |
+| B1, B2, B4, B5, B7 width on the VT | Pass. B4 saved points 21/34, 144/42, 266/50 through a reboot. B7 on the 1200 without stutter | #266 |
+| B3 end stop | **Fail** on `7b714f1`: 1-2 counts of sensor noise flip the filtered width 1 cm and restarted the 3 s timer every pass (manual and AUTO). **Pass** on `6dd5f2c` with #279 (a move is >= 2 cm from where the timer restarted) | #279 (#280) |
+| MW10 uploads (#269) | CNH VT and 1200 both stored the pool with the long bursts: DPO = CTS (1200 50, CNH VT 30), 1.6-1.9 s, no errors (CANedge) | #270 |
+| L1, L3-L5 lightbar | Pass: Auto claims after the display; UIT releases at once (the 1200 reports the lightbar lost); AAN and AUTO claim again, 65462 back in 2-3 s; it also recovered by itself from an accidental 1200 reboot. One sender failure per fresh claim | #273 |
+| T3, T6/V8, V7 (manual) | Pass: failover in ~15 s; with preference 0 it stays on the 1200; the 1200's BREDER/SMALLER fine, no stutter | #255, #251 |
+| O1 / #268 | Dropped per boot 346-562, constant within a boot through 4 VT switches and a 1200 reboot; loop 2.6-3.2 ms. One 123.7 ms pass after the 6dd5f2c flash: most likely the Teensy USB serial 120 ms transmit timeout (port closed after the flash, capture analysis section 3) | #268 |
+| N1, N2 (#276, #278) | LCD starts clean; hitch letter M/H follows the hitch | #276, #278 |
+| A1-A3 AUX | The armrest (tractor ECU 0xF0) is an AUX-N input unit with ten Boolean momentary inputs, but the 1200 won't assign our functions ("broken link"): see #254 | #254 |
+
+**Not run or not proven, moved to session 22:**
+- **C8** (the control holds while the wizard is open, driving on the line in AUTO).
+- **E6** (AUTO with a setpoint beyond an end stop).
+- **L2's driving half**: following the 1200's line in AUTO (65462 committed and xte == lb, standing still).
+- **#281 / #254 AUX-N** (MW11): listed on the 1200, not assignable; not on main.
+- **#282** (MW12-MW16): readable list popups, 12x16 units, the main screen in cm, the soft key layout. Bench-passed
+  on AgISOVirtualTerminal (2 x 6 and 1 x 6), not yet on the CNH VT or the 1200; not on main.
+- Smaller gaps, for the same visit: C6's end-stop cut from the cab with #279; K4's plough-side half (PLOEGZIJDE
+  following a turned plough) on both VTs; B3 on the 1200; V7's AUTO/hold half; wheel speed (N2); the LCD after a
+  true cold power-up with USB out (N1); B6 and L6 (optional, B6 bench-passed); A2's press times; #274's carry-over
+  from byte 70 (this board's byte 70 was 0; covered by the native tests).
+
+**Rig board:** left on `6dd5f2c` (MW11) with preferred VT 2, lightbar AUTO, points 21/144/266, width 160.
