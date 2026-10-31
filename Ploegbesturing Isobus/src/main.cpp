@@ -231,12 +231,21 @@ void setup() {
     // ConfigPlough.hpp, 250 kbit/s per ISO 11783, accept-all filter. Static:
     // TWAIPlugin keeps the three pointers and reads them in open(). 0xFF tells
     // the guidance channel there is no FlexCAN error state to sample.
+    // Both plugin timeouts are 0: its default 100 ms receive timeout would
+    // block loop() for 100 ms on every update, because without threads
+    // CANHardwareInterface::update() drains the driver until a read comes
+    // back empty. The driver's own queues go from 5 frames to 32 in / 16 out
+    // (~16 ms of a fully loaded bus), so a slow loop pass does not drop frames.
     static twai_general_config_t gTwaiGeneral = TWAI_GENERAL_CONFIG_DEFAULT(
         static_cast<gpio_num_t>(ISOBUS_CAN_TX_PIN), static_cast<gpio_num_t>(ISOBUS_CAN_RX_PIN), TWAI_MODE_NORMAL);
+    gTwaiGeneral.rx_queue_len = 32;
+    gTwaiGeneral.tx_queue_len = 16;
     static twai_timing_config_t gTwaiTiming = TWAI_TIMING_CONFIG_250KBITS();
     static twai_filter_config_t gTwaiFilter = TWAI_FILTER_CONFIG_ACCEPT_ALL();
     constexpr std::uint8_t kIsobusCanChannel = 0xFF;
-    auto gCanPlugin = std::make_shared<isobus::TWAIPlugin>(&gTwaiGeneral, &gTwaiTiming, &gTwaiFilter);
+    constexpr std::uint32_t kTwaiTimeoutMs = 0;
+    auto gCanPlugin = std::make_shared<isobus::TWAIPlugin>(&gTwaiGeneral, &gTwaiTiming, &gTwaiFilter,
+                                                           kTwaiTimeoutMs, kTwaiTimeoutMs);
 #else
     constexpr std::uint8_t kIsobusCanChannel = ISOBUS_CAN_CHANNEL;
     auto gCanPlugin = std::make_shared<isobus::FlexCANT4Plugin>(kIsobusCanChannel);
