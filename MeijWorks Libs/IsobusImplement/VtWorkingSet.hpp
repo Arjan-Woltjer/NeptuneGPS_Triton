@@ -24,12 +24,14 @@
 
 #include <stdint.h>
 
-#include <memory>
-
+// <memory> reaches the STL's three-argument std::min/std::max, which the
+// min()/max() macros of an earlier Arduino.h mangle (GCC fails, MSVC does
+// not), so it sits inside the same sandwich as the AgIsoStack header.
 #pragma push_macro("min")
 #pragma push_macro("max")
 #undef min
 #undef max
+#include <memory>
 #include <isobus/isobus/isobus_virtual_terminal_client.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
