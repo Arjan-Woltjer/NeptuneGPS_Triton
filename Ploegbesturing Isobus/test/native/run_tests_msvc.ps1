@@ -24,16 +24,18 @@ $includes = @(
     '..\MeijWorks Libs\LcdNumber',
     '..\MeijWorks Libs\TritonText',
     '..\MeijWorks Libs\EndShutoff',
-    '..\MeijWorks Libs\ButtonPair'
+    '..\MeijWorks Libs\ButtonPair',
+    '..\MeijWorks Libs\IsobusImplement'
 )
 $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',
-    'lib\PloegbesturingCore\src\isobus\IsobusGuidanceChannel.cpp',
-    'lib\PloegbesturingCore\src\isobus\IsobusVtInterface.cpp',
+    '..\MeijWorks Libs\IsobusImplement\IsobusGuidanceChannel.cpp',
+    '..\MeijWorks Libs\IsobusImplement\IsobusVtInterface.cpp',
+    'lib\PloegbesturingCore\src\isobus\PloughVtWorkingSet.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusVtCalibration.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusLightbarChannel.cpp',
     'lib\PloegbesturingCore\src\isobus\AgLeaderLightbarEmulation.cpp',
-    'lib\PloegbesturingCore\src\isobus\VtFailoverPolicy.cpp',
+    '..\MeijWorks Libs\IsobusImplement\VtFailoverPolicy.cpp',
     '.pio\libdeps\native\AgIsoStack__\isobus\src\*.cpp',
     '.pio\libdeps\native\AgIsoStack__\utility\src\*.cpp',
     '.pio\libdeps\native\AgIsoStack__\hardware_integration\src\can_hardware_interface.cpp',

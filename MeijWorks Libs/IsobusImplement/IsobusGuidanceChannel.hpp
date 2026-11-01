@@ -46,10 +46,12 @@
 #include <isobus/isobus/can_callbacks.hpp>
 #include <isobus/isobus/can_internal_control_function.hpp>
 #include <isobus/isobus/can_message.hpp>
+#include <isobus/isobus/can_NAME.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
-#include "../implement/ImplementPlough.hpp"
+#include <functional>
+
 #include "CanErrorMonitor.hpp"
 #include "GuidanceSource.hpp"
 #include "IsobusPgnDecode.hpp"   // kXteReject*, sizing MessageCounters (#201)
@@ -63,8 +65,12 @@ namespace triton
 // legacy JD/Trimble/CNH proprietary messages VehicleGps used to decode (kept
 // for backwards compatibility with equipment that doesn't broadcast the
 // NMEA2000 set), and AISO (All Implement Stop Operations, a real ISOBUS
-// safety broadcast). Feeds GuidanceSource; stops ImplementPlough
-// directly on AISO.
+// safety broadcast). Feeds GuidanceSource; stops the implement directly on
+// AISO, through the stop target the machine passes in.
+//
+// Shared by every Triton ISOBUS machine (MeijWorks Libs/IsobusImplement,
+// NeptuneGPS_Triton#287): what is machine-specific -- the NAME it claims and
+// what "stop" means -- comes in through the constructor.
 class IsobusGuidanceChannel {
 public:
     // canPlugin is injected rather than constructed internally, the same way
@@ -72,11 +78,15 @@ public:
     // port -- which physical CAN peripheral/pins to use is a board-specific
     // choice that belongs at the call site (see main.cpp), not hardcoded here.
     //
+    // deviceName is the NAME Begin() claims: the machine builds it with
+    // BuildName() below. stopImplement runs on every AISO stop request.
+    //
     // canChannel is the same channel number the FlexCANT4Plugin was built with
     // (0, 1, 2 = FLEXCAN1, 2, 3). It is only used to read that controller's
     // error registers for the debug dump (#149); the default, 0xFF, reads
     // nothing -- as the native tests, which have no FlexCAN, construct it.
-    IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance, ImplementPlough* implement,
+    IsobusGuidanceChannel(Stream* serialDebug, std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, GuidanceSource* guidance,
+                          std::function<void()> stopImplement, const isobus::NAME& deviceName,
                           std::uint8_t canChannel = 0xFF);
 
     // Brings up the CAN hardware plugin, claims a NAME/address (blocks until
@@ -84,8 +94,10 @@ public:
     // contention window, never called again after setup()), and registers
     // every PGN callback + sends the initial PGN requests once claimed.
     void Begin();
-    // The plough's ISOBUS NAME, as Begin() claims it (#202).
-    static isobus::NAME BuildPloughName();
+    // A Triton ISOBUS NAME in industry group 2 (#202): the manufacturer code
+    // and identity number every Triton shares, plus the machine's own device
+    // class and function code (isobus.net "IG Specific NAME Function").
+    static isobus::NAME BuildName(std::uint8_t deviceClass, std::uint8_t functionCode);
     // Request callbacks for our internal control function, registered by
     // Begin() once the address is claimed. Static so a host test can install
     // them on a control function of its own (#23).
@@ -213,9 +225,10 @@ private:
     // defined only in the test build.
     friend struct IsobusGuidanceChannelTestAccess;
 
-    Stream*          serialDebug;
-    GuidanceSource*  guidance;
-    ImplementPlough* implement;
+    Stream*               serialDebug;
+    GuidanceSource*       guidance;
+    std::function<void()> stopImplement;
+    isobus::NAME          deviceName;
 
     std::shared_ptr<isobus::CANHardwarePlugin>       canPlugin;
     std::shared_ptr<isobus::InternalControlFunction> controlFunction;

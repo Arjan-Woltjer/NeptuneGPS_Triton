@@ -41,7 +41,9 @@
 #pragma pop_macro("min")
 
 #include "TestBus.hpp"
-#include "isobus/IsobusGuidanceChannel.hpp"
+#include "IsobusGuidanceChannel.hpp"
+#include "isobus/PloughName.hpp"
+#include "implement/ImplementPlough.hpp"
 #include "PloughGates.hpp"
 
 using namespace aunit;
@@ -99,7 +101,7 @@ IsobusGuidanceChannel& Channel() {
         // Begin() is not called: it claims an address and registers callbacks
         // with the network manager, neither of which these tests need, and
         // the claim would cost real wall-clock time.
-        gcChannel = new IsobusGuidanceChannel(nullptr, nullptr, &gcGuidance, gcImplement);
+        gcChannel = new IsobusGuidanceChannel(nullptr, nullptr, &gcGuidance, [] { gcImplement->Stop(); }, BuildPloughName());
     }
     return *gcChannel;
 }
@@ -263,7 +265,7 @@ test(IsobusGuidanceChannel, nmea2000Xte_navigationTerminatedIsCountedByReason) {
 // Controller, steer-by-wire. Source: isobus.net "IG Specific NAME Function",
 // archived in NeptuneGPS Documentation/ISOBUS/reference/parameters-csv.
 test(IsobusGuidanceChannel, name_isATillageMachineControl) {
-    const isobus::NAME name = IsobusGuidanceChannel::BuildPloughName();
+    const isobus::NAME name = BuildPloughName();
     assertEqual((int)name.get_industry_group(), 2);
     assertEqual((int)name.get_device_class(), 2);
     assertEqual((int)name.get_function_code(), 132);
@@ -272,7 +274,7 @@ test(IsobusGuidanceChannel, name_isATillageMachineControl) {
 // The rest of the NAME stays as it was: changing any of it is a change of
 // identity for every terminal's stored pools (#45, #162).
 test(IsobusGuidanceChannel, name_keepsTheRestOfTheIdentity) {
-    const isobus::NAME name = IsobusGuidanceChannel::BuildPloughName();
+    const isobus::NAME name = BuildPloughName();
     assertTrue(name.get_arbitrary_address_capable());
     assertEqual((int)name.get_manufacturer_code(), 1407);
     assertEqual((long)name.get_identity_number(), 1L);
