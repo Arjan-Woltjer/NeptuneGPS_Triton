@@ -31,7 +31,7 @@
 namespace triton
 {
 
-// What the page sends to the VT. IsobusVtInterface implements it over its
+// What the page sends to the VT. PloughVtWorkingSet implements it over its
 // VirtualTerminalClient; the native tests record it. Each returns false when
 // the message could not be queued, and the page tries again on its next
 // Update().
@@ -55,7 +55,7 @@ class IsobusVtCalibration {
 public:
     // A held Smaller / Breder without a still-held repeat for this long
     // counts as released, so a lost release stops the valve: the same 600 ms
-    // as the main soft keys (IsobusVtInterface::kSoftKeyHeldTimeoutMs, #245).
+    // as the main soft keys (PloughVtWorkingSet::kSoftKeyHeldTimeoutMs, #245).
     static constexpr unsigned long kHeldTimeoutMs = 600;
     // The live sensor reading goes to the VT at most this often.
     static constexpr unsigned long kSensorSendMs = 200;

@@ -45,12 +45,9 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
-#include "../implement/ImplementPlough.hpp"
-#include "GuidanceSource.hpp"
 #include "VtFailoverPolicy.hpp"
 #include "PreferredVt.hpp"
-#include "IsobusVtCalibration.hpp"
-#include "AuxInputs.hpp"
+#include "VtWorkingSet.hpp"
 
 namespace triton
 {
@@ -60,21 +57,15 @@ namespace triton
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes.
 //
-// Soft-key handling: main.cpp's loop() passes IsWiderHeld()/IsNarrowerHeld()
-// below into InterfacePlough::Update(), which lands each where the physical
-// button meaning the same thing goes (Wider -> the RIGHT_BUTTON_2 slot, the
-// cab's +; Narrower -> LEFT_BUTTON_2, the -). Calibrate opens the VT
-// calibration page (#240) instead, see AttachCalibration().
-// Wider/Narrower are held levels (#245): held from the VT's press until its
-// release, they go through the cab buttons' own hold-to-repeat, so a held
-// soft key drives in manual and steps the width every 200 ms in auto or
-// hold, exactly like a held cab button. Until #245 they were one-loop edges
-// on release and never moved the plough. Calibrate, Opslaan and Annuleren
-// act on release. There is no AUTO key: the AUTO mode follows GPS and
-// hitch state, so a key had nothing to switch (removed in #282).
-class IsobusVtInterface : public VtCalibrationOutput {
+// Shared by every Triton ISOBUS machine (MeijWorks Libs/IsobusImplement,
+// NeptuneGPS_Triton#287). This class is the connection: the client, the VT
+// partner, VT failover, the reconnect watchdog, the preferred VT and the
+// diagnostics. What the VT shows and what its keys do is the machine's
+// VtWorkingSet (the plough's: PloughVtWorkingSet, which has the soft-key
+// handling); every pool, key, value and AUX event goes there.
+class IsobusVtInterface {
 public:
-    IsobusVtInterface(Stream* serialDebug, ImplementPlough* implement, GuidanceSource* guidance,
+    IsobusVtInterface(Stream* serialDebug, VtWorkingSet* workingSet,
                        std::shared_ptr<isobus::InternalControlFunction> controlFunction);
 
     // Call once from setup(), after the control function's address is claimed.
@@ -162,34 +153,8 @@ public:
     // has not been seen.
     std::uint8_t  GetPreferredVtAddress() const { return failover.GetPreferredAddress(); }
 
-    // VT Wider/Narrower soft keys as held levels (#245): held from the VT's
-    // press, or a still-held repeat, until its release or an aborted press,
-    // like a cab button. Direction mapping: Wider (BREDER) is the cab's right
-    // button, marked + (+1), Narrower (SMALLER) its left one, marked - (-1)
-    // (owner, 2026-10-20). +1 raises the width in auto/hold and drives the
-    // output the + button drives in manual; ImplementPlough's own valve names
-    // follow the hoses, not the buttons.
-    // A VT repeats still-held while the key is down (session 19: CNH VT every
-    // 194-206 ms); without one for kSoftKeyHeldTimeoutMs the key counts as
-    // released, so a lost release stops the valve within 0.6 s.
-    static constexpr unsigned long kSoftKeyHeldTimeoutMs = 600;
-    // The soft key, or an AUX-N input assigned to Breder / Smaller (#254).
-    bool IsWiderHeld() const;
-    bool IsNarrowerHeld() const;
-
-    // AUX-N events for the dump: assigned-input statuses per function.
-    unsigned int GetAuxWiderEvents() const { return auxWiderEvents; }
-    unsigned int GetAuxNarrowerEvents() const { return auxNarrowerEvents; }
-    bool         IsAuxLearnMode() const { return aux.InLearnMode(millis()); }
-
-    // The calibration page (#240) the Calibrate key opens, and Opslaan /
-    // Annuleren and the page's inputs go to. Without one the key is only
-    // logged. main.cpp attaches it after Begin().
-    void AttachCalibration(IsobusVtCalibration* page) { calibration = page; }
-
-    // VtCalibrationOutput, over the VT client.
-    bool ChangeActiveMask(uint16_t dataMask) override;
-    bool ChangeNumericValue(uint16_t objectId, uint32_t value) override;
+    // The machine's working set, for IsobusDebugMenu's pool dump.
+    VtWorkingSet* GetWorkingSet() const { return workingSet; }
 
 private:
     // The native suite drives the VT-to-ECU callback, the key handler and the
@@ -204,9 +169,8 @@ private:
         void sink_CAN_stack_log(isobus::CANStackLogger::LoggingLevel level, const std::string& text) override;
     };
 
-    Stream*          serialDebug;
-    ImplementPlough* implement;
-    GuidanceSource*  guidance;
+    Stream*       serialDebug;
+    VtWorkingSet* workingSet;
 
     std::shared_ptr<isobus::InternalControlFunction>    controlFunction;
     std::shared_ptr<isobus::PartneredControlFunction>   partner;
@@ -219,48 +183,11 @@ private:
     isobus::EventCallbackHandle                         buttonListener = 0;
     isobus::EventCallbackHandle                         numericValueListener = 0;
     isobus::EventCallbackHandle                         auxFunctionListener = 0;
-    IsobusVtCalibration*                                calibration = nullptr;
     Logger                                              logger;
 
+    // The working set's values go out every 100 ms while connected; it sends
+    // on change plus a 1 s heartbeat (see PloughVtWorkingSet).
     unsigned long lastVtUpdate = 0;
-
-    // On-change gating for updateVtVariables() -- added 2026-08-10 (van
-    // Mastwijk) after Session 4 found intermittent post-Connect drops
-    // ("[VT]: Status Timeout", AgIsoStack's own 3 s VT_STATUS_TIMEOUT_MS)
-    // that did NOT reproduce while a swapped-in AgIsoStack reference pool
-    // was loaded. That reference pool's own example only calls
-    // send_change_numeric_value() on a button press; this class used to call
-    // it unconditionally 4x every 100 ms (40 msg/s) regardless of whether
-    // anything changed, for as long as the VT stayed connected -- real,
-    // bound OutputNumber widgets in OUR pool means the VT does real redraw
-    // work each time, unlike the reference pool's IDs (which likely don't
-    // resolve to a NumberVariable at all, so get cheaply rejected). Leading
-    // hypothesis, not yet re-verified against hardware: sustained redraw
-    // load intermittently starves the VT's own periodic status broadcast
-    // past our 3 s window. Fix sends only on real value change, plus a 1 s
-    // heartbeat resend (so a dropped CAN frame can't leave the VT stale
-    // forever) -- cuts steady-state traffic roughly 10x for slow-changing
-    // plough telemetry with no functional loss (a human reading a numeric
-    // field can't perceive 10 Hz vs. on-change+1 Hz).
-    bool          sentInitialVtVariables = false;
-    unsigned long lastVtVariableHeartbeat = 0;
-    int32_t       lastSentPosition = 0;
-    int32_t       lastSentSetpoint = 0;
-    int32_t       lastSentXte      = 0;
-    int32_t       lastSentOffset   = 0;
-    uint16_t      lastSentPloughImage = 0;  // the object Ptr_PloughImage points at
-    uint16_t      lastSentGpsIcon     = 0;  // the object Ptr_GpsStatus points at
-    uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
-    int32_t       lastSentSpeed       = 0;  // 0.1 km/h
-
-    bool          widerHeld       = false;
-    bool          narrowerHeld    = false;
-    unsigned long widerEventMs    = 0;
-    unsigned long narrowerEventMs = 0;
-
-    AuxInputs     aux;
-    unsigned int  auxWiderEvents    = 0;
-    unsigned int  auxNarrowerEvents = 0;
 
     std::uint8_t preferredVt = 0;
 
@@ -289,13 +216,11 @@ private:
     VtFailoverPolicy failover;
 
     void createClient(const std::vector<isobus::NAMEFilter>& filters);
-    void updateVtVariables();
     void updateReconnectWatchdog();
     void updateFailover();
     void notePreferredCandidate(std::uint8_t source);
     void switchTo(std::uint8_t address);
     void onVtKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event);
-    void onAuxFunctionEvent(const isobus::VirtualTerminalClient::AuxiliaryFunctionEvent& event);
     static void OnVtToEcuMessage(const isobus::CANMessage& message, void* parentPointer);
 };
 
