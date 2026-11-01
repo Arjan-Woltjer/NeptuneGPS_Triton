@@ -19,8 +19,8 @@
 */
 #include <AUnit.h>
 
-#include "isobus/VtFailoverPolicy.hpp"
-#include "isobus/PreferredVt.hpp"
+#include "VtFailoverPolicy.hpp"
+#include "PreferredVt.hpp"
 
 using namespace aunit;
 using namespace triton;

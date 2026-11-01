@@ -51,21 +51,23 @@ namespace triton
 IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug, 
                                              std::shared_ptr<isobus::CANHardwarePlugin> canPlugin, 
                                              GuidanceSource* guidance,
-                                             ImplementPlough* implement,
+                                             std::function<void()> stopImplement,
+                                             const NAME& deviceName,
                                              std::uint8_t canChannel)
                                            : serialDebug(serialDebug),
                                              guidance(guidance),
-                                             implement(implement),
+                                             stopImplement(stopImplement),
+                                             deviceName(deviceName),
                                              canPlugin(canPlugin),
                                              canChannel(canChannel) {
 }
 
 // ------------------------------------------------------------------
-// BuildPloughName -- the plough's ISOBUS NAME, pure so a native test can
-// pin it (#202): Begin() claims it, and terminals key their stored VT
+// BuildName -- a Triton ISOBUS NAME, pure so a native test can pin each
+// machine's (#202): Begin() claims it, and terminals key their stored VT
 // pools and DDOPs on it.
 // ------------------------------------------------------------------
-NAME IsobusGuidanceChannel::BuildPloughName() {
+NAME IsobusGuidanceChannel::BuildName(std::uint8_t deviceClass, std::uint8_t functionCode) {
     // ISOBUS NAME
     // ---- Our ISOBUS identity ----------------------------------------
     //
@@ -89,19 +91,15 @@ NAME IsobusGuidanceChannel::BuildPloughName() {
     constexpr std::uint16_t kIsobusManufacturerCode = 1407;  // Open-Agriculture
     constexpr std::uint32_t kIsobusIdentityNumber   = 1;     // see the note below
 
-    NAME deviceName(0);
-    deviceName.set_arbitrary_address_capable(true);
-    deviceName.set_industry_group(2);   // Agriculture and Forestry
-    // ISO 11783-1, industry group 2 (#202): device class 2 is Tillage; the 8
-    // this used to claim is Root Harvesters, and a John Deere registered the
-    // plough as a harvester for it (session 12). Function 132 in class 2 is
-    // Tillage Machine Control: control of outputs including position, and for
-    // VT or TC control several control functions on one SA -- what this ECU
-    // is. The old function 16 is the global Steering Controller (steer-by-wire).
-    // Source: isobus.net "IG Specific NAME Function", archived in NeptuneGPS
-    // Documentation/ISOBUS/reference/parameters-csv.
-    deviceName.set_device_class(2);     // Tillage (primary soil tillage)
-    deviceName.set_function_code(static_cast<uint8_t>(NAME::Function::MachineControl));  // 132, Tillage Machine Control
+    NAME name(0);
+    name.set_arbitrary_address_capable(true);
+    name.set_industry_group(2);   // Agriculture and Forestry
+    // ISO 11783-1, industry group 2 (#202): the device class and function
+    // code are the machine's own choice, see the caller (the plough's
+    // BuildPloughName()). Source: isobus.net "IG Specific NAME Function",
+    // archived in NeptuneGPS Documentation/ISOBUS/reference/parameters-csv.
+    name.set_device_class(deviceClass);
+    name.set_function_code(functionCode);
     // Was 64 -- belongs to a real, different manufacturer (flagged as a TODO
     // in Triton_TC_Client_Design.md sec 7, never actually fixed until now).
     // 1407 is AgIsoStack's own permitted-for-non-commercial-use code, the
@@ -110,7 +108,7 @@ NAME IsobusGuidanceChannel::BuildPloughName() {
     // rejection that's persisted across every pool-CONTENT variant tried
     // against both Fendt and CNH -- a real, unfixed identity-level bug is a
     // more promising remaining variable than more pool-byte bisection.
-    deviceName.set_manufacturer_code(kIsobusManufacturerCode);
+    name.set_manufacturer_code(kIsobusManufacturerCode);
     // **Every Triton claims identity 1.** The identity number is the serial
     // number field of the NAME, and NAME is what makes a control function
     // unique on the bus: two Ploegbesturing units on one ISOBUS would present
@@ -124,11 +122,11 @@ NAME IsobusGuidanceChannel::BuildPloughName() {
     // that the stale MW03 label produced in session 9. Derive it from the
     // Teensy's OCOTP serial in its own change, with a rig session to confirm
     // the re-upload behaves.
-    deviceName.set_identity_number(kIsobusIdentityNumber);
-    deviceName.set_ecu_instance(0);
-    deviceName.set_function_instance(0);
-    deviceName.set_device_class_instance(0);
-    return deviceName;
+    name.set_identity_number(kIsobusIdentityNumber);
+    name.set_ecu_instance(0);
+    name.set_function_instance(0);
+    name.set_device_class_instance(0);
+    return name;
 }
 
 // ------------------------------------------------------------------
@@ -147,8 +145,6 @@ void IsobusGuidanceChannel::Begin() {
     PrintCanState("CAN controller at start: ");
 
     CANHardwareInterface::update();
-
-    const NAME deviceName = BuildPloughName();
 
     // Must go through the factory method, not a direct std::make_shared
     // construction -- only create_internal_control_function() registers the
@@ -569,7 +565,7 @@ void IsobusGuidanceChannel::OnAllImplementStop(const CANMessage& msg, void* cont
     self->counters.lastAllImplementStopState = result.state;
     if (result.stopRequested) {
         self->counters.lastAllImplementStopMs = millis();
-        self->implement->Stop();
+        if (self->stopImplement) self->stopImplement();
     }
 }
 

@@ -44,7 +44,8 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 #include "isobus/IsobusDebugMenu.hpp"
-#include "isobus/IsobusGuidanceChannel.hpp"
+#include "IsobusGuidanceChannel.hpp"
+#include "isobus/PloughName.hpp"
 #include "isobus/IsobusLightbarChannel.hpp"
 #include "isobus/IsobusVtInterface.hpp"
 #include "isobus/IsobusTcInterface.hpp"
@@ -255,7 +256,8 @@ void setup() {
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
     // until claimed), PGN callback registration, initial PGN requests.
     // The channel again, so the dump can read that controller's error state (#149).
-    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, gImplement, kIsobusCanChannel);
+    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, [] { gImplement->Stop(); },
+                                                         triton::BuildPloughName(), kIsobusCanChannel);
     gGuidanceChannel->Begin();
 
     // A second control function that presents as an Ag Leader L160 lightbar:
