@@ -34,7 +34,7 @@
 #include "PloughSettings.hpp"
 #include "WidthProcedure.hpp"
 #ifdef ISOBUS
-#include "isobus/PreferredVt.hpp"
+#include "PreferredVt.hpp"
 #include "isobus/LightbarMode.hpp"
 #endif
 
