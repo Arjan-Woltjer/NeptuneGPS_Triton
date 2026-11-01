@@ -1,0 +1,72 @@
+
+`native/` holds the AUnit tests for ImplementScraper/InterfaceScraper
+(../lib/KilverbakbesturingCore/src/), run natively (no Teensy attached):
+
+- `native/tests/` -- one `test_<ClassName>.cpp` per class under test.
+- `native/support/` -- a small, self-contained set of Arduino-shaped stubs
+  (Print/Stream/EEPROM/Arduino.h/etc.), not a real EpoxyDuino dependency, plus
+  `native_main.cpp` (the host `int main()` entry point). These stand in for
+  the Arduino framework and MeijWorks Libs' `VehicleSensors`/`InterfaceI2CLCD`
+  only: `GuidanceSource` and `DistanceBetween()` (MeijWorks Libs/
+  VehicleGuidance, `GuidanceSource.hpp` and `GuidanceGeometry.hpp`) are the
+  real header-only code, so this module's leveling calculation runs on the
+  same flat local-tangent-plane distances the board computes. The channels
+  that feed the source on the board have their suites in Ploegbesturing
+  Isobus' native build.
+- `native/KilverbakbesturingIsobusNativeTests.cpp` -- the single AUnit driver
+  (`setup()`/`loop()`), matching Ploegbesturing's/Pootmachinebesturing's/
+  Spuitcomputer SP's `*NativeTests.cpp` pattern. Every `test_*.cpp`
+  file only registers `test(...)` blocks; none of them define `setup()`/
+  `loop()` themselves, so they all link into one combined binary instead of
+  one binary per test file.
+- `native/run_tests_msvc.ps1` -- MSVC fallback for Windows without GCC.
+
+```
+pio run -e native
+.pio/build/native/program(.exe)
+```
+
+Needs a real host C++17 compiler on PATH (g++ or clang++) -- on Windows
+without one, use test\native\run_tests_msvc.ps1 instead, which builds and
+runs the same combined binary via MSVC directly. That script passes
+`/Zc:preprocessor` -- MSVC's legacy preprocessor mishandles AUnit's
+`test(SuiteName, testName)` argument-count dispatch, which every test in
+this project uses (matching this family's convention: groups each test's
+display name under the class it exercises, e.g.
+`ImplementScraper_calculateDistances_degenerateReferencePoints_fallsBackToZero`,
+`InterfaceScraper_update_staleGgaFix_selectsHold`).
+
+## Known gaps
+
+- `CalibrationScraper` (the LCD/button calibration wizard extracted from the
+  legacy `InterfaceScraper::calibrate()`) is `#ifdef ARDUINO`-guarded and
+  deliberately excluded from `[env:native]`'s `build_src_filter` -- same
+  reason as `CalibrationPlough`/`CalibrationPlanter`/`CalibrationSprayer`. No
+  native coverage exists or is planned for it.
+- `ImplementScraper::getActualPosition()`'s divide-by-zero guard (two
+  calibration points holding the same reading) has no public setter to
+  construct that state directly -- `positionCalibrationData` is only settable
+  through `SetPositionCalibrationData()`, which reads a *live* `analogRead()`,
+  and the whole sensored code path is `#ifndef NOSENS`-gated (dead on every
+  board built today; this production unit has no position sensor at all,
+  matching the legacy source's `NOSENS` default). Same gap Spuitcomputer
+  SP's PWM-calibration guard has, for the same reason.
+- `InterfaceScraper::UpdateScreen()` (LCD rendering) compiles as part of
+  `InterfaceScraper.cpp` (needed since `CheckButtons()`/`Update()`, which
+  *are* tested, live in the same file) but its output isn't asserted on by
+  any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
+  `WriteScreen` are no-ops.
+- The ISOBUS build (`teensy40_isobus`, `teensy41_isobus`) has no native
+  coverage in this project: this native env does not build AgIsoStack, and
+  `ScraperName.hpp` and the ISOBUS half of `src/main.cpp` are only compiled for
+  the board. The shared ISOBUS layer they use (MeijWorks Libs/IsobusImplement)
+  is tested in Ploegbesturing Isobus' native build.
+- None of the four board envs has run on hardware yet (NeptuneGPS_Triton#288,
+  #293): only `pio run` cross-compiles.
+- The Arduino Micro, the Micro/Leonardo "voorserie" board and the Teensy
+  3.5/3.6 protoboard keep their `#ifdef` branches in the config headers, as in
+  Kilverbakbesturing, without a buildable env.
+
+More information about PlatformIO Unit Testing (not used here -- pio test's
+own Unity-based runner doesn't understand this project's AUnit setup):
+- https://docs.platformio.org/en/latest/advanced/unit-testing/index.html

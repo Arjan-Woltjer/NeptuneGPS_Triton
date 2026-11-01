@@ -13,6 +13,7 @@ repository is a submodule.
 |---|---|---|
 | `Ploegbesturing` | Teensy 4.1 | Plough control. Guidance over serial NMEA/Trimble and raw CAN frames (`CanFrameGuidanceChannel`). |
 | `Ploegbesturing Isobus` | Teensy 4.1 | The same controller with an ISOBUS guidance path, selectable at build time. |
+| `Kilverbakbesturing Isobus` | Teensy 4.0 / 4.1 | Leveling bucket (kilverbak) control on the `Ploegbesturing Isobus` layout (#286): ISOBUS through `IsobusImplement` (address claim, guidance over CAN, AISO; the VT follows in #291), or the serial build `Kilverbakbesturing` has. `Kilverbakbesturing` itself stays as it is. |
 | `Spuitcomputer LD` | ESP32 | Haulm sprayer computer: dose calculation and pump PWM. |
 | `MeijWorks Libs` | — | Shared libraries (`VehicleGuidance`, `IsobusImplement`, `VehicleSensors`, `InterfaceI2CLCD`, `TritonIo`), consumed via `lib_extra_dirs`. `IsobusImplement` is the machine-independent half of the ISOBUS stack (#287): `IsobusGuidanceChannel` (NAME and address claim, guidance PGNs, AISO), `IsobusVtInterface` (the VT connection, failover, reconnect watchdog, preferred VT, diagnostics), `IsobusDebugMenu` (the serial status menu), `VtFailoverPolicy`, `PreferredVt` and `CanErrorMonitor`. Each machine passes in its own NAME and stop action, implements `VtWorkingSet` for its object pool, working screen, keys and calibration page, and `DebugMenuSections` for its own lines in the debug menu (the plough: `PloughVtWorkingSet`, `PloughDebugMenuSections`). Its tests run in `Ploegbesturing Isobus`' native build. `VehicleGuidance` is the split successor to the former `VehicleGps` (a `GuidanceSource` data model, the `GpsParser` family and `SerialGuidanceChannel`), plus `CanFrameGuidanceChannel` for a directly attached CAN bus, the `IsobusPgnDecode` byte decoders, `InterfaceGuidance`, the LCD baudrate autodetect, and `GuidanceGeometry`'s `DistanceBetween()`), used by every GPS-consuming project: `Ploegbesturing Isobus`, `Ploegbesturing`, `Pootmachinebesturing`, `Kilverbakbesturing` and `Spuitcomputer LD`. The former `VehicleGps` and `InterfaceGps` were removed once nothing used them (#177). |
 
@@ -47,6 +48,7 @@ pio run -d "Ploegbesturing"         -e native && "./Ploegbesturing/.pio/build/na
 pio run -d "Ploegbesturing Isobus"  -e native && "./Ploegbesturing Isobus/.pio/build/native/program"
 pio run -d "Pootmachinebesturing"   -e native && "./Pootmachinebesturing/.pio/build/native/program"
 pio run -d "Kilverbakbesturing"     -e native && "./Kilverbakbesturing/.pio/build/native/program"
+pio run -d "Kilverbakbesturing Isobus" -e native && "./Kilverbakbesturing Isobus/.pio/build/native/program"
 ```
 
 Quote the paths — every project directory name contains a space.
