@@ -30,7 +30,8 @@ $includes = @(
 $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',
     '..\MeijWorks Libs\IsobusImplement\IsobusGuidanceChannel.cpp',
-    'lib\PloegbesturingCore\src\isobus\IsobusVtInterface.cpp',
+    '..\MeijWorks Libs\IsobusImplement\IsobusVtInterface.cpp',
+    'lib\PloegbesturingCore\src\isobus\PloughVtWorkingSet.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusVtCalibration.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusLightbarChannel.cpp',
     'lib\PloegbesturingCore\src\isobus\AgLeaderLightbarEmulation.cpp',

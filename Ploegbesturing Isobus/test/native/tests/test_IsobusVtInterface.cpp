@@ -41,7 +41,8 @@
 #pragma pop_macro("min")
 
 #include "FakeCanPlugin.hpp"
-#include "isobus/IsobusVtInterface.hpp"
+#include "IsobusVtInterface.hpp"
+#include "isobus/PloughVtWorkingSet.hpp"
 #include "calibration/CalibrationPlough.hpp"
 #include "isobus/VTObjectPool.hpp"
 
@@ -109,6 +110,10 @@ struct IsobusVtInterfaceTestAccess {
         return vt.vtClient && vt.vtClient->get_is_initialized();
     }
 
+    // The client itself, so a test can fire its event dispatchers and reach
+    // whatever listener the interface registered on them (#287).
+    static isobus::VirtualTerminalClient& Client(IsobusVtInterface& vt) { return *vt.vtClient; }
+
     // A VT Status Message from a given sender: the failover policy keys on
     // the identifier's source address.
     static void DeliverVtStatusFrom(IsobusVtInterface& vt, std::uint8_t source) {
@@ -125,8 +130,8 @@ struct IsobusVtInterfaceTestAccess {
 
     // The page's pass, as Update() runs it while connected; the sends fail
     // here (no VT), the driving does not.
-    static void UpdateCalibration(IsobusVtInterface& vt) {
-        if (vt.calibration != nullptr) vt.calibration->Update(vt);
+    static void UpdateCalibration(PloughVtWorkingSet& ws) {
+        if (ws.calibration != nullptr) ws.calibration->Update(ws);
     }
 
     static void ResetFailover(IsobusVtInterface& vt) {
@@ -134,9 +139,9 @@ struct IsobusVtInterfaceTestAccess {
         vt.failover.Start(millis());
     }
 
-    static void ResetPendingKeys(IsobusVtInterface& vt) {
-        vt.widerHeld             = false;
-        vt.narrowerHeld          = false;
+    static void ResetPendingKeys(PloughVtWorkingSet& ws) {
+        ws.widerHeld             = false;
+        ws.narrowerHeld          = false;
     }
 };
 }  // namespace triton
@@ -177,8 +182,9 @@ public:
 // ---------------------------------------------------------------------------
 GuidanceSource     vtGuidance;
 VtCaptureStream    vtDebug;
-ImplementPlough*   vtImplement = nullptr;
-IsobusVtInterface* vtInterface = nullptr;
+ImplementPlough*    vtImplement = nullptr;
+PloughVtWorkingSet* vtWorkingSet = nullptr;
+IsobusVtInterface*  vtInterface = nullptr;
 
 // The calibration page the Calibrate key opens (#240), on a settings table of
 // its own. Built on first use, after the fixture's implement.
@@ -206,7 +212,8 @@ IsobusVtInterface& Fixture() {
             isobus::CANNetworkManager::CANNetwork.create_internal_control_function(ourName, 0, 0x1D);
 
         vtImplement = new ImplementPlough(nullptr, &vtGuidance);
-        vtInterface = new IsobusVtInterface(&vtDebug, vtImplement, &vtGuidance, controlFunction);
+        vtWorkingSet = new PloughVtWorkingSet(&vtDebug, vtImplement, &vtGuidance);
+        vtInterface = new IsobusVtInterface(&vtDebug, vtWorkingSet, controlFunction);
         vtInterface->Begin();
 
         // Begin() installs the class's own log sink at Info, which on a real
@@ -215,6 +222,13 @@ IsobusVtInterface& Fixture() {
         isobus::CANStackLogger::set_log_level(isobus::CANStackLogger::LoggingLevel::Critical);
     }
     return *vtInterface;
+}
+
+// The plough's half of the same fixture (#287): the held keys, the AUX
+// functions and the calibration page live there now.
+PloughVtWorkingSet& WorkingSet() {
+    Fixture();
+    return *vtWorkingSet;
 }
 
 IsobusVtCalibration& Page() {
@@ -229,11 +243,11 @@ IsobusVtCalibration& Page() {
 void Reset() {
     millisValue(0);
     // No page attached or open, whatever a failed test before left.
-    Fixture().AttachCalibration(nullptr);
+    WorkingSet().AttachCalibration(nullptr);
     if (vtPage != nullptr) vtPage->OnConnectionLost();
     IsobusVtInterfaceTestAccess::ResetWatchdog(Fixture());
     IsobusVtInterfaceTestAccess::ResetVtStatusCounters(Fixture());
-    IsobusVtInterfaceTestAccess::ResetPendingKeys(Fixture());
+    IsobusVtInterfaceTestAccess::ResetPendingKeys(WorkingSet());
     vtDebug.Clear();
 }
 
@@ -357,14 +371,14 @@ const auto kAborted   = isobus::VirtualTerminalClient::KeyActivationCode::Button
 test(IsobusVtInterface, key_widerIsHeldFromPressToRelease) {
     Reset();
     KeyCode(Key_Wider, kPressed);
-    assertTrue(Fixture().IsWiderHeld());
-    assertTrue(Fixture().IsWiderHeld());                 // a level, read every loop
+    assertTrue(WorkingSet().IsWiderHeld());
+    assertTrue(WorkingSet().IsWiderHeld());                 // a level, read every loop
     millisValue(200);
     KeyCode(Key_Wider, kStillHeld);
-    assertTrue(Fixture().IsWiderHeld());
+    assertTrue(WorkingSet().IsWiderHeld());
     millisValue(400);
     KeyCode(Key_Wider, kReleased);
-    assertFalse(Fixture().IsWiderHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
     assertTrue(vtDebug.Contains("VT: Wider pressed"));
     assertTrue(vtDebug.Contains("VT: Wider released"));
 }
@@ -372,17 +386,17 @@ test(IsobusVtInterface, key_widerIsHeldFromPressToRelease) {
 test(IsobusVtInterface, key_narrowerIsHeldFromPressToRelease) {
     Reset();
     KeyCode(Key_Narrower, kPressed);
-    assertTrue(Fixture().IsNarrowerHeld());
-    assertFalse(Fixture().IsWiderHeld());
+    assertTrue(WorkingSet().IsNarrowerHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
     KeyCode(Key_Narrower, kReleased);
-    assertFalse(Fixture().IsNarrowerHeld());
+    assertFalse(WorkingSet().IsNarrowerHeld());
 }
 
 test(IsobusVtInterface, key_abortedPressReleasesTheKey) {
     Reset();
     KeyCode(Key_Wider, kPressed);
     KeyCode(Key_Wider, kAborted);                        // finger slid off the key
-    assertFalse(Fixture().IsWiderHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
 }
 
 // A lost release must not keep a valve driving: without a still-held repeat
@@ -390,12 +404,12 @@ test(IsobusVtInterface, key_abortedPressReleasesTheKey) {
 test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
     Reset();
     KeyCode(Key_Wider, kPressed);
-    millisValue(IsobusVtInterface::kSoftKeyHeldTimeoutMs);
-    assertTrue(Fixture().IsWiderHeld());
-    millisValue(IsobusVtInterface::kSoftKeyHeldTimeoutMs + 1);
-    assertFalse(Fixture().IsWiderHeld());
+    millisValue(PloughVtWorkingSet::kSoftKeyHeldTimeoutMs);
+    assertTrue(WorkingSet().IsWiderHeld());
+    millisValue(PloughVtWorkingSet::kSoftKeyHeldTimeoutMs + 1);
+    assertFalse(WorkingSet().IsWiderHeld());
     KeyCode(Key_Wider, kStillHeld);                      // the VT is still reporting it
-    assertTrue(Fixture().IsWiderHeld());
+    assertTrue(WorkingSet().IsWiderHeld());
     millisValue(0);
 }
 
@@ -403,22 +417,22 @@ test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
 test(IsobusVtInterface, key_stillHeldWithoutPressCountsAsHeld) {
     Reset();
     KeyCode(Key_Narrower, kStillHeld);
-    assertTrue(Fixture().IsNarrowerHeld());
+    assertTrue(WorkingSet().IsNarrowerHeld());
 }
 
 // Calibrate opens the VT calibration page (#240), acting on release only; it
 // no longer starts the cab wizard. Annuleren closes it again.
 test(IsobusVtInterface, key_calibrateOpensTheCalibrationPageOnRelease) {
     Reset();
-    Fixture().AttachCalibration(&Page());
+    WorkingSet().AttachCalibration(&Page());
     KeyCode(Key_Calibrate, kPressed);
     KeyCode(Key_Calibrate, kStillHeld);
     assertFalse(Page().IsOpen());
     Release(Key_Calibrate);
     assertTrue(Page().IsOpen());
     assertEqual((int)vtCalibration->GetSettings().GetOwner(), (int)SettingsOwner::Vt);
-    assertFalse(Fixture().IsWiderHeld());
-    assertFalse(Fixture().IsNarrowerHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
+    assertFalse(WorkingSet().IsNarrowerHeld());
     assertTrue(vtDebug.Contains("VT: Calibrate pressed"));
     Release(Key_CalCancel);
     assertFalse(Page().IsOpen());
@@ -429,7 +443,7 @@ test(IsobusVtInterface, key_anAbortedCalibrateIsNotAPress) {
     Reset();
     // The operator put a finger on the key and slid off it. The VT reports
     // ButtonPressAborted instead of a release, and the page must not open.
-    Fixture().AttachCalibration(&Page());
+    WorkingSet().AttachCalibration(&Page());
     KeyCode(Key_Calibrate, kPressed);
     KeyCode(Key_Calibrate, kAborted);
     assertFalse(Page().IsOpen());
@@ -438,7 +452,7 @@ test(IsobusVtInterface, key_anAbortedCalibrateIsNotAPress) {
 // Opslaan saves through the page: the draft's values reach EEPROM.
 test(IsobusVtInterface, key_calSaveSavesThePage) {
     Reset();
-    Fixture().AttachCalibration(&Page());
+    WorkingSet().AttachCalibration(&Page());
     Release(Key_Calibrate);
     assertTrue(Page().IsOpen());
     Page().OnNumericValue(Input_Cal0 + uint8_t(PloughSetting::Deadband), 7);
@@ -464,8 +478,8 @@ test(IsobusVtInterface, key_unknownObjectIdIsIgnored) {
     KeyCode(Plough_DataMask, kPressed);
     KeyCode(Out_Position, kPressed);
     KeyCode(0xFFFF, kPressed);
-    assertFalse(Fixture().IsWiderHeld());
-    assertFalse(Fixture().IsNarrowerHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
+    assertFalse(WorkingSet().IsNarrowerHeld());
     assertFalse(vtDebug.Contains("VT: Calibrate pressed"));
 }
 
@@ -473,11 +487,11 @@ test(IsobusVtInterface, key_widerAndNarrowerAreIndependent) {
     Reset();
     KeyCode(Key_Wider, kPressed);
     KeyCode(Key_Narrower, kPressed);
-    assertTrue(Fixture().IsWiderHeld());
-    assertTrue(Fixture().IsNarrowerHeld());
+    assertTrue(WorkingSet().IsWiderHeld());
+    assertTrue(WorkingSet().IsNarrowerHeld());
     KeyCode(Key_Wider, kReleased);
-    assertFalse(Fixture().IsWiderHeld());
-    assertTrue(Fixture().IsNarrowerHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
+    assertTrue(WorkingSet().IsNarrowerHeld());
 }
 
 // ---------------------------------------------------------------------------
@@ -731,24 +745,98 @@ test(IsobusVtInterface, failover_switchesToTheVtThatIsStillTalking) {
     millisValue(0);
 }
 
+// ---------------------------------------------------------------------------
+// The paths into the machine's own working set (#287)
+//
+// Written before the VT interface was split into the shared client and the
+// plough's working set, and passing on the unsplit class: they pin that the
+// AUX statuses, the AUX function events, the VT's numeric values and a saved
+// page still arrive where they did once the split routes them through
+// VtWorkingSet. The events go through the client's own dispatchers, so the
+// listeners the interface registers are part of what is tested.
+// ---------------------------------------------------------------------------
+
+// An Auxiliary Input Type 2 Status with the learn-mode bit (byte 7, bit 0)
+// holds every AUX function off (#254).
+test(IsobusVtInterface, aux_learnModeStatusReachesTheAuxInputs) {
+    Reset();
+    millisValue(7000);
+    const std::uint8_t function =
+        static_cast<std::uint8_t>(isobus::VirtualTerminalClient::Function::AuxiliaryInputTypeTwoStatusMessage);
+    Deliver({ function, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01 });
+    assertTrue(WorkingSet().IsAuxLearnMode());
+    // Nor is it counted as a VT status.
+    assertEqual(Fixture().GetVtStatusMessageCount(), 0u);
+    millisValue(0);
+}
+
+// An input assigned to Breder, pressed: held like the soft key.
+test(IsobusVtInterface, aux_assignedFunctionEventHoldsWider) {
+    Reset();
+    millisValue(9000);
+    using Vt = isobus::VirtualTerminalClient;
+    const unsigned int before = WorkingSet().GetAuxWiderEvents();
+    Vt::AuxiliaryFunctionEvent event{ Vt::AssignedAuxiliaryFunction(Aux_Wider, 5, Vt::AuxiliaryTypeTwoFunctionType::BooleanMomentary),
+                                      nullptr, 1, 0 };
+    IsobusVtInterfaceTestAccess::Client(Fixture()).get_auxiliary_function_event_dispatcher().invoke(std::move(event));
+    assertTrue(WorkingSet().IsWiderHeld());
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    assertEqual(WorkingSet().GetAuxWiderEvents(), before + 1);
+    Vt::AuxiliaryFunctionEvent release{ Vt::AssignedAuxiliaryFunction(Aux_Wider, 5, Vt::AuxiliaryTypeTwoFunctionType::BooleanMomentary),
+                                        nullptr, 0, 0 };
+    IsobusVtInterfaceTestAccess::Client(Fixture()).get_auxiliary_function_event_dispatcher().invoke(std::move(release));
+    assertFalse(WorkingSet().IsWiderHeld());
+    millisValue(0);
+}
+
+// A value the operator typed on the VT reaches the open page's draft, and
+// Opslaan saves it.
+test(IsobusVtInterface, numericValue_reachesTheOpenPage) {
+    Reset();
+    EEPROM.write(58, 255);   // not what another test saved there
+    WorkingSet().AttachCalibration(&Page());
+    Release(Key_Calibrate);
+    assertTrue(Page().IsOpen());
+    isobus::VirtualTerminalClient::VTChangeNumericValueEvent event{
+        nullptr, 6, static_cast<std::uint16_t>(Input_Cal0 + uint8_t(PloughSetting::Deadband)) };
+    IsobusVtInterfaceTestAccess::Client(Fixture()).get_vt_change_numeric_value_event_dispatcher().invoke(std::move(event));
+    Release(Key_CalSave);
+    assertEqual((int)EEPROM.read(58), 6);
+}
+
+// A saved page may have changed the preferred VT (#255): the interface reads
+// it again at once, not at the next boot.
+test(IsobusVtInterface, key_calSaveReloadsThePreferredVt) {
+    Reset();
+    WritePreferredVt(0);
+    Fixture().LoadPreferredVt();
+    WorkingSet().AttachCalibration(&Page());
+    Release(Key_Calibrate);
+    Page().OnNumericValue(Input_Cal0 + uint8_t(PloughSetting::PreferredVt), 2);
+    Release(Key_CalSave);
+    assertEqual((int)Fixture().GetPreferredVt(), 2);
+    WritePreferredVt(0);
+    Fixture().LoadPreferredVt();
+}
+
 #endif  // ISOBUS
 
 // The width procedure's Smaller / Breder are held levels that reach the
 // page on press, still-held and release (#240 PR 4).
 test(IsobusVtInterface, key_widthKeysReachThePage_asHeldLevels) {
     Reset();
-    Fixture().AttachCalibration(&Page());
+    WorkingSet().AttachCalibration(&Page());
     Release(Key_Calibrate);
     Release(Key_CalWidth);
     assertTrue(Page().IsWidthProcedureOpen());
     KeyCode(Key_CalWider, kPressed);
-    IsobusVtInterfaceTestAccess::UpdateCalibration(Fixture());
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     Release(Key_CalWider);
-    IsobusVtInterfaceTestAccess::UpdateCalibration(Fixture());
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
     // Nor do they move the main screen's held levels.
-    assertFalse(Fixture().IsWiderHeld());
+    assertFalse(WorkingSet().IsWiderHeld());
     Release(Key_CalWidthBack);
     Release(Key_CalCancel);
     assertFalse(Page().IsOpen());

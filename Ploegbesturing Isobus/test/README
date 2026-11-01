@@ -3,8 +3,8 @@
 (../lib/PloegbesturingCore/src/) and for the shared guidance library this
 project consumes (../../MeijWorks Libs/VehicleGuidance: GuidanceSource, the
 serial-path GPS sentence parsers and SerialGuidanceChannel; and
-../../MeijWorks Libs/IsobusImplement: IsobusGuidanceChannel, VtFailoverPolicy,
-PreferredVt and CanErrorMonitor, #287), run natively (no Teensy attached):
+../../MeijWorks Libs/IsobusImplement: IsobusGuidanceChannel, IsobusVtInterface,
+VtFailoverPolicy, PreferredVt and CanErrorMonitor, #287), run natively (no Teensy attached):
 
 - `native/tests/` -- one `test_<ClassName>.cpp` per class under test, or a
   descriptive group name for a related set (`test_GpsParsers.cpp` covers

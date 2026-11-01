@@ -77,9 +77,10 @@ static void GPrintLightbarPass(Stream* out, const LightbarXteResult& xte) {
 // ------------------------------------------------------------------
 IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
                                   IsobusTcInterface* tcInterface, IsobusVtInterface* vtInterface,
-                                  IsobusLightbarChannel* lightbarChannel)
+                                  IsobusLightbarChannel* lightbarChannel, PloughVtWorkingSet* vtWorkingSet)
     : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance),
-      tcInterface(tcInterface), vtInterface(vtInterface), lightbarChannel(lightbarChannel) {
+      tcInterface(tcInterface), vtInterface(vtInterface), lightbarChannel(lightbarChannel),
+      vtWorkingSet(vtWorkingSet) {
 }
 
 void IsobusDebugMenu::Begin() {
@@ -505,14 +506,16 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
             }
         }
         // AUX-N (#254): statuses of inputs assigned to Breder / Smaller.
-        serialDebug->print("  AUX-N: Breder events=");
-        serialDebug->print(vtInterface->GetAuxWiderEvents());
-        serialDebug->print(" Smaller events=");
-        serialDebug->print(vtInterface->GetAuxNarrowerEvents());
-        serialDebug->print(" held=");
-        serialDebug->print(vtInterface->IsWiderHeld() ? "B" : "-");
-        serialDebug->print(vtInterface->IsNarrowerHeld() ? "S" : "-");
-        serialDebug->println(vtInterface->IsAuxLearnMode() ? " learn mode" : "");
+        if (vtWorkingSet != nullptr) {
+            serialDebug->print("  AUX-N: Breder events=");
+            serialDebug->print(vtWorkingSet->GetAuxWiderEvents());
+            serialDebug->print(" Smaller events=");
+            serialDebug->print(vtWorkingSet->GetAuxNarrowerEvents());
+            serialDebug->print(" held=");
+            serialDebug->print(vtWorkingSet->IsWiderHeld() ? "B" : "-");
+            serialDebug->print(vtWorkingSet->IsNarrowerHeld() ? "S" : "-");
+            serialDebug->println(vtWorkingSet->IsAuxLearnMode() ? " learn mode" : "");
+        }
     }
 
     serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");

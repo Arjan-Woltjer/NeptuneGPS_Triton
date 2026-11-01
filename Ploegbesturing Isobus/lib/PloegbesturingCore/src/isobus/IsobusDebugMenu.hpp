@@ -43,6 +43,7 @@
 #include "IsobusLightbarChannel.hpp"
 #include "IsobusTcInterface.hpp"
 #include "IsobusVtInterface.hpp"
+#include "PloughVtWorkingSet.hpp"
 #include "GuidanceSource.hpp"
 
 namespace triton
@@ -74,7 +75,7 @@ public:
     // section is skipped in that case.
     IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
                     IsobusTcInterface* tcInterface = nullptr, IsobusVtInterface* vtInterface = nullptr,
-                    IsobusLightbarChannel* lightbarChannel = nullptr);
+                    IsobusLightbarChannel* lightbarChannel = nullptr, PloughVtWorkingSet* vtWorkingSet = nullptr);
 
     // Prints a one-line hint that the menu exists. Call once from setup().
     void Begin();
@@ -108,6 +109,7 @@ private:
     IsobusTcInterface*     tcInterface;
     IsobusVtInterface*     vtInterface;
     IsobusLightbarChannel* lightbarChannel;
+    PloughVtWorkingSet*    vtWorkingSet;
 
     State         state = State::IDLE;
     bool          periodicEnabled = false;
