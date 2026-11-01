@@ -17,7 +17,13 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IsobusDebugMenu.hpp"
-#include "FlashMem.hpp"
+
+// FLASHMEM runs rarely used code from flash instead of the Teensy 4's RAM1
+// (#192). The Teensy 4 core defines it; the ESP32 core does not, so fill the
+// gap (the plough's FlashMem.hpp does the same for its own files).
+#ifndef FLASHMEM
+#define FLASHMEM
+#endif
 
 // The header is itself empty unless ISOBUS is defined (see its own comment) --
 // guard the body too, so this compiles to an empty translation unit instead
@@ -25,10 +31,6 @@
 // file in on teensy41_serial anyway. The includes sit inside the guard as
 // well: avr-gcc (micro_serial) has no <vector> at all.
 #ifdef ISOBUS
-
-#include <vector>
-
-#include "VTObjectPool.hpp"
 
 using namespace isobus;
 
@@ -57,7 +59,7 @@ static void GPrintBytesHex(Stream* out, const uint8_t* payload, uint8_t length) 
     }
 }
 
-static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
+void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
     static const char kHexDigits[] = "0123456789ABCDEF";
     for (uint8_t i = 0; i < 8; i++) {
         out->print(kHexDigits[(payload[i] >> 4) & 0x0F]);
@@ -65,22 +67,13 @@ static void GPrintPayloadHex(Stream* out, const uint8_t* payload) {
     }
 }
 
-// The display's pass as its own screen labels it: "0" for the AB line, then
-// "1L", "1R", "2L" ... (PGN 65462 byte 2 and byte 6 bit 4, session 17).
-static void GPrintLightbarPass(Stream* out, const LightbarXteResult& xte) {
-    out->print(xte.pass);
-    if (xte.pass > 0) out->print(xte.passLeftOfAbLine ? "L" : "R");
-}
-
 // ------------------------------------------------------------------
 // Constructor / Begin
 // ------------------------------------------------------------------
 IsobusDebugMenu::IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
-                                  IsobusTcInterface* tcInterface, IsobusVtInterface* vtInterface,
-                                  IsobusLightbarChannel* lightbarChannel, PloughVtWorkingSet* vtWorkingSet)
+                                  IsobusVtInterface* vtInterface, DebugMenuSections* sections)
     : serialDebug(serialDebug), guidanceChannel(guidanceChannel), guidance(guidance),
-      tcInterface(tcInterface), vtInterface(vtInterface), lightbarChannel(lightbarChannel),
-      vtWorkingSet(vtWorkingSet) {
+      vtInterface(vtInterface), sections(sections) {
 }
 
 void IsobusDebugMenu::Begin() {
@@ -122,7 +115,7 @@ FLASHMEM void IsobusDebugMenu::printMenu() {
     serialDebug->print(periodicEnabled ? "ON" : "OFF");
     serialDebug->println(" - press to toggle)");
     serialDebug->println("3. Reset message counters");
-    serialDebug->println("4. Dump DDOP as hex (open in AgIsoDDOPGenerator)");
+    if (sections != nullptr) sections->PrintMenuItems();
     serialDebug->println("5. Dump VT object pool as hex");
     serialDebug->println("q. Exit");
 }
@@ -145,26 +138,15 @@ FLASHMEM void IsobusDebugMenu::handleMenu(char c) {
             serialDebug->println("Counters reset.");
             printMenu();
             break;
-        case '4': {
-            // The DDOP the firmware actually builds, not the one we think it
-            // builds. A pool that fails to serialise here is a pool a
-            // terminal would refuse, so the failure path is worth as much as
-            // the success path.
-            std::vector<std::uint8_t> pool;
-            if (tcInterface != nullptr && tcInterface->GenerateDdopBinary(pool) && !pool.empty()) {
-                printHexBlob("DDOP", pool.data(), static_cast<uint32_t>(pool.size()));
-            } else {
-                serialDebug->println("DDOP not available (not built yet, or AgIsoStack refused to serialise it).");
-            }
-            printMenu();
-            break;
-        }
         case '5':
-            // VT3PoolData/VT3PoolSize are whatever BuildObjectPool() settled
-            // on -- the designed pool, the generated one or the test pool --
-            // so this reports what would really be uploaded.
-            if (VT3PoolData != nullptr && VT3PoolSize > 0) {
-                printHexBlob("VTPOOL", VT3PoolData, VT3PoolSize);
+            // The working set's pool as it built it (the plough: whatever
+            // BuildObjectPool() settled on -- the designed pool, the generated
+            // one or the test pool), so this reports what would really be
+            // uploaded.
+            if (vtInterface != nullptr && vtInterface->GetWorkingSet()->GetPoolData() != nullptr &&
+                vtInterface->GetWorkingSet()->GetPoolSize() > 0) {
+                GPrintHexBlob(serialDebug, "VTPOOL", vtInterface->GetWorkingSet()->GetPoolData(),
+                              vtInterface->GetWorkingSet()->GetPoolSize());
             } else {
                 serialDebug->println("VT object pool not built yet.");
             }
@@ -176,7 +158,7 @@ FLASHMEM void IsobusDebugMenu::handleMenu(char c) {
             state = State::IDLE;
             break;
         default:
-            serialDebug->println("Invalid choice.");
+            if (sections == nullptr || !sections->HandleMenuKey(c)) serialDebug->println("Invalid choice.");
             printMenu();
             break;
     }
@@ -505,209 +487,12 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
                 serialDebug->println(vtInterface->GetPreferredVtAddress() == vtInterface->GetPartnerAddress() ? " (bound)" : " (not bound)");
             }
         }
-        // AUX-N (#254): statuses of inputs assigned to Breder / Smaller.
-        if (vtWorkingSet != nullptr) {
-            serialDebug->print("  AUX-N: Breder events=");
-            serialDebug->print(vtWorkingSet->GetAuxWiderEvents());
-            serialDebug->print(" Smaller events=");
-            serialDebug->print(vtWorkingSet->GetAuxNarrowerEvents());
-            serialDebug->print(" held=");
-            serialDebug->print(vtWorkingSet->IsWiderHeld() ? "B" : "-");
-            serialDebug->print(vtWorkingSet->IsNarrowerHeld() ? "S" : "-");
-            serialDebug->println(vtWorkingSet->IsAuxLearnMode() ? " learn mode" : "");
-        }
+        if (sections != nullptr) sections->PrintVtDump();
     }
 
-    serialDebug->println("--- Lightbar emulation (Ag Leader L160, PGN 65462) ---");
-    if (lightbarChannel == nullptr) {
-        serialDebug->println("  (not configured)");
-    } else {
-        const auto& lc = lightbarChannel->GetCounters();
-        const auto& em = lightbarChannel->GetEmulation();
-        serialDebug->print("  Mode: ");
-        serialDebug->print(LightbarModeName(lightbarChannel->GetMode()));
-        serialDebug->print(lightbarChannel->IsRunning() ? "  RUNNING" : "  NOT RUNNING");
-        serialDebug->println(lightbarChannel->IsAgLeaderDisplaySeen() ? "  (Ag Leader display seen)"
-                                                                      : "  (no Ag Leader display seen)");
-        serialDebug->print("  Address claim: ");
-        serialDebug->print(lightbarChannel->IsClaimed() ? "CLAIMED  address=0x" : "NOT CLAIMED");
-        if (lightbarChannel->IsClaimed()) serialDebug->print(lightbarChannel->GetAddress(), HEX);
-        serialDebug->println();
-        serialDebug->print("  Display partner: 0x");
-        serialDebug->print(em.GetPartnerAddress(), HEX);
-        serialDebug->print("  identification requests=");
-        serialDebug->print(em.GetRequests());
-        serialDebug->print(" answered=");
-        serialDebug->print(em.GetResponses());
-        serialDebug->print(" unknown=");
-        serialDebug->print(em.GetUnknownRequests());
-        serialDebug->print("  last DID=0x");
-        serialDebug->print(em.GetLastDid(), HEX);
-        serialDebug->print("  hello=");
-        serialDebug->print(em.GetHelloSent() ? "Y" : "N");
-        serialDebug->print("  stack partner=");
-        if (lightbarChannel->IsDisplayPartnerBound()) {
-            serialDebug->print("0x");
-            serialDebug->println(lightbarChannel->GetDisplayPartnerAddress(), HEX);
-        } else {
-            serialDebug->println("N");
-        }
-        serialDebug->print("  Sent: frames=");
-        serialDebug->print(lc.framesSent);
-        serialDebug->print(" failures=");
-        serialDebug->print(lc.sendFailures);
-        serialDebug->print(" heartbeats=");
-        serialDebug->print(lc.heartbeats);
-        serialDebug->print(" softwareId=");
-        serialDebug->print(lc.softwareIdSent ? "Y" : "N");
-        serialDebug->print("  proprietary A from display=");
-        serialDebug->println(em.GetProprietaryAReceived());
-        serialDebug->print("  Requests: softwareId=");
-        serialDebug->print(em.GetSoftwareIdRequests());
-        serialDebug->print(" (sent ");
-        serialDebug->print(lc.softwareIdSends);
-        serialDebug->print("x) ignored=");
-        serialDebug->print(em.GetIgnoredRequests());
-        serialDebug->print(" last ignored PGN=");
-        serialDebug->println(em.GetLastIgnoredPgn());
-        serialDebug->print("  PGN 65462 XTE: frames=");
-        serialDebug->print(lc.xteFrames);
-        serialDebug->print(" committed=");
-        serialDebug->print(lc.xteCommitted);
-        if (lc.xteFrames > 0) {
-            serialDebug->print("  last ");
-            serialDebug->print(millis() - lc.lastXteMs);
-            serialDebug->print(" ms ago from 0x");
-            serialDebug->print(lc.lastXteSourceAddress, HEX);
-            serialDebug->print("  raw=");
-            GPrintPayloadHex(serialDebug, lc.lastXte.rawPayload);
-            serialDebug->print("  -> ");
-            serialDebug->print(lc.lastXte.magnitudeCm);
-            serialDebug->print(" cm ");
-            serialDebug->print(lc.lastXte.rightOfLine ? "right" : (lc.lastXte.leftOfLine ? "left" : "on the line"));
-            if (lc.lastXte.hasPass) {
-                serialDebug->print(", pass ");
-                GPrintLightbarPass(serialDebug, lc.lastXte);
-            }
-            serialDebug->print(lc.lastXte.engaged ? ", autosteer engaged" : ", autosteer off");
-            serialDebug->print(lc.lastXte.hasLine ? ", line" : ", no line");
-            serialDebug->print(lc.lastXte.valid ? "  (committed)" : "  (not committed)");
-        }
-        serialDebug->println();
-    }
-
-    serialDebug->println("--- Task Controller ---");
-    if (tcInterface == nullptr) {
-        serialDebug->println("  (not configured)");
-    } else {
-        serialDebug->print("  Connected:    ");
-        serialDebug->println(tcInterface->IsConnected() ? "Y" : "N");
-        serialDebug->print("  TC-GEO (with/without pos): ");
-        if (tcInterface->IsConnected()) {
-            serialDebug->print(tcInterface->SupportsTcGeoWithPosition() ? "Y" : "N");
-            serialDebug->print("/");
-            serialDebug->println(tcInterface->SupportsTcGeoWithoutPosition() ? "Y" : "N");
-        } else {
-            serialDebug->println("(not connected)");
-        }
-        serialDebug->print("  Task active:  ");
-        // Advisory only -- see IsobusTcInterface::IsTaskActive()'s comment.
-        serialDebug->println(tcInterface->IsTaskActive() ? "Y" : "N");
-        serialDebug->print("  DRP deviation (DDI 513): ");
-        serialDebug->print(tcInterface->GetDrpDeviationMm());
-        serialDebug->print(" mm, last ");
-        serialDebug->print(millis() - tcInterface->GetDrpTimestamp());
-        serialDebug->println(" ms ago");
-        serialDebug->print("  GNSS quality (DDI 514):  ");
-        serialDebug->print(tcInterface->GetTcGnssQuality());
-        serialDebug->print(", last ");
-        serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
-        serialDebug->println(" ms ago");
-        // --- What reached our handlers, via AgIsoStack -------------------
-        // Labelled as such deliberately. Session 9 read "Value commands: 0"
-        // as "the TC never commanded us" when the TC was commanding us at
-        // that moment; the number was not wrong, the label was.
-        serialDebug->print("  [via stack] Value cmds to handler: ");
-        serialDebug->print(tcInterface->GetValueCommandCount());
-        serialDebug->print("  last DDI=");
-        if (tcInterface->GetValueCommandCount() > 0) {
-            serialDebug->print(tcInterface->GetLastValueCommandDdi());
-            serialDebug->print(" (");
-            serialDebug->print(millis() - tcInterface->GetLastValueCommandMs());
-            serialDebug->println(" ms ago)");
-        } else {
-            serialDebug->println("(none)");
-        }
-        serialDebug->print("  [via stack] Value req callbacks:  ");
-        serialDebug->print(tcInterface->GetValueRequestCount());
-        serialDebug->println("   (mostly AgIsoStack's own re-polling -- NOT bus traffic)");
-
-        // --- What is actually on the wire, addressed to us ----------------
-        serialDebug->print("  [on bus] Requests for our values: ");
-        serialDebug->println(tcInterface->GetBusRequestValueCount());
-        serialDebug->print("  [on bus] Set-value commands:      ");
-        serialDebug->println(tcInterface->GetBusSetValueCount());
-        serialDebug->print("  [on bus] Measurement commands:    ");
-        serialDebug->print(tcInterface->GetBusMeasurementCount());
-        if (tcInterface->GetBusMeasurementCount() > 0) {
-            serialDebug->print("  last DDI=");
-            serialDebug->print(tcInterface->GetLastBusMeasurementDdi());
-            serialDebug->print(" type=");
-            serialDebug->print(tcInterface->GetLastBusMeasurementType());
-            serialDebug->print(" (");
-            serialDebug->print(millis() - tcInterface->GetLastBusMeasurementMs());
-            serialDebug->println(" ms ago)");
-        } else {
-            serialDebug->println("  (none)");
-        }
-        serialDebug->print("  [on bus] Other, addressed to us:  ");
-        serialDebug->println(tcInterface->GetBusOtherProcessDataCount());
-        // Partner address/validity: the thing that silently went false in
-        // both #17 and #19 and was readable nowhere at the time.
-        serialDebug->print("  Partner: addr=0x");
-        serialDebug->print(tcInterface->GetPartnerAddress(), HEX);
-        serialDebug->print(" valid=");
-        serialDebug->print(tcInterface->IsPartnerAddressValid() ? "Y" : "N");
-        serialDebug->print("  reconnect attempts=");
-        serialDebug->println(tcInterface->GetReconnectAttemptCount());
-        // Tramline Control probe (GitHub issue #21) -- the arrival is the
-        // result, not the value; see IsobusTcInterface::HasTramlineSetpoint().
-        serialDebug->print("  Tramline setpoint (DDI 506): ");
-        if (tcInterface->HasTramlineSetpoint()) {
-            serialDebug->print(tcInterface->GetTramlineSetpointLevel());
-            serialDebug->print("  -> terminal DOES implement Tramline Control (");
-            serialDebug->print(millis() - tcInterface->GetTramlineSetpointMs());
-            serialDebug->println(" ms ago)");
-        } else if (tcInterface->IsConnected()) {
-            serialDebug->println("(none yet -- no Tramline Control seen on this terminal)");
-        } else {
-            serialDebug->println("(not connected)");
-        }
-        // Guidance-track DDIs 508-511. Worth reading even when 506 stays
-        // silent: a terminal that populates track numbering speaks this part
-        // of the protocol whether or not it completes the tramline handshake,
-        // which is a different and useful answer.
-        serialDebug->print("  Guidance track (DDI 507-511): ");
-        if (tcInterface->HasGuidanceTrackInfo()) {
-            serialDebug->print("seq=");
-            serialDebug->print(tcInterface->GetTramlineSequenceNumber());
-            serialDebug->print(" abLine=");
-            serialDebug->print(tcInterface->GetAbLineId());
-            serialDebug->print(" track=");
-            serialDebug->print(tcInterface->GetActualTrackNumber());
-            serialDebug->print(" right=");
-            serialDebug->print(tcInterface->GetTrackNumberRight());
-            serialDebug->print(" left=");
-            serialDebug->print(tcInterface->GetTrackNumberLeft());
-            serialDebug->print("  (");
-            serialDebug->print(tcInterface->GetGuidanceTrackAgeMs());
-            serialDebug->println(" ms ago)");
-        } else if (tcInterface->IsConnected()) {
-            serialDebug->println("(none yet)");
-        } else {
-            serialDebug->println("(not connected)");
-        }
-    }
+    // The machine's own sections (the plough: lightbar emulation, Task
+    // Controller).
+    if (sections != nullptr) sections->PrintDump();
 }
 
 // ------------------------------------------------------------------
@@ -773,21 +558,7 @@ FLASHMEM void IsobusDebugMenu::printPeriodicLine() {
         GPrintBytesHex(serialDebug, counters.lastXteNmea2000Payload, counters.lastXteNmea2000Length);
     }
 
-    // The InCommand's lightbar XTE, raw, on the same line for the same reason
-    // as xteraw: the side bit is still unconfirmed against deliberate offsets.
-    if (lightbarChannel != nullptr && lightbarChannel->GetCounters().xteFrames > 0) {
-        const auto& lc = lightbarChannel->GetCounters();
-        serialDebug->print(" lb=");
-        serialDebug->print(lc.lastXte.magnitudeCm);
-        serialDebug->print(lc.lastXte.rightOfLine ? "R" : (lc.lastXte.leftOfLine ? "L" : "C"));
-        serialDebug->print(lc.lastXte.engaged ? "e" : "-");
-        if (lc.lastXte.hasPass) {
-            serialDebug->print("p");
-            GPrintLightbarPass(serialDebug, lc.lastXte);
-        }
-        serialDebug->print(":");
-        GPrintPayloadHex(serialDebug, lc.lastXte.rawPayload);
-    }
+    if (sections != nullptr) sections->PrintPeriodicBeforeVt();
 
     if (vtInterface != nullptr) {
         serialDebug->print(" vt=");
@@ -802,47 +573,40 @@ FLASHMEM void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print(vtInterface->GetVtStatusMessageAgeMs());
         serialDebug->print("ms");
     }
-    if (tcInterface != nullptr) {
-        serialDebug->print(" tc=");
-        serialDebug->print(tcInterface->IsConnected() ? "Y" : "N");
-        serialDebug->print(" drp=");
-        serialDebug->print(tcInterface->GetDrpDeviationMm());
-        serialDebug->print("mm tcq=");
-        serialDebug->print(tcInterface->GetTcGnssQuality());
-    }
+    if (sections != nullptr) sections->PrintPeriodicAfterVt();
     serialDebug->println();
 }
 
-FLASHMEM void IsobusDebugMenu::printHexBlob(const char* label, const uint8_t* data, uint32_t length) {
+FLASHMEM void GPrintHexBlob(Stream* out, const char* label, const uint8_t* data, uint32_t length) {
     static const char kHex[] = "0123456789ABCDEF";
     constexpr uint32_t kBytesPerLine = 32;
 
-    serialDebug->print("----- BEGIN ");
-    serialDebug->print(label);
-    serialDebug->print(" ");
-    serialDebug->print(length);
-    serialDebug->println(" bytes -----");
+    out->print("----- BEGIN ");
+    out->print(label);
+    out->print(" ");
+    out->print(length);
+    out->println(" bytes -----");
 
     for (uint32_t i = 0; i < length; i++) {
-        serialDebug->write(kHex[(data[i] >> 4) & 0x0F]);
-        serialDebug->write(kHex[data[i] & 0x0F]);
+        out->write(kHex[(data[i] >> 4) & 0x0F]);
+        out->write(kHex[data[i] & 0x0F]);
         if (((i + 1) % kBytesPerLine) == 0) {
-            serialDebug->println();
+            out->println();
         }
     }
     if ((length % kBytesPerLine) != 0) {
-        serialDebug->println();
+        out->println();
     }
 
-    serialDebug->print("----- END ");
-    serialDebug->print(label);
-    serialDebug->println(" -----");
+    out->print("----- END ");
+    out->print(label);
+    out->println(" -----");
     // Printed with the data on purpose: a hex dump nobody can turn back into
     // a file is not worth capturing.
-    serialDebug->println("Strip the BEGIN/END lines, then:");
-    serialDebug->print("  python -c \"import sys;open('");
-    serialDebug->print(label);
-    serialDebug->println(".iop','wb').write(bytes.fromhex(''.join(sys.stdin.read().split())))\" < hex.txt");
+    out->println("Strip the BEGIN/END lines, then:");
+    out->print("  python -c \"import sys;open('");
+    out->print(label);
+    out->println(".iop','wb').write(bytes.fromhex(''.join(sys.stdin.read().split())))\" < hex.txt");
 }
 
 }  // namespace triton

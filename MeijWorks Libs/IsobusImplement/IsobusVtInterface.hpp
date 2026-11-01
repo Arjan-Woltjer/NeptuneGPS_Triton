@@ -153,6 +153,9 @@ public:
     // has not been seen.
     std::uint8_t  GetPreferredVtAddress() const { return failover.GetPreferredAddress(); }
 
+    // The machine's working set, for IsobusDebugMenu's pool dump.
+    VtWorkingSet* GetWorkingSet() const { return workingSet; }
+
 private:
     // The native suite drives the VT-to-ECU callback, the key handler and the
     // reconnect watchdog directly, and sets the connection history the

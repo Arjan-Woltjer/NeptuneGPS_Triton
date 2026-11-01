@@ -43,7 +43,8 @@
 #endif
 #pragma pop_macro("max")
 #pragma pop_macro("min")
-#include "isobus/IsobusDebugMenu.hpp"
+#include "IsobusDebugMenu.hpp"
+#include "isobus/PloughDebugMenuSections.hpp"
 #include "IsobusGuidanceChannel.hpp"
 #include "isobus/PloughName.hpp"
 #include "isobus/IsobusLightbarChannel.hpp"
@@ -121,6 +122,7 @@ triton::PloughVtWorkingSet*    gVtWorkingSet;
 triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusVtCalibration*   gVtCalibration;
 triton::IsobusTcInterface*     gTcInterface;
+triton::PloughDebugMenuSections* gDebugSections;
 triton::IsobusDebugMenu*       gDebugMenu;
 #if !defined(ESP32S3)
 // For the dump's receive-queue line (#248). The hardware interface keeps the
@@ -293,8 +295,10 @@ void setup() {
                                                   gVtInterface->GetPartner());
     gTcInterface->Begin();
 
-    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface, gLightbarChannel,
-                                             gVtWorkingSet);
+    // The shared menu, with the plough's own sections (TC, DDOP, lightbar,
+    // AUX-N) at their usual places (#287).
+    gDebugSections = new triton::PloughDebugMenuSections(gSerialDebug, gTcInterface, gLightbarChannel, gVtWorkingSet);
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gVtInterface, gDebugSections);
     gDebugMenu->Begin();
 #if !defined(ESP32S3)
     gDebugMenu->SetCanReceiveQueueStatsSource(GReadCanReceiveQueueStats);

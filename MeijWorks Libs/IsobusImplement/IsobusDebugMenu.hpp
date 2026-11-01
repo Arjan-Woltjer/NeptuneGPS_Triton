@@ -39,11 +39,9 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+#include "DebugMenuSections.hpp"
 #include "IsobusGuidanceChannel.hpp"
-#include "IsobusLightbarChannel.hpp"
-#include "IsobusTcInterface.hpp"
 #include "IsobusVtInterface.hpp"
-#include "PloughVtWorkingSet.hpp"
 #include "GuidanceSource.hpp"
 
 namespace triton
@@ -52,8 +50,11 @@ namespace triton
 // Read-only serial menu: address-claim state, estimated bus load, per-PGN
 // message counters (IsobusGuidanceChannel::MessageCounters -- AgIsoStack
 // itself exposes no such counters), the guidance telemetry those messages
-// feed into GuidanceSource (XTE, speed, fix ages, quality), and the Task
-// Controller client's connection/DDI 513-514 state. Unlike Spuitcomputer LD's
+// feed into GuidanceSource (XTE, speed, fix ages, quality), the VT
+// connection, and whatever sections the machine adds (DebugMenuSections; the
+// plough's: the lightbar emulation and the Task Controller client's
+// connection/DDI 513-514 state). Shared by every Triton ISOBUS machine
+// (MeijWorks Libs/IsobusImplement, NeptuneGPS_Triton#287). Unlike Spuitcomputer LD's
 // CalibrationSprayer, this never writes calibration data and every menu
 // choice is a fixed single keypress, so input dispatches immediately -- no
 // line buffer/Enter needed.
@@ -68,14 +69,24 @@ struct CanReceiveQueueStats {
 };
 using CanReceiveQueueStatsSource = CanReceiveQueueStats (*)();
 
+// Emits a byte blob as one contiguous hex string between BEGIN/END
+// markers, wrapped for readability, with the byte count and the one-liner
+// that turns the capture back into a binary file. Shared by the DDOP and
+// VT object pool dumps -- the formatting has to match exactly, because
+// the whole point is that a script can lift it straight out of a serial
+// log.
+void GPrintHexBlob(Stream* out, const char* label, const uint8_t* data, uint32_t length);
+
+// An 8-byte CAN payload as 16 zero-padded hex characters, no separators.
+void GPrintPayloadHex(Stream* out, const uint8_t* payload);
+
 class IsobusDebugMenu {
 public:
-    // tcInterface/vtInterface may be nullptr (e.g. during incremental
+    // vtInterface/sections may be nullptr (e.g. during incremental
     // bring-up before they're wired in main.cpp) -- the corresponding
     // section is skipped in that case.
     IsobusDebugMenu(Stream* serialDebug, IsobusGuidanceChannel* guidanceChannel, GuidanceSource* guidance,
-                    IsobusTcInterface* tcInterface = nullptr, IsobusVtInterface* vtInterface = nullptr,
-                    IsobusLightbarChannel* lightbarChannel = nullptr, PloughVtWorkingSet* vtWorkingSet = nullptr);
+                    IsobusVtInterface* vtInterface = nullptr, DebugMenuSections* sections = nullptr);
 
     // Prints a one-line hint that the menu exists. Call once from setup().
     void Begin();
@@ -95,21 +106,11 @@ public:
 private:
     enum class State { IDLE, MENU };
 
-    // Emits a byte blob as one contiguous hex string between BEGIN/END
-    // markers, wrapped for readability, with the byte count and the one-liner
-    // that turns the capture back into a binary file. Shared by the DDOP and
-    // VT object pool dumps -- the formatting has to match exactly, because
-    // the whole point is that a script can lift it straight out of a serial
-    // log.
-    void printHexBlob(const char* label, const uint8_t* data, uint32_t length);
-
     Stream*                serialDebug;
     IsobusGuidanceChannel* guidanceChannel;
     GuidanceSource*        guidance;
-    IsobusTcInterface*     tcInterface;
     IsobusVtInterface*     vtInterface;
-    IsobusLightbarChannel* lightbarChannel;
-    PloughVtWorkingSet*    vtWorkingSet;
+    DebugMenuSections*     sections;
 
     State         state = State::IDLE;
     bool          periodicEnabled = false;
