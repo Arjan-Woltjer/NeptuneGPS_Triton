@@ -69,6 +69,14 @@
 
 #define L_CAL_COMPLETE  "Calibratie afronden "
 
+// The settings NeptuneGPS_Triton#289 added to the wizard
+#define L_CAL_SWAP      "Wissel op en neer   "
+#define L_CAL_SPEEDGATE "Snelheid vereist    "
+#define L_CAL_VT        "Wijzig voorkeurs-VT "
+#define L_CAL_VT_AD     "VT (0 = geen):      "
+#define L_CAL_YES       "                  ja"
+#define L_CAL_NO        "                 nee"
+
 // -----------
 // Taal ENGELS
 // -----------
@@ -127,5 +135,13 @@
 #define L_CAL_PROG_AD8  "Rooierbesturing     "
 
 #define L_CAL_COMPLETE  "Finish calibration  "
+
+// The settings NeptuneGPS_Triton#289 added to the wizard
+#define L_CAL_SWAP      "Swap up and down    "
+#define L_CAL_SPEEDGATE "Require speed       "
+#define L_CAL_VT        "Adj. preferred VT   "
+#define L_CAL_VT_AD     "VT (0 = none):      "
+#define L_CAL_YES       "                 yes"
+#define L_CAL_NO        "                  no"
 
 #endif
