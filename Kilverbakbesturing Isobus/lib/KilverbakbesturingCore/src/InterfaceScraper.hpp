@@ -64,9 +64,14 @@ public:
                       VehicleSensors* tractor,
                       GuidanceSource* guidance);
 
-    void Update();
+    // vtPlus / vtMinus: the VT's + and - soft keys, held levels
+    // (ScraperVtWorkingSet, #291). They join the cab's + (right) and -
+    // (left) buttons in ButtonPair, as the plough's Wider / Narrower do, so
+    // a held soft key acts exactly as a held cab button and never makes the
+    // both-held combo.
+    void Update(bool vtPlus = false, bool vtMinus = false);
     void UpdateScreen(boolean rewrite);
-    int  CheckButtons(byte delay1, byte delay2);
+    int  CheckButtons(byte delay1, byte delay2, bool vtPlus = false, bool vtMinus = false);
 
     inline int GetButtons() {
         return buttons;
