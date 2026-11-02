@@ -56,7 +56,7 @@ public:
     // ------------------------------------------------------------
     inline void NoteGgaFixReceived()            { lastGgaFix = millis(); }
     inline void SetPosition(float lat, float lon) { latitude = lat; longitude = lon; lastGgaFix = millis(); }
-    inline void SetAltitude(float alt)          { altitude = alt; }
+    inline void SetAltitude(float alt)          { altitude = alt; lastAltitudeFix = millis(); }
     inline void SetSpeedKnots(float knots)      { speed = knots; lastVtgFix = millis(); }
     inline void SetCourseDeg(float degrees)     { course = degrees; lastVtgFix = millis(); }
     inline void SetTime(float t)                { time = t; }
@@ -94,6 +94,9 @@ public:
     // which stands until a message changes it, this lets a gate tell a
     // confirmed quality from one left over by a source that went quiet.
     inline unsigned long GetQualityTimestamp() { return lastQualityFix; }
+    // When an altitude was last committed: a height-levelling implement
+    // (the kilverbak, NeptuneGPS_Triton#290) holds without a fresh one.
+    inline unsigned long GetAltitudeTimestamp() { return lastAltitudeFix; }
     inline bool          IsRtkQuality()  { return quality == rtkQuality; }
     inline bool          MinSpeed()      { return GetSpeedMs() >= MINSPEED; }
     inline float         GetSpeedMs()    { return GPS_MS_PER_KNOT * speed; }
@@ -116,6 +119,13 @@ public:
     inline void SetRtkQuality(byte q) { rtkQuality = (q == 4 || q == 2) ? q : 4; }
     inline byte GetRtkQuality()       { return rtkQuality; }
 
+    // Whether this source takes the coarse altitude of J1939 PGN 65256
+    // (0.125 m steps, the legacy speed frame). On by default; a source
+    // that levels on height turns it off and keeps only GGA's and PGN
+    // 129029's altitude (#290). Read by GApply(SpeedResult).
+    inline void SetUseCoarseAltitude(bool use) { useCoarseAltitude = use; }
+    inline bool UsesCoarseAltitude()           { return useCoarseAltitude; }
+
 private:
     float         latitude = 0.0f;
     float         longitude = 0.0f;
@@ -131,7 +141,9 @@ private:
     unsigned long lastVtgFix = 0;
     unsigned long lastXteFix = 0;
     unsigned long lastQualityFix = 0;
+    unsigned long lastAltitudeFix = 0;
     bool          antennaOk = true;
+    bool          useCoarseAltitude = true;
 };
 
 }  // namespace triton

@@ -238,6 +238,30 @@ test(ImplementScraper, settings_otherBytes_noSwapAndTheGateOn) {
     assertTrue(impl.GetSpeedGate());
 }
 
+// Hold leaves the offset alone; Manual rebases it to the bucket's height
+// (owner, NeptuneGPS_Triton#290). A Hold may come from an RTK dropout whose
+// height is metres off: Kilverbakbesturing rebased in Hold too, so the
+// offset took that height and the bucket jumped when RTK returned.
+test(ImplementScraper, adjust_holdKeepsTheOffset_manualRebasesIt) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    millisValue(500);
+    impl.Update(0, 1);
+    millisValue(1000);
+    impl.Update(0, 1);
+    assertEqual(impl.GetOffset(), (short int)2);
+
+    mockGuidance.SetAltitude(3.0f);           // 3 m off the plane (reference 0)
+    millisValue(1001);
+    mockGuidance.NoteGgaFixReceived();
+    impl.Update(1, 0);
+    assertEqual(impl.GetHeight(), (short int)300);
+    impl.Adjust(1, 0);                        // Hold
+    assertEqual(impl.GetOffset(), (short int)2);
+    impl.Adjust(2, 0);                        // Manual
+    assertEqual(impl.GetOffset(), (short int)-300);
+}
+
 // Both buttons held opens the wizard (owner, #289) and leaves the offset as
 // it is; Kilverbakbesturing reset it to 0 in the same pass.
 test(ImplementScraper, update_bothButtonsLeaveTheOffset) {
