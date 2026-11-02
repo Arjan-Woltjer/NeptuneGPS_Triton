@@ -2,8 +2,8 @@
 
 Written 2026-11-02. A bench session, no tractor: the first time Kilverbakbesturing Isobus runs on a board. Branch
 **`test/kilverbak-session1`** carries #296 (the shared ISOBUS layer), #297 (the project, #288), #298 (settings and
-wizard, #289) and #299 (height sources and gates, #290). There is no VT screen yet (#291): the VT is not part of this
-session.
+wizard, #289), #299 (height sources and gates, #290) and #300 (the VT working screen, #291). The VT steps (section
+3b) need a VT on the bench bus; everything else runs without one.
 
 ## 0. What this session decides
 
@@ -13,6 +13,8 @@ session.
    and a reboot** (Kilverbakbesturing's save wiped them).
 3. **#290:** the UART winning over CAN, no height from PGN 65256, and the gates G! / R! / S! with the offset kept
    across a Hold.
+4. **#291:** the VT screen follows the control (picture, bar, rows, mode, dots), `+` / `-` act as the cab buttons,
+   and REF A / REF B take a point only after OPSLAAN and only on RTK.
 
 ## 1. Kit and build
 
@@ -64,6 +66,26 @@ session.
 
 Afterwards: put the swap back to nee and the speed gate back to ja.
 
+## 3b. The VT (#291)
+
+Needs a VT on the bench bus: the bench VT (AgISOVirtualTerminal on the PC, through
+the Saturn gs_usb interface), as in the plough's bench sessions. Without one, skip
+this section; the rest of the brief does not depend on it.
+
+| Step | Do | Expect |
+|---|---|---|
+| V1 | Boot with the VT on the bus. | The pool uploads; the dump's VT section says connected, label **KB01**. The VT's app list shows the bucket icon. |
+| V2 | Simulator on, RTK, 6 km/h, references set (W2), MODE off manual. | Main screen: the side view with the blade on the dashed line, the bar's white line on its yellow target, GPS and speed dots green, `6.0` km/h, `AUTO`. Rows: `AFWIJK.` 0 cm, `OFFSET` 0 cm, `REF` and `ACTUEEL` the simulator's height in m, `AFSTAND` growing, `AFSCHOT` the slope in %. |
+| V3 | Simulator `+` three times, then `-` six times. | +3 cm: the picture switches to *above* (arrow down), the bar line above the target, `AFWIJK.` 3; output 20 pulses. -3 cm: *below* (arrow up), line under the target; output 21. |
+| V4 | Back on the reference height. Hold the VT's `+` for about 2 s. | `OFFSET` climbs 1 cm per half second, `AFWIJK.` with it, output 20 pulses, as with the cab `+` in O1. The serial log shows `VT: + pressed` / `released`. |
+| V5 | MODE switch to manual; hold the VT's `+`, then its `-`. | `HAND`. The outputs follow as with the cab buttons (step W5 order). |
+| V6 | MODE back. `p` (pause), then `q` (float), then `s` (standing still), each undone before the next. | `H G!` with the GPS dot red; `H R!` with the GPS dot red; `H S!` with the speed dot red. |
+| V7 | `REF A`, then `OPSLAAN` while the simulator is on float (`q`). | The reference page opens and the outputs stop. On float the page says `GEEN RTK FIX` and stays; back on RTK the line clears. |
+| V8 | `OPSLAAN` on RTK. | Back to the main screen, `OFFSET` 0, the serial log says `VT: reference A saved`. The boot print after a reboot shows the new A. |
+| V9 | `REF B`, `ANNUL.`. | Back to the main screen, B unchanged. |
+| V10 | Open the cab wizard (both buttons), then press `REF A` on the VT. | Nothing opens; the serial log says `VT: REF key ignored, the cab wizard is open`. Close the wizard with `-` ... `Calibratie afronden` `-`. |
+| V11 | Unplug the VT for 10 s and back, or close and restart AgISOVirtualTerminal. | The screen comes back with the current values; no upload (KB01 cached) on a VT that keeps pools. |
+
 ## 4. The serial build (`teensy40`)
 
 | Step | Do | Expect |
@@ -86,6 +108,14 @@ WIZARD
 - [ ] W3 saved Y/N; bounds 99 / 10 Y/N   - [ ] W4 after a reboot: settings Y/N, **references Y/N**
 - [ ] W5 swap reverses the outputs Y/N   - [ ] W6 gate off: `A` standing still Y/N   - [ ] W7 nothing saved Y/N
 
+VT (skip without a VT)
+- [ ] V1 pool up, label KB01 Y/N; icon Y/N   - [ ] V2 screen as described Y/N; remarks: ____________
+- [ ] V3 above: picture/bar/output 20 Y/N; below: picture/bar/output 21 Y/N
+- [ ] V4 VT `+` steps the offset 1 cm / 0.5 s Y/N   - [ ] V5 `HAND`, VT keys drive as the cab buttons Y/N
+- [ ] V6 `H G!` / `H R!` / `H S!` with the right dot Y/N
+- [ ] V7 page opens, outputs stop Y/N; `GEEN RTK FIX` on float Y/N   - [ ] V8 A saved, offset 0, survives reboot Y/N
+- [ ] V9 ANNUL. keeps B Y/N   - [ ] V10 REF ignored with the cab wizard open Y/N   - [ ] V11 back after a VT restart Y/N
+
 SERIAL BUILD
 - [ ] S1 detect finds 38400 Y/N; `A` Y/N   - [ ] S2 `G!` on CAN alone Y/N
 
@@ -96,5 +126,5 @@ END
 
 - **Notes:** the serial log and the timeline on **`test/kilverbak-session1`** under
   `Kilverbakbesturing Isobus/Documentation/logs/`, named `<date>_kilverbak-session1_bench_*`.
-- **Where results go:** B1/B2 and S1 to #288; W1-W7 to #289; H1-H5, W2b, O1-O3 and S2 to #290; the stack's PRs
-  #296-#299 get a comment each.
+- **Where results go:** B1/B2 and S1 to #288; W1-W7 to #289; H1-H5, W2b, O1-O3 and S2 to #290; V1-V11 to #291;
+  the stack's PRs #296-#300 get a comment each.
