@@ -180,6 +180,13 @@ public:
         return heightRef;
     }
 
+    // How far the blade is above the plane plus the offset, in cm: what Auto
+    // drives to zero (positive: the valves lower the bucket). The VT shows it
+    // (#291).
+    inline int GetDeviation() const {
+        return height - heightRef + offset;
+    }
+
     inline short int GetOffset() {
         return offset;
     }

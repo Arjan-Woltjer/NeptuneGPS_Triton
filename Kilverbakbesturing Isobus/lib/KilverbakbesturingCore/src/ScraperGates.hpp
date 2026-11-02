@@ -44,6 +44,12 @@ inline bool ScraperFresh(unsigned long timestamp, unsigned long nowMs) {
     return timestamp != 0 && nowMs - timestamp <= kScraperFixMaxAgeMs;
 }
 
+// The speed gate's own condition: a fresh VTG at MINSPEED or faster. The VT's
+// speed dot shows it (#291).
+inline bool ScraperSpeedGateMet(GuidanceSource& guidance, unsigned long nowMs) {
+    return ScraperFresh(guidance.GetVtgTimestamp(), nowMs) && guidance.MinSpeed();
+}
+
 // The gates, owner 2026-11-01/02: Auto needs a fresh position and altitude
 // and an RTK fixed fix stated within the same window (the RTK quality is the
 // setting, 4 or 2); with the speed gate on, as on the plough, also a fresh
@@ -55,7 +61,7 @@ inline ScraperHold ScraperHoldReason(GuidanceSource& guidance, bool speedGate, u
     if (!ScraperFresh(guidance.GetQualityTimestamp(), nowMs) || !guidance.IsRtkQuality()) {
         return ScraperHold::NoRtk;
     }
-    if (speedGate && (!ScraperFresh(guidance.GetVtgTimestamp(), nowMs) || !guidance.MinSpeed())) {
+    if (speedGate && !ScraperSpeedGateMet(guidance, nowMs)) {
         return ScraperHold::Speed;
     }
     return ScraperHold::None;

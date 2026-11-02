@@ -18,7 +18,7 @@
 // The Kilverbakbesturing on the Ploegbesturing Isobus layout
 // (NeptuneGPS_Triton#286, #288). The ISOBUS layer is the shared one in
 // MeijWorks Libs/IsobusImplement; what is the kilverbak's own is its NAME,
-// its implement and, from #291 on, its VT working set.
+// its implement and its VT working set (#291).
 #include <Arduino.h>
 #include <Wire.h>
 #include <EEPROM.h>
@@ -46,7 +46,9 @@
 #pragma pop_macro("min")
 #include "IsobusDebugMenu.hpp"
 #include "IsobusGuidanceChannel.hpp"
+#include "IsobusVtInterface.hpp"
 #include "isobus/ScraperName.hpp"
+#include "isobus/ScraperVtWorkingSet.hpp"
 #else
 // Serial builds: what Kilverbakbesturing does -- the receiver on the UART
 // (baud rate autodetect at boot) plus the guidance messages on a plain,
@@ -95,6 +97,8 @@ triton::GuidanceSource*        gCanGuidance;
 triton::SerialGuidanceChannel* gUartChannel;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
+triton::ScraperVtWorkingSet*   gVtWorkingSet;
+triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusDebugMenu*       gDebugMenu;
 // For the dump's receive-queue line (#248). The hardware interface keeps the
 // plugin alive.
@@ -186,9 +190,15 @@ void setup() {
                                                          triton::BuildScraperName(), kIsobusCanChannel);
     gGuidanceChannel->Begin();
 
-    // The shared status menu, on the data the control reads. No VT and no
-    // machine sections yet: the VT working set arrives with #291.
-    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance);
+    // The kilverbak's screen and keys on the VT (#291); the shared VT
+    // interface owns the connection and calls into it.
+    gVtWorkingSet = new triton::ScraperVtWorkingSet(gSerialDebug, gImplement, gGuidance, gInterface, gCalibration);
+    gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gVtWorkingSet, gGuidanceChannel->GetControlFunction());
+    gVtInterface->Begin();
+
+    // The shared status menu, on the data the control reads, with the VT's
+    // section. No machine sections: the kilverbak has no TC or lightbar.
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gVtInterface);
     gDebugMenu->Begin();
     gDebugMenu->SetCanReceiveQueueStatsSource(GReadCanReceiveQueueStats);
 #else
@@ -244,6 +254,9 @@ void loop() {
     triton::SelectScraperGuidance(*gGuidance, *gUartGuidance, *gCanGuidance, millis());
 
 #ifdef ISOBUS
+    // The VT: the connection, the working screen's values, its keys and the
+    // reference page (#291).
+    gVtInterface->Update();
     gDebugMenu->Update();
 #endif
 
@@ -252,11 +265,28 @@ void loop() {
     // loop(), and everything above keeps running. See CalibrationScraper.hpp.
     if (gCalibration->IsActive()) {
         gCalibration->Step();
+#ifdef ISOBUS
+        // The wizard may have changed the preferred VT (#255).
+        if (!gCalibration->IsActive()) gVtInterface->LoadPreferredVt();
+#endif
         return;
     }
 
+#ifdef ISOBUS
+    // The VT's reference page is open (#291): the valves stop and the cab
+    // buttons do nothing until OPSLAAN or ANNUL., as during the cab wizard.
+    if (gVtWorkingSet->IsCapturingReference()) {
+        gImplement->Stop();
+        return;
+    }
+
+    // Update interface -- the VT's + and - (held levels) join the cab
+    // buttons, see ScraperVtWorkingSet.hpp.
+    gInterface->Update(gVtWorkingSet->IsPlusHeld(), gVtWorkingSet->IsMinusHeld());
+#else
     // Update interface
     gInterface->Update();
+#endif
 
     // Both buttons held -> open the calibration wizard. See
     // CalibrationScraper.hpp for why this trigger lives here instead of
