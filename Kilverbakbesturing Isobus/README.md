@@ -6,8 +6,8 @@ epic NeptuneGPS_Triton#286. `Kilverbakbesturing` next to it stays as it is.
 The ISOBUS layer is the shared one in `../MeijWorks Libs/IsobusImplement` (#287).
 This project adds only what is the kilverbak's own: its NAME
 (`lib/KilverbakbesturingCore/src/isobus/ScraperName.hpp`: device class 15 Earth
-Work, function 132 Earthworks Machine Control), its implement, its settings and,
-later, its VT working set.
+Work, function 132 Earthworks Machine Control), its implement, its settings and
+its VT working set (#291).
 
 ## Builds
 
@@ -76,6 +76,33 @@ Auto needs (`ScraperGates.hpp`), in this order, else Hold with the reason on the
 Hold leaves the offset alone, so Auto resumes on the plane plus the operator's offset.
 Manual rebases it to the bucket's height, as before (owner, #290).
 
+## The VT (#291)
+
+`isobus/ScraperVtWorkingSet` is the kilverbak's `VtWorkingSet`; the shared
+`IsobusVtInterface` owns the connection (failover, preferred VT, reconnects). The
+pool is `isobus/VTObjectPool.cpp`, version label `KB01` (bump it on every pool
+change; `KB`, so no terminal mixes it up with the plough's `MW` pools).
+
+The working screen: the side view of the tractor and kilverbak
+(`tools/generate_vt_images.py`, three versions: the blade on, above or below the
+plane, by the sign of the deviation, which is what Auto acts on), a vertical
+deviation bar next to it (+-10 cm around a target line), the GPS and speed dots
+(the gates of `ScraperGates.hpp`, the speed dot green while the speed gate is off),
+the speed, and the mode as the LCD shows it: `AUTO`, `HAND`, `H G!`, `H R!`,
+`H S!`. Below: the deviation and the offset in cm, the reference and actual height
+in m, the distance along A -> B in m, and the slope in %.
+
+Soft keys: `+` and `-` are the cab buttons (held levels into `ButtonPair`, so a
+held key repeats as a held button: the offset in Auto and Hold, the valves in
+Manual). `REF A` and `REF B` open a confirmation page with the height the point
+would take and the GPS dot; `OPSLAAN` takes the point only on a fresh RTK fixed
+fix (else `GEEN RTK FIX`), `ANNUL.` goes back. While that page is open the valves
+stop, as during the cab wizard; with the cab wizard open the REF keys do nothing.
+There is no offset-to-0 key (the cab's both-buttons reset was dropped in #289);
+taking a reference sets the offset to 0, as the wizard does.
+
 ## What follows
 
-- #291 / #292: the VT working screen and calibration page.
+- #292: the VT calibration page (the settings table, as the plough's #240), on
+  soft key row 3, which the main screen keeps free for it.
+- AUX-N assignment of `+` and `-`.

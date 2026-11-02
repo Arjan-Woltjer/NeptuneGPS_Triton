@@ -56,11 +56,18 @@ display name under the class it exercises, e.g.
   *are* tested, live in the same file) but its output isn't asserted on by
   any test -- `test/native/support/InterfaceI2CLCD.hpp`'s `WriteBuffer`/
   `WriteScreen` are no-ops.
-- The ISOBUS build (`teensy40_isobus`, `teensy41_isobus`) has no native
-  coverage in this project: this native env does not build AgIsoStack, and
+- Since #291 the suite is built with `-D ISOBUS` on the real AgIsoStack,
+  compiled for the host as in Ploegbesturing Isobus: `test_VTObjectPool.cpp`
+  walks the pool object by object, and `test_ScraperVtWorkingSet.cpp` drives
+  the working set's keys (one test through `IsobusVtInterface`'s own key
+  listener), its screen values and the reference page. What the VT itself
+  draws is not tested here: no VT server runs off-target, so the sends to a
+  client go nowhere, and `UpdateValues()` returns before it sends. The values
+  it sends come from `ComputeScreenValues()`, which is tested. The serial
+  builds' settings table (no PreferredVt line) is no longer built natively.
   `ScraperName.hpp` and the ISOBUS half of `src/main.cpp` are only compiled for
-  the board. The shared ISOBUS layer they use (MeijWorks Libs/IsobusImplement)
-  is tested in Ploegbesturing Isobus' native build.
+  the board; the shared ISOBUS layer (MeijWorks Libs/IsobusImplement) is tested
+  in Ploegbesturing Isobus' native build.
 - None of the four board envs has run on hardware yet (NeptuneGPS_Triton#288,
   #293): only `pio run` cross-compiles.
 - The Arduino Micro, the Micro/Leonardo "voorserie" board and the Teensy

@@ -175,7 +175,7 @@ void ImplementScraper::Update(byte mode, int buttons) {
 // Method for setting setpoint
 // ---------------------------
 void ImplementScraper::setSetpoint() {
-    int delta = height - heightRef + offset;
+    int delta = GetDeviation();
 
 #ifdef NOSENS
     setpoint = -delta;

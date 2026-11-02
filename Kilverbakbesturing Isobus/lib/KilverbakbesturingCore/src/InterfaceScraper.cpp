@@ -71,11 +71,11 @@ InterfaceScraper::InterfaceScraper(InterfaceI2CLCD* lcd,
 // ------------------------
 // Method for updating mode
 // ------------------------
-void InterfaceScraper::Update() {
+void InterfaceScraper::Update(bool vtPlus, bool vtMinus) {
     // ===============
     // Process buttons
     // ===============
-    CheckButtons(255, 0);
+    CheckButtons(255, 0, vtPlus, vtMinus);
 
     // ===============
     // Process tractor
@@ -254,10 +254,11 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
 // ---------------------------
 // Method for checking buttons
 // ---------------------------
-int InterfaceScraper::CheckButtons(byte delay1, byte delay2) {
-    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held.
+int InterfaceScraper::CheckButtons(byte delay1, byte delay2, bool vtPlus, bool vtMinus) {
+    // MeijWorks Libs/ButtonPair: debounce, hold-to-repeat and both held. The
+    // VT's + takes the right button's slot (+1), its - the left one's (-1).
     buttons = buttonPair.Check(digitalRead(LEFT_BUTTON_5), digitalRead(RIGHT_BUTTON_5), delay1, delay2, millis(),
-                              digitalRead(JOY_LEFT_5), digitalRead(JOY_RIGHT_5));
+                              digitalRead(JOY_LEFT_5), digitalRead(JOY_RIGHT_5), false, vtPlus, vtMinus);
     return buttons;
 }
 
