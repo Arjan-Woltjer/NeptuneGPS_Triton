@@ -2,7 +2,8 @@
 
 Written 2026-11-02. A bench session, no tractor: the first time Kilverbakbesturing Isobus runs on a board. Branch
 **`test/kilverbak-session1`** carries #296 (the shared ISOBUS layer), #297 (the project, #288), #298 (settings and
-wizard, #289), #299 (height sources and gates, #290) and #300 (the VT working screen, #291). The VT steps (section
+wizard, #289), #299 (height sources and gates, #290), #300 (the VT working screen, #291) and #301 (the VT calibration
+page, #292). The VT steps (section
 3b) need a VT on the bench bus; everything else runs without one.
 
 ## 0. What this session decides
@@ -15,6 +16,8 @@ wizard, #289), #299 (height sources and gates, #290) and #300 (the VT working sc
    across a Hold.
 4. **#291:** the VT screen follows the control (picture, bar, rows, mode, dots), `+` / `-` act as the cab buttons,
    and REF A / REF B take a point only after OPSLAAN and only on RTK.
+5. **#292:** the VT calibration page edits the same settings as the cab wizard, the slope down to -99, and never
+   while the wizard is open.
 
 ## 1. Kit and build
 
@@ -74,7 +77,7 @@ this section; the rest of the brief does not depend on it.
 
 | Step | Do | Expect |
 |---|---|---|
-| V1 | Boot with the VT on the bus. | The pool uploads; the dump's VT section says connected, label **KB01**. The VT's app list shows the bucket icon. |
+| V1 | Boot with the VT on the bus. | The pool uploads; the dump's VT section says connected, label **KB02**. The VT's app list shows the bucket icon. |
 | V2 | Simulator on, RTK, 6 km/h, references set (W2), MODE off manual. | Main screen: the side view with the blade on the dashed line, the bar's white line on its yellow target, GPS and speed dots green, `6.0` km/h, `AUTO`. Rows: `AFWIJK.` 0 cm, `OFFSET` 0 cm, `REF` and `ACTUEEL` the simulator's height in m, `AFSTAND` growing, `AFSCHOT` the slope in %. |
 | V3 | Simulator `+` three times, then `-` six times. | +3 cm: the picture switches to *above* (arrow down), the bar line above the target, `AFWIJK.` 3; output 20 pulses. -3 cm: *below* (arrow up), line under the target; output 21. |
 | V4 | Back on the reference height. Hold the VT's `+` for about 2 s. | `OFFSET` climbs 1 cm per half second, `AFWIJK.` with it, output 20 pulses, as with the cab `+` in O1. The serial log shows `VT: + pressed` / `released`. |
@@ -84,7 +87,14 @@ this section; the rest of the brief does not depend on it.
 | V8 | `OPSLAAN` on RTK. | Back to the main screen, `OFFSET` 0, the serial log says `VT: reference A saved`. The boot print after a reboot shows the new A. |
 | V9 | `REF B`, `ANNUL.`. | Back to the main screen, B unchanged. |
 | V10 | Open the cab wizard (both buttons), then press `REF A` on the VT. | Nothing opens; the serial log says `VT: REF key ignored, the cab wizard is open`. Close the wizard with `-` ... `Calibratie afronden` `-`. |
-| V11 | Unplug the VT for 10 s and back, or close and restart AgISOVirtualTerminal. | The screen comes back with the current values; no upload (KB01 cached) on a VT that keeps pools. |
+| V11 | Unplug the VT for 10 s and back, or close and restart AgISOVirtualTerminal. | The screen comes back with the current values; no upload (KB02 cached) on a VT that keeps pools. |
+| C1 | `CALIBR`. | The calibration page: `AFSCHOT`, `MARGE`, `WISSEL`, `SNELHEID`, `VOORK.VT`, `RTK` with the values the boot print showed, then `REF A`, `REF B` (heights in m) and `AFST. AB` (the A -> B distance in m). The outputs stop. |
+| C2 | `AFSCHOT`: enter -12. `MARGE`: try 11, then 4. | -12 is taken and shown as -12. The VT refuses 11 (the input's max is 10); 4 is taken. |
+| C3 | `ANNUL.`, then `CALIBR` again. | Back to the main screen; the page shows the old values (the draft was dropped). |
+| C4 | Enter -12 again, `WISSEL` JA, then `OPSLAAN`. | Main screen, `AFSCHOT` -0.12 %. Reboot: the boot print shows slope -12 and the swap on; **references A and B unchanged**. Put the swap back with the page. |
+| C5 | `CALIBR`, then `REF B`, `OPSLAAN` on RTK. | The capture page, then **back to the calibration page** (not the main screen), with `REF B` showing the new height. `ANNUL.` leaves the settings as they were; B stays taken. |
+| C6 | `CALIBR` open, hold both cab buttons. | The cab wizard does not open. `ANNUL.`, then open the cab wizard and press `CALIBR`: refused (serial `VT: calibration refused, the cab wizard is open`). |
+| C7 | `CALIBR`, `VOORK.VT` 1, `OPSLAAN`. | The dump's VT section shows preferred VT 1 at once, without a reboot. Set it back to what it was. |
 
 ## 4. The serial build (`teensy40`)
 
@@ -109,12 +119,15 @@ WIZARD
 - [ ] W5 swap reverses the outputs Y/N   - [ ] W6 gate off: `A` standing still Y/N   - [ ] W7 nothing saved Y/N
 
 VT (skip without a VT)
-- [ ] V1 pool up, label KB01 Y/N; icon Y/N   - [ ] V2 screen as described Y/N; remarks: ____________
+- [ ] V1 pool up, label KB02 Y/N; icon Y/N   - [ ] V2 screen as described Y/N; remarks: ____________
 - [ ] V3 above: picture/bar/output 20 Y/N; below: picture/bar/output 21 Y/N
 - [ ] V4 VT `+` steps the offset 1 cm / 0.5 s Y/N   - [ ] V5 `HAND`, VT keys drive as the cab buttons Y/N
 - [ ] V6 `H G!` / `H R!` / `H S!` with the right dot Y/N
 - [ ] V7 page opens, outputs stop Y/N; `GEEN RTK FIX` on float Y/N   - [ ] V8 A saved, offset 0, survives reboot Y/N
 - [ ] V9 ANNUL. keeps B Y/N   - [ ] V10 REF ignored with the cab wizard open Y/N   - [ ] V11 back after a VT restart Y/N
+- [ ] C1 page and values Y/N; outputs stop Y/N   - [ ] C2 -12 taken Y/N; 11 refused Y/N
+- [ ] C3 ANNUL. drops the draft Y/N   - [ ] C4 saved Y/N; after a reboot: settings Y/N, **references Y/N**
+- [ ] C5 back on the page after REF B Y/N   - [ ] C6 one session at a time both ways Y/N   - [ ] C7 preferred VT at once Y/N
 
 SERIAL BUILD
 - [ ] S1 detect finds 38400 Y/N; `A` Y/N   - [ ] S2 `G!` on CAN alone Y/N
@@ -127,4 +140,4 @@ END
 - **Notes:** the serial log and the timeline on **`test/kilverbak-session1`** under
   `Kilverbakbesturing Isobus/Documentation/logs/`, named `<date>_kilverbak-session1_bench_*`.
 - **Where results go:** B1/B2 and S1 to #288; W1-W7 to #289; H1-H5, W2b, O1-O3 and S2 to #290; V1-V11 to #291;
-  the stack's PRs #296-#300 get a comment each.
+  C1-C7 to #292; the stack's PRs #296-#301 get a comment each.
