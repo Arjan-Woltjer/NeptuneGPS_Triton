@@ -1,0 +1,100 @@
+# Kilverbak session 1 test brief -- bench: Kilverbakbesturing Isobus on a Teensy 4.0 board
+
+Written 2026-11-02. A bench session, no tractor: the first time Kilverbakbesturing Isobus runs on a board. Branch
+**`test/kilverbak-session1`** carries #296 (the shared ISOBUS layer), #297 (the project, #288), #298 (settings and
+wizard, #289) and #299 (height sources and gates, #290). There is no VT screen yet (#291): the VT is not part of this
+session.
+
+## 0. What this session decides
+
+1. **#288:** the ISOBUS build claims an address with the kilverbak's NAME, and the serial build runs as
+   Kilverbakbesturing does.
+2. **#289:** the wizard on the LCD with the cab buttons: both branches, saving, and **the references surviving a save
+   and a reboot** (Kilverbakbesturing's save wiped them).
+3. **#290:** the UART winning over CAN, no height from PGN 65256, and the gates G! / R! / S! with the offset kept
+   across a Hold.
+
+## 1. Kit and build
+
+- **Board:** the plough's Teensy 4.0 bench board (Teensy 4.0 12278360), with its 20x4 LCD, the two cab buttons and
+  the mode switch. **Valve outputs:** an LED or a test lamp on outputs 20 (wide) and 21 (narrow); the board LED is 33.
+- **CAN:** Proteus on the bench bus (StarFire emulation: PGN 65267 position, 65254, 65256 speed / course / altitude).
+  Proteus sends **no PGN 129029** yet, so on CAN alone the kilverbak has no height: that is step H2.
+- **UART receiver stand-in:** a USB-serial adapter (3.3 V) into Serial1 (pins 0 RX / 1 TX) and
+  `py "Kilverbakbesturing Isobus/tools/nmea_rtk_sim.py" COMx`: GPGGA + GPVTG, RTK fixed, 6 km/h. Keys: `q` quality
+  4 / 5 / 1 / 0, `s` speed on / off, `+` / `-` height +-1 cm, `p` pause, `x` quit.
+  The ISOBUS build opens the UART at the **stored** rate, without the autodetect (#290): 4800 on an erased byte 10,
+  the simulator's default. The serial build (step S1) detects the rate and stores it.
+- **Flash:** only the board under test on USB (the Teensy Loader flashes any Teensy it sees). Builds:
+  `Firmware builds/kilverbak-session1/teensy40_isobus_<commit>.hex` and `teensy40_<commit>.hex`. Write the commit
+  down.
+- **EEPROM:** this board holds the plough's settings (bytes 30-70). The kilverbak reads 130-169 (erased here:
+  defaults) and shares 10 (baud), 11 (RTK quality) and 14 (preferred VT). Its save writes only 130-147, 137, 139, 10, 11
+  and 14, so the plough's bytes survive: flashing the plough firmware back afterwards gives the plough its settings.
+- **Serial:** the USB port at 115200 shows the banner, the boot print and the debug menu (any key, then `1` for the full
+  dump, `2` for the 1 Hz line).
+
+## 2. The ISOBUS build (`teensy40_isobus`)
+
+| Step | Do | Expect |
+|---|---|---|
+| B1 | Flash, boot. | Splash `Triton KB-ISO  v0.01`, banner `Triton KB-ISO version 0.01`. Boot print: slope 0, error margin 2, RTK quality 4, baud 4800. |
+| B2 | Debug menu `1`. | `Address claim: CLAIMED`. On a bus sniffer or the CANedge: our NAME with **device class 15, function 132** (industry group 2, manufacturer 1407). |
+| H1 | Simulator on, RTK, 6 km/h. MODE switch off manual. | Mode `A`; `Actueel` follows `--altitude` (10.00 m). No references yet, so `Ref` 0: the bucket is far above the plane and output **20** pulses. |
+| H2 | `p` (pause the simulator): the UART goes quiet. | Within 2 s: Hold `H`, `G!`. The control now reads the CAN data (Proteus), which has no height: the dump's `Lat/Lon/Alt` line shows Proteus' position with altitude **0.0**, not Proteus' 65256 altitude. |
+| H3 | `p` again. | Back to `A` within one GGA. |
+| H4 | `q` once (quality 5, float). | Hold, `R!`. `q` three more times back to 4: `A`. |
+| H5 | `s` (standing still). | Hold, `S!` (the speed gate). `s` again: `A`. |
+
+## 3. The wizard (#289)
+
+| Step | Do | Expect |
+|---|---|---|
+| W1 | Both buttons held (~1 s). | `Keuzemenu` / `+ : referentie inst.` / `- : calibreren`. The outputs stop. The debug menu still answers (the loop keeps running). |
+| W2 | `+`, then `+` on `Stel referentie A in`; simulator moving north. Wait 20 s, both buttons, `+`, `+` on reference B. | `Referentie opgesl.` twice; the wizard closes after B. Row 2 `Afstand` grows as the simulator moves on. Now height = reference: the outputs rest. |
+| W2b | Simulator `+` three times (3 cm up), then `-` six times (3 cm down). | Above the plane output **20** pulses, below it output **21**. Back to the reference height (`+` three times): rest. |
+| O1 | In `A` at the reference height: hold the cab `+` for about 2 s. | The offset goes up 1 cm per half second (the LCD only shows offsets over 99 cm, so watch the outputs): output 20 starts to pulse, as if the bucket were above the plane. |
+| O2 | `p` for 5 s (Hold, `G!`), then `p`. | Back in `A`, output 20 still pulses: **the offset was kept through the Hold** (Kilverbakbesturing rebased it, and the outputs would rest). |
+| O3 | MODE switch to manual for a second, then back. | Manual rebases the offset to the bucket's height: in `A` the outputs rest. |
+| W3 | Wizard again, `-`: slope `+` x5 (`  005`), margin, `Wissel op en neer` `+` (ja), `Snelheid vereist` `-` (nee), RTK, `Calibratie afronden` `+`. | `Data is opgeslagen`. Slope stops at 99 and margin at 10 if you push further. |
+| W4 | Power off and on. | Boot print: slope 5, the swap and the gate as saved; **the references A and B are still there** (row 0 `Ref` follows the slope along A -> B). |
+| W5 | Manual mode, cab `+` / `-`. | With the swap on, the outputs are the other way round from H1. |
+| W6 | Standing still (`s`), mode `A`. | With the speed gate off: stays `A`, no `S!`. |
+| W7 | Wizard, `-`, decline everything, `Calibratie afronden` `-`. | `Data NIET opgeslagen`; nothing changes. |
+
+Afterwards: put the swap back to nee and the speed gate back to ja.
+
+## 4. The serial build (`teensy40`)
+
+| Step | Do | Expect |
+|---|---|---|
+| S1 | Flash `teensy40`, simulator at 38400 (`--baud 38400`). | The LCD's GPS autodetect finds 38400 and stores it (boot print). Mode `A` with RTK. |
+| S2 | `p`: the UART quiet; Proteus on CAN. | `G!`: the plain CAN bus gives no height (65256's altitude is not taken). |
+
+## 5. Checklist (copy into the timeline, tick live)
+
+ISOBUS BUILD
+- [ ] B1 build `test/kilverbak-session1` @ ________; splash `v0.01` Y/N; boot print as expected Y/N
+- [ ] B2 claimed Y/N at 0x__; NAME class 15 / function 132 Y/N
+- [ ] H1 `A` Y/N; output 20 pulses Y/N   - [ ] H2 `G!` within 2 s Y/N; no 65256 height Y/N
+- [ ] H3 back to `A` Y/N   - [ ] H4 `R!` Y/N   - [ ] H5 `S!` Y/N
+
+WIZARD
+- [ ] W1 opens, debug menu alive Y/N   - [ ] W2 A and B saved Y/N; distance grows Y/N
+- [ ] W2b above: output __, below: output __ (20 / 21 expected)
+- [ ] O1 cab `+` makes output 20 pulse Y/N   - [ ] O2 still pulsing after the Hold Y/N   - [ ] O3 rests after manual Y/N
+- [ ] W3 saved Y/N; bounds 99 / 10 Y/N   - [ ] W4 after a reboot: settings Y/N, **references Y/N**
+- [ ] W5 swap reverses the outputs Y/N   - [ ] W6 gate off: `A` standing still Y/N   - [ ] W7 nothing saved Y/N
+
+SERIAL BUILD
+- [ ] S1 detect finds 38400 Y/N; `A` Y/N   - [ ] S2 `G!` on CAN alone Y/N
+
+END
+- [ ] swap nee, gate ja   - [ ] plough firmware back on the board if it is needed elsewhere
+
+## 6. Afterwards
+
+- **Notes:** the serial log and the timeline on **`test/kilverbak-session1`** under
+  `Kilverbakbesturing Isobus/Documentation/logs/`, named `<date>_kilverbak-session1_bench_*`.
+- **Where results go:** B1/B2 and S1 to #288; W1-W7 to #289; H1-H5, W2b, O1-O3 and S2 to #290; the stack's PRs
+  #296-#299 get a comment each.
