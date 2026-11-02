@@ -2,7 +2,7 @@
   test_VTObjectPool - Structural checks on the kilverbak's VT3 object pool:
   it builds, fits its buffer, walks object by object to its exact end, every
   reference names an object of the right type, and the screen is laid out as
-  designed (NeptuneGPS_Triton#291).
+  designed (NeptuneGPS_Triton#291), the calibration page included (#292).
   Copyright (C) 2011-2026 J.A. Woltjer.
   All rights reserved.
 
@@ -30,6 +30,7 @@
 #include <AUnit.h>
 #include "isobus/VTImages.hpp"
 #include "isobus/VTObjectPool.hpp"
+#include "calibration/ScraperSettings.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -57,6 +58,8 @@ uint32_t objectLength(uint32_t at) {
         case 1:  return 8 + b[6] * 6 + b[7] * 2;               // DataMask
         case 4:  return 6 + b[4] * 2 + b[5] * 2;               // SoftKeyMask
         case 5:  return 7 + b[5] * 6 + b[6] * 2;               // Key
+        case 9:  return 38 + b[37] * 2;                        // InputNumber
+        case 10: return 13 + b[10] * 2 + b[12] * 2;            // InputList
         case 11: {                                             // OutputString
             const uint32_t n = uint32_t(b[14] | (b[15] << 8));
             return 17 + n + b[16 + n] * 2;
@@ -135,6 +138,13 @@ std::vector<uint16_t> declaredIds() {
     for (uint16_t id = Scraper_WorkingSet; id <= Var_DeviationBar; id++) ids.push_back(id);
     for (uint16_t id = Ptr_KeyBlank0; id < Ptr_KeyBlank0 + kSoftKeySlots; id++) ids.push_back(id);
     for (uint16_t id = Scraper_RefMask; id <= Str_RefNoRtk; id++) ids.push_back(id);
+    for (uint16_t id = Scraper_CalDataMask; id <= Label_Calibrate; id++) ids.push_back(id);
+    for (uint16_t i = 0; i < ScraperSettings::kCount; i++) {
+        ids.push_back(Label_Cal0 + i);
+        ids.push_back(Input_Cal0 + i);
+    }
+    for (uint16_t id = Str_CalNo; id <= Str_CalSlopeUnit; id++) ids.push_back(id);
+    for (uint16_t id = Label_CalRefA; id <= Var_CalRefDistance; id++) ids.push_back(id);
     return ids;
 }
 
@@ -203,10 +213,15 @@ test(ScraperVTObjectPool, everyReference_namesAnObjectOfTheRightType) {
             case 5:  // Key: its label
                 for (uint8_t c = 0; c < b[5]; c++) assertTrue(isType(objects, poolU16(at + 7 + c * 6), 11));
                 break;
+            case 9:   // InputNumber
             case 11:  // OutputString
             case 12:  // OutputNumber: a font, and no variable or a NumberVariable
                 assertTrue(isType(objects, poolU16(at + 8), 23));
                 assertTrue(poolU16(at + 11) == 0xFFFF || isType(objects, poolU16(at + 11), 21));
+                break;
+            case 10:  // InputList: no variable, OutputString entries
+                assertEqual((int)poolU16(at + 7), 0xFFFF);
+                for (uint8_t c = 0; c < b[10]; c++) assertTrue(isType(objects, poolU16(at + 13 + c * 2), 11));
                 break;
             case 18:  // Linear bar graph: a NumberVariable
                 assertTrue(isType(objects, poolU16(at + 15), 21));
@@ -339,8 +354,9 @@ test(ScraperVTObjectPool, rows_labelValueAndUnit_withTheBiasTakenOff) {
 }
 
 // Positions on a 2 x 6 VT, as the plough's (#282): + and - in column 2 rows
-// 1 and 2, REF A and REF B in rows 4 and 5 (row 3 is kept for #292's
-// calibration key); OPSLAAN row 4 and ANNUL. row 6 on the reference page.
+// 1 and 2, CALIBR in row 3 (#292), REF A and REF B in rows 4 and 5; OPSLAAN
+// row 4 and ANNUL. row 6 on the reference page; on the calibration page REF A
+// and REF B (the same key objects) in rows 1 and 2, OPSLAAN 4, ANNUL. 6.
 test(ScraperVTObjectPool, softKeys_atTheirPositions) {
     BuildObjectPool();
     const auto objects = walkPool();
@@ -354,17 +370,21 @@ test(ScraperVTObjectPool, softKeys_atTheirPositions) {
         }
         return true;
     };
-    assertTrue(keysAre(Scraper_SoftKeyMask, { { 0, Key_Plus }, { 1, Key_Minus }, { 3, Key_RefA }, { 4, Key_RefB } }, 5));
+    assertTrue(keysAre(Scraper_SoftKeyMask,
+                       { { 0, Key_Plus }, { 1, Key_Minus }, { 2, Key_Calibrate }, { 3, Key_RefA }, { 4, Key_RefB } }, 5));
     assertTrue(keysAre(Scraper_RefSoftKeyMask, { { 3, Key_RefSave }, { 5, Key_RefCancel } }, 6));
+    assertTrue(keysAre(Scraper_CalSoftKeyMask,
+                       { { 0, Key_RefA }, { 1, Key_RefB }, { 3, Key_CalSave }, { 5, Key_CalCancel } }, 6));
     assertEqual((int)VT3PoolData[objects.at(Label_Plus).at + 16], (int)'+');
     assertEqual((int)VT3PoolData[objects.at(Label_Minus).at + 16], (int)'-');
-    const uint16_t keys[6]   = { Key_Plus, Key_Minus, Key_RefA, Key_RefB, Key_RefSave, Key_RefCancel };
-    const uint8_t  codes[6]  = { KeyCode_Plus, KeyCode_Minus, KeyCode_RefA, KeyCode_RefB, KeyCode_RefSave,
-                                 KeyCode_RefCancel };
-    for (int i = 0; i < 6; i++) {
+    const uint16_t keys[9]   = { Key_Plus, Key_Minus, Key_RefA, Key_RefB, Key_RefSave, Key_RefCancel,
+                                 Key_Calibrate, Key_CalSave, Key_CalCancel };
+    const uint8_t  codes[9]  = { KeyCode_Plus, KeyCode_Minus, KeyCode_RefA, KeyCode_RefB, KeyCode_RefSave,
+                                 KeyCode_RefCancel, KeyCode_Calibrate, KeyCode_CalSave, KeyCode_CalCancel };
+    for (int i = 0; i < 9; i++) {
         assertEqual((int)VT3PoolData[objects.at(keys[i]).at + 4], (int)codes[i]);
         assertNotEqual((int)codes[i], 0);
-        for (int j = i + 1; j < 6; j++) assertNotEqual((int)codes[i], (int)codes[j]);
+        for (int j = i + 1; j < 9; j++) assertNotEqual((int)codes[i], (int)codes[j]);
     }
 }
 
@@ -402,6 +422,71 @@ test(ScraperVTObjectPool, referencePage_showsTheHeightAndTheGpsDot) {
     }
     assertEqual((int)poolU16(objects.at(Ptr_RefTitle).at + 3), (int)Str_RefTitleA);
     assertEqual((int)poolU16(objects.at(Ptr_RefStatus).at + 3), (int)Str_RefBlank);
+}
+
+// The calibration page (#292): one label and one input per settings line,
+// in table order, on the page's mask; a number takes its bounds from the
+// table, lifted by CalInputBias() with the offset taking it off again (the
+// slope's -99..99); a two-value line is a two-entry list.
+test(ScraperVTObjectPool, calibrationPage_aRowPerSetting_withTheTablesBounds) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    assertTrue(isType(objects, Scraper_CalDataMask, 1));
+    assertEqual((int)poolU16(objects.at(Scraper_CalDataMask).at + 4), (int)Scraper_CalSoftKeyMask);
+    int32_t lastY = -1;
+    for (uint8_t i = 0; i < ScraperSettings::kCount; i++) {
+        const ScraperSettingLine& line = ScraperSettings::Line(ScraperSetting(i));
+        assertTrue(isType(objects, Label_Cal0 + i, 11));
+        const Placement label = placementOn(objects, Scraper_CalDataMask, Label_Cal0 + i);
+        const Placement input = placementOn(objects, Scraper_CalDataMask, Input_Cal0 + i);
+        assertTrue(label.y > lastY);
+        lastY = label.y;
+        assertEqual(input.y, label.y);
+        const uint32_t at = objects.at(Input_Cal0 + i).at;
+        if (line.kind == SettingKind::Number) {
+            assertTrue(isType(objects, Input_Cal0 + i, 9));
+            const int32_t bias = CalInputBias(line.lowest);
+            assertEqual(poolI32(at + 17), (int32_t)line.lowest + bias);
+            assertEqual(poolI32(at + 21), (int32_t)line.highest + bias);
+            assertEqual(poolI32(at + 25), -bias);
+            assertTrue(poolI32(at + 17) >= 0);           // a raw value is unsigned
+            assertEqual((int)VT3PoolData[at + 36], 1);   // enabled
+        }
+        else {
+            assertTrue(isType(objects, Input_Cal0 + i, 10));
+            assertEqual((int)VT3PoolData[at + 10], 2);
+            const uint16_t first = line.kind == SettingKind::YesNo ? Str_CalNo : Str_CalDgps;
+            const uint16_t second = line.kind == SettingKind::YesNo ? Str_CalYes : Str_CalRtk;
+            assertEqual((int)poolU16(at + 13), (int)first);
+            assertEqual((int)poolU16(at + 15), (int)second);
+        }
+    }
+    // The slope really is lifted: its table range goes below 0.
+    assertTrue(CalInputBias(ScraperSettings::Line(ScraperSetting::Slope).lowest) > 0);
+    // The stored points below the settings, heights in m with two decimals.
+    for (uint16_t value : { (uint16_t)Out_CalRefA, (uint16_t)Out_CalRefB, (uint16_t)Out_CalRefDistance }) {
+        const Placement place = placementOn(objects, Scraper_CalDataMask, value);
+        assertTrue(place.y > lastY);
+        lastY = place.y;
+        assertEqual(poolI32(objects.at(value).at + 17), -kLargeBias);
+    }
+    assertEqual(poolF32(objects.at(Out_CalRefA).at + 21), 0.01f);
+    assertEqual((int)VT3PoolData[objects.at(Out_CalRefA).at + 25], 2);
+    assertTrue(lastY + 22 <= 200);
+}
+
+// The VTs draw an open list on their own light popup: the entries bring
+// their own black background (the plough's #282).
+test(ScraperVTObjectPool, calibrationPage_listEntriesAreOpaque) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    for (uint16_t id : { (uint16_t)Str_CalNo, (uint16_t)Str_CalYes, (uint16_t)Str_CalDgps, (uint16_t)Str_CalRtk }) {
+        const uint32_t at = objects.at(id).at;
+        assertEqual((int)VT3PoolData[at + 7], 0);            // background black
+        assertEqual((int)(VT3PoolData[at + 10] & 0x01), 0);  // opaque
+    }
 }
 
 #endif  // ISOBUS

@@ -273,9 +273,10 @@ void loop() {
     }
 
 #ifdef ISOBUS
-    // The VT's reference page is open (#291): the valves stop and the cab
-    // buttons do nothing until OPSLAAN or ANNUL., as during the cab wizard.
-    if (gVtWorkingSet->IsCapturingReference()) {
+    // The VT's reference page (#291) or calibration page (#292) is open: the
+    // valves stop and the cab buttons do nothing until OPSLAAN or ANNUL., as
+    // during the cab wizard. The wizard cannot open meanwhile.
+    if (gVtWorkingSet->HoldsTheControl()) {
         gImplement->Stop();
         return;
     }

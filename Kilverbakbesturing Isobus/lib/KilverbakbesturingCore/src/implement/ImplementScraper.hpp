@@ -187,6 +187,21 @@ public:
         return height - heightRef + offset;
     }
 
+    // The stored reference points, for the VT calibration page (#292): each
+    // one's height in cm, and how far apart they are in m (0 until both are
+    // set, as calculateDistances() treats it).
+    inline short int GetRefAHeight() const {
+        return heightRa;
+    }
+
+    inline short int GetRefBHeight() const {
+        return heightRb;
+    }
+
+    inline float GetRefDistance() const {
+        return DistanceBetween(latRa, longRa, latRb, longRb);
+    }
+
     inline short int GetOffset() {
         return offset;
     }

@@ -26,9 +26,10 @@
 namespace triton
 {
 
-void ScraperRefCapture::Open(Point which) {
+void ScraperRefCapture::Open(Point which, uint16_t returnTo) {
     if (which == Point::None) return;
     point = which;
+    returnMask = returnTo;
     wantedMask = Scraper_RefMask;
     // A reopened page shows its title and status again.
     shownTitle = kNotSent;
@@ -69,7 +70,7 @@ void ScraperRefCapture::OnConnectionLost() {
 
 void ScraperRefCapture::close() {
     point = Point::None;
-    wantedMask = Scraper_DataMask;
+    wantedMask = returnMask;
 }
 
 void ScraperRefCapture::Update(ScraperVtOutput& out) {
