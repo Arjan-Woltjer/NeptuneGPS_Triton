@@ -100,6 +100,12 @@ private:
     // PID variables
     byte kp;
 
+    // Settings (NeptuneGPS_Triton#289): swap exchanges the two valve
+    // outputs; speedGate makes Auto wait for a fresh VTG and MINSPEED, as the
+    // plough does (#290 reads it).
+    bool swap      = false;
+    bool speedGate = true;
+
     // End-of-travel latch (MeijWorks Libs/EndShutoff)
     EndShutoff endShutoff;
 
@@ -129,9 +135,14 @@ private:
 
     bool readCalibrationData();
     void writeCalibrationData();
-    void wipeCalibrationData();
+    void readSettings();
 
 public:
+    // The two settings bytes of their own, in the scraper block's free odd
+    // addresses (#289).
+    static constexpr int kEepromSpeedGate = 137;
+    static constexpr int kEepromSwap      = 139;
+
     // ----------------------------------------------------------
     // public member functions implemented in ImplementScraper.cpp
     // ----------------------------------------------------------
@@ -153,8 +164,8 @@ public:
         return readCalibrationData();
     }
 
+    // Writes the implement's own bytes only (#289): no wipe.
     inline void CommitCalibration() {
-        wipeCalibrationData();
         writeCalibrationData();
     }
 
@@ -219,6 +230,14 @@ public:
         return maxCorrection;
     }
 
+    inline bool GetSwap() const {
+        return swap;
+    }
+
+    inline bool GetSpeedGate() const {
+        return speedGate;
+    }
+
     // -------
     // Setters
     // -------
@@ -256,6 +275,14 @@ public:
 
     inline void SetSlope(short int value) {
         slope = value;
+    }
+
+    inline void SetSwap(bool value) {
+        swap = value;
+    }
+
+    inline void SetSpeedGate(bool value) {
+        speedGate = value;
     }
 };
 

@@ -76,6 +76,10 @@ ImplementScraper::ImplementScraper(GuidanceSource* guidance) {
     // Connected classes
     this->guidance = guidance;
 
+    // The swap and the speed gate (#289) have bytes of their own, read on
+    // every board: an erased byte (255) means no swap and the gate on.
+    readSettings();
+
     // Get calibration data from EEPROM otherwise use defaults
     if (!readCalibrationData()) {
         // Defaults
@@ -140,8 +144,11 @@ ImplementScraper::ImplementScraper(GuidanceSource* guidance) {
 void ImplementScraper::Update(byte mode, int buttons) {
     // Update offset every half a second
     if (millis() - updateAge >= 500) {
-        if (mode < 2) {
-            // Use buttons to set offset while in automatic or hold mode
+        if (mode < 2 && buttons != 2) {
+            // Use buttons to set offset while in automatic or hold mode.
+            // Both held (2) opens the calibration wizard and leaves the
+            // offset alone (owner, NeptuneGPS_Triton#289); setting a
+            // reference point still zeroes it (setRef()).
             setOffset(buttons);
         }
         updateAge = millis();
@@ -189,6 +196,12 @@ void ImplementScraper::setSetpoint() {
 // Method for adjusting implement
 // ------------------------------
 void ImplementScraper::Adjust(byte mode, int direction) {
+    // The swap setting (NeptuneGPS_Triton#289) exchanges the two valve
+    // outputs: which way the bucket moves is checked on the machine, and
+    // hoses can be connected either way round.
+    const uint8_t outputWide   = swap ? OUTPUT_NARROW_5 : OUTPUT_WIDE_5;
+    const uint8_t outputNarrow = swap ? OUTPUT_WIDE_5 : OUTPUT_NARROW_5;
+
 #ifdef NOSENS
     byte pwm = 255;
 
@@ -215,16 +228,16 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     // Setpoint < actual position
     //---------------------------
     if (setpoint > 0 && inputtime < settime) {
-        analogWrite(OUTPUT_WIDE_5, 0);
-        analogWrite(OUTPUT_NARROW_5, pwm);
+        analogWrite(outputWide, 0);
+        analogWrite(outputNarrow, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
     }
     //---------------------------
     // Setpoint > actual position
     //---------------------------
     else if (setpoint < 0 && inputtime < settime) {
-        analogWrite(OUTPUT_WIDE_5, pwm);
-        analogWrite(OUTPUT_NARROW_5, 0);
+        analogWrite(outputWide, pwm);
+        analogWrite(outputNarrow, 0);
         digitalWrite(OUTPUT_LED_5, HIGH);
     }
     //-----------------
@@ -252,8 +265,8 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     // Setpoint < actual position
     //---------------------------
     if (actualPosition < setpoint - error && !endShutoff.Latched(EndShutoff::kNarrower)) {
-        analogWrite(OUTPUT_WIDE_5, 0);
-        analogWrite(OUTPUT_NARROW_5, 255);
+        analogWrite(outputWide, 0);
+        analogWrite(outputNarrow, 255);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
@@ -264,8 +277,8 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     // Setpoint > actual position
     //---------------------------
     else if (actualPosition > setpoint + error && !endShutoff.Latched(EndShutoff::kWider)) {
-        analogWrite(OUTPUT_WIDE_5, 255);
-        analogWrite(OUTPUT_NARROW_5, 0);
+        analogWrite(outputWide, 255);
+        analogWrite(outputNarrow, 0);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
@@ -586,7 +599,9 @@ void ImplementScraper::PrintCalibrationData() {
 // Method for writing calibrationdata to EEPROM
 // --------------------------------------------
 void ImplementScraper::writeCalibrationData() {
-    // Write each byte separately to the memory first the data then the points
+    // Write each byte separately to the memory first the data then the points.
+    // Only these bytes: the reference points, the offset and the receiver
+    // rate index stay where they are (owner, NeptuneGPS_Triton#289).
     for (int i = 0; i < 3; i++) {
         EepromStore::WriteInt16Le(130 + i * 2, positionCalibrationData[i]);
     }
@@ -601,21 +616,20 @@ void ImplementScraper::writeCalibrationData() {
 #endif
     EepromStore::WriteInt16Le(146, slope);  // 146
 
+    EEPROM.write(kEepromSpeedGate, speedGate ? 1 : 0);  // 137
+    EEPROM.write(kEepromSwap, swap ? 1 : 0);            // 139
+
 #ifdef DEBUG
     Serial.println("Calibration data written");
 #endif
 }
 
-// ---------------------------------------------
-// Method for wiping calibrationdata from EEPROM
-// ---------------------------------------------
-void ImplementScraper::wipeCalibrationData() {
-    // Wipe calibration data
-    EepromStore::Fill(1, 255, 255);
-
-#ifdef DEBUG
-    Serial.println("Calibration data wiped");
-#endif
+// ------------------------------------------
+// The swap and the speed gate (#289)
+// ------------------------------------------
+void ImplementScraper::readSettings() {
+    swap      = EEPROM.read(kEepromSwap) == 1;        // yes/no: 1 is yes, anything else no
+    speedGate = EEPROM.read(kEepromSpeedGate) != 0;   // on unless switched off
 }
 
 }  // namespace triton

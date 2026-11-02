@@ -22,6 +22,7 @@ $sources = @(
     'lib\KilverbakbesturingCore\src\implement\ImplementScraper.cpp',
     'lib\KilverbakbesturingCore\src\InterfaceScraper.cpp',
     'lib\KilverbakbesturingCore\src\calibration\CalibrationScraper.cpp',
+    'lib\KilverbakbesturingCore\src\calibration\ScraperSettings.cpp',
     '..\MeijWorks Libs\VehicleGuidance\NmeaParser.cpp',
     '..\MeijWorks Libs\VehicleGuidance\TrimbleParser.cpp',
     '..\MeijWorks Libs\VehicleGuidance\CanSerialParser.cpp',

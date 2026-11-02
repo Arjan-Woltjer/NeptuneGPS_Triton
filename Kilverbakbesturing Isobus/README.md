@@ -27,11 +27,32 @@ port.
 The LCD splash and the serial banner read `Triton KB-ISO v0.NN`, NN being the
 kilverbak test session (session 1: v0.01), as the plough does.
 
+## Settings and the calibration wizard
+
+Both cab buttons held open the wizard (they no longer reset the offset). It is a
+step runner (#289): one step per `loop()` pass, so CAN and the receiver keep
+running and a reference point is taken from a live position. Its screens are
+Kilverbakbesturing's: `Keuzemenu`, then `+` for reference A and B, or `-` for
+the settings and `Calibratie afronden`. The settings are one table,
+`calibration/ScraperSettings`, which the VT page (#292) will edit too:
+
+| Setting | Range | EEPROM |
+| --- | --- | --- |
+| Slope (cm/100 m) | -99..99 | 146-147 |
+| Error margin (cm) | 0..10 | 142 |
+| Swap up/down | yes/no | 139 (new) |
+| Speed gate | yes/no, default yes | 137 (new; on unless 0) |
+| Preferred VT (ISOBUS) | 0..9 | 14 |
+| RTK quality | 4 or 2 | 11 |
+
+Saving writes only these bytes: the reference points (150-169), the offset (148)
+and the receiver rate index (10) stay (owner, #289). Kilverbakbesturing's save
+wiped bytes 1-254. There is no hitch setting: the kilverbak does not read the
+hitch. The error margin only acts on a board with a position sensor (`NOSENS`
+undefined), as in Kilverbakbesturing.
+
 ## What follows
 
-- #289: the settings table and a calibration wizard that no longer blocks the loop.
-  Until then the wizard blocks; while it waits for a button it pumps the guidance
-  source (the UART, or the ISOBUS stack, so the address claim stays alive).
 - #290: height from PGN 129029 or the UART receiver (the UART wins), Auto only on
   RTK fixed, the VTG gate as a setting. The ISOBUS build has no UART receiver until then.
 - #291 / #292: the VT working screen and calibration page.
