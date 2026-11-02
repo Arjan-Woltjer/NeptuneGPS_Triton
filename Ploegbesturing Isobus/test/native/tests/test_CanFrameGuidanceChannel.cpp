@@ -84,6 +84,23 @@ test(CanFrameGuidanceChannel, legacy_speed_course_altitude) {
     assertTrue(near(g.GetSpeedMs(), 2.0f / 3.6f, 0.001f));
     assertTrue(near(g.GetAltitude(), 44.0f));
     assertEqual(g.GetVtgTimestamp(), (unsigned long)50);
+    assertEqual(g.GetAltitudeTimestamp(), (unsigned long)50);
+}
+
+// The kilverbak levels on height and must not take this altitude: 0.125 m
+// steps (NeptuneGPS_Triton#290). With coarse altitude off the frame still
+// gives speed and course, and leaves the altitude and its timestamp alone.
+test(CanFrameGuidanceChannel, legacy_speed_coarseAltitudeOff_keepsSpeedAndCourseOnly) {
+    GuidanceSource g;
+    g.SetUseCoarseAltitude(false);
+    CanFrameGuidanceChannel ch(&g);
+    const uint8_t d[8] = { 0x00, 0x2D, 0x00, 0x02, 0x00, 0x00, 0x80, 0x4F };
+    millisValue(60);
+    assertTrue(ch.Update(kIdLegacySpeed, d, 8));
+    assertTrue(near(g.GetCourse(), 90.0f));
+    assertTrue(near(g.GetSpeedMs(), 2.0f / 3.6f, 0.001f));
+    assertTrue(near(g.GetAltitude(), 0.0f));
+    assertEqual(g.GetAltitudeTimestamp(), (unsigned long)0);
 }
 
 // InCommand frame from 2026-10-03 (#204): 2.113 km/h = 0.587 m/s, so the

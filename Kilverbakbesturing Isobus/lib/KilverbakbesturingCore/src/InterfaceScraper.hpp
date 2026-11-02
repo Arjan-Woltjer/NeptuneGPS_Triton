@@ -25,6 +25,7 @@
 #include "config/ConfigInterfaceScraper.hpp"
 #include "config/LanguageScraper.hpp"
 #include "ButtonPair.hpp"
+#include "ScraperGates.hpp"
 
 namespace triton
 {
@@ -37,6 +38,10 @@ private:
 
     // Mode
     byte mode;  // AUTO, HOLD, MANUAL, CALIBRATE
+
+    // Why the control holds (ScraperGates.hpp), for the screens; None in
+    // Auto, and computed in Manual too.
+    ScraperHold holdReason = ScraperHold::None;
 
     // Button flag and timer
     int           buttons;
@@ -72,6 +77,10 @@ public:
     // CalibrationScraper.hpp for why that trigger lives outside this class.
     inline byte GetMode() {
         return mode;
+    }
+
+    inline ScraperHold GetHoldReason() const {
+        return holdReason;
     }
 };
 

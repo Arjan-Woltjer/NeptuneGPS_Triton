@@ -220,7 +220,14 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     }
     else {
         setpoint = direction;
-        offset = heightRef - height;
+        // Manual rebases the offset to the bucket's height, so Auto carries
+        // on from where the operator put it. Hold leaves the offset alone
+        // (owner, NeptuneGPS_Triton#290): a Hold may come from an RTK
+        // dropout, whose height is metres off, and Auto resumes on the plane
+        // plus the operator's offset.
+        if (mode == 2) {
+            offset = heightRef - height;
+        }
     }
 
     // Adjust tree including error

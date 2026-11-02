@@ -13,7 +13,7 @@ later, its VT working set.
 
 | Env | Board | What it does |
 | --- | --- | --- |
-| `teensy40_isobus` (default) | Teensy 4.0, the Ploegbesturing board | ISOBUS: address claim, guidance over CAN, AISO stops the valves, debug menu on USB |
+| `teensy40_isobus` (default) | Teensy 4.0, the Ploegbesturing board | ISOBUS: address claim, guidance over CAN (height from PGN 129029), AISO stops the valves, debug menu on USB; plus the UART receiver |
 | `teensy41_isobus` | Teensy 4.1, besturing 0.1 | The same |
 | `teensy40` | Teensy 4.0 | Serial: the receiver on the UART (baud autodetect) plus listen-only plain CAN, as `Kilverbakbesturing` |
 | `teensy41_serial` | Teensy 4.1 | The same |
@@ -51,8 +51,31 @@ wiped bytes 1-254. There is no hitch setting: the kilverbak does not read the
 hitch. The error margin only acts on a board with a position sensor (`NOSENS`
 undefined), as in Kilverbakbesturing.
 
+## Height sources and when it levels
+
+Every build reads two sources (#290). The receiver on the UART (`Serial1`) wins while
+its GGA is fresh; otherwise the CAN bus is used. On the ISOBUS build the bus gives the
+height through PGN 129029, which is how it works when the antenna moves from the
+tractor to the kilverbak. On the serial builds the plain CAN bus gives no height. PGN
+65256's altitude (0.125 m steps) is never used for height
+(`GuidanceSource::SetUseCoarseAltitude(false)`). Kilverbakbesturing mixed it with
+GGA on a bus that carries it.
+
+The ISOBUS build opens the UART at the stored rate without the blocking autodetect:
+with no receiver on the kilverbak the detect would hold the boot for up to a minute
+before the address claim. A serial build (`teensy40`) finds and stores the rate.
+
+Auto needs (`ScraperGates.hpp`), in this order, else Hold with the reason on the LCD:
+
+| Gate | LCD |
+| --- | --- |
+| A position and an altitude, both less than 2 s old | `G!` |
+| RTK fixed (the RTK quality setting, 4 or 2), stated less than 2 s ago | `R!` |
+| With the speed gate on (default): a VTG less than 2 s old and `MINSPEED`, as the plough | `S!` |
+
+Hold leaves the offset alone, so Auto resumes on the plane plus the operator's offset.
+Manual rebases it to the bucket's height, as before (owner, #290).
+
 ## What follows
 
-- #290: height from PGN 129029 or the UART receiver (the UART wins), Auto only on
-  RTK fixed, the VTG gate as a setting. The ISOBUS build has no UART receiver until then.
 - #291 / #292: the VT working screen and calibration page.
