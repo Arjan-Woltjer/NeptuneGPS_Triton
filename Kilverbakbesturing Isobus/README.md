@@ -34,7 +34,7 @@ step runner (#289): one step per `loop()` pass, so CAN and the receiver keep
 running and a reference point is taken from a live position. Its screens are
 Kilverbakbesturing's: `Keuzemenu`, then `+` for reference A and B, or `-` for
 the settings and `Calibratie afronden`. The settings are one table,
-`calibration/ScraperSettings`, which the VT page (#292) will edit too:
+`calibration/ScraperSettings`, which the VT calibration page (#292) edits too:
 
 | Setting | Range | EEPROM |
 | --- | --- | --- |
@@ -76,11 +76,11 @@ Auto needs (`ScraperGates.hpp`), in this order, else Hold with the reason on the
 Hold leaves the offset alone, so Auto resumes on the plane plus the operator's offset.
 Manual rebases it to the bucket's height, as before (owner, #290).
 
-## The VT (#291)
+## The VT (#291, #292)
 
 `isobus/ScraperVtWorkingSet` is the kilverbak's `VtWorkingSet`; the shared
 `IsobusVtInterface` owns the connection (failover, preferred VT, reconnects). The
-pool is `isobus/VTObjectPool.cpp`, version label `KB01` (bump it on every pool
+pool is `isobus/VTObjectPool.cpp`, version label `KB02` (bump it on every pool
 change; `KB`, so no terminal mixes it up with the plough's `MW` pools).
 
 The working screen: the side view of the tractor and kilverbak
@@ -101,8 +101,18 @@ stop, as during the cab wizard; with the cab wizard open the REF keys do nothing
 There is no offset-to-0 key (the cab's both-buttons reset was dropped in #289);
 taking a reference sets the offset to 0, as the wizard does.
 
+`CALIBR` (row 3) opens the calibration page (`isobus/ScraperVtCalibration`, #292),
+the plough's #240 on this table: one row per setting, edited in the VT's own
+input fields on the same draft as the cab wizard, with the table's bounds, so the
+VT refuses what the kilverbak would. The slope's input holds the value plus 99
+(an input's value is unsigned) and its offset shows it as -99..99. Below the
+settings: the stored reference A and B heights and the distance between them.
+`REF A` / `REF B` on this page take a point through the same confirmation page,
+which comes back here. `OPSLAAN` saves through the same `Save()` as the wizard
+(no wipe), `ANNUL.` drops the draft, and a VT that goes away drops it too. While
+the page is open the valves stop and the cab wizard cannot open; while the
+wizard is open, `CALIBR` is refused.
+
 ## What follows
 
-- #292: the VT calibration page (the settings table, as the plough's #240), on
-  soft key row 3, which the main screen keeps free for it.
-- AUX-N assignment of `+` and `-`.
+- AUX-N assignment of `+` and `-` (#294).

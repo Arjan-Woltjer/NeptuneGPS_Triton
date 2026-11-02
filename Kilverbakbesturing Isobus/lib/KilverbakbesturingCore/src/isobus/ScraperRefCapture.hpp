@@ -63,8 +63,9 @@ public:
     Point GetPoint() const { return point; }
 
     // REF A or REF B, on release: opens the page for that point (or switches
-    // an open page to it).
-    void Open(Point which);
+    // an open page to it). OPSLAAN and ANNUL. go back to `returnMask`: the
+    // working screen, or the calibration page when it opened this one (#292).
+    void Open(Point which, uint16_t returnMask);
 
     // OPSLAAN or ANNUL., on release. True when OPSLAAN took the point.
     bool OnSoftKey(uint16_t keyObjectId);
@@ -90,6 +91,7 @@ private:
 
     Point    point = Point::None;
     uint16_t wantedMask = 0;  // the mask to show, 0 = none pending
+    uint16_t returnMask = 0;  // the page that opened this one
     uint32_t shownTitle = kNotSent;
     uint32_t shownStatus = kNotSent;
 

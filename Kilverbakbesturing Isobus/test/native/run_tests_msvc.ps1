@@ -34,6 +34,7 @@ $sources = @(
     'lib\KilverbakbesturingCore\src\isobus\VTObjectPool.cpp',
     'lib\KilverbakbesturingCore\src\isobus\VTImages.generated.cpp',
     'lib\KilverbakbesturingCore\src\isobus\ScraperRefCapture.cpp',
+    'lib\KilverbakbesturingCore\src\isobus\ScraperVtCalibration.cpp',
     'lib\KilverbakbesturingCore\src\isobus\ScraperVtWorkingSet.cpp',
     '..\MeijWorks Libs\IsobusImplement\IsobusVtInterface.cpp',
     '..\MeijWorks Libs\IsobusImplement\VtFailoverPolicy.cpp',

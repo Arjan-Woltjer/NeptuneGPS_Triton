@@ -54,7 +54,8 @@ const char* ScraperVtWorkingSet::GetPoolLabel() const {
     // or VTImages.generated.cpp. KB, not the plough's MW: a terminal that
     // keys its cache on the label alone must never take one for the other.
     // KB01, 2026-11-02: the working screen and the reference page (#291).
-    return "KB01";
+    // KB02, 2026-11-02: CALIBR and the calibration page (#292).
+    return "KB02";
 }
 
 // ----------------------------------------------------------------
@@ -68,14 +69,24 @@ void ScraperVtWorkingSet::OnClientCreated(std::shared_ptr<VirtualTerminalClient>
 }
 
 void ScraperVtWorkingSet::OnConnectionLost() {
-    // An open reference page belongs to the VT being left.
+    // Open pages belong to the VT being left; the calibration draft is
+    // dropped.
     refCapture.OnConnectionLost();
+    calibration.OnConnectionLost();
 }
 
 void ScraperVtWorkingSet::Update(bool connected) {
-    // The page lives on this VT only: a lost connection closes it.
-    if (connected) refCapture.Update(*this);
-    else if (refCapture.IsOpen()) refCapture.OnConnectionLost();
+    // The pages live on this VT only: a lost connection closes them. The
+    // reference page goes second, so its mask wins when it opens on top of
+    // the calibration page.
+    if (connected) {
+        calibration.Update(*this);
+        refCapture.Update(*this);
+    }
+    else {
+        if (refCapture.IsOpen()) refCapture.OnConnectionLost();
+        if (calibration.IsOpen()) calibration.OnConnectionLost();
+    }
 }
 
 bool ScraperVtWorkingSet::ChangeActiveMask(uint16_t dataMask) {
@@ -190,6 +201,10 @@ bool ScraperVtWorkingSet::IsMinusHeld() const {
     return minusHeld && millis() - minusEventMs <= kSoftKeyHeldTimeoutMs;
 }
 
+void ScraperVtWorkingSet::OnNumericValue(const VirtualTerminalClient::VTChangeNumericValueEvent& event) {
+    calibration.OnNumericValue(event.objectID, event.value);
+}
+
 bool ScraperVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
     using Code = VirtualTerminalClient::KeyActivationCode;
 
@@ -219,16 +234,25 @@ bool ScraperVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& ev
                 serialDebug->println("VT: REF key ignored, the cab wizard is open");
                 break;
             }
-            refCapture.Open(event.objectID == Key_RefA ? ScraperRefCapture::Point::A : ScraperRefCapture::Point::B);
+            // From the calibration page (#292) the capture goes back there.
+            refCapture.Open(event.objectID == Key_RefA ? ScraperRefCapture::Point::A : ScraperRefCapture::Point::B,
+                            calibration.IsOpen() ? Scraper_CalDataMask : Scraper_DataMask);
             break;
         case Key_RefSave:
         case Key_RefCancel:
             refCapture.OnSoftKey(event.objectID);
             break;
+        case Key_Calibrate:
+            serialDebug->println("VT: Calibrate pressed");
+            calibration.OnCalibrateKey();
+            break;
+        case Key_CalSave:
+        case Key_CalCancel:
+            // A saved page may have changed the preferred VT (#255).
+            return calibration.OnSoftKey(event.objectID);
         default:
             break;
     }
-    // Nothing here saves settings, so the preferred VT stays as it was.
     return false;
 }
 
