@@ -21,6 +21,7 @@
 #ifdef ISOBUS
 
 #include "VTImages.hpp"
+#include "../calibration/ScraperSettings.hpp"
 
 #include <string.h>
 
@@ -144,16 +145,19 @@ static void appendObjectPointer(uint16_t id, uint16_t value) {
 
 // OutputString and OutputNumber options byte, bit 0: transparent background.
 constexpr uint8_t kTransparent = 0x01;
+constexpr uint8_t kOpaque      = 0x00;
 
-// Type 11: OutputString (static text), transparent on the black masks.
+// Type 11: OutputString (static text), transparent on the black masks. A
+// list entry is opaque instead: the VTs draw an open list on their own light
+// popup, where white on transparent was invisible (the plough's #282).
 static void appendOutputString(uint16_t id, uint16_t w, uint16_t h, uint16_t fontAttr, uint8_t justification,
-                               const char* text) {
+                               const char* text, uint8_t options = kTransparent) {
     uint8_t len = strlen(text);
     pu16(id); pu8(11);
     pu16(w); pu16(h);
     pu8(kBlack);         // background colour, shown when opaque
     pu16(fontAttr);
-    pu8(kTransparent);
+    pu8(options);
     pu16(0xFFFF);        // no variable reference (static string)
     pu8(justification);  // 0=left, 1=middle, 2=right
     pu16(len);
@@ -183,6 +187,45 @@ static void appendOutputNumber(uint16_t id, uint16_t w, uint16_t h, uint16_t fon
 static void appendNumberVariable(uint16_t id, uint32_t initValue) {
     pu16(id); pu8(21);
     pu32(initValue);
+}
+
+// Type 9: InputNumber holding its own value (no variable reference): the VT
+// refuses entries outside min..max, and ScraperVtCalibration sets the value
+// with Change Numeric Value on the object itself. min and max are raw
+// values; the screen shows value + offset (CalInputBias). 38 bytes, as
+// AgIsoStack's get_minimum_object_length() counts them.
+static void appendInputNumber(uint16_t id, uint16_t w, uint16_t h, uint16_t fontAttr, uint32_t value,
+                              int32_t minValue, int32_t maxValue, int32_t offset) {
+    pu16(id); pu8(9);
+    pu16(w); pu16(h);
+    pu8(kBlack);    // background colour
+    pu16(fontAttr);
+    pu8(0x00);      // options: opaque, no leading zeros
+    pu16(0xFFFF);   // no variable reference: the object holds the value
+    pu32(value);
+    pi32(minValue);
+    pi32(maxValue);
+    pi32(offset);
+    pf32(1.0f);     // scale
+    pu8(0);         // decimals
+    pu8(0);         // format: fixed point
+    pu8(2);         // justification: right, against the unit
+    pu8(0x01);      // enabled (VT3); no real-time editing
+    pu8(0);         // 0 macros
+}
+
+// Type 10: InputList over OutputString entries; its value is the index of
+// the entry shown. 13 bytes, then the entries' ids.
+static void appendInputList(uint16_t id, uint16_t w, uint16_t h, uint8_t value, const uint16_t* items,
+                            uint8_t numItems) {
+    pu16(id); pu8(10);
+    pu16(w); pu16(h);
+    pu16(0xFFFF);   // no variable reference
+    pu8(value);
+    pu8(numItems);
+    pu8(0x01);      // options: enabled; no real-time editing
+    pu8(0);         // 0 macros
+    for (uint8_t i = 0; i < numItems; i++) pu16(items[i]);
 }
 
 // Type 18: Output Linear Bar Graph, 24 bytes (ISO 11783-6 B.11.2; the layout
@@ -333,18 +376,19 @@ FLASHMEM static void appendWorkingScreen() {
         appendObjRef(rowUnit[i], UNIT_X, rowY[i]);
     }
 
-    // + above -, as the cab buttons, in rows 1 and 2; REF A and REF B in rows
-    // 4 and 5. Row 3 stays free for the calibration key (#292), where the
-    // plough has CALIBR.
+    // + above -, as the cab buttons, in rows 1 and 2; CALIBR in row 3, where
+    // the plough has it (#292); REF A and REF B in rows 4 and 5.
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
     keys[SoftKeySlot(1, 2)] = Key_Plus;
     keys[SoftKeySlot(2, 2)] = Key_Minus;
+    keys[SoftKeySlot(3, 2)] = Key_Calibrate;
     keys[SoftKeySlot(4, 2)] = Key_RefA;
     keys[SoftKeySlot(5, 2)] = Key_RefB;
     appendSoftKeys(Scraper_SoftKeyMask, keys);
     appendKey(Key_Plus, KeyCode_Plus, Label_Plus, kKeySignH);
     appendKey(Key_Minus, KeyCode_Minus, Label_Minus, kKeySignH);
+    appendKey(Key_Calibrate, KeyCode_Calibrate, Label_Calibrate);
     appendKey(Key_RefA, KeyCode_RefA, Label_RefA);
     appendKey(Key_RefB, KeyCode_RefB, Label_RefB);
     // The blanks every soft key mask may hold at a position.
@@ -359,6 +403,8 @@ FLASHMEM static void appendWorkingScreen() {
     appendOutputString(Label_Minus, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
     appendOutputString(Label_RefA, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "REF A");
     appendOutputString(Label_RefB, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "REF B");
+    // "CALIBR", as on the plough's VT.
+    appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "CALIBR");
 
     // The side views and the pointer; on the plane until the first update.
     appendPictureGraphicRle8(Img_OnPlane, kScraperImageWidth, kScraperImageHeight, kScraperOnPlaneImage,
@@ -455,6 +501,127 @@ FLASHMEM static void appendReferencePage() {
     appendOutputString(Str_RefNoRtk, REF_LINE_W, ROW_H, Font_White_Medium, 0, kTextRefNoRtk);
 }
 
+// ----------------------------------------------------------------
+// The calibration page (ScraperVtCalibration, #292): one row per
+// ScraperSettings line, label and input, in table order; then the stored
+// reference points. Generated from the table: the inputs take their bounds
+// from it, so the VT refuses what the kilverbak would.
+// ----------------------------------------------------------------
+// At most 8 characters at 12x16 (96 px of the label column).
+static constexpr const char* kCalLabels[ScraperSettings::kCount] = {
+    "AFSCHOT", "MARGE", "WISSEL", "SNELHEID",
+#ifdef ISOBUS
+    "VOORK.VT",
+#endif
+    "RTK",
+};
+
+static constexpr size_t calLabelLength(const char* text) { return *text ? 1 + calLabelLength(text + 1) : 0; }
+static constexpr bool calLabelsFit(size_t maxChars, size_t i = 0) {
+    return i >= ScraperSettings::kCount ||
+           (calLabelLength(kCalLabels[i]) <= maxChars && calLabelsFit(maxChars, i + 1));
+}
+
+// The list entries of each two-value kind, index 0 first: a yes/no list's
+// index is the value, the RTK list's is 0 for DGPS (2) and 1 for RTK (4).
+// ScraperVtCalibration maps them.
+static const uint16_t kCalYesNoItems[2] = { Str_CalNo, Str_CalYes };
+static const uint16_t kCalRtkItems[2]   = { Str_CalDgps, Str_CalRtk };
+
+FLASHMEM static void appendCalibrationPage() {
+    // 9 rows of 22 px on the 200 px mask, as the plough's page: a 96 px label
+    // column, then the values from x 100 -- a number 40 px wide with its unit
+    // after it, a list 72 px, a stored height 84 px with its m.
+    constexpr uint16_t CAL_LBL_X = 2, CAL_LBL_W = 8 * kCharW;
+    constexpr uint16_t CAL_VAL_X = 100, CAL_NUM_W = 40, CAL_LIST_W = 72, CAL_HEIGHT_W = 7 * kCharW;
+    constexpr uint16_t CAL_UNIT_X = CAL_VAL_X + CAL_NUM_W + 2;
+    constexpr uint16_t CAL_ROW_TOP = 1, CAL_ROW_H = 22;
+    constexpr uint8_t  kRows = ScraperSettings::kCount + 3;
+    constexpr char     kSlopeUnit[] = "cm/100m";  // the cab wizard's "In cm/100m"
+    static_assert(calLabelsFit(CAL_LBL_W / kCharW), "calibration label too wide for its column");
+    static_assert(CAL_LBL_X + CAL_LBL_W <= CAL_VAL_X, "labels run into the values");
+    static_assert(3 * kCharW <= CAL_NUM_W, "number field narrower than -99");
+    static_assert(CAL_UNIT_X + (sizeof(kSlopeUnit) - 1) * 8 <= 200, "the slope's unit leaves the mask");
+    static_assert(CAL_UNIT_X + kUnitW <= 200 && CAL_VAL_X + CAL_LIST_W <= 200, "values leave the mask");
+    static_assert(CAL_VAL_X + CAL_HEIGHT_W + 2 + kCharW <= 200, "a stored height's m leaves the mask");
+    static_assert(CAL_ROW_TOP + kRows * CAL_ROW_H <= 200, "rows leave the mask");
+    static_assert(Label_Cal0 + ScraperSettings::kCount <= Input_Cal0 &&
+                  Input_Cal0 + ScraperSettings::kCount <= Str_CalNo,
+                  "calibration labels or inputs run into the next id block");
+
+    // Children: a label and an input per line, a unit for the slope and the
+    // margin; a label, a number and an m for each of the three point rows.
+    appendDataMask(Scraper_CalDataMask, kBlack, Scraper_CalSoftKeyMask,
+                   uint8_t(2 * ScraperSettings::kCount + 2 + 3 * 3));
+    for (uint8_t i = 0; i < ScraperSettings::kCount; i++) {
+        const uint16_t y = CAL_ROW_TOP + i * CAL_ROW_H;
+        appendObjRef(Label_Cal0 + i, CAL_LBL_X, y);
+        appendObjRef(Input_Cal0 + i, CAL_VAL_X, y);
+        // The 8x8 unit sits in the middle of the 16 px value.
+        if (ScraperSetting(i) == ScraperSetting::Slope) appendObjRef(Str_CalSlopeUnit, CAL_UNIT_X, y + 4);
+        if (ScraperSetting(i) == ScraperSetting::ErrorMargin) appendObjRef(Str_UnitCm, CAL_UNIT_X, y);
+    }
+    const uint16_t pointLabels[3] = { Label_CalRefA, Label_CalRefB, Label_CalRefDistance };
+    const uint16_t pointValues[3] = { Out_CalRefA, Out_CalRefB, Out_CalRefDistance };
+    for (uint8_t p = 0; p < 3; p++) {
+        const uint16_t y = CAL_ROW_TOP + (ScraperSettings::kCount + p) * CAL_ROW_H;
+        appendObjRef(pointLabels[p], CAL_LBL_X, y);
+        appendObjRef(pointValues[p], CAL_VAL_X, y);
+        appendObjRef(Str_UnitM, CAL_VAL_X + CAL_HEIGHT_W + 2, y);
+    }
+
+    // REF A and REF B in rows 1 and 2, OPSLAAN row 4 and ANNUL. row 6, where
+    // the plough's page has them.
+    uint16_t keys[kSoftKeySlots];
+    for (uint16_t& key : keys) key = kNoKey;
+    keys[SoftKeySlot(1, 2)] = Key_RefA;
+    keys[SoftKeySlot(2, 2)] = Key_RefB;
+    keys[SoftKeySlot(4, 2)] = Key_CalSave;
+    keys[SoftKeySlot(6, 2)] = Key_CalCancel;
+    appendSoftKeys(Scraper_CalSoftKeyMask, keys);
+    appendKey(Key_CalSave, KeyCode_CalSave, Label_CalSave);
+    appendKey(Key_CalCancel, KeyCode_CalCancel, Label_CalCancel);
+    appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "OPSLAAN");
+    appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "ANNUL.");
+
+    for (uint8_t i = 0; i < ScraperSettings::kCount; i++) {
+        const ScraperSettingLine& line = ScraperSettings::Line(ScraperSetting(i));
+        appendOutputString(Label_Cal0 + i, CAL_LBL_W, CAL_ROW_H, Font_White_Medium, 0, kCalLabels[i]);
+        switch (line.kind) {
+            case SettingKind::Number: {
+                const int32_t bias = CalInputBias(line.lowest);
+                appendInputNumber(Input_Cal0 + i, CAL_NUM_W, CAL_ROW_H, Font_White_Medium,
+                                  uint32_t(line.lowest + bias), line.lowest + bias, line.highest + bias, -bias);
+                break;
+            }
+            case SettingKind::YesNo:
+                appendInputList(Input_Cal0 + i, CAL_LIST_W, CAL_ROW_H, 0, kCalYesNoItems, 2);
+                break;
+            case SettingKind::RtkQuality:
+                appendInputList(Input_Cal0 + i, CAL_LIST_W, CAL_ROW_H, 1, kCalRtkItems, 2);
+                break;
+        }
+    }
+    appendOutputString(Str_CalNo, CAL_LIST_W, CAL_ROW_H, Font_White_Medium, 0, "NEE", kOpaque);
+    appendOutputString(Str_CalYes, CAL_LIST_W, CAL_ROW_H, Font_White_Medium, 0, "JA", kOpaque);
+    appendOutputString(Str_CalDgps, CAL_LIST_W, CAL_ROW_H, Font_White_Medium, 0, "DGPS", kOpaque);
+    appendOutputString(Str_CalRtk, CAL_LIST_W, CAL_ROW_H, Font_White_Medium, 0, "RTK", kOpaque);
+    appendOutputString(Str_CalSlopeUnit, (sizeof(kSlopeUnit) - 1) * 8, 8, Font_White_Unit, 0, kSlopeUnit);
+
+    // The stored points: heights as the main screen shows them, the distance
+    // in whole m.
+    appendOutputString(Label_CalRefA, CAL_LBL_W, CAL_ROW_H, Font_White_Medium, 0, "REF A");
+    appendOutputString(Label_CalRefB, CAL_LBL_W, CAL_ROW_H, Font_White_Medium, 0, "REF B");
+    appendOutputString(Label_CalRefDistance, CAL_LBL_W, CAL_ROW_H, Font_White_Medium, 0, "AFST. AB");
+    appendNumberVariable(Var_CalRefA, kLargeBias);
+    appendNumberVariable(Var_CalRefB, kLargeBias);
+    appendNumberVariable(Var_CalRefDistance, kLargeBias);
+    appendOutputNumber(Out_CalRefA, CAL_HEIGHT_W, CAL_ROW_H, Font_White_Medium, Var_CalRefA, -kLargeBias, 0.01f, 2, 2);
+    appendOutputNumber(Out_CalRefB, CAL_HEIGHT_W, CAL_ROW_H, Font_White_Medium, Var_CalRefB, -kLargeBias, 0.01f, 2, 2);
+    appendOutputNumber(Out_CalRefDistance, CAL_HEIGHT_W, CAL_ROW_H, Font_White_Medium, Var_CalRefDistance,
+                       -kLargeBias, 1.0f, 0, 2);
+}
+
 FLASHMEM void BuildObjectPool() {
     poolPos = 0;
 
@@ -464,6 +631,7 @@ FLASHMEM void BuildObjectPool() {
 
     appendWorkingScreen();
     appendReferencePage();
+    appendCalibrationPage();
 
     VT3PoolData = poolBuffer;
     VT3PoolSize = poolPos;

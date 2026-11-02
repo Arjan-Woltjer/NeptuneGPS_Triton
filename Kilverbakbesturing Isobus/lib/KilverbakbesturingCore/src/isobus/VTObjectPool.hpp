@@ -140,6 +140,40 @@ enum ScraperVtObjectId : uint16_t {
     Ptr_RefStatus          = 90,
     Str_RefBlank           = 91,
     Str_RefNoRtk           = 92,
+
+    // ---- The calibration page (#292) ----
+    // CALIBR on the main screen opens it: one label and one input per
+    // ScraperSettings line, in table order (Label_Cal0 + i, Input_Cal0 + i),
+    // then the stored reference points. REF A and REF B (the main screen's own
+    // key objects) take a point from here too; OPSLAAN saves the draft,
+    // ANNUL. drops it.
+    Scraper_CalDataMask    = 100,
+    Scraper_CalSoftKeyMask = 101,
+    Key_CalSave            = 102,
+    Key_CalCancel          = 103,
+    Label_CalSave          = 104,
+    Label_CalCancel        = 105,
+    Key_Calibrate          = 106,  // on the main screen
+    Label_Calibrate        = 107,
+    Label_Cal0             = 110,  // .. 119 at most
+    Input_Cal0             = 120,  // .. 129 at most: InputNumber or InputList
+    // The list entries, shared by the inputs that use them, and the slope's
+    // unit.
+    Str_CalNo              = 130,
+    Str_CalYes             = 131,
+    Str_CalDgps            = 132,
+    Str_CalRtk             = 133,
+    Str_CalSlopeUnit       = 134,  // cm/100m
+    // The stored reference points: A's and B's height, and A -> B.
+    Label_CalRefA          = 140,
+    Out_CalRefA            = 141,
+    Var_CalRefA            = 142,  // cm + kLargeBias, shown in m
+    Label_CalRefB          = 143,
+    Out_CalRefB            = 144,
+    Var_CalRefB            = 145,  // cm + kLargeBias, shown in m
+    Label_CalRefDistance   = 146,
+    Out_CalRefDistance     = 147,
+    Var_CalRefDistance     = 148,  // m + kLargeBias
 };
 
 // The variables' biases (see the rows above).
@@ -147,6 +181,13 @@ constexpr int32_t kSmallBias = 1000;     // cm or cm/100 m: -999 .. 999
 constexpr int32_t kLargeBias = 100000;   // cm of height (int16) or m of distance
 // The bar's range each way, in cm.
 constexpr int32_t kBarRangeCm = 10;
+
+// A calibration input holds an unsigned value, so a setting that can go
+// negative (the slope, -99..99) is stored lifted by -lowest; the input's
+// offset takes it off again for the screen (#292). 0 for the others.
+constexpr int32_t CalInputBias(int16_t lowest) {
+    return lowest < 0 ? -int32_t(lowest) : 0;
+}
 
 // Soft key positions per mask, as the plough's (#282): on a 2 x 6 VT that
 // fills column 2 top to bottom, then column 1, positions 0-5 are column 2
@@ -165,6 +206,9 @@ enum ScraperKeyCode : uint8_t {
     KeyCode_RefB      = 4,
     KeyCode_RefSave   = 5,
     KeyCode_RefCancel = 6,
+    KeyCode_Calibrate = 7,
+    KeyCode_CalSave   = 8,
+    KeyCode_CalCancel = 9,
 };
 
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().

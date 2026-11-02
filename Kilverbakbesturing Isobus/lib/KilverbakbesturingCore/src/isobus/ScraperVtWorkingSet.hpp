@@ -30,13 +30,14 @@
 #include "../InterfaceScraper.hpp"
 #include "../calibration/CalibrationScraper.hpp"
 #include "ScraperRefCapture.hpp"
+#include "ScraperVtCalibration.hpp"
 
 namespace triton
 {
 
 // The kilverbak's VtWorkingSet (NeptuneGPS_Triton#291): its object pool
-// (VTObjectPool.cpp), the working screen's values, the soft keys and the
-// reference capture page. IsobusVtInterface (MeijWorks Libs/IsobusImplement)
+// (VTObjectPool.cpp), the working screen's values, the soft keys, the
+// reference capture page and the calibration page (#292). IsobusVtInterface (MeijWorks Libs/IsobusImplement)
 // owns the connection and calls in here.
 //
 // + and - are the cab buttons: main.cpp's loop() passes IsPlusHeld() /
@@ -45,15 +46,18 @@ namespace triton
 // press to its release (the plough's #245), so a held soft key repeats like
 // a held cab button: in Auto and Hold it steps the offset every half second,
 // in Manual it drives the valves. REF A and REF B open the reference capture
-// (ScraperRefCapture) on release.
+// (ScraperRefCapture) on release, CALIBR the calibration page
+// (ScraperVtCalibration).
 class ScraperVtWorkingSet : public VtWorkingSet, public ScraperVtOutput {
 public:
-    // cabWizard: while it is open, REF A and REF B do nothing (one capture
-    // path at a time). May be null.
+    // cabWizard: the calibration page edits its settings table, and while
+    // the wizard is open REF A and REF B do nothing (one capture path at a
+    // time) and CALIBR is refused.
     ScraperVtWorkingSet(Stream* serialDebug, ImplementScraper* implement, GuidanceSource* guidance,
                         InterfaceScraper* scraperInterface, CalibrationScraper* cabWizard)
         : serialDebug(serialDebug), implement(implement), guidance(guidance), scraperInterface(scraperInterface),
-          cabWizard(cabWizard), refCapture(serialDebug, implement, guidance) {}
+          cabWizard(cabWizard), refCapture(serialDebug, implement, guidance),
+          calibration(serialDebug, &cabWizard->GetSettings(), implement) {}
 
     // A VT repeats still-held while a key is down; without one for this long
     // the key counts as released, so a lost release stops the valves within
@@ -62,8 +66,11 @@ public:
     bool IsPlusHeld() const;
     bool IsMinusHeld() const;
 
-    // The reference page is open: the control holds (main.cpp).
+    // The reference page or the calibration page is open: the control holds
+    // and the cab buttons do nothing (main.cpp), as during the cab wizard.
     bool IsCapturingReference() const { return refCapture.IsOpen(); }
+    bool IsCalibrating() const { return calibration.IsOpen(); }
+    bool HoldsTheControl() const { return IsCapturingReference() || IsCalibrating(); }
 
     // The working screen's values, as the variables and pointers take them.
     enum ScreenValue : uint8_t {
@@ -91,9 +98,9 @@ public:
     void UpdateValues() override;
     void Update(bool connected) override;
     bool OnKeyEvent(const isobus::VirtualTerminalClient::VTKeyEvent& event) override;
-    // No inputs and no AUX functions yet: assigning + and - to AUX-N inputs
-    // is a later issue.
-    void OnNumericValue(const isobus::VirtualTerminalClient::VTChangeNumericValueEvent&) override {}
+    // The calibration page's inputs. No AUX functions yet: assigning + and -
+    // to AUX-N inputs is a later issue.
+    void OnNumericValue(const isobus::VirtualTerminalClient::VTChangeNumericValueEvent& event) override;
     void OnAuxFunction(const isobus::VirtualTerminalClient::AuxiliaryFunctionEvent&) override {}
     void OnAuxInputStatus(uint8_t) override {}
 
@@ -112,6 +119,7 @@ private:
     InterfaceScraper*   scraperInterface;
     CalibrationScraper* cabWizard;
     ScraperRefCapture   refCapture;
+    ScraperVtCalibration calibration;
 
     std::shared_ptr<isobus::VirtualTerminalClient> client;
 

@@ -65,6 +65,7 @@ struct IsobusVtInterfaceTestAccess {
 
 struct ScraperVtWorkingSetTestAccess {
     static ScraperRefCapture& Capture(ScraperVtWorkingSet& ws) { return ws.refCapture; }
+    static ScraperVtCalibration& Calibration(ScraperVtWorkingSet& ws) { return ws.calibration; }
 };
 }  // namespace triton
 
@@ -204,7 +205,7 @@ IsobusVtInterface& Fixture() {
 test(ScraperVtWorkingSet, identity_ownLabelAndModel_andThePoolBuilt) {
     IsobusVtInterface& vt = Fixture();
     VtWorkingSet* ws = vt.GetWorkingSet();
-    assertEqual(ws->GetPoolLabel(), "KB01");
+    assertEqual(ws->GetPoolLabel(), "KB02");
     assertEqual(ws->GetProductModel(), "Kilverbakbesturing Isobus");
     // Begin() built the pool.
     assertTrue(ws->GetPoolData() != nullptr);
@@ -537,6 +538,85 @@ test(ScraperVtWorkingSet, refPage_closesWhenTheConnectionIsLost) {
     assertTrue(out.masks.empty());
     s.Tap(Key_RefSave);  // a late OPSLAAN takes nothing
     assertEqual((int)EEPROM.read(158), 0xFF);
+}
+
+// ---------------------------------------------------------------------------
+// The calibration page through the working set (#292)
+// ---------------------------------------------------------------------------
+
+test(ScraperVtWorkingSet, calibrate_opensThePage_andHoldsTheControl) {
+    ResetPins();
+    Scraper s;
+    assertFalse(s.ws.HoldsTheControl());
+    s.Tap(Key_Calibrate);
+    assertTrue(s.ws.IsCalibrating());
+    assertTrue(s.ws.HoldsTheControl());
+    // The cab wizard cannot open over it.
+    assertFalse(s.wizard.Start());
+    assertFalse(s.wizard.IsActive());
+}
+
+// A value entered on the VT reaches the draft; OPSLAAN saves it and reports
+// that the preferred VT may have changed.
+test(ScraperVtWorkingSet, calibrate_enteredValueSaved_reportsTheSave) {
+    ResetPins();
+    Scraper s;
+    s.Tap(Key_Calibrate);
+    isobus::VirtualTerminalClient::VTChangeNumericValueEvent value{};
+    value.objectID = Input_Cal0 + uint8_t(ScraperSetting::PreferredVt);
+    value.value = 2;
+    s.ws.OnNumericValue(value);
+    s.Key(Key_CalSave, Code::ButtonPressedOrLatched);
+    isobus::VirtualTerminalClient::VTKeyEvent release{};
+    release.objectID = Key_CalSave;
+    release.keyEvent = Code::ButtonUnlatchedOrReleased;
+    assertTrue(s.ws.OnKeyEvent(release));
+    assertFalse(s.ws.HoldsTheControl());
+    assertEqual((int)EEPROM.read(14), 2);
+}
+
+test(ScraperVtWorkingSet, calibrate_refusedWhileTheCabWizardIsOpen) {
+    ResetPins();
+    Scraper s;
+    assertTrue(s.wizard.Start());
+    s.Tap(Key_Calibrate);
+    assertFalse(s.ws.IsCalibrating());
+    assertTrue(wsDebug.Contains("calibration refused"));
+}
+
+// REF A from the calibration page: the capture page goes back to the page,
+// not to the working screen, and the draft stays open.
+test(ScraperVtWorkingSet, refFromTheCalibrationPage_returnsThere) {
+    ResetPins();
+    Scraper s;
+    s.RtkFixAt(1000, 12.5f);
+    s.Tap(Key_Calibrate);
+    s.Tap(Key_RefA);
+    assertTrue(s.ws.IsCapturingReference());
+    s.Tap(Key_RefSave);
+    assertFalse(s.ws.IsCapturingReference());
+    assertTrue(s.ws.IsCalibrating());
+    RecordingOutput out;
+    ScraperVtWorkingSetTestAccess::Capture(s.ws).Update(out);
+    assertEqual((int)out.masks.back(), (int)Scraper_CalDataMask);
+    // The page shows the new A.
+    ScraperVtWorkingSetTestAccess::Calibration(s.ws).Update(out);
+    assertEqual(out.Last(Var_CalRefA), (uint32_t)(1250 + kLargeBias));
+}
+
+// A lost VT drops the page's draft and closes both pages.
+test(ScraperVtWorkingSet, calibrate_connectionLost_dropsTheDraft) {
+    ResetPins();
+    Scraper s;
+    s.Tap(Key_Calibrate);
+    isobus::VirtualTerminalClient::VTChangeNumericValueEvent value{};
+    value.objectID = Input_Cal0 + uint8_t(ScraperSetting::Swap);
+    value.value = 1;
+    s.ws.OnNumericValue(value);
+    s.ws.Update(false);
+    assertFalse(s.ws.HoldsTheControl());
+    assertFalse(s.implement.GetSwap());
+    assertEqual((int)EEPROM.read(ImplementScraper::kEepromSwap), 0xFF);
 }
 
 #endif  // ISOBUS

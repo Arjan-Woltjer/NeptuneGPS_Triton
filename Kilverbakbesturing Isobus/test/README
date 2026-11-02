@@ -60,7 +60,8 @@ display name under the class it exercises, e.g.
   compiled for the host as in Ploegbesturing Isobus: `test_VTObjectPool.cpp`
   walks the pool object by object, and `test_ScraperVtWorkingSet.cpp` drives
   the working set's keys (one test through `IsobusVtInterface`'s own key
-  listener), its screen values and the reference page. What the VT itself
+  listener), its screen values and the reference page;
+  `test_ScraperVtCalibration.cpp` the calibration page (#292). What the VT itself
   draws is not tested here: no VT server runs off-target, so the sends to a
   client go nowhere, and `UpdateValues()` returns before it sends. The values
   it sends come from `ComputeScreenValues()`, which is tested. The serial
