@@ -38,11 +38,11 @@ display name under the class it exercises, e.g.
 
 ## Known gaps
 
-- `CalibrationScraper` (the LCD/button calibration wizard extracted from the
-  legacy `InterfaceScraper::calibrate()`) is `#ifdef ARDUINO`-guarded and
-  deliberately excluded from `[env:native]`'s `build_src_filter` -- same
-  reason as `CalibrationPlough`/`CalibrationPlanter`/`CalibrationSprayer`. No
-  native coverage exists or is planned for it.
+- `CalibrationScraper` is a step runner since NeptuneGPS_Triton#289 and is
+  tested here, screen by screen, through the recording LCD stub
+  (`support/InterfaceI2CLCD.hpp`, the plough's) and the button pins; its
+  settings table has `test_ScraperSettings.cpp`. What the wizard draws while
+  a value is being edited is checked on the cells that carry the value.
 - `ImplementScraper::getActualPosition()`'s divide-by-zero guard (two
   calibration points holding the same reading) has no public setter to
   construct that state directly -- `positionCalibrationData` is only settable

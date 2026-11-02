@@ -149,15 +149,27 @@ test(InterfaceScraper, update_joyModeLow_selectsManual) {
     assertEqual(iface.GetMode(), (byte)2);
 }
 
+// A fresh RTK fixed fix at `ms`: position, altitude, quality 4 and a speed
+// above MINSPEED -- everything the gates (ScraperGates.hpp, #290) ask for.
+static void rtkFixAt(unsigned long ms) {
+    millisValue(ms);
+    mockGuidance.SetPosition(52.0f, 5.0f);
+    mockGuidance.SetAltitude(10.0f);
+    mockGuidance.SetQuality(4);
+    mockGuidance.SetSpeedKnots(10.0f);
+}
+
 test(InterfaceScraper, update_allConditionsGood_selectsAuto) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    // All fix ages "fresh" relative to millis()=0 (0-0=0, not > 2000); not
-    // manual (MODE_PIN_5/JOY_MODE_5 both true per resetAll()).
+    // A fresh RTK fix and speed; not manual (MODE_PIN_5/JOY_MODE_5 both
+    // true per resetAll()).
+    rtkFixAt(1000);
     iface.Update();
     assertEqual(iface.GetMode(), (byte)0);
+    assertEqual((int)iface.GetHoldReason(), (int)ScraperHold::None);
 }
 
 test(InterfaceScraper, update_staleGgaFix_selectsHold) {
@@ -165,11 +177,12 @@ test(InterfaceScraper, update_staleGgaFix_selectsHold) {
     ImplementScraper impl(&mockGuidance);
     InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    millisValue(2001);
-    // lastGgaFix stays 0 from resetAll(): 2001 - 0 = 2001 > 2000 -> stale
-    mockGuidance.SetSpeedKnots(10.0f);  // lastVtgFix=2001 (fresh)
+    rtkFixAt(1000);
+    millisValue(3001);                   // the fix is 2001 ms old -> stale
+    mockGuidance.SetSpeedKnots(10.0f);   // the VTG fresh
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
+    assertEqual((int)iface.GetHoldReason(), (int)ScraperHold::NoFix);
 }
 
 test(InterfaceScraper, update_staleVtgFix_selectsHold) {
@@ -177,11 +190,77 @@ test(InterfaceScraper, update_staleVtgFix_selectsHold) {
     ImplementScraper impl(&mockGuidance);
     InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
 
-    millisValue(2001);
-    mockGuidance.NoteGgaFixReceived();  // lastGgaFix=2001 (fresh)
-    // lastVtgFix stays 0 from resetAll(): stale
+    rtkFixAt(1000);
+    millisValue(3001);
+    mockGuidance.SetPosition(52.0f, 5.0f);   // the fix fresh, the VTG not
+    mockGuidance.SetAltitude(10.0f);
+    mockGuidance.SetQuality(4);
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)1);   // the speed gate is on by default
+    assertEqual((int)iface.GetHoldReason(), (int)ScraperHold::Speed);
+}
+
+// ---------------------------------------------------------------------------
+// The gates of NeptuneGPS_Triton#290
+// ---------------------------------------------------------------------------
+
+// Auto needs RTK fixed: a float fix (quality 5) holds, with R! on the LCD.
+test(InterfaceScraper, update_floatFix_holdsForRtk) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    rtkFixAt(1000);
+    mockGuidance.SetQuality(5);
     iface.Update();
     assertEqual(iface.GetMode(), (byte)1);
+    assertEqual((int)iface.GetHoldReason(), (int)ScraperHold::NoRtk);
+    iface.UpdateScreen(true);
+    assertEqual(mockLcd.Row(3)[17], 'R');
+}
+
+// The RTK quality is the setting: a receiver that reports RTK as 2 (the
+// AutoFarm A5) levels with the setting at 2.
+test(InterfaceScraper, update_rtkQualitySetting2_levelsOnQuality2) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    mockGuidance.SetRtkQuality(2);
+    rtkFixAt(1000);
+    mockGuidance.SetQuality(2);
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)0);
+}
+
+// A position without an altitude is no fix for a leveller.
+test(InterfaceScraper, update_noAltitude_holds) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    millisValue(1000);
+    mockGuidance.SetPosition(52.0f, 5.0f);
+    mockGuidance.SetQuality(4);
+    mockGuidance.SetSpeedKnots(10.0f);
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)1);
+    assertEqual((int)iface.GetHoldReason(), (int)ScraperHold::NoFix);
+}
+
+// The speed gate, as the plough: below MINSPEED holds with S!; switched off,
+// the bucket levels standing still.
+test(InterfaceScraper, update_speedGate_holdsWhenStill_offLevels) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    rtkFixAt(1000);
+    mockGuidance.SetSpeedKnots(0.1f);
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)1);
+    assertEqual((int)iface.GetHoldReason(), (int)ScraperHold::Speed);
+    iface.UpdateScreen(true);
+    assertEqual(mockLcd.Row(3)[17], 'S');
+    impl.SetSpeedGate(false);
+    iface.Update();
+    assertEqual(iface.GetMode(), (byte)0);
 }
 
 // ---------------------------------------------------------------------------
@@ -195,7 +274,7 @@ test(InterfaceScraper, updateScreen_rewrite_autoMode) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
-    mockGuidance.NoteGgaFixReceived();
+    rtkFixAt(1000);
     iface.Update();
     assertEqual((int)iface.GetMode(), 0);
     iface.UpdateScreen(true);

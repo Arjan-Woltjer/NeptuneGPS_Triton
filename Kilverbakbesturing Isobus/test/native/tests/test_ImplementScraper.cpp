@@ -21,6 +21,7 @@
 */
 #include <AUnit.h>
 #include "implement/ImplementScraper.hpp"
+#include "EepromStore.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -186,6 +187,97 @@ test(ImplementScraper, adjust_manualMode_zeroDirection_stops) {
 }
 
 // ---------------------------------------------------------------------------
+// The settings of NeptuneGPS_Triton#289: the swap, the speed gate, and both
+// buttons no longer resetting the offset.
+// ---------------------------------------------------------------------------
+
+// The swap exchanges the two valve outputs: the same direction drives the
+// other one.
+test(ImplementScraper, adjust_swap_exchangesTheOutputs) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    impl.SetSwap(true);
+    impl.Adjust(2, 5);
+    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 255);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    impl.Adjust(2, -5);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
+    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+}
+
+// An erased byte: no swap, and the speed gate on (the plough's behaviour).
+test(ImplementScraper, settings_erasedBytes_noSwapAndTheGateOn) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    assertFalse(impl.GetSwap());
+    assertTrue(impl.GetSpeedGate());
+}
+
+test(ImplementScraper, settings_commitThenFreshInstance_roundTrips) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    impl.SetSwap(true);
+    impl.SetSpeedGate(false);
+    impl.CommitCalibration();
+    assertEqual((int)EEPROM.read(ImplementScraper::kEepromSwap), 1);
+    assertEqual((int)EEPROM.read(ImplementScraper::kEepromSpeedGate), 0);
+
+    ImplementScraper fresh(&mockGuidance);
+    assertTrue(fresh.GetSwap());
+    assertFalse(fresh.GetSpeedGate());
+}
+
+// Yes/no reads 1 as yes and anything else as no; the gate is on unless its
+// byte is 0.
+test(ImplementScraper, settings_otherBytes_noSwapAndTheGateOn) {
+    resetAll();
+    EEPROM.write(ImplementScraper::kEepromSwap, 7);
+    EEPROM.write(ImplementScraper::kEepromSpeedGate, 7);
+    ImplementScraper impl(&mockGuidance);
+    assertFalse(impl.GetSwap());
+    assertTrue(impl.GetSpeedGate());
+}
+
+// Hold leaves the offset alone; Manual rebases it to the bucket's height
+// (owner, NeptuneGPS_Triton#290). A Hold may come from an RTK dropout whose
+// height is metres off: Kilverbakbesturing rebased in Hold too, so the
+// offset took that height and the bucket jumped when RTK returned.
+test(ImplementScraper, adjust_holdKeepsTheOffset_manualRebasesIt) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    millisValue(500);
+    impl.Update(0, 1);
+    millisValue(1000);
+    impl.Update(0, 1);
+    assertEqual(impl.GetOffset(), (short int)2);
+
+    mockGuidance.SetAltitude(3.0f);           // 3 m off the plane (reference 0)
+    millisValue(1001);
+    mockGuidance.NoteGgaFixReceived();
+    impl.Update(1, 0);
+    assertEqual(impl.GetHeight(), (short int)300);
+    impl.Adjust(1, 0);                        // Hold
+    assertEqual(impl.GetOffset(), (short int)2);
+    impl.Adjust(2, 0);                        // Manual
+    assertEqual(impl.GetOffset(), (short int)-300);
+}
+
+// Both buttons held opens the wizard (owner, #289) and leaves the offset as
+// it is; Kilverbakbesturing reset it to 0 in the same pass.
+test(ImplementScraper, update_bothButtonsLeaveTheOffset) {
+    resetAll();
+    ImplementScraper impl(&mockGuidance);
+    millisValue(500);
+    impl.Update(0, 1);                        // + : offset 1
+    millisValue(1000);
+    impl.Update(0, 1);                        // + : offset 2
+    assertEqual(impl.GetOffset(), (short int)2);
+    millisValue(1500);
+    impl.Update(0, 2);                        // both held
+    assertEqual(impl.GetOffset(), (short int)2);
+}
+
+// ---------------------------------------------------------------------------
 // EEPROM persistence (NeptuneGPS_Triton#91): the implement block round trip,
 // the range checks, the reference points A/B and the distances they feed,
 // and what CommitCalibration()'s wipe takes with it.
@@ -230,22 +322,29 @@ test(ImplementScraper, outOfRangeStoredBytes_fallBackToDefaults) {
     assertEqual(impl.GetSlope(), (short int)0);
 }
 
-// CommitCalibration() wipes bytes 1..254 before writing the implement block
-// (130..147). That takes the receiver rate index at byte 10, the tractor
-// block and the reference points at 150..169 with it. Pinned as the current
-// behaviour so a change to it is deliberate; whether it is the intended one
-// is a question for the owner (see the PR).
-test(ImplementScraper, commitCalibration_wipesEverythingOutsideItsOwnBlock) {
+// CommitCalibration() writes the implement's own settings bytes and nothing
+// else (owner, 2026-11-02, NeptuneGPS_Triton#289). Kilverbakbesturing wiped
+// bytes 1..254 first, which took the receiver rate index (10), the offset
+// (148) and the reference points (150..169) with it: after a calibration save
+// the next boot had no reference plane. The memory map's rule: a wipe clears
+// its own block only (#78).
+test(ImplementScraper, commitCalibration_keepsReferencesOffsetAndBaudIndex) {
     resetAll();
     EEPROM.write(10, 3);                      // CalibrationScraper's rate index
+    EepromStore::WriteInt16Le(148, 7);        // a stored offset
     ImplementScraper impl(&mockGuidance);
     fixAt(52.0f, 5.0f, 10.0f);
     impl.SetRefA();
-    assertNotEqual((int)EEPROM.read(150), 255);
+    fixAt(52.0009f, 5.0f, 12.0f);
+    impl.SetRefB();
+    uint8_t refs[20];
+    for (int i = 0; i < 20; i++) refs[i] = EEPROM.read(150 + i);
+    EepromStore::WriteInt16Le(148, 7);        // SetRef zeroes the offset; store one again
     impl.CommitCalibration();
-    assertEqual((int)EEPROM.read(10), 255);
-    assertEqual((int)EEPROM.read(150), 255);
-    assertNotEqual((int)EEPROM.read(142), 255);   // its own block is back
+    assertEqual((int)EEPROM.read(10), 3);
+    assertEqual((int)EepromStore::ReadInt16Le(148), 7);
+    for (int i = 0; i < 20; i++) assertEqual((int)EEPROM.read(150 + i), (int)refs[i]);
+    assertNotEqual((int)EEPROM.read(142), 255);   // its own block is written
 }
 
 test(ImplementScraper, referencePoints_persistAndFeedTheDistances) {

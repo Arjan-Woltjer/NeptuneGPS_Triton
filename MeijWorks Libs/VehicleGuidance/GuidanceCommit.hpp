@@ -53,11 +53,12 @@ inline bool GApply(const PositionResult& r, GuidanceSource* g) {
 
 // Speed, course and altitude each have their own "not available" sentinel and
 // so their own flag: an unavailable speed must not cost us a good course
-// (NeptuneGPS_Triton#37).
+// (NeptuneGPS_Triton#37). The altitude here is PGN 65256's, in 0.125 m steps:
+// a source that levels on height does not take it (#290).
 inline bool GApply(const SpeedResult& r, GuidanceSource* g) {
     if (r.valid)       g->SetSpeedKnots(r.speedKnots);
     if (r.hasCourse)   g->SetCourseDeg(r.courseDeg);
-    if (r.hasAltitude) g->SetAltitude(r.altitudeMeters);
+    if (r.hasAltitude && g->UsesCoarseAltitude()) g->SetAltitude(r.altitudeMeters);
     return r.valid || r.hasCourse || r.hasAltitude;
 }
 

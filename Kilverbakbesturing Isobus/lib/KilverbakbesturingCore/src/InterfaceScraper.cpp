@@ -87,6 +87,10 @@ void InterfaceScraper::Update() {
     // ====================
     // Process mode changes
     // ====================
+    // The gates (ScraperGates.hpp, NeptuneGPS_Triton#290): a fresh position
+    // and altitude, RTK fixed, and -- with the speed gate on -- a fresh VTG
+    // and MINSPEED. Kilverbakbesturing held only on a stale GGA or VTG.
+    holdReason = ScraperHoldReason(*guidance, implement->GetSpeedGate(), millis());
 
     // ------
     // Manual
@@ -102,7 +106,7 @@ void InterfaceScraper::Update() {
     // ----
     // Hold
     // ----
-    else if (millis() - guidance->GetGgaTimestamp() > 2000 || millis() - guidance->GetVtgTimestamp() > 2000) {
+    else if (holdReason != ScraperHold::None) {
         // set mode to hold
         mode = 1;
 
@@ -221,14 +225,12 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
             break;
         case 1:  // HOLD
             lcd->WriteBuffer('H', 3, 14);
-            if (guidance->MinSpeed()) {
-                lcd->WriteBuffer('G', 3, 17);
-                lcd->WriteBuffer('!', 3, 18);
-            }
-            else {
-                lcd->WriteBuffer('S', 3, 17);
-                lcd->WriteBuffer('!', 3, 18);
-            }
+            // The reason (#290): G! no fresh fix, R! not RTK fixed, S! the
+            // speed gate.
+            lcd->WriteBuffer(holdReason == ScraperHold::NoRtk ? 'R'
+                           : holdReason == ScraperHold::Speed ? 'S'
+                                                              : 'G', 3, 17);
+            lcd->WriteBuffer('!', 3, 18);
             break;
         case 2:  // MANUAL
             lcd->WriteBuffer('M', 3, 14);

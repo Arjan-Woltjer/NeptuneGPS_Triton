@@ -652,11 +652,24 @@ test(IsobusGuidanceChannel, gnssPositionData_rtkFixed_commitsFixPositionAltitude
     assertNear(gcGuidance.GetLatitude(), 53.426036f, 1e-4f);
     assertNear(gcGuidance.GetLongitude(), 6.7205691f, 1e-4f);
     assertNear(gcGuidance.GetAltitude(), 4.25f, 0.01f);
+    assertEqual(gcGuidance.GetAltitudeTimestamp(), (unsigned long)1234);
     assertEqual((int)gcGuidance.GetQuality(), 4);
     assertTrue(gcGuidance.IsRtkQuality());
     assertEqual(Channel().GetMessageCounters().gnssPositionData, (uint32_t)1);
     assertEqual((int)Channel().GetMessageCounters().lastGnssMethod, 4);
     assertEqual((int)Channel().GetMessageCounters().lastGnssSvCount, 18);
+    millisValue(0);
+}
+
+// 129029's altitude is the precise one (1e-6 m): it is kept when a source
+// takes no coarse altitude, as the kilverbak's does (NeptuneGPS_Triton#290).
+test(IsobusGuidanceChannel, gnssPositionData_altitudeKeptWhenCoarseAltitudeIsOff) {
+    Reset();
+    gcGuidance.SetUseCoarseAltitude(false);
+    millisValue(1500);
+    Deliver(IsobusGuidanceChannelTestAccess::GnssPositionData(), 0x1C, GnssFrame(0x40));
+    assertNear(gcGuidance.GetAltitude(), 4.25f, 0.01f);
+    assertEqual(gcGuidance.GetAltitudeTimestamp(), (unsigned long)1500);
     millisValue(0);
 }
 
