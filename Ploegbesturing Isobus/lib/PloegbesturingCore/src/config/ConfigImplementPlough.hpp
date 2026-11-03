@@ -68,10 +68,10 @@ _7 are defines for sower
 // FET OUTPUTS (22/23 are CAN TX/RX on this board). An env can move a valve
 // off a failed FET with -D, see teensy40_isobus_fet3 in platformio.ini.
 #ifndef OUTPUT_NARROW_2
-#define OUTPUT_NARROW_2       20
+#define OUTPUT_NARROW_2       20    // FET 1
 #endif
 #ifndef OUTPUT_WIDE_2
-#define OUTPUT_WIDE_2         21    // FET 1
+#define OUTPUT_WIDE_2         21    // FET 2
 #endif
 #ifndef OUTPUT_BYPASS_2
 #define OUTPUT_BYPASS_2       3     // FET 3; 22 on the 3.2 board
