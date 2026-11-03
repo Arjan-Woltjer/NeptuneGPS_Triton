@@ -4,7 +4,7 @@ Written 2026-11-02. A bench session, no tractor: the first time Kilverbakbesturi
 the gate for the stacked PRs #296-#301; nothing in them has run on hardware yet.
 
 - **Branch:** `test/kilverbak-session1`.
-- **Hex files:** `Firmware builds/kilverbak-session1/teensy40_isobus_9c63311.hex` (ISOBUS) and `teensy40_9c63311.hex`
+- **Hex files:** `Firmware builds/kilverbak-session1/teensy40_isobus_d6c8ae1.hex` (ISOBUS) and `teensy40_d6c8ae1.hex`
   (serial). Older hex files are in `superseded/`; do not use them.
 - **Time:** about 3 hours with a VT, about 2 hours without one.
 
@@ -37,7 +37,7 @@ The four things this session must prove, above all:
 
 | Item | What for | Notes |
 | --- | --- | --- |
-| The plough's Teensy 4.0 bench board (Teensy 12278360) | the board under test | 20x4 LCD, both cab buttons, the MODE switch |
+| The plough's Teensy 4.0 bench board (Teensy 17321460) | the board under test | 20x4 LCD, both cab buttons, the MODE switch |
 | 2 LEDs or test lamps | to watch the valve outputs | on output **20** (wide) and **21** (narrow); the board LED is 33 |
 | Proteus | the CAN side, and the bus partner the address claim needs | StarFire emulation: PGN 65267, 65254, 65256. It sends **no PGN 129029**, so CAN alone gives no height (step H2) |
 | USB-serial adapter, **3.3 V** | the UART receiver stand-in | TX into the board's pin 0 (Serial1 RX), RX to pin 1, GND to GND |
@@ -80,7 +80,7 @@ they can be put back.
 | Step | Do | Expect / record |
 | --- | --- | --- |
 | P1 | Boot the board as it is (plough firmware), log open. | Write down the banner version and the boot print's **Baudrate**, **RTK Quality** and **Preferred VT**. These are the shared bytes, and the kilverbak starts with them. |
-| P2 | Flash `teensy40_isobus_9c63311.hex`. | The Teensy Loader reports success. Restart the log. |
+| P2 | Flash `teensy40_isobus_d6c8ae1.hex`. | The Teensy Loader reports success. Restart the log. |
 
 ### Phase A -- boot and address claim (10 min)
 
@@ -121,7 +121,7 @@ they can be put back.
 | Step | Do | Expect |
 | --- | --- | --- |
 | W3 | Wizard, `-`. Slope `+` x5 (`  005`); margin as is; `Wissel op en neer` `+` (ja); `Snelheid vereist` `-` (nee); VT and RTK as they are; `Calibratie afronden` `+`. Also push the slope past 99 and the margin past 10. | `Data is opgeslagen`. The slope stops at 99 and the margin at 10. |
-| W4 | Power off and on (Proteus stays on). | Boot print: slope 5, swap and gate as saved, and **reference A and B still there**. Row 0 `Ref` follows the slope along A -> B. |
+| W4 | Power off and on (Proteus stays on). | Boot print: slope 5 and **reference A and B still there**. Row 0 `Ref` follows the slope along A -> B. Swap and gate are not in the boot print: W5 and W6 show them. |
 | W5 | Manual mode, cab `+` / `-`. | With the swap on, the outputs are the other way round from H1. |
 | W6 | `s` (standing still), mode `A`. | With the speed gate off: stays `A`, no `S!`. |
 | W7 | Wizard, `-`, decline every screen, `Calibratie afronden` `-`. | `Data NIET opgeslagen`; nothing changes. |
@@ -164,9 +164,9 @@ they can be put back.
 
 | Step | Do | Expect |
 | --- | --- | --- |
-| S1 | Flash `teensy40_9c63311.hex`. Simulator at **38400** (`--baud 38400`). Boot. | The LCD autodetect finds 38400 and stores it (boot print). Mode `A` on RTK. |
+| S1 | Flash `teensy40_d6c8ae1.hex`. Simulator at **38400** (`--baud 38400`). Boot. | The LCD autodetect finds 38400 and stores it (boot print). Mode `A` on RTK. |
 | S2 | `p` (the UART goes quiet; Proteus on CAN). | `G!`: the plain CAN bus gives no height (65256's altitude is not taken). |
-| S3 | Simulator at **P1's rate**. Reboot. | The detect finds P1's rate and stores it again: byte 10 is back. |
+| S3 | Simulator at **P1's rate**. Reboot. | The detect finds P1's rate and stores it again: byte 10 is back. The boot print comes before the detect: the stored rate shows on the next boot. |
 
 ### Phase R -- put the board back (10 min)
 
@@ -194,7 +194,7 @@ Any other failure: write down the step, what you saw, and the log time, then car
 ```
 SETUP
 [ ] P1 plough banner ______; baud ______; RTK q __; preferred VT __
-[ ] P2 flashed teensy40_isobus_9c63311
+[ ] P2 flashed teensy40_isobus_d6c8ae1
 
 A  [ ] B1 splash/banner v0.01 Y/N; slope 0, margin 2 Y/N; baud/RTK/VT = P1 Y/N
    [ ] B2 claimed at 0x__ Y/N; NAME 15/132 Y/N/not checked
