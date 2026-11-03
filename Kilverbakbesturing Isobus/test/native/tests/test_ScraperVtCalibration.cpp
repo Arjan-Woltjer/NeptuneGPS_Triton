@@ -171,9 +171,9 @@ test(ScraperVtCalibration, open_showsEveryHeldValue_andThePage) {
 
 test(ScraperVtCalibration, open_stopsTheValves) {
     Fixture f;
-    analogWrite(OUTPUT_WIDE_5, 255);
+    digitalWrite(OUTPUT_WIDE_5, HIGH);
     f.page.OnCalibrateKey();
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), LOW);
 }
 
 // The operator enters -12 for the slope (held as 87) and turns the swap on;
