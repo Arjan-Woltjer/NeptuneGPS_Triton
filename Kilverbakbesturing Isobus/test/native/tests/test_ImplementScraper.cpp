@@ -149,9 +149,13 @@ test(ImplementScraper, update_setpointTracksHeightDelta) {
     // setpoint isn't exposed via a getter directly, but Adjust() reads it --
     // a negative setpoint should drive "wide" (raise) via OUTPUT_WIDE_5.
     impl.Adjust(0, 0);
-    assertMore(analogWriteValue(OUTPUT_WIDE_5), 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
 }
+
+// The valves are read through digitalWrite (NeptuneGPS_Triton#306): on a
+// Teensy 4 their pins 20/21 have no PWM, and analogWrite() there does nothing
+// -- the bench found both valves dead. The stub records digitalWrite levels.
 
 // ---------------------------------------------------------------------------
 // Adjust() -- NOSENS branch, manual mode (mode != 0): setpoint = direction
@@ -163,27 +167,27 @@ test(ImplementScraper, adjust_manualMode_positiveDirection_narrows) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, 5);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), LOW);
 }
 
 test(ImplementScraper, adjust_manualMode_negativeDirection_widens) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, -5);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 255);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
 }
 
 test(ImplementScraper, adjust_manualMode_zeroDirection_stops) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, 5);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), HIGH);
 
     impl.Adjust(2, 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), LOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -198,11 +202,11 @@ test(ImplementScraper, adjust_swap_exchangesTheOutputs) {
     ImplementScraper impl(&mockGuidance);
     impl.SetSwap(true);
     impl.Adjust(2, 5);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 255);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
     impl.Adjust(2, -5);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), LOW);
 }
 
 // An erased byte: no swap, and the speed gate on (the plough's behaviour).

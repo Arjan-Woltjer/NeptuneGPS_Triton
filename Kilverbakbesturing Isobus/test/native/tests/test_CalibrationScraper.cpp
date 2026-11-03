@@ -208,10 +208,10 @@ test(CalibrationScraper, start_opensKeuzemenuAndStopsTheValves) {
     resetAll();
     Wizard w;
     w.impl.Adjust(2, 5);                       // manual, driving
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), HIGH);
     assertTrue(w.cal.Start());
     assertTrue(w.cal.IsActive());
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
     assertEqual(row(0).c_str(), L_CHOICE);
     assertEqual(row(1).c_str(), L_REF);
     assertEqual(row(2).c_str(), L_CAL);
