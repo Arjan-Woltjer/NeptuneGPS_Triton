@@ -134,7 +134,11 @@ void setup() {
     gSerialDebug->println("--------------------------------");
     gSerialDebug->println("-----------MeijWorks------------");
     gSerialDebug->println("--------------------------------");
+#ifdef ISOBUS
     gSerialDebug->println("   Triton KB-ISO version 0.01   ");
+#else
+    gSerialDebug->println("   Triton KB-SER version 0.01   ");
+#endif
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
 
