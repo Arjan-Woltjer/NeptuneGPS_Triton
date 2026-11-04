@@ -107,6 +107,7 @@ namespace internal_arduino_stub
 inline uint32_t      g_digitalReadPinValues = 0;
 inline int           g_analogReadPinValues[64] = { 0 };
 inline int           g_analogWritePinValues[64] = { 0 };
+inline int           g_digitalWritePinValues[64] = { 0 };
 inline unsigned long g_millis = 0;
 }
 
@@ -137,8 +138,21 @@ inline void millisValue(unsigned long ms) { internal_arduino_stub::g_millis = ms
 
 // No-op stubs for hardware control not used in tests
 inline void pinMode(uint8_t, uint8_t) {}
-inline void digitalWrite(uint8_t, uint8_t) {}
 inline void delay(unsigned long) {}
+
+// digitalWrite() records the level, for the wide/narrow valve outputs, which
+// switch with digitalWrite (NeptuneGPS_Triton#312, as #306 in Kilverbakbesturing
+// Isobus): on a Teensy 4 their pins 20/21 have no PWM, and analogWrite() there
+// does nothing.
+inline void digitalWrite(uint8_t pin, uint8_t value) {
+    if (pin >= 64) return;
+    internal_arduino_stub::g_digitalWritePinValues[pin] = value;
+}
+
+inline int digitalWriteValue(uint8_t pin) {
+    if (pin >= 64) return 0;
+    return internal_arduino_stub::g_digitalWritePinValues[pin];
+}
 inline void analogReference(uint8_t) {}
 
 // analogWrite() records the duty value so tests can assert on it via
