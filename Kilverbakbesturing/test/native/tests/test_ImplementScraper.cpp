@@ -148,8 +148,8 @@ test(ImplementScraper, update_setpointTracksHeightDelta) {
     // setpoint isn't exposed via a getter directly, but Adjust() reads it --
     // a negative setpoint should drive "wide" (raise) via OUTPUT_WIDE_5.
     impl.Adjust(0, 0);
-    assertMore(analogWriteValue(OUTPUT_WIDE_5), 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
 }
 
 // ---------------------------------------------------------------------------
@@ -162,27 +162,27 @@ test(ImplementScraper, adjust_manualMode_positiveDirection_narrows) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, 5);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), LOW);
 }
 
 test(ImplementScraper, adjust_manualMode_negativeDirection_widens) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, -5);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 255);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), HIGH);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
 }
 
 test(ImplementScraper, adjust_manualMode_zeroDirection_stops) {
     resetAll();
     ImplementScraper impl(&mockGuidance);
     impl.Adjust(2, 5);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 255);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), HIGH);
 
     impl.Adjust(2, 0);
-    assertEqual(analogWriteValue(OUTPUT_NARROW_5), 0);
-    assertEqual(analogWriteValue(OUTPUT_WIDE_5), 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_5), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_5), LOW);
 }
 
 // ---------------------------------------------------------------------------
