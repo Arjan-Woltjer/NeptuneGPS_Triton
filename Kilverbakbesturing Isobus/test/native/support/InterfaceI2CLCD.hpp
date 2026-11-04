@@ -2,8 +2,8 @@
 // Minimal InterfaceI2CLCD stub for native/MSVC unit tests. It keeps the four
 // 20-character rows the real class buffers, so the calibration wizard's tests
 // (test_CalibrationScraper.cpp) can read the screen; WriteScreen() writes
-// nothing. InterfaceScraper.cpp's UpdateScreen() renders into it too, but no
-// test asserts on that.
+// nothing. InterfaceScraper.cpp's UpdateScreen() renders into it too, and
+// test_InterfaceScraper.cpp reads row 0's offset field.
 #include <stdint.h>
 // No <string> here: this header comes after Arduino.h, whose min/max macros
 // break GCC's standard library headers (CI, 2026-10-21).

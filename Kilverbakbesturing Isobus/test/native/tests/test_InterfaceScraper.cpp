@@ -383,3 +383,57 @@ test(InterfaceScraper, updateScreen_rendersLargeAndNegativeValues) {
     iface.UpdateScreen(true);
     assertEqual(impl.GetSlope(), (short int)-12);
 }
+
+// Row 0's offset field, columns 12-18 between the reference height and the
+// 'm'. The cab LCD drew it only above 99 cm, with one digit for whole metres
+// (+14,74 m read "+ >,74"), and never cleared it (bench session 1, owner
+// 2026-11-04, #308): an offset that came back under a metre left the old one up.
+static const char* offsetField() {
+    static char field[8];
+    memcpy(field, mockLcd.Row(0) + 12, 7);
+    field[7] = '\0';
+    return field;
+}
+
+static void ggaAt(unsigned long ms, float altitude) {
+    millisValue(ms);
+    mockGuidance.SetAltitude(altitude);
+    mockGuidance.NoteGgaFixReceived();
+}
+
+test(InterfaceScraper, updateScreen_offset_showsEveryOffsetInFullAndClears) {
+    resetAll();
+    mockLcd.Clear();
+    ImplementScraper impl(&mockGuidance);
+    InterfaceScraper iface(&mockLcd, &impl, &mockTractor, &mockGuidance);
+    impl.SetSlope(0);
+    mockGuidance.SetPosition(52.0f, 5.0f);
+    ggaAt(1, 10.0f);
+    impl.SetRefA();                              // reference 10,00 m, offset 0
+    iface.UpdateScreen(true);
+    assertEqual(offsetField(), "       ");
+
+    ggaAt(2, 24.74f);                            // HAND rebases: 10,00 - 24,74
+    impl.Update(2, 0);
+    impl.Adjust(2, 0);
+    assertEqual((int)impl.GetOffset(), -1474);
+    iface.UpdateScreen(false);
+    assertEqual(offsetField(), " -14,74");
+
+    ggaAt(3, 10.5f);                             // back under a metre
+    impl.Update(2, 0);
+    impl.Adjust(2, 0);
+    assertEqual((int)impl.GetOffset(), -50);
+    iface.UpdateScreen(false);
+    assertEqual(offsetField(), "  -0,50");
+
+    impl.SetRefA();                              // a new reference zeroes it
+    iface.UpdateScreen(false);
+    assertEqual(offsetField(), "       ");
+
+    millisValue(1000);                           // Auto: + raises it 1 cm
+    impl.Update(0, 1);
+    assertEqual((int)impl.GetOffset(), 1);
+    iface.UpdateScreen(false);
+    assertEqual(offsetField(), "  +0,01");
+}

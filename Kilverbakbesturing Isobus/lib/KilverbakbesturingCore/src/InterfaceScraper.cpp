@@ -162,25 +162,25 @@ void InterfaceScraper::UpdateScreen(boolean rewrite) {
     // Regel 0
     LcdWriteNumber(lcd, implement->GetRefHeight(), 0, 5, 7, 2, ',');
 
-    // Regel 0
+    // Regel 0: the offset in m, signed, in columns 12-18 ("  +0,05",
+    // " -14,74"), blank when there is none. Written every pass, so a smaller
+    // offset clears a larger one. The old field showed only offsets above
+    // 99 cm, with one digit for whole metres (NeptuneGPS_Triton#308).
     temp2 = implement->GetOffset();
     temp = abs(temp2);
+    if (temp > 9999) {
+        temp = 9999;   // 99,99 m: the field holds no more
+    }
 
-    if (temp > 99) {
-        lcd->WriteBuffer(' ', 0, 12);
-        if (temp2 < 0) {
-            lcd->WriteBuffer('-', 0, 13);
+    if (temp == 0) {
+        for (uint8_t col = 12; col <= 18; col++) {
+            lcd->WriteBuffer(' ', 0, col);
         }
-        else {
-            lcd->WriteBuffer('+', 0, 13);
-        }
-        lcd->WriteBuffer(' ', 0, 14);
-        lcd->WriteBuffer(temp / 100 + '0', 0, 15);
-        temp = temp % 100;
-        lcd->WriteBuffer(',', 0, 16);
-        lcd->WriteBuffer(temp / 10 + '0', 0, 17);
-        temp = temp % 10;
-        lcd->WriteBuffer(temp + '0', 0, 18);
+    }
+    else {
+        LcdWriteNumber(lcd, temp, 0, 12, 7, 2, ',');
+        // The sign sits directly before the digits: "0,50" is 4 wide.
+        lcd->WriteBuffer(temp2 < 0 ? '-' : '+', 0, temp > 999 ? 13 : 14);
     }
 
     // Regel 1
