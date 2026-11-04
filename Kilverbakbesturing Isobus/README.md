@@ -24,7 +24,8 @@ besturing 0.1, as in `Ploegbesturing Isobus` (`ISOBUS_CAN_CHANNEL`,
 `config/ConfigScraper.hpp`). Debug output, and the ISOBUS debug menu, are on the USB
 port.
 
-The LCD splash and the serial banner read `Triton KB-ISO v0.NN`, NN being the
+The LCD splash and the serial banner read `Triton KB-ISO v0.NN` in the ISOBUS
+builds and `Triton KB-SER v0.NN` in the serial builds (#310), NN being the
 kilverbak test session (session 1: v0.01), as the plough does.
 
 ## Settings and the calibration wizard

@@ -27,7 +27,11 @@
 // ---------------
 #if defined NEDERLANDS
 
+#ifdef ISOBUS
 #define L_DEVICE        "Triton KB-ISO  v0.01"
+#else
+#define L_DEVICE        "Triton KB-SER  v0.01"   // the serial build (#310)
+#endif
 
 #define L_HEIGHT_R      "Ref:               m"
 #define L_HEIGHT        "Actueel:           m"
@@ -94,7 +98,11 @@
 // translation of the NEDERLANDS block above, matching how LanguagePlanter.hpp's
 // and LanguageSprayer.hpp's equivalent gaps were filled.
 
+#ifdef ISOBUS
 #define L_DEVICE        "Triton KB-ISO  v0.01"
+#else
+#define L_DEVICE        "Triton KB-SER  v0.01"   // the serial build (#310)
+#endif
 
 #define L_HEIGHT_R      "Ref:               m"
 #define L_HEIGHT        "Current:           m"
