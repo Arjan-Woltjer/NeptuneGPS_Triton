@@ -237,10 +237,29 @@ FLASHMEM void PloughDebugMenuSections::PrintDump() {
             serialDebug->print(millis() - tcInterface->GetTramlineSetpointMs());
             serialDebug->println(" ms ago)");
         } else if (tcInterface->IsConnected()) {
-            serialDebug->println("(none yet -- no Tramline Control seen on this terminal)");
+            serialDebug->println("(none yet)");
         } else {
             serialDebug->println("(not connected)");
         }
+        // What the TC polls: the AGCO TC on the Fendt read 515 at ~1 Hz and
+        // 506 every ~10 s without ever commanding anything (#316).
+        serialDebug->print("  [on bus] Requests for DDI 506: ");
+        serialDebug->print(tcInterface->GetBusRequest506Count());
+        serialDebug->print("  DDI 515: ");
+        serialDebug->println(tcInterface->GetBusRequest515Count());
+        serialDebug->print("  Track control state (DDI 515): ");
+        if (tcInterface->HasTrackControlState()) {
+            serialDebug->print("commanded=");
+            serialDebug->print(tcInterface->GetCommandedTrackControlState());
+            serialDebug->print(" (");
+            serialDebug->print(millis() - tcInterface->GetTrackControlCommandMs());
+            serialDebug->print(" ms ago)");
+        } else {
+            serialDebug->print("never commanded");
+        }
+        serialDebug->print("  we answer=");
+        serialDebug->print(tcInterface->GetReportedTrackControlState());
+        serialDebug->println(tcInterface->IsTrackControlEchoOn() ? "  [SPIKE #316: echo ON]" : "");
         // Guidance-track DDIs 508-511. Worth reading even when 506 stays
         // silent: a terminal that populates track numbering speaks this part
         // of the protocol whether or not it completes the tramline handshake,

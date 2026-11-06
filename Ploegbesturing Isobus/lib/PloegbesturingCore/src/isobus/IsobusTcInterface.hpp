@@ -189,6 +189,16 @@ public:
     inline std::int32_t  GetTramlineSequenceNumber() const { return tramlineSequenceNumber; }
     inline bool          HasTrackControlState() const      { return trackControlStateSeen; }
     inline std::int32_t  GetCommandedTrackControlState() const { return commandedTrackControlState; }
+    inline unsigned long GetTrackControlCommandMs() const  { return lastTrackControlCommandMs; }
+    // What a read of 515 answers: the commanded state while the #316 spike's
+    // echo is on, our own (manual/off) otherwise.
+    inline std::int32_t  GetReportedTrackControlState() const {
+        return kEchoTrackControlState ? commandedTrackControlState : kReportedTrackControlState;
+    }
+    inline bool          IsTrackControlEchoOn() const      { return kEchoTrackControlState; }
+    inline bool          IsTrackControlReportPending() const { return trackControlReportPending; }
+    inline unsigned long GetBusRequest506Count() const     { return busRequest506Count; }
+    inline unsigned long GetBusRequest515Count() const     { return busRequest515Count; }
     inline std::int32_t  GetAbLineId() const          { return abLineId; }
     inline std::int32_t  GetActualTrackNumber() const { return actualTrackNumber; }
     inline std::int32_t  GetTrackNumberRight() const  { return trackNumberRight; }
@@ -329,6 +339,23 @@ private:
     // constant so there is one obvious place to look the day that changes.
     static constexpr std::int32_t kReportedTrackControlState = 0;
     unsigned long   lastTramlineSetpointMs = 0;
+    unsigned long   lastTrackControlCommandMs = 0;
+
+    // SPIKE #316 -- time-boxed, never in a customer build, never merged to
+    // main. The AEF Tramline Control start (Basic Requirements v1.16, Figure 1)
+    // has the TC set 515 = 1 and the implement answer 1; answering our honest
+    // 0 may be what stops a willing TC there. With this on, a read of 515
+    // answers what the TC commanded, and a change is reported to the TC at
+    // once (from Update(), not from inside AgIsoStack's callback, which runs
+    // under the client mutex). The plough still computes no tramline.
+    static constexpr bool kEchoTrackControlState = true;
+    bool            trackControlReportPending = false;
+
+    // Requests for our values on the wire, by DDI: the AGCO TC on the Fendt
+    // polled 515 at ~1 Hz and 506 every ~10 s for a whole session (#316)
+    // while the dump could only show the total.
+    unsigned long   busRequest506Count = 0;
+    unsigned long   busRequest515Count = 0;
 
     // Reconnect watchdog (GitHub issue #18). This matters more here than on
     // the VT side: TaskControllerClient's WaitForServerStatusMessage state
