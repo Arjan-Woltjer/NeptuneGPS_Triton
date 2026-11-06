@@ -520,6 +520,13 @@ void IsobusTcInterface::SetWorking(bool isWorking) {
 // ------------------------------------------------------------------
 void IsobusTcInterface::Update() {
     if (tcClient) {
+        // The #316 echo: report a changed 515 here, outside AgIsoStack's
+        // value-command callback, which runs under the client's mutex.
+        if (trackControlReportPending && tcClient->get_is_connected()) {
+            tcClient->on_value_changed_trigger(kElementFunction,
+                                               static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState));
+            trackControlReportPending = false;
+        }
         tcClient->update();
         updateReconnectWatchdog();
         reportWidthIfChanged();
@@ -638,6 +645,16 @@ void IsobusTcInterface::OnProcessDataFrame(const CANMessage& message, void* pare
     switch (ClassifyProcessDataCommand(d[0])) {
         case ProcessDataKind::RequestValue:
             self->busRequestValueCount++;
+            switch (ProcessDataDdi(d.data())) {
+                case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointTrackControlLevel):  // 506
+                    self->busRequest506Count++;
+                    break;
+                case static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState):  // 515
+                    self->busRequest515Count++;
+                    break;
+                default:
+                    break;
+            }
             break;
 
         // Set value, and set-value-and-acknowledge. The latter needs version 4
@@ -723,9 +740,16 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState):  // 515
             // What the TC asked us to be. What we actually are is answered in
-            // OnValueRequest, and it is not this.
+            // OnValueRequest: our own state, or this while the #316 spike
+            // echoes it -- then a change goes back to the TC at once, as in
+            // the AEF Figure 1 start sequence.
+            if (kEchoTrackControlState && (!self->trackControlStateSeen
+                                           || processVariableValue != self->commandedTrackControlState)) {
+                self->trackControlReportPending = true;
+            }
             self->commandedTrackControlState = processVariableValue;
             self->trackControlStateSeen      = true;
+            self->lastTrackControlCommandMs  = millis();
             break;
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueGuidanceReferenceLineID):  // 508
@@ -811,9 +835,11 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
         // the client replies with its own. Ours is 0 = manual/off and will
         // stay there until something actually performs track control -- see
         // kTramlineControlLevelsSupported. Answering with the commanded value
-        // instead would be a lie the TC has no way to detect.
+        // instead is a claim the TC has no way to check, which is exactly what
+        // the time-boxed #316 spike does (kEchoTrackControlState), to see
+        // whether our 0 is what stops a willing TC after it activates.
         case static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState):  // 515
-            processVariableValue = kReportedTrackControlState;
+            processVariableValue = self->GetReportedTrackControlState();
             break;
 
         // Echoes of what the TC last wrote to us.

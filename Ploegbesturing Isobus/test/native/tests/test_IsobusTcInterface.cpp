@@ -464,14 +464,27 @@ test(IsobusTcInterface, valueRequest_echoesWhatTheTcWroteToUs) {
     assertEqual((int)Request(isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID), 77);
 }
 
-// DDI 515 shares DDI 160's definition: the TC sets the state and the client
-// answers with its own. Ours is 0 and stays there until something actually
-// performs track control. Answering with the commanded value would be a lie
-// the TC has no way to detect.
-test(IsobusTcInterface, valueRequest_trackControlStateAnswersOurOwnState_notTheCommandedOne) {
+// SPIKE #316. DDI 515 shares DDI 160's definition: the TC sets the state and
+// the client answers with its own, which is 0 on main. The AEF Tramline
+// Control start (Figure 1) has the implement answer the TC's 1, so on this
+// branch a read echoes what the TC commanded, back to 0 included.
+test(IsobusTcInterface, valueRequest_trackControlStateEchoesTheCommandedOne_spike316) {
     Command(isobus::DataDescriptionIndex::TrackControlState, 1);
     assertEqual((int)Fixture().GetCommandedTrackControlState(), 1);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::TrackControlState), 1);
+
+    Command(isobus::DataDescriptionIndex::TrackControlState, 0);
     assertEqual((int)Request(isobus::DataDescriptionIndex::TrackControlState), 0);
+}
+
+// A changed 515 is reported to the TC at once (the implement's answer in the
+// AEF start sequence). The callback only flags it: AgIsoStack calls it under
+// the client mutex, so Update() sends the trigger.
+test(IsobusTcInterface, valueCommand_trackControlStateChangeFlagsAReport_spike316) {
+    Command(isobus::DataDescriptionIndex::TrackControlState, 1);
+    const std::int32_t current = Fixture().GetCommandedTrackControlState();
+    Command(isobus::DataDescriptionIndex::TrackControlState, current == 1 ? 0 : 1);
+    assertTrue(Fixture().IsTrackControlReportPending());
 }
 
 test(IsobusTcInterface, valueRequest_countsEveryRequest) {
