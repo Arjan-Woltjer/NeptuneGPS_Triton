@@ -19,7 +19,7 @@ Session 22 ran on **2026-11-06 at J.A. Bos (Fendt VT + Trimble GFX-1260)**, not 
 |---|---|---|
 | P1-P4 MW16 pool (#282) | PASS on the Fendt VT and the GFX-1260. New: **soft key text very small on the Fendt** | **Still open for the CNH VT and the 1200**, the two VTs #282 was about (session 21: popups invisible on the CNH, faint on the 1200). Steps P1a-P4a, P1b-P4b |
 | P5 VOORK. VT / failover | PASS: moves in 0.7-1 s; a VT renumbering was followed | R8 / R7 only |
-| A2/A4 AUX-N (#254) | **PASS on the Fendt** (joystick, input unit 0x80 model 85): assigned, presses reached the width command, unassign works. The GFX (VT 2) refused: AUX-N lives on the VT-1 terminal | The 1200 is VT 1 here, so the VT number is not why it broke in session 21. A1-A4 |
+| A2/A4 AUX-N (#254) | **PASS on the Fendt** (joystick, input unit 0x80 model 85): assigned, presses reached the width command, unassign works. The GFX (VT 2) refused: AUX-N lives on the VT-1 terminal | The 1200 is VT 1 here, so the VT number is not why it broke in session 21. A0-A5 |
 | N2S wheel speed | **Brief error**: there is no wheel speed on the cab LCD, and the plough uses only GNSS speed (#275). GNSS speed matched the Fendt | Dropped |
 | L2D, C8, E6 | Not run: no XTE and no RTK at Bos | **Still open**: section 5 |
 
@@ -53,7 +53,7 @@ This session decides:
 
 1. **Setup** (section 2): flash, boot print, MW16 upload on the 1200.
 2. **R1-R4** (the debug menu: the one part of #296 no desk test covers).
-3. **P1a-P4a and A1-A4 on the 1200**, standing still.
+3. **P1a-P4a and A0-A4 on the 1200**, standing still.
 4. **R8, P1b-P4b on the CNH VT.**
 5. **L2D and C8** driving the line in AUTO; **E6** if it can be made.
 6. R7 (failover) only if there is time and it is safe.
@@ -107,12 +107,34 @@ P steps on each VT (sections 4 and 5): one pass answers #296 and #282 together.
 Session 21: the 1200 listed BREDER and SMALLER, but assigning showed a broken link and no assignment ever reached
 the plough. Session 22: the same pool assigned at once on a Fendt.
 
+**What the captures say (2026-11-06 comparison, Fendt session 100 vs the 1200 in sessions 96-98):**
+- Our side is identical in both: the same AUX function objects, the same empty Preferred Assignment; the 1200 answers
+  it without error, the CNH VT (VT 2) with "other error", as the GFX did as VT 2 at Bos.
+- On the Fendt, every assignment starts with **the VT enabling the input on the input unit** (0x25 to 0x80), then the
+  input's status (0x26), then the assignment to us (0x24, by TP) and our answer. **The 1200 never sent a 0x25 to the
+  armrest**, and no 0x24/0x25/0x26 appears anywhere in sessions 1-98.
+- **The armrest only becomes an AUX input unit after it is switched on in its own pages on the 1200** (a soft key,
+  then a button, a busy page, then it sends its 535-byte add-on with the 16 inputs). That does **not** survive a 1200
+  reboot.
+- During the session 21 attempts the 1200's status shows **the armrest's own pages in front** almost all the time,
+  with many touches there; never the 1200's own screens. The armrest page draws an AUX designator per button: with
+  nothing assigned, a broken-link symbol fits.
+- Best guess (medium confidence): **the attempts were made on the CNH armrest's page, which cannot assign**; only the
+  1200's own AUX screen can. If the 1200's own screen was used after all, the 1200 isn't pairing the armrest's inputs
+  (VT version 3, the post-load add-on, or single-assignment inputs held by a stored assignment), which the bus can't
+  tell apart.
+- VT versions: Fendt 6, CNH 4, the 1200 3.
+
+Note the clock time of every A step (the CANedge has the rest).
+
 | Step | Do | Expect |
 |---|---|---|
-| A1 | The 1200's AUX screen. **Photos** of the function list and of the **input list**. | BREDER and SMALLER listed. Does the input list show the armrest's inputs at all, and are any marked as taken (by the CNH's own functions)? |
-| A2 | Try to assign BREDER to a momentary armrest button (and SMALLER to another). Note the exact message or icon. | Session 21: broken link. If it takes: the log shows `Assigned function 170 to input ...`. |
-| A3 | If it took: press each button ~2 s, twice, note the time to the second; the cab LCD's width. | Every press and release logged; wider / narrower reaches the width command, as on the Fendt. |
-| A4 | If it took: unassign both. If it didn't: press the armrest buttons one at a time, ~2 s each, times to the second. | Unassign logged (`input 65535` is right: an unassign names no input). The presses are for the CANedge, to see what the armrest sends. |
+| A0 | On the 1200, open the **CNH armrest's own page** and switch its AUX inputs on (the soft key, then the button; wait for the busy page). After every 1200 boot. **Photos** of each armrest page, the button's label, any setting mapping armrest buttons to ISOBUS AUX. | The armrest page comes back after the busy page. |
+| A1 | Find the **1200's own** AUX / auxiliary-input assignment screen (Ag Leader menu, not the CNH page); plough bound to the 1200. **Photos**, also of the screen that shows the broken link (CNH page or Ag Leader screen?). | BREDER and SMALLER listed; the CNH armrest offered as an input device with its buttons; note any input marked as taken. |
+| A2 | On that screen, assign BREDER to a momentary armrest button, SMALLER to another. Note the exact message or icon. | Plough log `Assigned function 170 to input 281xx` (momentary inputs 28100-28106, 28109-28111), then 171. If not: the message word for word and which screen it came from. |
+| A3 | If assigned: press each button ~2 s, twice, times to the second; then unassign both. | Every press and release logged; the width command moves, as on the Fendt. Unassign logged (`input 65535` is right: an unassign names no input). |
+| A4 | If no armrest input is offered: look for stored assignments on the 1200 holding armrest inputs (clear them **only with the farmer's OK**); ask whether the armrest was ever AUX-assigned on this 1200. Press the armrest buttons one at a time, ~2 s each, times to the second. | What the 1200 shows; the presses are for the CANedge. |
+| A5 | (Optional, **farmer's OK**.) Swap the VT numbers so the CNH VT is VT 1, bind the plough there, assign on the CNH VT's AUX screen. **Restore the numbers** afterwards (the 1200 hosts the TC and the lightbar). | If it assigns on the CNH VT, the 1200 is the limit. Note whether the armrest connects to the CNH VT at all. |
 
 ## 5. On the CNH VT (VT 2), then driving
 
@@ -144,8 +166,9 @@ SHARED ISOBUS LAYER (#296)
 THE 1200
 - [ ] P1a Y/N   - [ ] P2a + col __ row __, - col __ row __, CALIBR col __ row __; text size ____
 - [ ] P3a popups readable Y/N   - [ ] P4a Y/N
-- [ ] A1 inputs listed Y/N, taken Y/N (photos)   - [ ] A2 assigned Y/N; message ________
-- [ ] A3 presses (time, button): ________________   - [ ] A4 ________
+- [ ] A0 armrest AUX on, __:__ (photos)   - [ ] A1 1200's own AUX screen found Y/N; armrest offered Y/N (photos)
+- [ ] A2 assigned Y/N; message ________   - [ ] A3 presses (time, button): ________________
+- [ ] A4 ________   - [ ] A5 (optional) ________
 
 THE CNH VT AND DRIVING
 - [ ] R8 moved Y/N; MW16 upload __ s   - [ ] P1b Y/N   - [ ] P2b ________   - [ ] P3b Y/N   - [ ] P4b Y/N
@@ -165,5 +188,5 @@ and flash the fallback (fb09684) for the rest of the day. The other steps then r
 
 - **Notes:** serial log and timeline on **`test/session23`** under `Ploegbesturing Isobus/Documentation/logs/`, named
   `<date>_session23_vanmastwijk_*`; a `logs/session23_vanmastwijk_handover.md` if the workstation isn't reachable.
-- **Where results go:** R1-R8 to #287 / PR #296; P1a-P4b to #282 (closed; comment); A1-A4 to #254; L2D to #272; C8
+- **Where results go:** R1-R8 to #287 / PR #296; P1a-P4b to #282 (closed; comment); A0-A5 to #254; L2D to #272; C8
   to #31; E6 to #250.
