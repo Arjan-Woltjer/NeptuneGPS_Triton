@@ -41,9 +41,35 @@ static void GPrintLightbarPass(Stream* out, const LightbarXteResult& xte) {
 // ------------------------------------------------------------------
 FLASHMEM void PloughDebugMenuSections::PrintMenuItems() {
     serialDebug->println("4. Dump DDOP as hex (open in AgIsoDDOPGenerator)");
+    if (tcInterface != nullptr) {
+        // SPIKE #316: any -> TC 1 -> TC 2 -> any.
+        serialDebug->print("t. Task Controller choice (SPIKE #316), now: ");
+        printTcChoice(tcInterface->GetSelectedTcNumber());
+        serialDebug->println();
+    }
+}
+
+FLASHMEM void PloughDebugMenuSections::printTcChoice(std::uint8_t tcNumber) {
+    if (tcNumber == 0) {
+        serialDebug->print("any TC");
+    } else {
+        serialDebug->print("TC ");
+        serialDebug->print(tcNumber);
+        serialDebug->print(" (function instance ");
+        serialDebug->print(tcNumber - 1);
+        serialDebug->print(")");
+    }
 }
 
 FLASHMEM bool PloughDebugMenuSections::HandleMenuKey(char c) {
+    if ((c == 't' || c == 'T') && tcInterface != nullptr) {
+        const std::uint8_t next = static_cast<std::uint8_t>((tcInterface->GetSelectedTcNumber() + 1) % 3);
+        tcInterface->SelectTc(next);
+        serialDebug->print("TC: binding to ");
+        printTcChoice(next);
+        serialDebug->println(" -- new handshake and DDOP upload follow");
+        return true;
+    }
     if (c != '4') return false;
     // The DDOP the firmware actually builds, not the one we think it
     // builds. A pool that fails to serialise here is a pool a
@@ -228,6 +254,28 @@ FLASHMEM void PloughDebugMenuSections::PrintDump() {
         serialDebug->print(tcInterface->IsPartnerAddressValid() ? "Y" : "N");
         serialDebug->print("  reconnect attempts=");
         serialDebug->println(tcInterface->GetReconnectAttemptCount());
+        // SPIKE #316: which TC, and what it says about itself (session 22:
+        // the AGCO TC reported version 3, 0 booms, 0 sections).
+        serialDebug->print("  TC choice: ");
+        printTcChoice(tcInterface->GetSelectedTcNumber());
+        serialDebug->print("  bound: ");
+        if (tcInterface->IsPartnerAddressValid()) {
+            serialDebug->print("TC ");
+            serialDebug->print(tcInterface->GetPartnerFunctionInstance() + 1);
+            serialDebug->print(" manufacturer ");
+            serialDebug->print(tcInterface->GetPartnerManufacturerCode());
+        } else {
+            serialDebug->print("none");
+        }
+        if (tcInterface->IsConnected()) {
+            serialDebug->print("  version ");
+            serialDebug->print(tcInterface->GetConnectedTcVersion());
+            serialDebug->print(" booms ");
+            serialDebug->print(tcInterface->GetConnectedTcBooms());
+            serialDebug->print(" sections ");
+            serialDebug->print(tcInterface->GetConnectedTcSections());
+        }
+        serialDebug->println();
         // Tramline Control probe (GitHub issue #21) -- the arrival is the
         // result, not the value; see IsobusTcInterface::HasTramlineSetpoint().
         serialDebug->print("  Tramline setpoint (DDI 506): ");

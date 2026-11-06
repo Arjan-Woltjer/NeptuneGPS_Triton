@@ -102,6 +102,31 @@ public:
     // Call every loop() iteration.
     void Update();
 
+    // SPIKE #316: which Task Controller to bind to. 0 = any (the first TC that
+    // claims, as on main); n = TC number n, i.e. NAME function instance n - 1
+    // (at J.A. Bos: 1 = the AGCO TC, 2 = the Trimble GFX's). Choosing another
+    // drops the current TC client and binds afresh, so the DDOP goes up again.
+    // Not stored: every boot starts on "any". Clears the per-TC observations
+    // below, so the dump describes the TC now bound.
+    void SelectTc(std::uint8_t tcNumber);
+    inline std::uint8_t GetSelectedTcNumber() const { return selectedTcNumber; }
+    static std::vector<isobus::NAMEFilter> TcNameFilters(std::uint8_t tcNumber);
+
+    // The bound TC: which one it is, and what it says it can do. The NAME
+    // fields read 0xFF / 0 until the partner has claimed; the capabilities
+    // mean nothing before IsConnected().
+    inline std::uint8_t GetPartnerFunctionInstance() const {
+        return IsPartnerAddressValid() ? partner->get_NAME().get_function_instance() : 0xFF;
+    }
+    inline std::uint16_t GetPartnerManufacturerCode() const {
+        return IsPartnerAddressValid() ? partner->get_NAME().get_manufacturer_code() : 0;
+    }
+    inline int GetConnectedTcVersion() const {
+        return tcClient ? static_cast<int>(tcClient->get_connected_tc_version()) : -1;
+    }
+    inline std::uint8_t GetConnectedTcBooms() const    { return tcClient ? tcClient->get_connected_tc_number_booms_supported() : 0; }
+    inline std::uint8_t GetConnectedTcSections() const { return tcClient ? tcClient->get_connected_tc_number_sections_supported() : 0; }
+
     // Diagnostics for IsobusDebugMenu.
     inline bool          IsConnected() const        { return tcClient && tcClient->get_is_connected(); }
     // AgIsoStack's own docs warn not all TCs report this correctly (e.g. John
@@ -356,6 +381,13 @@ private:
     // while the dump could only show the total.
     unsigned long   busRequest506Count = 0;
     unsigned long   busRequest515Count = 0;
+
+    // SPIKE #316: the TC choice (see SelectTc()), and the two halves of
+    // binding to one: the partner + client, made at Begin() and again on
+    // every change of choice, and the clearing of what the last TC told us.
+    std::uint8_t    selectedTcNumber = 0;
+    void            createClient();
+    void            resetTcObservations();
 
     // Reconnect watchdog (GitHub issue #18). This matters more here than on
     // the VT side: TaskControllerClient's WaitForServerStatusMessage state

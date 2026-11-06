@@ -345,6 +345,42 @@ test(IsobusTcInterface, valueCommand_trackControlStateChangeFlagsAReport_spike31
     assertTrue(Fixture().IsTrackControlReportPending());
 }
 
+// SPIKE #316: the TC choice. "Any" is the function code alone, as on main;
+// TC n adds NAME function instance n - 1 (TC numbering, as with VTs).
+test(IsobusTcInterface, tcNameFilters_anyIsFunctionCodeOnly_tcNumberAddsTheInstance_spike316) {
+    const auto any = IsobusTcInterface::TcNameFilters(0);
+    assertEqual((int)any.size(), 1);
+    assertTrue(any[0].get_parameter() == isobus::NAME::NAMEParameters::FunctionCode);
+    assertEqual((int)any[0].get_value(), (int)isobus::NAME::Function::TaskController);
+
+    const auto tc2 = IsobusTcInterface::TcNameFilters(2);
+    assertEqual((int)tc2.size(), 2);
+    assertTrue(tc2[1].get_parameter() == isobus::NAME::NAMEParameters::FunctionInstance);
+    assertEqual((int)tc2[1].get_value(), 1);
+}
+
+// Choosing another TC rebinds and clears what the last TC told us, so the
+// dump describes the TC now bound. The process-data callbacks still work on
+// the new client afterwards.
+test(IsobusTcInterface, selectTc_rebindsAndClearsTheLastTcsObservations_spike316) {
+    Command(isobus::DataDescriptionIndex::TrackControlState, 1);
+    Command(isobus::DataDescriptionIndex::SetpointTrackControlLevel, 1);
+    assertTrue(Fixture().HasTrackControlState());
+
+    Fixture().SelectTc(2);
+    assertEqual((int)Fixture().GetSelectedTcNumber(), 2);
+    assertFalse(Fixture().HasTrackControlState());
+    assertFalse(Fixture().HasTramlineSetpoint());
+    assertEqual(Fixture().GetValueCommandCount(), 0UL);
+    assertFalse(Fixture().IsConnected());
+
+    Command(isobus::DataDescriptionIndex::TrackControlState, 1);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::TrackControlState), 1);
+
+    Fixture().SelectTc(0);   // the shared fixture goes back to "any"
+    assertEqual((int)Fixture().GetSelectedTcNumber(), 0);
+}
+
 test(IsobusTcInterface, valueRequest_countsEveryRequest) {
     const unsigned long before = Fixture().GetValueRequestCount();
     Request(isobus::DataDescriptionIndex::GNSSQuality);

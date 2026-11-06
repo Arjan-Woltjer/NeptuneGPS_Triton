@@ -53,6 +53,9 @@ public:
     void PrintPeriodicAfterVt() override;
 
 private:
+    // "any TC" or "TC n (function instance n-1)": SPIKE #316's TC choice.
+    void printTcChoice(std::uint8_t tcNumber);
+
     Stream*                serialDebug;
     IsobusTcInterface*     tcInterface;
     IsobusLightbarChannel* lightbarChannel;

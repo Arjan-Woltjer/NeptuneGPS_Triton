@@ -387,12 +387,81 @@ void IsobusTcInterface::buildDdop() {
 // is claimed.
 // ------------------------------------------------------------------
 void IsobusTcInterface::Begin() {
-    // Partner: any control function claiming the TaskController function
-    // code. Pattern matches IsobusVtInterface::Begin()'s VT partner filter,
-    // confirmed working on hardware.
-    const NAMEFilter tcFilter(NAME::NAMEParameters::FunctionCode,
-                              static_cast<uint8_t>(NAME::Function::TaskController));
-    const std::vector<NAMEFilter> tcNameFilters = { tcFilter };
+    buildDdop();
+    createClient();
+
+    // Watch PGN 0xCB00 directly as well. Session 9 established that neither
+    // TC client callback can answer "did the TC ask us anything?" -- see the
+    // wire-level accessors in the header. Registered on the network manager
+    // rather than the TC client on purpose: the whole value of this counter is
+    // that it does not pass through the code whose behaviour it is measuring.
+    // Once, here: a change of TC (SelectTc()) makes a new client, not a new
+    // listener.
+    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(
+        static_cast<std::uint32_t>(CANLibParameterGroupNumber::ProcessData), OnProcessDataFrame, this);
+}
+
+// ------------------------------------------------------------------
+// The TC partner filter. Function code alone matches any TC: the first to
+// claim wins, which at J.A. Bos (session 22) was the AGCO TC simply because
+// the Trimble's came up 13 minutes later. A TC number pins one: ISO 11783
+// numbers TCs by NAME function instance, TC n = instance n - 1, as with VTs.
+// ------------------------------------------------------------------
+std::vector<NAMEFilter> IsobusTcInterface::TcNameFilters(std::uint8_t tcNumber) {
+    std::vector<NAMEFilter> filters = {
+        NAMEFilter(NAME::NAMEParameters::FunctionCode, static_cast<uint8_t>(NAME::Function::TaskController)),
+    };
+    if (tcNumber > 0) {
+        filters.emplace_back(NAME::NAMEParameters::FunctionInstance, static_cast<std::uint32_t>(tcNumber - 1));
+    }
+    return filters;
+}
+
+// ------------------------------------------------------------------
+// SPIKE #316: bind to another TC. The same teardown as the VT failover
+// (IsobusVtInterface): terminate() drops the old client's PGN callbacks, and
+// deactivating the old partner takes it out of the partner list.
+// ------------------------------------------------------------------
+void IsobusTcInterface::SelectTc(std::uint8_t tcNumber) {
+    if (tcNumber == selectedTcNumber) return;
+    selectedTcNumber = tcNumber;
+    resetTcObservations();
+    if (!tcClient) return;   // before Begin(): it binds with the new choice
+
+    tcClient->terminate();
+    CANNetworkManager::CANNetwork.deactivate_control_function(partner);
+    createClient();
+
+    // A fresh handshake, with a DDOP upload: disarm the reconnect watchdog
+    // until it connects, exactly as at boot.
+    hasEverConnected    = false;
+    disconnectedSinceMs = 0;
+    lastReconnectTryMs  = 0;
+    reconnectAttempts   = 0;
+}
+
+void IsobusTcInterface::resetTcObservations() {
+    valueCommandCount        = 0;
+    lastValueCommandDdi      = 0xFFFF;
+    valueRequestCount        = 0;
+    busRequestValueCount     = 0;
+    busSetValueCount         = 0;
+    busMeasurementCount      = 0;
+    busOtherProcessDataCount = 0;
+    lastBusMeasurementDdi    = 0xFFFF;
+    lastBusMeasurementType   = 0xFF;
+    busRequest506Count       = 0;
+    busRequest515Count       = 0;
+    tramlineSetpointSeen     = false;
+    tramlineSetpointLevel    = -1;
+    guidanceTrackSeen        = false;
+    tramlineSequenceNumber   = 0;
+    trackControlStateSeen      = false;
+    commandedTrackControlState = 0;
+    trackControlReportPending  = false;
+}
+
+void IsobusTcInterface::createClient() {
     // Must go through the factory method -- see the matching comment on
     // IsobusVtInterface::Begin()'s identical fix (2026-08-10 hardware
     // session). A direct std::make_shared construction never registers into
@@ -401,9 +470,7 @@ void IsobusTcInterface::Begin() {
     // stays false forever.
     // Kept as a member (not a local) so IsPartnerAddressValid()/
     // GetPartnerAddress() can surface it -- see their comment in the header.
-    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, tcNameFilters);
-
-    buildDdop();
+    partner = CANNetworkManager::CANNetwork.create_partnered_control_function(0, TcNameFilters(selectedTcNumber));
 
     // Third argument is the *primary VT's* partnered control function, not a
     // VirtualTerminalClient. AgIsoStack uses it in
@@ -426,14 +493,6 @@ void IsobusTcInterface::Begin() {
 
     tcClient->add_value_command_callback(OnValueCommand, this);
     tcClient->add_request_value_callback(OnValueRequest, this);
-
-    // Watch PGN 0xCB00 directly as well. Session 9 established that neither
-    // callback above can answer "did the TC ask us anything?" -- see the
-    // wire-level accessors in the header. Registered on the network manager
-    // rather than the TC client on purpose: the whole value of this counter is
-    // that it does not pass through the code whose behaviour it is measuring.
-    CANNetworkManager::CANNetwork.add_any_control_function_parameter_group_number_callback(
-        static_cast<std::uint32_t>(CANLibParameterGroupNumber::ProcessData), OnProcessDataFrame, this);
 
     // false = do NOT spawn a thread. This build uses
     // can_hardware_interface_single_thread; Update() pumps the client, same
@@ -534,6 +593,13 @@ void IsobusTcInterface::OnProcessDataFrame(const CANMessage& message, void* pare
     }
     if (message.get_identifier().get_destination_address() != self->controlFunction->get_address()) {
         return;  // not addressed to us -- TC status broadcasts land here
+    }
+    // Only the TC we are bound to: after a change of TC (#316) the one we
+    // left may poll on until it times us out, and its frames would read as
+    // the new TC's.
+    if (self->IsPartnerAddressValid()
+        && message.get_identifier().get_source_address() != self->GetPartnerAddress()) {
+        return;
     }
 
     const auto& d = message.get_data();
