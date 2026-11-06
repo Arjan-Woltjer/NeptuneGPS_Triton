@@ -76,7 +76,7 @@ This session decides:
 
 | Step | Do | Expect |
 |---|---|---|
-| S1 | Flash `teensy41_isobus_d6b3675.hex`, logger open, boot. | Splash `v0.23`; the boot print as above, **preferred VT 1**. |
+| S1 | **Already flashed** on the workstation (2026-11-06, `d6b3675`, via `tools/flash_teensy.ps1`; boot print read back: v0.23, preferred VT 1, settings as above). Logger open, then power the board on the rig. | Splash `v0.23`; the boot print as above, **preferred VT 1**. No flash in the field unless the fallback is needed. |
 | S2 | Watch the 1200. | The plough binds to the 1200 (VT 1), finds no MW16 there and **uploads it once**: note the time it takes and any pool error. A pool error: stop, flash the fallback, report. |
 
 ## 3. The shared ISOBUS layer (#296)
