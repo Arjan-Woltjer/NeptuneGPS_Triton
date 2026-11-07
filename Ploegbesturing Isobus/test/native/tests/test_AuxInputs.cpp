@@ -59,9 +59,28 @@ test(AuxInputs, narrowerIsItsOwnLevel) {
 // A silent input unit stops the valve, as a lost soft key release does.
 test(AuxInputs, noStatusForTheTimeout_counts_asReleased) {
     AuxInputs aux;
-    aux.OnFunctionValue(true, kHeld, 1000);
+    aux.OnFunctionValue(true, kPressed, 1000);
     assertTrue(aux.IsWiderHeld(1000 + AuxInputs::kHeldTimeoutMs));
     assertFalse(aux.IsWiderHeld(1000 + AuxInputs::kHeldTimeoutMs + 1));
+}
+
+// #320: a held status (2) only keeps a press alive; it never starts one, and
+// after a gap past the timeout only a new press (1) holds again.
+test(AuxInputs, heldWithoutPress_doesNotHold) {
+    AuxInputs aux;
+    aux.OnFunctionValue(true, kHeld, 1000);
+    assertFalse(aux.IsWiderHeld(1000));
+    aux.OnFunctionValue(true, kHeld, 1200);
+    assertFalse(aux.IsWiderHeld(1200));
+}
+
+test(AuxInputs, heldAfterTheTimeout_doesNotRestart) {
+    AuxInputs aux;
+    aux.OnFunctionValue(false, kPressed, 1000);
+    aux.OnFunctionValue(false, kHeld, 1000 + AuxInputs::kHeldTimeoutMs + 100);
+    assertFalse(aux.IsNarrowerHeld(1000 + AuxInputs::kHeldTimeoutMs + 100));
+    aux.OnFunctionValue(false, kPressed, 2000);
+    assertTrue(aux.IsNarrowerHeld(2000));
 }
 
 test(AuxInputs, otherValues_doNotHold) {
@@ -76,20 +95,22 @@ test(AuxInputs, otherValues_doNotHold) {
 // press that was held when learn mode began, and not for a second after.
 test(AuxInputs, learnMode_releasesAndHoldsOff) {
     AuxInputs aux;
-    aux.OnFunctionValue(true, kHeld, 1000);
+    aux.OnFunctionValue(true, kPressed, 1000);
     aux.OnInputStatus(0x01, 1100);
     assertTrue(aux.InLearnMode(1100));
     assertFalse(aux.IsWiderHeld(1100));
     aux.OnFunctionValue(true, kHeld, 1200);
     assertFalse(aux.IsWiderHeld(1200));
     assertFalse(aux.InLearnMode(1100 + AuxInputs::kLearnHoldoffMs));
-    aux.OnFunctionValue(true, kHeld, 2200);
-    assertTrue(aux.IsWiderHeld(2200));
+    aux.OnFunctionValue(true, kHeld, 2200);        // learn mode dropped the press (#320)
+    assertFalse(aux.IsWiderHeld(2200));
+    aux.OnFunctionValue(true, kPressed, 2300);
+    assertTrue(aux.IsWiderHeld(2300));
 }
 
 test(AuxInputs, statusWithoutTheLearnBit_changesNothing) {
     AuxInputs aux;
-    aux.OnFunctionValue(false, kHeld, 1000);
+    aux.OnFunctionValue(false, kPressed, 1000);
     aux.OnInputStatus(0x02, 1050);                       // input active, not learn mode
     assertFalse(aux.InLearnMode(1050));
     assertTrue(aux.IsNarrowerHeld(1050));

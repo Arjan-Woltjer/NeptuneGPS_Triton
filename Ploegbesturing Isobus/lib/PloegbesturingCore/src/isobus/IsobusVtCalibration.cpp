@@ -87,14 +87,17 @@ FLASHMEM bool IsobusVtCalibration::OnSoftKey(uint16_t keyObjectId) {
     return save;
 }
 
-FLASHMEM void IsobusVtCalibration::OnWidthKey(uint16_t keyObjectId, bool down) {
-    if (keyObjectId == Key_CalWider) {
-        widerHeld = down && widthOpen;
-        widerEventMs = millis();
+FLASHMEM void IsobusVtCalibration::OnWidthKey(uint16_t keyObjectId, HeldKey::Event event) {
+    const bool wider = keyObjectId == Key_CalWider;
+    if (!wider && keyObjectId != Key_CalNarrower) return;
+    HeldKey& key = wider ? widerKey : narrowerKey;
+    if (!widthOpen) {
+        key.Drop();
+        return;
     }
-    else if (keyObjectId == Key_CalNarrower) {
-        narrowerHeld = down && widthOpen;
-        narrowerEventMs = millis();
+    if (key.On(event, millis()) == HeldKey::Change::Ignored) {
+        serialDebug->println(wider ? "VT: Breder still held without a press -- ignored"
+                                   : "VT: Smaller still held without a press -- ignored");
     }
 }
 
@@ -177,8 +180,8 @@ FLASHMEM void IsobusVtCalibration::openWidthProcedure() {
     width.Begin();
     widthOpen = true;
     widthInvalid = false;
-    widerHeld = false;
-    narrowerHeld = false;
+    widerKey.Drop();
+    narrowerKey.Drop();
     shownPoint = shownTarget = shownStatus = shownSensor = kNotSent;
     wantedMask = Plough_CalWidthMask;
     serialDebug->println("VT: width calibration open");
@@ -189,16 +192,16 @@ FLASHMEM void IsobusVtCalibration::closeWidthProcedure() {
     width.Drive(0);
     implement->Stop();
     widthOpen = false;
-    widerHeld = false;
-    narrowerHeld = false;
+    widerKey.Drop();
+    narrowerKey.Drop();
     forgetShown();
     wantedMask = Plough_CalDataMask;
 }
 
 FLASHMEM void IsobusVtCalibration::updateWidthProcedure(VtCalibrationOutput& out) {
     const unsigned long now = millis();
-    const bool wider = widerHeld && now - widerEventMs <= kHeldTimeoutMs;
-    const bool narrower = narrowerHeld && now - narrowerEventMs <= kHeldTimeoutMs;
+    const bool wider = widerKey.IsHeld(now);
+    const bool narrower = narrowerKey.IsHeld(now);
     // Breder is the cab's + (1), Smaller its - (-1), as the main soft keys
     // (#245); both at once or neither stops the plough.
     width.Drive(wider == narrower ? 0 : wider ? 1 : -1);

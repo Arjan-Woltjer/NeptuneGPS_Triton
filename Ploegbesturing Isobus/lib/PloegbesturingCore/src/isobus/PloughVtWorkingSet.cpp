@@ -125,8 +125,10 @@ void PloughVtWorkingSet::OnConnectionLost() {
 // A VT that goes away takes its keys with it: nothing held on it survives the
 // connection, so only a new press after the reconnect drives a valve.
 void PloughVtWorkingSet::DropKeys() {
-    widerHeld    = false;
-    narrowerHeld = false;
+    widerKey.Drop();
+    narrowerKey.Drop();
+    pressedTapKey = kNoTapKey;
+    aux.Drop();
 }
 
 void PloughVtWorkingSet::Update(bool connected) {
@@ -234,11 +236,11 @@ void PloughVtWorkingSet::UpdateValues() {
 // Keys, values and AUX functions
 // ----------------------------------------------------------------
 bool PloughVtWorkingSet::IsWiderHeld() const {
-    return (widerHeld && millis() - widerEventMs <= kSoftKeyHeldTimeoutMs) || aux.IsWiderHeld(millis());
+    return widerKey.IsHeld(millis()) || aux.IsWiderHeld(millis());
 }
 
 bool PloughVtWorkingSet::IsNarrowerHeld() const {
-    return (narrowerHeld && millis() - narrowerEventMs <= kSoftKeyHeldTimeoutMs) || aux.IsNarrowerHeld(millis());
+    return narrowerKey.IsHeld(millis()) || aux.IsNarrowerHeld(millis());
 }
 
 void PloughVtWorkingSet::OnNumericValue(const VirtualTerminalClient::VTChangeNumericValueEvent& event) {
@@ -257,8 +259,12 @@ void PloughVtWorkingSet::OnAuxFunction(const VirtualTerminalClient::AuxiliaryFun
     const bool wider = function == Aux_Wider;
     const unsigned long now = millis();
     const bool wasHeld = wider ? aux.IsWiderHeld(now) : aux.IsNarrowerHeld(now);
-    aux.OnFunctionValue(wider, event.value1, now);
+    const HeldKey::Change change = aux.OnFunctionValue(wider, event.value1, now);
     (wider ? auxWiderEvents : auxNarrowerEvents)++;
+    if (change == HeldKey::Change::Ignored) {
+        serialDebug->println(wider ? "VT: AUX Breder held without a press -- ignored"
+                                   : "VT: AUX Smaller held without a press -- ignored");
+    }
     const bool isHeld = wider ? aux.IsWiderHeld(now) : aux.IsNarrowerHeld(now);
     if (isHeld != wasHeld) {
         serialDebug->print(wider ? "VT: AUX Breder " : "VT: AUX Smaller ");
@@ -271,55 +277,70 @@ void PloughVtWorkingSet::OnAuxFunction(const VirtualTerminalClient::AuxiliaryFun
     }
 }
 
+// A VT key event as a HeldKey event: a press, a still-held repeat, or
+// anything else (release, aborted press) that ends the hold.
+static HeldKey::Event ToHeldKeyEvent(VirtualTerminalClient::KeyActivationCode code) {
+    using Code = VirtualTerminalClient::KeyActivationCode;
+    if (code == Code::ButtonPressedOrLatched) return HeldKey::Event::Press;
+    if (code == Code::ButtonStillHeld) return HeldKey::Event::StillHeld;
+    return HeldKey::Event::Release;
+}
+
 bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
     using Code = VirtualTerminalClient::KeyActivationCode;
 
     // Wider/Narrower: held from a press until release, an aborted press, the
-    // timeout or a lost connection, see IsWiderHeld() (#245). A still-held
-    // repeat only keeps a live hold alive; it never starts one (#320). Session 24:
-    // after a cable pull AgISOVirtualTerminal kept repeating still-held for a
-    // release it never got through, and the old rule (a repeat counts as a
-    // press) drove the valve for 30 s after the reconnect.
+    // timeout or a lost connection, see IsWiderHeld() and HeldKey (#245,
+    // #320). A still-held repeat only keeps a live hold alive; it never starts
+    // one. Session 24: after a cable pull AgISOVirtualTerminal kept repeating
+    // still-held for a release it never got through, and the old rule (a
+    // repeat counts as a press) drove the valve for 30 s after the reconnect.
     if (event.objectID == Key_Wider || event.objectID == Key_Narrower) {
         const bool wider = event.objectID == Key_Wider;
-        bool& held = wider ? widerHeld : narrowerHeld;
-        bool& ignoring = wider ? widerIgnoring : narrowerIgnoring;
-        unsigned long& eventMs = wider ? widerEventMs : narrowerEventMs;
-        const unsigned long now = millis();
-        const bool live = held && now - eventMs <= kSoftKeyHeldTimeoutMs;
-        if (event.keyEvent == Code::ButtonPressedOrLatched) {
-            serialDebug->println(wider ? "VT: Wider pressed" : "VT: Narrower pressed");
-            held = true;
-            ignoring = false;
-        }
-        else if (event.keyEvent == Code::ButtonStillHeld) {
-            if (!live && !ignoring) {
+        switch ((wider ? widerKey : narrowerKey).On(ToHeldKeyEvent(event.keyEvent), millis())) {
+            case HeldKey::Change::Pressed:
+                serialDebug->println(wider ? "VT: Wider pressed" : "VT: Narrower pressed");
+                break;
+            case HeldKey::Change::Released:
+                serialDebug->println(wider ? "VT: Wider released" : "VT: Narrower released");
+                break;
+            case HeldKey::Change::Ignored:
                 serialDebug->println(wider ? "VT: Wider still held without a press -- ignored"
                                            : "VT: Narrower still held without a press -- ignored");
-            }
-            ignoring = !live;
-            held = live;
+                break;
+            case HeldKey::Change::None:
+                break;
         }
-        else {
-            if (held) serialDebug->println(wider ? "VT: Wider released" : "VT: Narrower released");
-            held = false;
-            ignoring = false;
-        }
-        eventMs = now;
         return false;
     }
 
-    // The width procedure's Smaller / Breder (#240): held levels too, kept
-    // by the calibration page.
+    // The width procedure's Smaller / Breder (#240): held levels by the same
+    // rule, kept by the calibration page.
     if (event.objectID == Key_CalWider || event.objectID == Key_CalNarrower) {
-        if (calibration != nullptr) {
-            calibration->OnWidthKey(event.objectID, event.keyEvent == Code::ButtonPressedOrLatched ||
-                                                        event.keyEvent == Code::ButtonStillHeld);
-        }
+        if (calibration != nullptr) calibration->OnWidthKey(event.objectID, ToHeldKeyEvent(event.keyEvent));
         return false;
     }
 
+    // Every other key is a tap that acts on its release -- but only on the
+    // release of the press this connection saw (#320): a release left over
+    // from before a lost connection, or whose press went elsewhere, does
+    // nothing.
+    if (event.keyEvent == Code::ButtonPressedOrLatched) {
+        pressedTapKey = event.objectID;
+        return false;
+    }
+    if (event.keyEvent == Code::ButtonPressAborted) {
+        if (pressedTapKey == event.objectID) pressedTapKey = kNoTapKey;
+        return false;
+    }
     if (event.keyEvent != Code::ButtonUnlatchedOrReleased) return false;
+    if (pressedTapKey != event.objectID) {
+        serialDebug->print("VT: key ");
+        serialDebug->print(event.objectID);
+        serialDebug->println(" released without a press -- ignored");
+        return false;
+    }
+    pressedTapKey = kNoTapKey;
 
     // Calibrate opens the calibration page (#240), Opslaan and Annuleren
     // close it; see IsobusVtCalibration. It is a single tap, where the
