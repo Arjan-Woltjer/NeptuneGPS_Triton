@@ -1868,6 +1868,13 @@ one rule:
 | 23 cm left | reverse | +22.5 cm |
 | 0 | forward | +0.5 cm |
 
+> **Corrected 2026-11-08 (#304):** the first JD field run (2026-11-03) showed the JD XTE has the
+> opposite sign to the Ag Leader's, the field-proven reference. The likely reason: the "right"
+> above is the display's direction to steer, as the InCommand 1200's turned out to be (#252), so
+> the vehicle was left of the line. Since #304 the decoder negates the raw word, so a JD XTE
+> reaches the control with the Ag Leader's sign. The magnitudes and the reversing behaviour
+> below are unaffected.
+
 **JD XTE is positive when the vehicle is right of the line in the direction of travel.** In the
 tractor's own frame -- the plough's -- it therefore **flips sign when reversing**. While stationary
 it follows the *last* travel direction (the 86 cm call came 45 s after the tractor last moved).
