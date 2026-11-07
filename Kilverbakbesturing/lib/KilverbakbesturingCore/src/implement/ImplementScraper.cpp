@@ -189,9 +189,14 @@ void ImplementScraper::setSetpoint() {
 // Method for adjusting implement
 // ------------------------------
 void ImplementScraper::Adjust(byte mode, int direction) {
-#ifdef NOSENS
-    byte pwm = 255;
+    // The two valves switch with digitalWrite, never analogWrite
+    // (NeptuneGPS_Triton#312, as #306 in Kilverbakbesturing Isobus): on the
+    // Teensy 4.1 board they are on pins 20/21, which have no PWM, and
+    // analogWrite() there does nothing -- the valves never open. They were
+    // only ever written full on or off; the proportional drive is the
+    // bypass's, which has PWM.
 
+#ifdef NOSENS
     unsigned int absSetpoint = abs(setpoint);
     unsigned int settime = 1;
     unsigned int inputtime = 0;
@@ -215,16 +220,16 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     // Setpoint < actual position
     //---------------------------
     if (setpoint > 0 && inputtime < settime) {
-        analogWrite(OUTPUT_WIDE_5, 0);
-        analogWrite(OUTPUT_NARROW_5, pwm);
+        digitalWrite(OUTPUT_WIDE_5, LOW);
+        digitalWrite(OUTPUT_NARROW_5, HIGH);
         digitalWrite(OUTPUT_LED_5, HIGH);
     }
     //---------------------------
     // Setpoint > actual position
     //---------------------------
     else if (setpoint < 0 && inputtime < settime) {
-        analogWrite(OUTPUT_WIDE_5, pwm);
-        analogWrite(OUTPUT_NARROW_5, 0);
+        digitalWrite(OUTPUT_WIDE_5, HIGH);
+        digitalWrite(OUTPUT_NARROW_5, LOW);
         digitalWrite(OUTPUT_LED_5, HIGH);
     }
     //-----------------
@@ -252,8 +257,8 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     // Setpoint < actual position
     //---------------------------
     if (actualPosition < setpoint - error && !endShutoff.Latched(EndShutoff::kNarrower)) {
-        analogWrite(OUTPUT_WIDE_5, 0);
-        analogWrite(OUTPUT_NARROW_5, 255);
+        digitalWrite(OUTPUT_WIDE_5, LOW);
+        digitalWrite(OUTPUT_NARROW_5, HIGH);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
@@ -264,8 +269,8 @@ void ImplementScraper::Adjust(byte mode, int direction) {
     // Setpoint > actual position
     //---------------------------
     else if (actualPosition > setpoint + error && !endShutoff.Latched(EndShutoff::kWider)) {
-        analogWrite(OUTPUT_WIDE_5, 255);
-        analogWrite(OUTPUT_NARROW_5, 0);
+        digitalWrite(OUTPUT_WIDE_5, HIGH);
+        digitalWrite(OUTPUT_NARROW_5, LOW);
         analogWrite(OUTPUT_BYPASS_5, pwm);
         digitalWrite(OUTPUT_LED_5, HIGH);
 
@@ -289,8 +294,8 @@ void ImplementScraper::Adjust(byte mode, int direction) {
 // Method for stopping implement
 // -----------------------------
 void ImplementScraper::Stop() {
-    analogWrite(OUTPUT_WIDE_5, 0);
-    analogWrite(OUTPUT_NARROW_5, 0);
+    digitalWrite(OUTPUT_WIDE_5, LOW);
+    digitalWrite(OUTPUT_NARROW_5, LOW);
     analogWrite(OUTPUT_BYPASS_5, 0);
     digitalWrite(OUTPUT_LED_5, LOW);
 }
