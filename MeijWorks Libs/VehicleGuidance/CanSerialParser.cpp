@@ -81,7 +81,7 @@ void CanSerialParser::parseTerm(byte termNumber, const char* term) {
         fieldsValid = true;
         const unsigned long val = ((unsigned long)hexToInt(term[8]) << 12) | ((unsigned long)hexToInt(term[9]) << 8)
                                 | ((unsigned long)hexToInt(term[6]) << 4) | hexToInt(term[7]);
-        newXte = int(val - 32000) >> 1;
+        newXte = -(int(val - 32000) >> 1);   // negated like DecodeLegacyXteJohnDeere (#304)
         newQuality = (term[2] == '1') ? 4 : 0;
         return;
     }

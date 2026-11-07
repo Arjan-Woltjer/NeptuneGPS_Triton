@@ -407,12 +407,26 @@ test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_capturesNoPayload) {
 }
 
 test(IsobusPgnDecode, legacyXteJohnDeere_johnDeereAddress_sameBytesStillDecoded) {
-    // val = (d[4]<<8)|d[3] = 0x7D40 = 32064 -> xte = (32064-32000)>>1 = 32.
+    // val = (d[4]<<8)|d[3] = 0x7D40 = 32064 -> (32064-32000)>>1 = 32, negated (#304).
     uint8_t d[8] = { 0x77, 0x10, 0x00, 0x40, 0x7D, 0x00, 0x00, 0x00 };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, 32);
+    assertEqual(r.xteHundredthsMeter, -32);
     assertEqual((int)r.quality, 4);
+}
+
+// #304: a John Deere XTE reaches Triton with the opposite sign to the Ag Leader
+// one (65462, the field-proven reference since #252/#253): on a JD the plough
+// corrected the right way only because its side setting was reversed too. The
+// decoder negates the raw word, same magnitude.
+test(IsobusPgnDecode, legacyXteJohnDeere_signIsTheAgLeaderConvention) {
+    uint8_t above[8] = { 0x77, 0x10, 0x00, 0x32, 0x7D, 0x00, 0x00, 0x00 };   // 0x7D32 = 32050
+    auto r = DecodeLegacyXteJohnDeere(0x2A, above, 8);
+    assertTrue(r.valid);
+    assertEqual(r.xteHundredthsMeter, -25);
+    uint8_t below[8] = { 0x77, 0x10, 0x00, 0xCE, 0x7C, 0x00, 0x00, 0x00 };   // 0x7CCE = 31950
+    r = DecodeLegacyXteJohnDeere(0x2A, below, 8);
+    assertEqual(r.xteHundredthsMeter, 25);
 }
 
 test(IsobusPgnDecode, legacyXteJohnDeere_unknownAddress_rejected) {
@@ -488,19 +502,21 @@ test(IsobusPgnDecode, legacyXteJohnDeere_nonXteMessageSelector_stillCapturesDiag
 // at t=88 s. The operator called "a steady 21 cm" and then "11 cm, other
 // side"; the receiver's own position (PGN 65267) stepped 0.38 m at the same
 // instant. Both payloads must decode to those numbers, with the sign flip.
-test(IsobusPgnDecode, legacyXteJohnDeere_realBusPayload_matchesGroundTruthNegative) {
+// Since #304 the decoder negates the raw word (the Ag Leader's sign), so raw
+// 0x7CD6 now reads +21 and 0x7D16 -11: same sides apart, same magnitudes.
+test(IsobusPgnDecode, legacyXteJohnDeere_realBusPayload_matchesGroundTruthSteady21) {
     uint8_t d[8] = { 0x77, 0x15, 0x10, 0xD6, 0x7C, 0x59, 0x89, 0xFF };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, -21);
+    assertEqual(r.xteHundredthsMeter, 21);
     assertEqual((int)r.quality, 4);
 }
 
-test(IsobusPgnDecode, legacyXteJohnDeere_realBusPayload_matchesGroundTruthPositive) {
+test(IsobusPgnDecode, legacyXteJohnDeere_realBusPayload_matchesGroundTruthNudged11) {
     uint8_t d[8] = { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF };
     auto r = DecodeLegacyXteJohnDeere(0x2A, d, 8);
     assertTrue(r.valid);
-    assertEqual(r.xteHundredthsMeter, 11);
+    assertEqual(r.xteHundredthsMeter, -11);
     assertEqual((int)r.quality, 4);
 }
 
