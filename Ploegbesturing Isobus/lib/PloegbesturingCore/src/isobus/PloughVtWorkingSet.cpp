@@ -119,9 +119,18 @@ void PloughVtWorkingSet::OnClientCreated(std::shared_ptr<VirtualTerminalClient> 
 void PloughVtWorkingSet::OnConnectionLost() {
     // An open calibration page belongs to the VT being left (#240).
     if (calibration != nullptr) calibration->OnConnectionLost();
+    DropKeys();
+}
+
+// A VT that goes away takes its keys with it: nothing held on it survives the
+// connection, so only a new press after the reconnect drives a valve.
+void PloughVtWorkingSet::DropKeys() {
+    widerHeld    = false;
+    narrowerHeld = false;
 }
 
 void PloughVtWorkingSet::Update(bool connected) {
+    if (!connected) DropKeys();
     if (calibration != nullptr) {
         // The page lives on this VT only: a lost connection drops its draft.
         if (connected) calibration->Update(*this);
@@ -265,20 +274,38 @@ void PloughVtWorkingSet::OnAuxFunction(const VirtualTerminalClient::AuxiliaryFun
 bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& event) {
     using Code = VirtualTerminalClient::KeyActivationCode;
 
-    // Wider/Narrower: held from press (or a still-held repeat) until release
-    // or an aborted press, see IsWiderHeld() (#245).
+    // Wider/Narrower: held from a press until release, an aborted press, the
+    // timeout or a lost connection, see IsWiderHeld() (#245). A still-held
+    // repeat only keeps a live hold alive; it never starts one (#320). Session 24:
+    // after a cable pull AgISOVirtualTerminal kept repeating still-held for a
+    // release it never got through, and the old rule (a repeat counts as a
+    // press) drove the valve for 30 s after the reconnect.
     if (event.objectID == Key_Wider || event.objectID == Key_Narrower) {
         const bool wider = event.objectID == Key_Wider;
         bool& held = wider ? widerHeld : narrowerHeld;
-        const bool down = event.keyEvent == Code::ButtonPressedOrLatched || event.keyEvent == Code::ButtonStillHeld;
+        bool& ignoring = wider ? widerIgnoring : narrowerIgnoring;
+        unsigned long& eventMs = wider ? widerEventMs : narrowerEventMs;
+        const unsigned long now = millis();
+        const bool live = held && now - eventMs <= kSoftKeyHeldTimeoutMs;
         if (event.keyEvent == Code::ButtonPressedOrLatched) {
             serialDebug->println(wider ? "VT: Wider pressed" : "VT: Narrower pressed");
+            held = true;
+            ignoring = false;
         }
-        else if (!down && held) {
-            serialDebug->println(wider ? "VT: Wider released" : "VT: Narrower released");
+        else if (event.keyEvent == Code::ButtonStillHeld) {
+            if (!live && !ignoring) {
+                serialDebug->println(wider ? "VT: Wider still held without a press -- ignored"
+                                           : "VT: Narrower still held without a press -- ignored");
+            }
+            ignoring = !live;
+            held = live;
         }
-        held = down;
-        (wider ? widerEventMs : narrowerEventMs) = millis();
+        else {
+            if (held) serialDebug->println(wider ? "VT: Wider released" : "VT: Narrower released");
+            held = false;
+            ignoring = false;
+        }
+        eventMs = now;
         return false;
     }
 

@@ -142,6 +142,10 @@ struct IsobusVtInterfaceTestAccess {
     static void ResetPendingKeys(PloughVtWorkingSet& ws) {
         ws.widerHeld             = false;
         ws.narrowerHeld          = false;
+        ws.widerIgnoring         = false;
+        ws.narrowerIgnoring      = false;
+        ws.widerEventMs          = 0;
+        ws.narrowerEventMs       = 0;
     }
 };
 }  // namespace triton
@@ -400,7 +404,10 @@ test(IsobusVtInterface, key_abortedPressReleasesTheKey) {
 }
 
 // A lost release must not keep a valve driving: without a still-held repeat
-// for the timeout, the key counts as released.
+// for the timeout, the key counts as released -- and stays released. A
+// still-held repeat after the gap does not start the valve again; only a new
+// press does (#320, session 24: AgISOVirtualTerminal kept repeating still-held for
+// 30 s after a cable pull it never sent the release through).
 test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
     Reset();
     KeyCode(Key_Wider, kPressed);
@@ -409,15 +416,54 @@ test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
     millisValue(PloughVtWorkingSet::kSoftKeyHeldTimeoutMs + 1);
     assertFalse(WorkingSet().IsWiderHeld());
     KeyCode(Key_Wider, kStillHeld);                      // the VT is still reporting it
+    assertFalse(WorkingSet().IsWiderHeld());
+    millisValue(PloughVtWorkingSet::kSoftKeyHeldTimeoutMs + 200);
+    KeyCode(Key_Wider, kStillHeld);
+    assertFalse(WorkingSet().IsWiderHeld());
+    KeyCode(Key_Wider, kPressed);                        // a fresh press drives again
     assertTrue(WorkingSet().IsWiderHeld());
     millisValue(0);
 }
 
-// A still-held repeat without the press before it (a lost press) counts as held.
-test(IsobusVtInterface, key_stillHeldWithoutPressCountsAsHeld) {
+// A still-held repeat without the press before it cannot start a hold: a
+// lost press costs a second press, a stuck VT key cannot drive a valve.
+test(IsobusVtInterface, key_stillHeldWithoutPressDoesNotHold) {
     Reset();
     KeyCode(Key_Narrower, kStillHeld);
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    assertTrue(vtDebug.Contains("VT: Narrower still held without a press -- ignored"));
+}
+
+// Session 24, B8 rerun: Narrower held, the CAN cable pulled, the VT
+// reconnects and keeps repeating still-held. The lost connection drops the
+// key, and the repeats after the reconnect do not pick it up again.
+test(IsobusVtInterface, key_lostConnectionDropsAHeldKey) {
+    Reset();
+    KeyCode(Key_Narrower, kPressed);
+    millisValue(200);
+    KeyCode(Key_Narrower, kStillHeld);
     assertTrue(WorkingSet().IsNarrowerHeld());
+    WorkingSet().Update(false);                          // cable pulled
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    millisValue(400);                                    // inside the timeout,
+    KeyCode(Key_Narrower, kStillHeld);                   // so only the drop stops it
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    WorkingSet().Update(true);                           // reconnected
+    millisValue(600);
+    KeyCode(Key_Narrower, kStillHeld);
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    KeyCode(Key_Narrower, kReleased);
+    KeyCode(Key_Narrower, kPressed);
+    assertTrue(WorkingSet().IsNarrowerHeld());
+    millisValue(0);
+}
+
+// The failover path (another VT) drops the keys too.
+test(IsobusVtInterface, key_vtSwitchDropsAHeldKey) {
+    Reset();
+    KeyCode(Key_Wider, kPressed);
+    WorkingSet().OnConnectionLost();
+    assertFalse(WorkingSet().IsWiderHeld());
 }
 
 // Calibrate opens the VT calibration page (#240), acting on release only; it
