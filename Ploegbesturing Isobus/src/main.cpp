@@ -43,10 +43,13 @@
 #endif
 #pragma pop_macro("max")
 #pragma pop_macro("min")
-#include "isobus/IsobusDebugMenu.hpp"
-#include "isobus/IsobusGuidanceChannel.hpp"
+#include "IsobusDebugMenu.hpp"
+#include "isobus/PloughDebugMenuSections.hpp"
+#include "IsobusGuidanceChannel.hpp"
+#include "isobus/PloughName.hpp"
 #include "isobus/IsobusLightbarChannel.hpp"
-#include "isobus/IsobusVtInterface.hpp"
+#include "IsobusVtInterface.hpp"
+#include "isobus/PloughVtWorkingSet.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 #else
 #include "InterfaceGuidance.hpp"
@@ -115,9 +118,11 @@ triton::CalibrationPlough* gCalibration;
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusLightbarChannel* gLightbarChannel;
+triton::PloughVtWorkingSet*    gVtWorkingSet;
 triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusVtCalibration*   gVtCalibration;
 triton::IsobusTcInterface*     gTcInterface;
+triton::PloughDebugMenuSections* gDebugSections;
 triton::IsobusDebugMenu*       gDebugMenu;
 #if !defined(ESP32S3)
 // For the dump's receive-queue line (#248). The hardware interface keeps the
@@ -255,7 +260,8 @@ void setup() {
     // CAN/ISOBUS bring-up: CAN hardware plugin, NAME + address claim (blocks
     // until claimed), PGN callback registration, initial PGN requests.
     // The channel again, so the dump can read that controller's error state (#149).
-    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, gImplement, kIsobusCanChannel);
+    gGuidanceChannel = new triton::IsobusGuidanceChannel(gSerialDebug, gCanPlugin, gGuidance, [] { gImplement->Stop(); },
+                                                         triton::BuildPloughName(), kIsobusCanChannel);
     gGuidanceChannel->Begin();
 
     // A second control function that presents as an Ag Leader L160 lightbar:
@@ -272,12 +278,15 @@ void setup() {
     gLightbarChannel = new triton::IsobusLightbarChannel(gSerialDebug, gGuidance);
     gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Begin();
-    gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction());
+    // The plough's screen, keys and calibration page on the VT (#287); the
+    // shared VT interface owns the connection and calls into it.
+    gVtWorkingSet = new triton::PloughVtWorkingSet(gSerialDebug, gImplement, gGuidance);
+    gVtInterface = new triton::IsobusVtInterface(gSerialDebug, gVtWorkingSet, gGuidanceChannel->GetControlFunction());
     gVtInterface->Begin();
     // The VT calibration page (#240) edits the same settings draft as the
     // cab wizard.
     gVtCalibration = new triton::IsobusVtCalibration(gSerialDebug, &gCalibration->GetSettings(), gImplement);
-    gVtInterface->AttachCalibration(gVtCalibration);
+    gVtWorkingSet->AttachCalibration(gVtCalibration);
 
     // Constructed after gVtInterface->Begin() so the VT's partner exists --
     // the TC client uses it for language/unit data on TC servers older than
@@ -286,7 +295,10 @@ void setup() {
                                                   gVtInterface->GetPartner());
     gTcInterface->Begin();
 
-    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gTcInterface, gVtInterface, gLightbarChannel);
+    // The shared menu, with the plough's own sections (TC, DDOP, lightbar,
+    // AUX-N) at their usual places (#287).
+    gDebugSections = new triton::PloughDebugMenuSections(gSerialDebug, gTcInterface, gLightbarChannel, gVtWorkingSet);
+    gDebugMenu = new triton::IsobusDebugMenu(gSerialDebug, gGuidanceChannel, gGuidance, gVtInterface, gDebugSections);
     gDebugMenu->Begin();
 #if !defined(ESP32S3)
     gDebugMenu->SetCanReceiveQueueStatsSource(GReadCanReceiveQueueStats);
@@ -375,8 +387,8 @@ void loop() {
     if (gCalibration->HoldWhileVtCalibrates()) return;
 
     // Update interface -- the VT's Wider/Narrower soft keys (held levels, #245)
-    // feed InterfacePlough's button handling, see IsobusVtInterface.hpp.
-    gInterface->Update(gVtInterface->IsWiderHeld(), gVtInterface->IsNarrowerHeld());
+    // feed InterfacePlough's button handling, see PloughVtWorkingSet.hpp.
+    gInterface->Update(gVtWorkingSet->IsWiderHeld(), gVtWorkingSet->IsNarrowerHeld());
 #else
     // Update interface
     gInterface->Update();
