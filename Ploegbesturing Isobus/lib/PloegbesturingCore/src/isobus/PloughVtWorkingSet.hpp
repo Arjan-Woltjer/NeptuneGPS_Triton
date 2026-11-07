@@ -30,6 +30,7 @@
 #include "../PloughGates.hpp"
 #include "IsobusVtCalibration.hpp"
 #include "AuxInputs.hpp"
+#include "HeldKey.hpp"
 
 namespace triton
 {
@@ -57,8 +58,9 @@ public:
         : serialDebug(serialDebug), implement(implement), guidance(guidance) {}
 
     // VT Wider/Narrower soft keys as held levels (#245): held from the VT's
-    // press, or a still-held repeat, until its release or an aborted press,
-    // like a cab button. Direction mapping: Wider (BREDER) is the cab's right
+    // press until its release, an aborted press, the timeout or a lost VT,
+    // like a cab button; a still-held repeat keeps a press alive but never
+    // starts one (HeldKey, #320). Direction mapping: Wider (BREDER) is the cab's right
     // button, marked + (+1), Narrower (SMALLER) its left one, marked - (-1)
     // (owner, 2026-10-20). +1 raises the width in auto/hold and drives the
     // output the + button drives in manual; ImplementPlough's own valve names
@@ -66,7 +68,7 @@ public:
     // A VT repeats still-held while the key is down (session 19: CNH VT every
     // 194-206 ms); without one for kSoftKeyHeldTimeoutMs the key counts as
     // released, so a lost release stops the valve within 0.6 s.
-    static constexpr unsigned long kSoftKeyHeldTimeoutMs = 600;
+    static constexpr unsigned long kSoftKeyHeldTimeoutMs = HeldKey::kTimeoutMs;
     // The soft key, or an AUX-N input assigned to Breder / Smaller (#254).
     bool IsWiderHeld() const;
     bool IsNarrowerHeld() const;
@@ -157,15 +159,14 @@ private:
     uint8_t       controlMode        = 2;   // InterfacePlough starts in manual
     bool          controlCalibrating = false;
 
-    // Release both soft keys: the VT they were held on is gone.
+    // Release every key and AUX input: the VT they were held on is gone.
     void          DropKeys();
-    bool          widerHeld       = false;
-    bool          narrowerHeld    = false;
-    // Still-held repeats being ignored (no live press): logged once.
-    bool          widerIgnoring    = false;
-    bool          narrowerIgnoring = false;
-    unsigned long widerEventMs    = 0;
-    unsigned long narrowerEventMs = 0;
+    HeldKey       widerKey;
+    HeldKey       narrowerKey;
+    // The tap key (Calibrate, Opslaan, ...) whose press this connection saw:
+    // its release acts, any other release does not (#320). 0xFFFF = none.
+    static constexpr uint16_t kNoTapKey = 0xFFFF;
+    uint16_t      pressedTapKey = kNoTapKey;
 
     AuxInputs     aux;
     unsigned int  auxWiderEvents    = 0;
