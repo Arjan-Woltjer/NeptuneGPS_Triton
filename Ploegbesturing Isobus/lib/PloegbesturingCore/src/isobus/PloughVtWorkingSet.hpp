@@ -27,8 +27,10 @@
 #include "VtWorkingSet.hpp"
 #include "../implement/ImplementPlough.hpp"
 #include "GuidanceSource.hpp"
+#include "../PloughGates.hpp"
 #include "IsobusVtCalibration.hpp"
 #include "AuxInputs.hpp"
+#include "HeldKey.hpp"
 
 namespace triton
 {
@@ -56,8 +58,9 @@ public:
         : serialDebug(serialDebug), implement(implement), guidance(guidance) {}
 
     // VT Wider/Narrower soft keys as held levels (#245): held from the VT's
-    // press, or a still-held repeat, until its release or an aborted press,
-    // like a cab button. Direction mapping: Wider (BREDER) is the cab's right
+    // press until its release, an aborted press, the timeout or a lost VT,
+    // like a cab button; a still-held repeat keeps a press alive but never
+    // starts one (HeldKey, #320). Direction mapping: Wider (BREDER) is the cab's right
     // button, marked + (+1), Narrower (SMALLER) its left one, marked - (-1)
     // (owner, 2026-10-20). +1 raises the width in auto/hold and drives the
     // output the + button drives in manual; ImplementPlough's own valve names
@@ -65,7 +68,7 @@ public:
     // A VT repeats still-held while the key is down (session 19: CNH VT every
     // 194-206 ms); without one for kSoftKeyHeldTimeoutMs the key counts as
     // released, so a lost release stops the valve within 0.6 s.
-    static constexpr unsigned long kSoftKeyHeldTimeoutMs = 600;
+    static constexpr unsigned long kSoftKeyHeldTimeoutMs = HeldKey::kTimeoutMs;
     // The soft key, or an AUX-N input assigned to Breder / Smaller (#254).
     bool IsWiderHeld() const;
     bool IsNarrowerHeld() const;
@@ -79,6 +82,18 @@ public:
     // Annuleren and the page's inputs go to. Without one the key is only
     // logged. main.cpp attaches it after IsobusVtInterface::Begin().
     void AttachCalibration(IsobusVtCalibration* page) { calibration = page; }
+
+    // The control's state for the main screen (#318): InterfacePlough's mode
+    // (0 AUTO, 1 HOLD, 2 MANUAL) and whether a calibration holds the control
+    // (CalibrationPlough::HoldsTheControl()). main.cpp sets both every
+    // loop() pass, before the calibration's early returns.
+    void SetControlState(uint8_t mode, bool calibrating) {
+        controlMode = mode;
+        controlCalibrating = calibrating;
+    }
+    // The string Ptr_State shows: CAL over everything while calibrating, the
+    // hold reason in HOLD, HAND for manual (and any unknown mode).
+    static uint16_t StateString(uint8_t mode, bool calibrating, HoldReason hold);
 
     // VtWorkingSet
     const char*    GetProductModel() const override { return "Ploegbesturing Isobus"; }
@@ -139,11 +154,19 @@ private:
     uint16_t      lastSentGpsIcon     = 0;  // the object Ptr_GpsStatus points at
     uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
     int32_t       lastSentSpeed       = 0;  // 0.1 km/h
+    uint16_t      lastSentState       = 0;  // the object Ptr_State points at
 
-    bool          widerHeld       = false;
-    bool          narrowerHeld    = false;
-    unsigned long widerEventMs    = 0;
-    unsigned long narrowerEventMs = 0;
+    uint8_t       controlMode        = 2;   // InterfacePlough starts in manual
+    bool          controlCalibrating = false;
+
+    // Release every key and AUX input: the VT they were held on is gone.
+    void          DropKeys();
+    HeldKey       widerKey;
+    HeldKey       narrowerKey;
+    // The tap key (Calibrate, Opslaan, ...) whose press this connection saw:
+    // its release acts, any other release does not (#320). 0xFFFF = none.
+    static constexpr uint16_t kNoTapKey = 0xFFFF;
+    uint16_t      pressedTapKey = kNoTapKey;
 
     AuxInputs     aux;
     unsigned int  auxWiderEvents    = 0;

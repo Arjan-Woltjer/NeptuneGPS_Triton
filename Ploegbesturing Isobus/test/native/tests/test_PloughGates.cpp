@@ -101,6 +101,21 @@ test(PloughGates, gps_notOkWithoutRtkQuality) {
     millisValue(0);
 }
 
+// The hold reason the LCD and the VT (#318) both show: S! only while a
+// fresh VTG says too slow, G! otherwise -- also when the speed is low but its
+// VTG has gone stale, since then the GPS is what is missing.
+test(PloughGates, holdReason_speedOnlyWhileAFreshVtgIsTooSlow) {
+    GuidanceSource g;
+    allFreshAt(g, 10000);
+    g.SetSpeedKnots(0.0f);
+    assertTrue(PloughHoldReason(g, 10000) == HoldReason::Speed);
+    assertTrue(PloughHoldReason(g, 10000 + kGuidanceFixMaxAgeMs - 1) == HoldReason::Speed);
+    assertTrue(PloughHoldReason(g, 10000 + kGuidanceFixMaxAgeMs) == HoldReason::Gps);  // the LCD's < 2000
+    g.SetSpeedKnots(10.0f);
+    assertTrue(PloughHoldReason(g, 10000) == HoldReason::Gps);  // fast enough: the GPS holds it
+    millisValue(0);
+}
+
 test(PloughGates, speed_followsMinSpeed) {
     GuidanceSource g;
     allFreshAt(g, 10000);
