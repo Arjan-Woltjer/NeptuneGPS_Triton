@@ -63,6 +63,11 @@ public:
     // another front end holds the settings session.
     bool Start();
     bool IsActive() const { return screen != kIdle; }
+    // A calibration holds the control: the cab wizard is open, or the VT
+    // calibration page (#240) holds the settings session. main.cpp then skips
+    // InterfacePlough::Update(), so its mode is stale; the VT shows CAL
+    // instead (#318).
+    bool HoldsTheControl() const { return IsActive() || settings.GetOwner() == SettingsOwner::Vt; }
     // One pass of the open wizard; nothing when it is closed.
     void Step();
 

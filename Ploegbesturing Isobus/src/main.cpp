@@ -364,6 +364,9 @@ void loop() {
     // The saved setting: the wizard's or the VT page's Save changes it.
     gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Update();
+    // The main screen's state line (#318): set here, above the calibration's
+    // early returns below, so CAL shows while they skip the control.
+    gVtWorkingSet->SetControlState(gInterface->GetMode(), gCalibration->HoldsTheControl());
     gVtInterface->Update();
     gTcInterface->Update();
     gDebugMenu->Update();

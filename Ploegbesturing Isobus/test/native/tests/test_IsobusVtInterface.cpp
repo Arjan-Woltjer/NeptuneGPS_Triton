@@ -841,3 +841,18 @@ test(IsobusVtInterface, key_widthKeysReachThePage_asHeldLevels) {
     Release(Key_CalCancel);
     assertFalse(Page().IsOpen());
 }
+
+// #318: the main screen's state follows InterfacePlough's mode in the LCD's
+// letters, and CAL wins over every mode while a calibration holds the
+// control (its mode is stale then: main.cpp skips InterfacePlough::Update()).
+test(IsobusVtInterface, stateString_followsTheModeAndCalibrationWins) {
+    assertEqual((int)PloughVtWorkingSet::StateString(0, false, HoldReason::Gps), (int)Str_StateAuto);
+    assertEqual((int)PloughVtWorkingSet::StateString(1, false, HoldReason::Speed), (int)Str_StateHoldSpeed);
+    assertEqual((int)PloughVtWorkingSet::StateString(1, false, HoldReason::Gps), (int)Str_StateHoldGps);
+    assertEqual((int)PloughVtWorkingSet::StateString(2, false, HoldReason::Gps), (int)Str_StateHand);
+    assertEqual((int)PloughVtWorkingSet::StateString(9, false, HoldReason::Gps), (int)Str_StateHand);
+    for (uint8_t mode = 0; mode <= 2; mode++) {
+        assertEqual((int)PloughVtWorkingSet::StateString(mode, true, HoldReason::Speed), (int)Str_StateCal);
+        assertEqual((int)PloughVtWorkingSet::StateString(mode, true, HoldReason::Gps), (int)Str_StateCal);
+    }
+}
