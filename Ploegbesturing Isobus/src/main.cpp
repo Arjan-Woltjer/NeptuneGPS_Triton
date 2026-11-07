@@ -368,6 +368,9 @@ void loop() {
     // early returns below, so CAL shows while they skip the control.
     gVtWorkingSet->SetControlState(gInterface->GetMode(), gCalibration->HoldsTheControl());
     gVtInterface->Update();
+    // DDI 141 (#305): working = hitch down. GetHitch() is true with the hitch
+    // up (it forces MANUAL), the invert setting already applied.
+    gTcInterface->SetWorking(!gTractor->GetHitch());
     gTcInterface->Update();
     gDebugMenu->Update();
 #endif

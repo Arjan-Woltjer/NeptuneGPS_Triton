@@ -218,6 +218,43 @@ test(IsobusTcInterface, ddop_declaresTheTwoGuidanceDdisWeActuallyConsume) {
     assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::GNSSQuality));            // 514
 }
 
+// #305: DDI 141 Actual Work State, so a John Deere records again: with an
+// ISOBUS implement in the task it takes its recording trigger from the
+// implement's work state, not from the hitch.
+test(IsobusTcInterface, ddop_declaresActualWorkState) {
+    const auto ddis = DdisInUploadedPool();
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::ActualWorkState));  // 141
+}
+
+// Reported by us, not written by the TC: not settable, and in the default set
+// so a TC logs it without being told to.
+test(IsobusTcInterface, ddop_actualWorkStateIsOursAndInTheDefaultSet) {
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+    bool found = false;
+    for (std::uint16_t index = 0; index < parsed.size(); index++) {
+        auto object = parsed.get_object_by_index(index);
+        if (object == nullptr || object->get_object_type() != isobus::task_controller_object::ObjectTypes::DeviceProcessData) continue;
+        auto pd = std::static_pointer_cast<isobus::task_controller_object::DeviceProcessDataObject>(object);
+        if (pd->get_ddi() != static_cast<std::uint16_t>(isobus::DataDescriptionIndex::ActualWorkState)) continue;
+        found = true;
+        assertEqual((int)pd->get_properties_bitfield(), 0x01);           // default set, not settable
+        assertEqual((int)(pd->get_trigger_methods_bitfield() & 0x08), 0x08);  // on change
+    }
+    assertTrue(found);
+}
+
+// 1 = working (hitch down), 0 = not; main.cpp feeds !GetHitch() every pass.
+test(IsobusTcInterface, valueRequest_actualWorkStateFollowsSetWorking) {
+    Fixture().SetWorking(true);
+    assertTrue(Fixture().IsWorking());
+    assertEqual(IsobusTcInterfaceTestAccess::Request(Fixture(), 141), (std::int32_t)1);
+    Fixture().SetWorking(false);
+    assertEqual(IsobusTcInterfaceTestAccess::Request(Fixture(), 141), (std::int32_t)0);
+}
+
 test(IsobusTcInterface, ddop_declaresTheConnectorOffsets) {
     const auto ddis = DdisInUploadedPool();
     assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::DeviceElementOffsetX));
