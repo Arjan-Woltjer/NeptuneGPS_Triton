@@ -157,8 +157,13 @@ private:
     uint8_t       controlMode        = 2;   // InterfacePlough starts in manual
     bool          controlCalibrating = false;
 
+    // Release both soft keys: the VT they were held on is gone.
+    void          DropKeys();
     bool          widerHeld       = false;
     bool          narrowerHeld    = false;
+    // Still-held repeats being ignored (no live press): logged once.
+    bool          widerIgnoring    = false;
+    bool          narrowerIgnoring = false;
     unsigned long widerEventMs    = 0;
     unsigned long narrowerEventMs = 0;
 
