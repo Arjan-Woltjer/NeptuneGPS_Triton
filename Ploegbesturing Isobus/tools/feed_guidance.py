@@ -39,7 +39,8 @@ Wire formats, as the firmware decodes them (MeijWorks Libs/VehicleGuidance):
             that lands the plough shows 1.852x the speed sent here; --speed-as-knots sends what
             today's firmware expects instead of what a tractor sends.
   0CFFFF2A  byte 0 = 0x77 (the XTE message selector), byte 1 high nibble 1 = RTK,
-            bytes 3-4 = 32000 + 2 * XTE in cm (little-endian)
+            bytes 3-4 = 32000 - 2 * XTE in cm (little-endian): John Deere's sign is the
+            opposite of Triton's (the Ag Leader's), and the firmware negates it (#304)
   @ROXTE    0xBF '@' "ROXTE,<metres>" <sum hi> <sum lo> 0x10 0x03, where the sum is the 16-bit
             total of every byte from '@' through the last value character
 """
@@ -99,7 +100,7 @@ def jd_speed(course_deg: float, speed_raw_per_256: float, alt_m: float) -> bytes
 
 
 def jd_xte(xte_m: float, rtk: bool) -> bytes:
-    raw = 32000 + 2 * round(xte_m * 100)
+    raw = 32000 - 2 * round(xte_m * 100)   # the JD sign, #304
     raw = max(0, min(raw, 0xFFFF))
     data = bytes([0x77, 0x10 if rtk else 0x00, 0x00]) + struct.pack("<H", raw) + b"\xFF\xFF\xFF"
     return serial_can(0x0CFFFF2A, data)
@@ -212,7 +213,7 @@ def selftest() -> int:
     for xte in (0.0, 0.15, -0.37):
         xd = bytes.fromhex(jd_xte(xte, True)[10:26].decode())
         val = xd[3] | (xd[4] << 8)
-        got_cm = (val - 32000) >> 1
+        got_cm = -((val - 32000) >> 1)   # as the firmware decodes it since #304
         good = got_cm == round(xte * 100) and xd[0] == 0x77 and (xd[1] & 0xF0) == 0x10
         ok &= good
         print(f"{'ok  ' if good else 'FAIL'} JD XTE {xte:+.2f} m decodes to {got_cm:+d} cm, RTK")

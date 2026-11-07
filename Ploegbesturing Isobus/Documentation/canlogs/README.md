@@ -288,7 +288,8 @@ with the mapping:
 - **XTE ground truth** -- five operator call-outs with both signs and both
   travel directions, all reproduced by the legacy `0x2A` decoder within 1.5 cm.
   **The sign is in the direction-of-travel frame: positive = right of the
-  line**, so in the tractor's frame it flips in reverse. While stationary it
+  line** (corrected by #304: the raw word has the Ag Leader's opposite sign,
+  and the decoder negates it now), so in the tractor's frame it flips in reverse. While stationary it
   follows the last travel direction.
 - **The 12:25:38 VT/TC drop (#149)** -- the bus stays healthy throughout; we
   alone go silent for 3.19 s (12:25:35.41-12:25:38.60), then flush a 3 ms

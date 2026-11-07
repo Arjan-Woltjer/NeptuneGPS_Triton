@@ -123,6 +123,15 @@ test(CanFrameGuidanceChannel, john_deere_xte) {
     assertEqual(g.GetXteTimestamp(), (unsigned long)77);
 }
 
+// #304: the plain-CAN builds' JD path, same sign as the decoder.
+test(CanFrameGuidanceChannel, john_deere_xte_signIsTheAgLeaderConvention) {
+    GuidanceSource g;
+    CanFrameGuidanceChannel ch(&g);
+    const uint8_t d[8] = { 0x77, 0x10, 0x00, 0x32, 0x7D, 0x00, 0x00, 0x00 };   // raw 0x7D32 = 32050
+    assertTrue(ch.Update(kIdJohnDeereXte, d, 8));
+    assertEqual(g.GetXte(), -25);
+}
+
 test(CanFrameGuidanceChannel, john_deere_other_selector_is_ignored) {
     GuidanceSource g;
     CanFrameGuidanceChannel ch(&g);

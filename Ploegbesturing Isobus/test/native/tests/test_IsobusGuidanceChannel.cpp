@@ -512,28 +512,28 @@ test(IsobusGuidanceChannel, johnDeereXte_shortFrameIsCountedAndNothingElse) {
 // The tests above use frames that decode to 0 cm, which cannot tell
 // "committed 0" from "committed nothing", and none reads the quality back.
 // This is a real session-8 frame (the #20 closing analysis): raw word
-// 0x7D16 = 32022 -> +11 cm, and byte 1 = 0x15, whose high nibble 1 means RTK
+// 0x7D16 = 32022 -> 11 cm, negated to -11 since #304, and byte 1 = 0x15, whose high nibble 1 means RTK
 // quality 4.
 test(IsobusGuidanceChannel, johnDeereXte_commitsValueAndRtkQuality) {
     Reset();
     millisValue(1234);
     Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
             { 0x77, 0x15, 0x10, 0x16, 0x7D, 0x3F, 0x89, 0xFF });
-    assertEqual(gcGuidance.GetXte(), 11);
+    assertEqual(gcGuidance.GetXte(), -11);
     assertEqual((int)gcGuidance.GetQuality(), 4);
     assertEqual(gcGuidance.GetXteTimestamp(), (unsigned long)1234);
     millisValue(0);
 }
 
-// The other sign from the same session (raw 0x7CD6 = 31958 -> -21 cm), with
+// The other sign from the same session (raw 0x7CD6 = 31958 -> +21 cm since #304), with
 // byte 1's high nibble changed to 0 so the quality branch reads 0. Quality is
 // primed to 4 first, so the assert proves it is written, not merely left.
-test(IsobusGuidanceChannel, johnDeereXte_commitsNegativeValueAndNonRtkQuality) {
+test(IsobusGuidanceChannel, johnDeereXte_commitsTheOtherSignAndNonRtkQuality) {
     Reset();
     gcGuidance.SetXte(0, 4);
     Deliver(IsobusGuidanceChannelTestAccess::LegacyXteJohnDeere(), 0x2A,
             { 0x77, 0x05, 0x10, 0xD6, 0x7C, 0x59, 0x89, 0xFF });
-    assertEqual(gcGuidance.GetXte(), -21);
+    assertEqual(gcGuidance.GetXte(), 21);
     assertEqual((int)gcGuidance.GetQuality(), 0);
 }
 
