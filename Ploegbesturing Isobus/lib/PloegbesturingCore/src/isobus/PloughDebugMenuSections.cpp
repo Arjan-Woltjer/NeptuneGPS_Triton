@@ -181,6 +181,9 @@ FLASHMEM void PloughDebugMenuSections::PrintDump() {
         serialDebug->print(", last ");
         serialDebug->print(millis() - tcInterface->GetQualityTimestamp());
         serialDebug->println(" ms ago");
+        // What we report (#305): working = hitch down.
+        serialDebug->print("  Work state (DDI 141):    ");
+        serialDebug->println(tcInterface->IsWorking() ? "1 working (hitch down)" : "0 not working (hitch up)");
         // --- What reached our handlers, via AgIsoStack -------------------
         // Labelled as such deliberately. Session 9 read "Value commands: 0"
         // as "the TC never commanded us" when the TC was commanding us at

@@ -72,6 +72,7 @@ constexpr std::uint16_t kObjActualTrack           = 12;  // DDI 509
 constexpr std::uint16_t kObjTrackRight            = 13;  // DDI 510
 constexpr std::uint16_t kObjTrackLeft             = 14;  // DDI 511
 constexpr std::uint16_t kObjTramlineState         = 15;  // DDI 515
+constexpr std::uint16_t kObjWorkState             = 16;  // DDI 141 (#305)
 
 // DDI 505 value: bitfield of Tramline Control Levels we support.
 //   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
@@ -189,7 +190,7 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC05",  // Structure label -- bumped from TC01 for the
+                      "TC07",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
@@ -206,6 +207,11 @@ void IsobusTcInterface::buildDdop() {
                                // DDIs 507, 508, 509, 510, 511 and 515 to
                                // complete the Level 1 required set (six new
                                // objects), and sets DDI 505 to 0x01.
+                               // TC07 (#305) adds DDI 141 Actual Work State.
+                               // TC06 is NOT skipped by accident: #162 (working
+                               // width + NAME) carries it on its own branch and
+                               // may have been uploaded under it, so it is
+                               // treated as burned like TC04.
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by
@@ -264,6 +270,17 @@ void IsobusTcInterface::buildDdop() {
                                    static_cast<std::uint16_t>(DataDescriptionIndex::GNSSQuality),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjQuality);
+
+    // DDI 141 Actual Work State (#305): reported BY us, so not settable.
+    // 1 = working (hitch down), 0 = not. Member of the default set, so a TC
+    // logs it without the operator picking it, which is what a John Deere's
+    // recording trigger needs. Same triggers as the rest: the TC chooses, and
+    // SetWorking() fires the on-change one.
+    constexpr std::uint8_t kDefaultSet = static_cast<std::uint8_t>(task_controller_object::DeviceProcessDataObject::PropertiesBit::MemberOfDefaultSet);
+    ddop->add_device_process_data("Actual Work State",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkState),
+                                   NULL_OBJECT_ID,
+                                   kDefaultSet, kTriggers, kObjWorkState);
 
     // --- Tramline Control probe (GitHub issue #21) --------------------
     // 513/514 are OPTIONAL members of the AEF Tramline Control DDI set, not
@@ -372,6 +389,7 @@ void IsobusTcInterface::buildDdop() {
     auto functionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjFunction));
     functionElement->add_reference_to_child_object(kObjDeviation);
     functionElement->add_reference_to_child_object(kObjQuality);
+    functionElement->add_reference_to_child_object(kObjWorkState);
     functionElement->add_reference_to_child_object(kObjTramlineLevel);
     functionElement->add_reference_to_child_object(kObjTramlineSetpointLevel);
     functionElement->add_reference_to_child_object(kObjTramlineSequence);
@@ -439,6 +457,20 @@ void IsobusTcInterface::Begin() {
     // can_hardware_interface_single_thread; Update() pumps the client, same
     // as IsobusVtInterface's vtClient.
     tcClient->initialize(false);
+}
+
+// ------------------------------------------------------------------
+// SetWorking -- DDI 141's backing value (#305), every loop() pass.
+// ------------------------------------------------------------------
+void IsobusTcInterface::SetWorking(bool isWorking) {
+    if (isWorking == working) return;
+    working = isWorking;
+    // Only while connected: the client queues the send and only drains the
+    // queue once connected, so hitch toggles before a TC would pile up. A TC
+    // that connects later reads the current value by request or trigger.
+    if (IsConnected()) {
+        tcClient->on_value_changed_trigger(kElementFunction, static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkState));
+    }
 }
 
 // ------------------------------------------------------------------
@@ -689,6 +721,10 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::GNSSQuality):
             processVariableValue = self->tcGnssQuality;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkState):  // 141, #305
+            processVariableValue = self->working ? 1 : 0;
             break;
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackSequenceNumber):  // 507
