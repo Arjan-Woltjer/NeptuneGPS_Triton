@@ -1,0 +1,233 @@
+=== 2026-11-07 23:00:45 opened COM7
+23:00:45.974 VT: partner 0xFE silent -- requesting address claims to find another VT
+23:00:45.977 VT: partner 0xFE silent -- requesting address claims to find another VT
+23:00:45.978 VT: partner 0xFE silent -- requesting address claims to find another VT
+23:00:45.979 VT: partner 0xFE silent -- requesting address claims to find another VT
+23:00:52.217 VT: partner 0xFE silent -- requesting address claims to find another VT
+23:01:02.195 VT: partner 0xFE silent -- requesting address claims to find another VT
+23:01:02.838 I] [NM]: Partnered control function with name 000000000000000lx has claimed address 2950692864 on channel 2684361984.
+23:01:05.843 E] [VT]: Get Memory Response Timeout
+23:01:10.866 I] [VT]: Resetting Failed VT Connection
+23:01:11.996 I] [VT]: VT Server has a label for KB02   . This version will be deleted.
+23:01:11.997 I] [VT]: No version label from the VT matched. Client will upload the pool and store it instead.
+23:01:11.997 I] [VT]: Delete Version Response OK!
+23:01:14.428 I] [VT]: Stored object pool with no error.
+23:01:54.496 VT: Calibrate pressed
+23:01:54.497 VT: calibration page open
+23:01:55.740 VT: calibration cancelled
+23:01:56.779 VT: Calibrate pressed
+23:01:56.784 VT: calibration page open
+23:01:57.861 VT: width calibration open
+23:01:59.248 VT: calibration cancelled
+23:03:17.914 VT: Calibrate pressed
+23:03:17.915 VT: calibration page open
+23:05:55.332 VT: calibration cancelled
+23:06:20.966 VT: Wider pressed
+23:06:21.897 VT: Wider released
+23:06:22.902 VT: Narrower pressed
+23:06:23.024 VT: Narrower released
+23:06:23.085 VT: Narrower pressed
+23:06:23.911 VT: Narrower released
+23:11:08.157 VT: Calibrate pressed
+23:11:08.158 VT: calibration page open
+23:11:09.274 VT: calibration cancelled
+23:11:44.795 VT: Calibrate pressed
+23:11:44.796 VT: calibration page open
+23:11:48.105 VT: calibration cancelled
+23:17:00.761 E] [VT]: Status Timeout
+23:17:03.760 E] [VT]: Timed out waiting for the VT Status message.
+23:17:08.707 I] [VT]: Resetting Failed VT Connection
+23:17:10.719 VT: disconnected 10s after having been connected -- forcing reconnect attempt 1 (partner addr=0x26 valid=Y)
+23:17:10.722 I] [VT]: VT Client connection has been terminated.
+23:17:12.720 VT: partner 0x26 silent -- requesting address claims to find another VT
+23:17:13.714 E] [VT]: Timed out waiting for the VT Status message.
+23:17:18.746 I] [VT]: Resetting Failed VT Connection
+23:17:20.708 VT: disconnected 20s after having been connected -- forcing reconnect attempt 2 (partner addr=0x26 valid=Y)
+23:17:20.709 I] [VT]: VT Client connection has been terminated.
+23:17:22.767 VT: partner 0x26 silent -- requesting address claims to find another VT
+23:17:23.711 E] [VT]: Timed out waiting for the VT Status message.
+23:17:28.723 I] [VT]: Resetting Failed VT Connection
+23:17:30.751 VT: disconnected 30s after having been connected -- forcing reconnect attempt 3 (partner addr=0x26 valid=Y)
+23:17:30.752 I] [VT]: VT Client connection has been terminated.
+23:17:32.750 VT: partner 0x26 silent -- requesting address claims to find another VT
+23:17:33.744 E] [VT]: Timed out waiting for the VT Status message.
+23:17:38.708 I] [VT]: Resetting Failed VT Connection
+23:17:40.764 VT: disconnected 40s after having been connected -- forcing reconnect attempt 4 (partner addr=0x26 valid=Y)
+23:17:40.765 I] [VT]: VT Client connection has been terminated.
+23:17:42.713 VT: partner 0x26 silent -- requesting address claims to find another VT
+23:17:43.722 E] [VT]: Timed out waiting for the VT Status message.
+23:17:48.741 I] [VT]: Resetting Failed VT Connection
+23:17:50.761 VT: disconnected 50s after having been connected -- forcing reconnect attempt 5 (partner addr=0x26 valid=Y)
+23:17:50.762 I] [VT]: VT Client connection has been terminated.
+23:17:52.765 VT: partner 0x26 silent -- requesting address claims to find another VT
+23:17:53.709 E] [VT]: Timed out waiting for the VT Status message.
+23:17:58.716 I] [VT]: Resetting Failed VT Connection
+23:18:00.748 VT: disconnected 60s after having been connected -- forcing reconnect attempt 6 (partner addr=0x26 valid=Y)
+23:18:00.749 I] [VT]: VT Client connection has been terminated.
+23:18:02.764 VT: partner 0x26 silent -- requesting address claims to find another VT
+23:18:03.710 E] [VT]: Timed out waiting for the VT Status message.
+23:18:08.730 I] [VT]: Resetting Failed VT Connection
+23:18:09.294 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:18:09.295 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:18:10.362 I] [VT]: VT Server has a matching label for MW17   . It will be loaded and upload will be skipped.
+23:18:10.423 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+23:18:10.423 W] [VT]: Server response to a command timed out
+23:18:13.993 VT: Narrower pressed
+23:18:14.695 VT: Narrower released
+23:18:36.768 VT: Narrower pressed
+23:18:38.030 VT: Narrower released
+23:19:15.007 VT: Narrower pressed
+23:19:17.971 W] [VT]: Server response to a command timed out
+23:19:18.341 E] [VT]: Status Timeout
+23:19:21.340 E] [VT]: Timed out waiting for the VT Status message.
+23:19:26.357 I] [VT]: Resetting Failed VT Connection
+23:19:28.316 VT: disconnected 10s after having been connected -- forcing reconnect attempt 7 (partner addr=0x26 valid=Y)
+23:19:28.317 I] [VT]: VT Client connection has been terminated.
+23:19:31.339 E] [VT]: Timed out waiting for the VT Status message.
+23:19:36.364 I] [VT]: Resetting Failed VT Connection
+23:19:38.315 VT: disconnected 20s after having been connected -- forcing reconnect attempt 8 (partner addr=0x26 valid=Y)
+23:19:38.316 I] [VT]: VT Client connection has been terminated.
+23:19:41.336 E] [VT]: Timed out waiting for the VT Status message.
+23:19:46.315 I] [VT]: Resetting Failed VT Connection
+23:19:48.343 VT: disconnected 30s after having been connected -- forcing reconnect attempt 9 (partner addr=0x26 valid=Y)
+23:19:48.344 I] [VT]: VT Client connection has been terminated.
+23:19:50.939 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:50.941 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:50.941 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:50.942 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:50.942 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:50.943 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:50.943 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:19:51.930 I] [VT]: VT Server has a matching label for MW17   . It will be loaded and upload will be skipped.
+23:19:52.008 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+23:19:52.008 W] [VT]: Server response to a command timed out
+23:20:20.314 >>> sent '1'
+23:20:20.378 === ISOBUS DEBUG MENU ===
+23:20:20.379 1. Full status dump
+23:20:20.380 2. Periodic summary line (OFF - press to toggle)
+23:20:20.380 3. Reset message counters
+23:20:20.381 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+23:20:20.382 5. Dump VT object pool as hex
+23:20:20.382 q. Exit
+23:20:24.134 VT: Narrower pressed
+23:20:24.453 VT: Narrower released
+23:20:25.263 VT: Narrower pressed
+23:20:26.396 VT: Narrower released
+23:20:29.843 >>> sent '1'
+23:20:29.901 === ISOBUS STATUS ===
+23:20:29.902 Address claim: CLAIMED  address=0x81
+23:20:29.903 CAN controller: error-active  TX err 0 (peak 250)  RX err 0 (peak 133)
+23:20:29.904   error-passive entries: 5709  bus-off entries: 5698  longest episode: 7231547 ms
+23:20:29.904   last bus-off 40915 ms ago
+23:20:29.905 Bus load (ch0): 1.1 %
+23:20:29.905 CAN receive queue: high water 2 of 64, dropped 0
+23:20:29.906 Loop pass: longest 121019 us since the last dump, 121019 us since boot
+23:20:29.906 --- Message counters ---
+23:20:29.907   PGN 129025 Position NMEA2000: 0
+23:20:29.907   PGN 129026 Speed NMEA2000:    0
+23:20:29.907   PGN 129283 XTE NMEA2000:      0
+23:20:29.908   PGN 65267  Position legacy:   0
+23:20:29.908   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+23:20:29.908   PGN 65535  all senders:       0   last SA=0xFF
+23:20:29.909   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+23:20:29.909              raw: nothing from 0x2A or 0x80 yet
+23:20:29.909   PGN 65535  GNSS status 0x80:  0   (none)
+23:20:29.910   PGN 60160  XTE Trimble legacy:6   last SA=0x26
+23:20:29.910   PGN 64770  AISO stop:         0   last 0 ms ago
+23:20:29.911   TOTAL:                        6
+23:20:29.911 --- Guidance telemetry ---
+23:20:29.912   XTE:          0.00 m
+23:20:29.912   Speed:        0.00 m/s (0.00 kn)
+23:20:29.912   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+23:20:29.913   PGN 129027 position deltas: 0
+23:20:29.913   Guidance machine info (PGN 44032): (none received)
+23:20:29.913   IsRtkQuality=N
+23:20:29.914   GGA fix age:  8476508 ms
+23:20:29.914   VTG fix age:  8476508 ms
+23:20:29.914   XTE fix age:  8476508 ms
+23:20:29.915   Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+23:20:29.915 --- Virtual Terminal ---
+23:20:29.916   Connected:    Y
+23:20:29.916   State:        21/22  Connected
+23:20:29.916   VT version:  5
+23:20:29.917   VT status msgs: 5848   last 360 ms ago
+23:20:29.917   Partner: addr=0x26 valid=Y  reconnect attempts=9
+23:20:29.917   VT failover: switches=0 claim requests=736 rejoins=3 preferred=VT2 (not seen)
+23:20:29.918   AUX-N: Breder events=0 Smaller events=0 held=--
+23:20:29.918 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+23:20:29.918   Mode: AUTO  NOT RUNNING  (no Ag Leader display seen)
+23:20:29.919   Address claim: NOT CLAIMED
+23:20:29.919   Display partner: 0xFF  identification requests=0 answered=0 unknown=0  last DID=0x0  hello=N  stack partner=N
+23:20:29.919   Sent: frames=0 failures=0 heartbeats=0 softwareId=N  proprietary A from display=0
+23:20:29.920   Requests: softwareId=0 (sent 0x) ignored=0 last ignored PGN=0
+23:20:29.920   PGN 65462 XTE: frames=0 committed=0
+23:20:29.920 --- Task Controller ---
+23:20:29.921   Connected:    N
+23:20:29.921   TC-GEO (with/without pos): (not connected)
+23:20:29.921   Task active:  N
+23:20:29.922   DRP deviation (DDI 513): 0 mm, last 8476508 ms ago
+23:20:29.922   GNSS quality (DDI 514):  0, last 8476508 ms ago
+23:20:29.922   [via stack] Value cmds to handler: 0  last DDI=(none)
+23:20:29.923   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+23:20:29.923   [on bus] Requests for our values: 0
+23:20:29.924   [on bus] Set-value commands:      0
+23:20:29.924   [on bus] Measurement commands:    0  (none)
+23:20:29.924   [on bus] Other, addressed to us:  0
+23:20:29.925   Partner: addr=0xFE valid=N  reconnect attempts=0
+23:20:29.925   Tramline setpoint (DDI 506): (not connected)
+23:20:29.925   Guidance track (DDI 507-511): (not connected)
+23:20:29.926 === ISOBUS DEBUG MENU ===
+23:20:29.926 1. Full status dump
+23:20:29.926 2. Periodic summary line (OFF - press to toggle)
+23:20:29.926 3. Reset message counters
+23:20:29.927 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+23:20:29.927 5. Dump VT object pool as hex
+23:20:29.927 q. Exit
+=== 2026-11-07 23:34:55 opened COM7
+23:34:55.818 I] [NM]: Partnered control function with name 000000000000000lx has claimed address 2950692864 on channel 2684361984.
+23:34:56.707 I] [VT]: VT Server has a matching label for MW17   . It will be loaded and upload will be skipped.
+23:34:56.767 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+23:35:28.948 VT: Narrower pressed
+23:35:37.284 E] [VT]: Status Timeout
+23:35:40.284 E] [VT]: Timed out waiting for the VT Status message.
+23:35:42.603 VT: Narrower still held without a press -- ignored
+23:35:42.604 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.605 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.606 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.607 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.608 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.609 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.610 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.681 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.682 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.684 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.685 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.686 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.688 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.689 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.690 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.692 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.693 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.695 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.696 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:42.698 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+23:35:43.412 I] [VT]: VT Server has a matching label for MW17   . It will be loaded and upload will be skipped.
+23:35:43.473 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+23:35:43.474 W] [VT]: Server response to a command timed out
+23:46:40.071 W] [VT]: Server response to a command timed out
+23:46:40.513 E] [VT]: Status Timeout
+23:46:43.514 E] [VT]: Timed out waiting for the VT Status message.
+23:46:48.519 I] [VT]: Resetting Failed VT Connection
+=== 2026-11-07 23:47:15 opened COM7
+23:47:20.617 I] [NM]: Partnered control function with name 000000000000000lx has claimed address 2950692864 on channel 2684361984.
+23:47:20.618 I] [VT]: VT Server has a matching label for MW17   . It will be loaded and upload will be skipped.
+23:47:20.677 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+23:48:37.620 VT: Calibrate pressed
+23:48:37.621 VT: calibration page open
+23:48:41.933 VT: calibration cancelled
+23:48:44.622 VT: Calibrate pressed
+23:48:44.624 VT: calibration page open
+23:48:45.338 VT: width calibration open
+23:48:57.184 VT: calibration cancelled
+23:49:06.049 VT: Narrower pressed
+23:49:07.366 VT: Narrower released
