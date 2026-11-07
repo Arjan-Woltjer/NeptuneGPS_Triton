@@ -166,6 +166,25 @@ test(CalibrationPlough, printCalibrationData_reportsTheLiveRtkQuality) {
     assertTrue(dbg.has("RTK Quality\n2\n"));
 }
 
+// #318: the VT shows CAL while either front end holds the control -- the
+// cab wizard, or the VT page's settings session -- and not otherwise.
+test(CalibrationPlough, holdsTheControl_whileTheWizardOrTheVtPageIsOpen) {
+    resetAll();
+    ImplementPlough impl(nullptr, &calGuidance);
+    InterfacePlough iface(nullptr, &calLcd, &impl, &calTractor, &calGuidance);
+    CalibrationPlough cal(nullptr, &calLcd, &impl, &calTractor, &calGuidance, &iface);
+    assertFalse(cal.HoldsTheControl());
+
+    assertTrue(cal.GetSettings().Begin(SettingsOwner::Vt));
+    assertTrue(cal.HoldsTheControl());
+    cal.GetSettings().Cancel(SettingsOwner::Vt);
+    assertFalse(cal.HoldsTheControl());
+
+    assertTrue(cal.Start());
+    assertTrue(cal.IsActive());
+    assertTrue(cal.HoldsTheControl());
+}
+
 // The shares and deadband screens step within the bounds the boot load
 // accepts (2-10), so a saved value is never thrown away at the next boot.
 test(CalibrationPlough, stepWithin_staysInsideTheLoadBounds) {

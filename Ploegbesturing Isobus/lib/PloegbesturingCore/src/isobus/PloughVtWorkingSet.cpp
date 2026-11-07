@@ -91,7 +91,19 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // the width screen's VASTLEG and TERUG read OPSLAAN and ANNUL. (#282).
     // MW15 -> MW16, same day: + above - in rows 1 and 2, as the cab buttons,
     // so every key fits a 1 x 6 VT (#282).
-    return "MW16";
+    // MW16 -> MW17, 2026-11-07: the control's state on the main screen
+    // (#318), and both ANNUL. keys on row 5 for the 1200's 2 x 5 keys
+    // (session 23).
+    return "MW17";
+}
+
+uint16_t PloughVtWorkingSet::StateString(uint8_t mode, bool calibrating, HoldReason hold) {
+    if (calibrating) return Str_StateCal;
+    switch (mode) {
+        case 0:  return Str_StateAuto;
+        case 1:  return hold == HoldReason::Speed ? Str_StateHoldSpeed : Str_StateHoldGps;
+        default: return Str_StateHand;
+    }
 }
 
 // ----------------------------------------------------------------
@@ -189,6 +201,12 @@ void PloughVtWorkingSet::UpdateValues() {
     if (forceSend || speedIcon != lastSentSpeedIcon) {
         client->send_change_numeric_value(Ptr_SpeedStatus, speedIcon);
         lastSentSpeedIcon = speedIcon;
+    }
+    // The control's state (#318), with the hold reason the LCD shows.
+    const uint16_t state = StateString(controlMode, controlCalibrating, PloughHoldReason(*guidance, millis()));
+    if (forceSend || state != lastSentState) {
+        client->send_change_numeric_value(Ptr_State, state);
+        lastSentState = state;
     }
     // Speed in 0.1 km/h (the OutputNumber scales by 0.1).
     float speedDeciKmh = guidance->GetSpeedMs() * 36.0f;

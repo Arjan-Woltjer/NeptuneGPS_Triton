@@ -510,12 +510,13 @@ FLASHMEM static void appendCalibrationPage() {
     }
 
     // Column 2 (#282): BREEDTE where CALIBR is on the main screen, OPSLAAN
-    // below it, ANNUL. at the bottom.
+    // below it, ANNUL. at the bottom, on row 5 for the 1200's 2 x 5 keys
+    // (session 23).
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
     keys[SoftKeySlot(3, 2)] = Key_CalWidth;
     keys[SoftKeySlot(4, 2)] = Key_CalSave;
-    keys[SoftKeySlot(6, 2)] = Key_CalCancel;
+    keys[SoftKeySlot(5, 2)] = Key_CalCancel;
     appendSoftKeys(Plough_CalSoftKeyMask, kBlack, keys);
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
@@ -596,7 +597,7 @@ FLASHMEM static void appendCalibrationWidthPage() {
     keys[SoftKeySlot(1, 2)] = Key_CalWider;
     keys[SoftKeySlot(2, 2)] = Key_CalNarrower;
     keys[SoftKeySlot(4, 2)] = Key_CalCapture;
-    keys[SoftKeySlot(6, 2)] = Key_CalWidthBack;
+    keys[SoftKeySlot(5, 2)] = Key_CalWidthBack;
     appendSoftKeys(Plough_CalWidthSoftKeyMask, kBlack, keys);
     appendKey(Key_CalNarrower, kBlack, KeyCode_CalNarrower, Label_CalNarrower, kKeySignH);
     appendKey(Key_CalWider, kBlack, KeyCode_CalWider, Label_CalWider, kKeySignH);
@@ -672,13 +673,16 @@ FLASHMEM void BuildObjectPool() {
     constexpr uint16_t VAL_X = 136, VAL_W = VAL_END - VAL_X;
     constexpr uint16_t XTE_W = 5 * kMediumCharW, XTE_X = VAL_END - XTE_W;
     // The plough picture top left; the GPS and speed indicators in the column
-    // to its right; the four rows below, 29 px apart, the last one ending
-    // inside the 200 px mask.
+    // to its right, the control's state under them (#318); the four rows
+    // below, 29 px apart, the last one ending inside the 200 px mask.
     const uint16_t IMG_X = 2, IMG_Y = 2;
-    const uint16_t STAT_X = IMG_X + kPloughImageWidth + 4;      // 126: "GPS", speed, "km/h"
+    const uint16_t STAT_X = IMG_X + kPloughImageWidth + 4;      // 126: "GPS", speed, "km/h", state
     const uint16_t ICON_X = 200 - kStatusIconSize - 6;          // indicators, right edge
-    const uint16_t GPS_Y = 8, SPEED_Y = 36, UNIT_Y = 58;
+    const uint16_t GPS_Y = 4, SPEED_Y = 26, UNIT_Y = 48, STATE_Y = 62;
     const uint16_t ROW_TOP = IMG_Y + kPloughImageHeight + 4;
+    // 4 characters at 12x16 ("AUTO", "H S!"), opaque so a shorter string
+    // covers a longer one. The pool test checks it ends above ROW_TOP.
+    constexpr uint16_t STATE_W = 4 * kMediumCharW, STATE_H = 16;
     const uint16_t ROW_Y[4] = { ROW_TOP, uint16_t(ROW_TOP + 29), uint16_t(ROW_TOP + 58), uint16_t(ROW_TOP + 87) };
     static_assert((sizeof(kTextPosition) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextSetpoint) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
@@ -732,7 +736,7 @@ FLASHMEM void BuildObjectPool() {
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
-    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 18);
+    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 19);
     // The tractor-and-plough picture, through a pointer that IsobusVtInterface
     // switches to the side the plough is ploughing (left until it says so).
     appendObjRef(Ptr_PloughImage, IMG_X, IMG_Y);
@@ -744,6 +748,9 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Out_Speed, STAT_X, SPEED_Y);
     appendObjRef(Ptr_SpeedStatus, ICON_X, SPEED_Y + 3);
     appendObjRef(Label_SpeedUnit, STAT_X, UNIT_Y);
+    // The control's state (#318), what the LCD shows: AUTO, H S!, H G!,
+    // HAND, or CAL while a calibration holds the control.
+    appendObjRef(Ptr_State, STAT_X, STATE_Y);
     // Working width first (owner's request, 2026-10-01): it is the value the
     // operator sets with Wider/Narrower.
     appendObjRef(Label_Offset, LBL_X, ROW_Y[0]);
@@ -818,6 +825,16 @@ FLASHMEM void BuildObjectPool() {
     appendObjectPointer(Ptr_SpeedStatus, Img_StatusWarn);
     appendOutputString(Label_Gps, 48, 20, Font_White_Medium, 0, "GPS");
     appendOutputString(Label_SpeedUnit, 48, 10, Font_White_Unit, 0, "km/h");
+
+    // ---- The control's state (#318) ----
+    // HAND until PloughVtWorkingSet reports otherwise: InterfacePlough starts
+    // in manual.
+    appendObjectPointer(Ptr_State, Str_StateHand);
+    appendOutputString(Str_StateAuto, STATE_W, STATE_H, Font_White_Medium, 0, "AUTO", kOpaque);
+    appendOutputString(Str_StateHoldSpeed, STATE_W, STATE_H, Font_White_Medium, 0, "H S!", kOpaque);
+    appendOutputString(Str_StateHoldGps, STATE_W, STATE_H, Font_White_Medium, 0, "H G!", kOpaque);
+    appendOutputString(Str_StateHand, STATE_W, STATE_H, Font_White_Medium, 0, "HAND", kOpaque);
+    appendOutputString(Str_StateCal, STATE_W, STATE_H, Font_White_Medium, 0, "CAL", kOpaque);
 
     // ---- NumberVariables (initial values) ----
     appendNumberVariable(Var_Position, 0);
