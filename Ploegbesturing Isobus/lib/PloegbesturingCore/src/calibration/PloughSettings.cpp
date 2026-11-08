@@ -126,6 +126,13 @@ FLASHMEM bool PloughSettings::StageWidthCalibration(SettingsOwner who, const sho
     return true;
 }
 
+FLASHMEM void PloughSettings::GetWidthCalibration(short int adc[3]) const {
+    for (int i = 0; i < 3; i++) {
+        adc[i] = (owner != SettingsOwner::None && widthStaged) ? widthDraft[i]
+                                                                : implement->GetPositionCalibrationData(i);
+    }
+}
+
 FLASHMEM bool PloughSettings::Save(SettingsOwner who) {
     if (who == SettingsOwner::None || who != owner) return false;
 
