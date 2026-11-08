@@ -94,6 +94,10 @@ void IsobusDebugMenu::Update() {
 
     while (serialDebug->available()) {
         char c = (char)serialDebug->read();
+        // With the menu closed, a machine's console sees each byte first and
+        // keeps the ones that are its own (the plough: lines starting with
+        // ':', #241). Before the CR/LF skip, since a line end runs a command.
+        if (state == State::IDLE && inputFilter != nullptr && inputFilter(c)) continue;
         if (c == '\r' || c == '\n') continue;
 
         if (state == State::IDLE) {

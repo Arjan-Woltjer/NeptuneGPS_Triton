@@ -22,6 +22,9 @@
 #include "TritonIo.hpp"
 
 #include "calibration/CalibrationPlough.hpp"
+#ifndef MICRO
+#include "calibration/SettingsConsole.hpp"
+#endif
 #include "GuidanceSource.hpp"
 #include "implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
@@ -115,6 +118,11 @@ triton::VehicleSensors*    gTractor;
 triton::ImplementPlough*   gImplement;
 triton::InterfacePlough*   gInterface;
 triton::CalibrationPlough* gCalibration;
+#ifndef MICRO
+// The settings over the serial port (#241): ':' lines. Not on the Micro, which
+// has no flash to spare (#177).
+triton::SettingsConsole*   gConsole;
+#endif
 #ifdef ISOBUS
 triton::IsobusGuidanceChannel* gGuidanceChannel;
 triton::IsobusLightbarChannel* gLightbarChannel;
@@ -226,6 +234,7 @@ void setup() {
 #ifndef MICRO
     gCalibration->PrintCalibrationData();
     gImplement->PrintCalibrationData();
+    gConsole = new triton::SettingsConsole(gSerialDebug, &gCalibration->GetSettings());
 #endif
 
 #ifdef ISOBUS
@@ -306,6 +315,8 @@ void setup() {
 #if !defined(ESP32S3)
     gDebugMenu->SetCanReceiveQueueStatsSource(GReadCanReceiveQueueStats);
 #endif
+    // The settings console's ':' lines go past the debug menu (#241).
+    gDebugMenu->SetInputFilter([](char c) { return gConsole->Feed(c, millis()); });
 #else
     // Receiver port at the stored rate, then the blocking autodetect on the
     // LCD, as the regular Ploegbesturing does: the receivers and the
@@ -378,6 +389,21 @@ void loop() {
     gDebugMenu->Update();
 #endif
 
+#ifndef MICRO
+    // The settings console (#241). On the ISOBUS builds the debug menu hands
+    // it its ':' lines; the serial builds have no menu, so it reads the port.
+#ifndef ISOBUS
+    while (gSerialDebug->available()) gConsole->Feed(char(gSerialDebug->read()), millis());
+#endif
+    gConsole->Update(millis());
+    if (gConsole->TakeSaved()) {
+#ifdef ISOBUS
+        // A :save may have changed the preferred VT (#255), as the wizard's may.
+        gVtInterface->LoadPreferredVt();
+#endif
+    }
+#endif
+
     // The calibration wizard is a step runner (#31): while it is open it
     // takes the buttons and the LCD instead of InterfacePlough, one pass per
     // loop(), and everything above keeps running. See CalibrationPlough.hpp.
@@ -389,6 +415,10 @@ void loop() {
 #endif
         return;
     }
+
+    // The serial console holds a draft (#241): the control holds and the cab
+    // buttons do nothing until it is saved, cancelled or dropped as idle.
+    if (gCalibration->HoldWhileSerialCalibrates()) return;
 
 #ifdef ISOBUS
     // The VT calibration page is open (#240): the control holds and the cab

@@ -80,6 +80,8 @@
 #define L_CAL_COMPLETE  "Calibratie afronden "
 #define L_CAL_ON_VT     "Calibratie op de VT "
 #define L_CAL_ON_VT_2   "Opslaan of annuleren"
+#define L_CAL_ON_USB    "Calibratie via USB  "
+#define L_CAL_ON_USB_2  "Opslaan of annuleren"
 
 // -----------
 // Taal ENGELS
@@ -128,5 +130,7 @@
 #define L_CAL_COMPLETE  "Finish calibration  "
 #define L_CAL_ON_VT     "Calibrating on VT   "
 #define L_CAL_ON_VT_2   "Save or cancel there"
+#define L_CAL_ON_USB    "Calibrating via USB "
+#define L_CAL_ON_USB_2  "Save or cancel there"
 
 #endif

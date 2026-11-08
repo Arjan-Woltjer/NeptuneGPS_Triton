@@ -191,27 +191,38 @@ FLASHMEM void CalibrationPlough::Step() {
     }
 }
 
-#ifdef ISOBUS
-FLASHMEM bool CalibrationPlough::HoldWhileVtCalibrates() {
-    const bool vtHolds = settings.GetOwner() == SettingsOwner::Vt;
-    if (vtHolds && !holdingForVt) {
+// While `who` (the VT page or the serial console) holds the settings session:
+// the plough stops and holds, the cab shows where the calibration is, and the
+// pass after `who` lets go redraws the main screen and returns false.
+FLASHMEM bool CalibrationPlough::holdFor(SettingsOwner who, bool& holding, const char* line0, const char* line1) {
+    const bool holds = settings.GetOwner() == who;
+    if (holds && !holding) {
         implement->Stop();
-        lcd->WriteBuffer(L_CAL_ON_VT, 0);
-        lcd->WriteBuffer(L_CAL_ON_VT_2, 1);
+        lcd->WriteBuffer(line0, 0);
+        lcd->WriteBuffer(line1, 1);
         lcd->WriteBuffer(L_BLANK, 2);
         lcd->WriteBuffer(L_BLANK, 3);
-        holdingForVt = true;
+        holding = true;
     }
-    else if (!vtHolds && holdingForVt) {
-        holdingForVt = false;
+    else if (!holds && holding) {
+        holding = false;
         interface->UpdateScreen(1);
     }
-    if (!vtHolds) return false;
+    if (!holds) return false;
     implement->Update(2, 0);
     lcd->WriteScreen(1);
     return true;
 }
+
+#ifdef ISOBUS
+FLASHMEM bool CalibrationPlough::HoldWhileVtCalibrates() {
+    return holdFor(SettingsOwner::Vt, holdingForVt, L_CAL_ON_VT, L_CAL_ON_VT_2);
+}
 #endif
+
+FLASHMEM bool CalibrationPlough::HoldWhileSerialCalibrates() {
+    return holdFor(SettingsOwner::Serial, holdingForSerial, L_CAL_ON_USB, L_CAL_ON_USB_2);
+}
 
 FLASHMEM void CalibrationPlough::enterScreen(uint8_t next) {
     screen = next;
