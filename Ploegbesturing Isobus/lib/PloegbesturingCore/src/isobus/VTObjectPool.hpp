@@ -172,13 +172,25 @@ enum PloughVtObjectId : uint16_t {
     // are the soft keys' own labels.
     Aux_Wider                  = 170,
     Aux_Narrower               = 171,
+
+    // The control's state on the main screen (#318), in the LCD's letters:
+    // the pointer shows one of the five strings, CAL over the others while
+    // a calibration holds the control.
+    Ptr_State                  = 172,
+    Str_StateAuto              = 173,
+    Str_StateHoldSpeed         = 174,
+    Str_StateHoldGps           = 175,
+    Str_StateHand              = 176,
+    Str_StateCal               = 177,
 };
 
 // Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
 // (#282). The bench VT (AgISOVirtualTerminal) fills column 2 top to bottom,
 // then column 1: positions 0-5 are column 2 rows 1-6, 6-11 column 1. A
 // one-column VT takes the positions in order, six to a page, so column 1
-// lands on its second page.
+// lands on its second page. Row 6 stays empty on every mask (session 23):
+// the InCommand 1200 shows 2 x 5 keys and put a 6th key in the wrong place,
+// so the bottom key of a page (ANNUL.) sits on row 5.
 constexpr uint8_t kSoftKeyRows  = 6;
 constexpr uint8_t kSoftKeySlots = 2 * kSoftKeyRows;
 constexpr uint8_t SoftKeySlot(uint8_t row, uint8_t column) {

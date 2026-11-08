@@ -364,7 +364,13 @@ void loop() {
     // The saved setting: the wizard's or the VT page's Save changes it.
     gLightbarChannel->SetMode(gCalibration->GetLightbarMode());
     gLightbarChannel->Update();
+    // The main screen's state line (#318): set here, above the calibration's
+    // early returns below, so CAL shows while they skip the control.
+    gVtWorkingSet->SetControlState(gInterface->GetMode(), gCalibration->HoldsTheControl());
     gVtInterface->Update();
+    // DDI 141 (#305): working = hitch down. GetHitch() is true with the hitch
+    // up (it forces MANUAL), the invert setting already applied.
+    gTcInterface->SetWorking(!gTractor->GetHitch());
     gTcInterface->Update();
     gDebugMenu->Update();
 #endif

@@ -332,10 +332,10 @@ test(IsobusVtCalibration, breder_drivesWhileHeld_andStopsOnRelease) {
     resetAll();
     Rig r;
     openWidth(r);
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
-    r.page.OnWidthKey(Key_CalWider, false);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Release);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
     assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
@@ -345,10 +345,10 @@ test(IsobusVtCalibration, smaller_drivesTheOtherWay_andBothTogetherStop) {
     resetAll();
     Rig r;
     openWidth(r);
-    r.page.OnWidthKey(Key_CalNarrower, true);
+    r.page.OnWidthKey(Key_CalNarrower, HeldKey::Event::Press);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
@@ -360,7 +360,7 @@ test(IsobusVtCalibration, heldKeyWithoutRepeat_stopsAfterTheTimeout) {
     resetAll();
     Rig r;
     openWidth(r);
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     millisValue(600);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
@@ -374,7 +374,7 @@ test(IsobusVtCalibration, widthKeys_driveNothing_outsideTheProcedure) {
     resetAll();
     Rig r;
     r.page.OnCalibrateKey();
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
 }
@@ -432,7 +432,7 @@ test(IsobusVtCalibration, terug_leavesTheProcedure_withoutStaging) {
     openWidth(r);
     analogReadValue(POSITION_SENS_PIN_2, 610);
     r.page.OnSoftKey(Key_CalCapture);
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     r.page.OnSoftKey(Key_CalWidthBack);
     assertFalse(r.page.IsWidthProcedureOpen());
     assertTrue(r.page.IsOpen());
@@ -448,7 +448,7 @@ test(IsobusVtCalibration, lostVt_duringTheProcedure_stopsThePlough_andDropsTheDr
     resetAll();
     Rig r;
     openWidth(r);
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     r.page.OnConnectionLost();
@@ -464,7 +464,7 @@ test(IsobusVtCalibration, opslaan_duringTheProcedure_closesIt_andSaves) {
     resetAll();
     Rig r;
     openWidth(r);
-    r.page.OnWidthKey(Key_CalWider, true);
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     assertTrue(r.page.OnSoftKey(Key_CalSave));
     assertFalse(r.page.IsWidthProcedureOpen());
     assertFalse(r.page.IsOpen());

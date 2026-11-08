@@ -185,7 +185,7 @@ void InterfacePlough::UpdateScreen(bool rewrite) {
             break;
         case 1: // HOLD
             lcd->WriteBuffer('H', 3, 14);
-            if (!guidance->MinSpeed() && millis() - guidance->GetVtgTimestamp() < 2000) {
+            if (PloughHoldReason(*guidance, millis()) == HoldReason::Speed) {
                 lcd->WriteBuffer('S', 3, 17);
                 lcd->WriteBuffer('!', 3, 18);
             }
