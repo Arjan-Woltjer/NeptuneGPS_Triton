@@ -27,6 +27,7 @@
 #include "../calibration/PloughSettings.hpp"
 #include "../calibration/WidthProcedure.hpp"
 #include "../implement/ImplementPlough.hpp"
+#include "HeldKey.hpp"
 
 namespace triton
 {
@@ -53,10 +54,10 @@ public:
 // (CalibrationPlough::HoldWhileVtCalibrates).
 class IsobusVtCalibration {
 public:
-    // A held Smaller / Breder without a still-held repeat for this long
-    // counts as released, so a lost release stops the valve: the same 600 ms
-    // as the main soft keys (PloughVtWorkingSet::kSoftKeyHeldTimeoutMs, #245).
-    static constexpr unsigned long kHeldTimeoutMs = 600;
+    // Smaller / Breder follow the main soft keys' rule (HeldKey, #245, #320):
+    // a press starts the hold, still-held repeats keep it alive but never
+    // start it, and without one for this long the key counts as released.
+    static constexpr unsigned long kHeldTimeoutMs = HeldKey::kTimeoutMs;
     // The live sensor reading goes to the VT at most this often.
     static constexpr unsigned long kSensorSendMs = 200;
 
@@ -76,9 +77,9 @@ public:
     // when Opslaan saved the draft.
     bool OnSoftKey(uint16_t keyObjectId);
 
-    // Smaller / Breder, on every press, still-held and release event: `down`
-    // is true for a press or a still-held repeat.
-    void OnWidthKey(uint16_t keyObjectId, bool down);
+    // Smaller / Breder, on every press, still-held and release event. Outside
+    // the width procedure they do nothing.
+    void OnWidthKey(uint16_t keyObjectId, HeldKey::Event event);
 
     // A value the operator entered on the VT, for one of the page's inputs.
     // Out of range or not the page's: refused, and the held value shown again.
@@ -115,10 +116,8 @@ private:
     uint32_t shown[PloughSettings::kCount];
 
     // The width procedure on the VT.
-    bool          widerHeld = false;
-    bool          narrowerHeld = false;
-    unsigned long widerEventMs = 0;
-    unsigned long narrowerEventMs = 0;
+    HeldKey       widerKey;
+    HeldKey       narrowerKey;
     bool          widthInvalid = false;     // the last three readings were refused
     uint32_t      shownPoint = kNotSent;
     uint32_t      shownTarget = kNotSent;

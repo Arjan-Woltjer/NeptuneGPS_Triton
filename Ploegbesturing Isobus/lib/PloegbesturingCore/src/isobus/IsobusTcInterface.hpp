@@ -71,13 +71,17 @@ namespace triton
 // through geometry validation -- Device/Connector/Function elements, the
 // connector's X/Y offsets (load-bearing for DDI 513's correctness, see
 // design doc sec 4.3), and the two TC-writable process data variables.
-// The design doc's own sketch also listed DDI 67/70 (working width) and
-// 141 (actual work state) on the Function element -- deliberately NOT
-// declared here: this implement controls plough *offset*, not width
-// (ImplementPlough has no working-width concept at all), and has no
-// engaged/disengaged state ImplementPlough exposes either. Declaring
-// DDIs with no real backing value would mean inventing data. Revisit if/
-// when those capabilities exist.
+// The design doc's own sketch also listed DDI 67/70 (working width) on the
+// Function element -- deliberately NOT declared here: this implement
+// controls plough *offset*, not width (ImplementPlough has no working-width
+// concept at all), and declaring DDIs with no real backing value would mean
+// inventing data (TC06 / #162 revisits it).
+//
+// DDI 141 (Actual Work State) IS declared since #305: its backing value is
+// the tractor's hitch input, already read (with the invert setting) to force
+// MANUAL. Hitch down = the plough in the ground = working. A John Deere with
+// an ISOBUS implement in the task takes its recording trigger from this, no
+// longer from the hitch, and recorded nothing while it was missing.
 //
 // Depends on an already-address-claimed InternalControlFunction --
 // construct after IsobusGuidanceChannel::Begin() completes, exactly like
@@ -101,6 +105,12 @@ public:
 
     // Call every loop() iteration.
     void Update();
+
+    // The work state DDI 141 reports (#305): true = working (hitch down).
+    // Call every loop() pass; a change is sent to a connected TC at once
+    // (the on-change trigger), and the TC can request it at any time.
+    void SetWorking(bool isWorking);
+    inline bool IsWorking() const { return working; }
 
     // Diagnostics for IsobusDebugMenu.
     inline bool          IsConnected() const        { return tcClient && tcClient->get_is_connected(); }
@@ -274,6 +284,7 @@ private:
     // ImplementPlough/InterfacePlough yet, only diagnostics exposure.
     int           drpDeviationMm     = 0;
     uint8_t       tcGnssQuality      = 0;
+    bool          working            = false;   // DDI 141, see SetWorking()
     unsigned long lastDrpUpdate      = 0;
     unsigned long lastQualityUpdate  = 0;
 

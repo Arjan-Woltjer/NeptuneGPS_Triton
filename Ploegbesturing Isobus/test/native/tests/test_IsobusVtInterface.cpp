@@ -140,8 +140,10 @@ struct IsobusVtInterfaceTestAccess {
     }
 
     static void ResetPendingKeys(PloughVtWorkingSet& ws) {
-        ws.widerHeld             = false;
-        ws.narrowerHeld          = false;
+        ws.widerKey              = HeldKey();
+        ws.narrowerKey           = HeldKey();
+        ws.pressedTapKey         = PloughVtWorkingSet::kNoTapKey;
+        ws.aux                   = AuxInputs();
     }
 };
 }  // namespace triton
@@ -265,7 +267,12 @@ void Deliver(const std::vector<std::uint8_t>& data) {
                                                 static_cast<std::uint8_t>(data.size()));
 }
 
+// A tap on a key that acts on its release: press, then release (#320: a
+// release alone does nothing).
 void Release(std::uint16_t objectId) {
+    IsobusVtInterfaceTestAccess::Key(
+        Fixture(), objectId,
+        isobus::VirtualTerminalClient::KeyActivationCode::ButtonPressedOrLatched);
     IsobusVtInterfaceTestAccess::Key(
         Fixture(), objectId,
         isobus::VirtualTerminalClient::KeyActivationCode::ButtonUnlatchedOrReleased);
@@ -400,7 +407,10 @@ test(IsobusVtInterface, key_abortedPressReleasesTheKey) {
 }
 
 // A lost release must not keep a valve driving: without a still-held repeat
-// for the timeout, the key counts as released.
+// for the timeout, the key counts as released -- and stays released. A
+// still-held repeat after the gap does not start the valve again; only a new
+// press does (#320, session 24: AgISOVirtualTerminal kept repeating still-held for
+// 30 s after a cable pull it never sent the release through).
 test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
     Reset();
     KeyCode(Key_Wider, kPressed);
@@ -409,15 +419,162 @@ test(IsobusVtInterface, key_heldKeyTimesOutWithoutStillHeld) {
     millisValue(PloughVtWorkingSet::kSoftKeyHeldTimeoutMs + 1);
     assertFalse(WorkingSet().IsWiderHeld());
     KeyCode(Key_Wider, kStillHeld);                      // the VT is still reporting it
+    assertFalse(WorkingSet().IsWiderHeld());
+    millisValue(PloughVtWorkingSet::kSoftKeyHeldTimeoutMs + 200);
+    KeyCode(Key_Wider, kStillHeld);
+    assertFalse(WorkingSet().IsWiderHeld());
+    KeyCode(Key_Wider, kPressed);                        // a fresh press drives again
     assertTrue(WorkingSet().IsWiderHeld());
     millisValue(0);
 }
 
-// A still-held repeat without the press before it (a lost press) counts as held.
-test(IsobusVtInterface, key_stillHeldWithoutPressCountsAsHeld) {
+// A still-held repeat without the press before it cannot start a hold: a
+// lost press costs a second press, a stuck VT key cannot drive a valve.
+test(IsobusVtInterface, key_stillHeldWithoutPressDoesNotHold) {
     Reset();
     KeyCode(Key_Narrower, kStillHeld);
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    assertTrue(vtDebug.Contains("VT: Narrower still held without a press -- ignored"));
+}
+
+// Session 24, B8 rerun: Narrower held, the CAN cable pulled, the VT
+// reconnects and keeps repeating still-held. The lost connection drops the
+// key, and the repeats after the reconnect do not pick it up again.
+test(IsobusVtInterface, key_lostConnectionDropsAHeldKey) {
+    Reset();
+    KeyCode(Key_Narrower, kPressed);
+    millisValue(200);
+    KeyCode(Key_Narrower, kStillHeld);
     assertTrue(WorkingSet().IsNarrowerHeld());
+    WorkingSet().Update(false);                          // cable pulled
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    millisValue(400);                                    // inside the timeout,
+    KeyCode(Key_Narrower, kStillHeld);                   // so only the drop stops it
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    WorkingSet().Update(true);                           // reconnected
+    millisValue(600);
+    KeyCode(Key_Narrower, kStillHeld);
+    assertFalse(WorkingSet().IsNarrowerHeld());
+    KeyCode(Key_Narrower, kReleased);
+    KeyCode(Key_Narrower, kPressed);
+    assertTrue(WorkingSet().IsNarrowerHeld());
+    millisValue(0);
+}
+
+// The failover path (another VT) drops the keys too.
+test(IsobusVtInterface, key_vtSwitchDropsAHeldKey) {
+    Reset();
+    KeyCode(Key_Wider, kPressed);
+    WorkingSet().OnConnectionLost();
+    assertFalse(WorkingSet().IsWiderHeld());
+}
+
+// #320, the tap keys: a release only acts when this connection saw the same
+// key's press, so a release left over from before a cable pull, or one whose
+// press went to another VT, does nothing.
+test(IsobusVtInterface, tap_releaseWithoutPressDoesNothing) {
+    Reset();
+    WorkingSet().AttachCalibration(&Page());
+    KeyCode(Key_Calibrate, kReleased);
+    assertFalse(Page().IsOpen());
+    assertTrue(vtDebug.Contains("released without a press -- ignored"));
+    KeyCode(Key_Calibrate, kPressed);
+    KeyCode(Key_Calibrate, kReleased);
+    assertTrue(Page().IsOpen());
+    KeyCode(Key_CalCancel, kPressed);
+    KeyCode(Key_CalCancel, kReleased);
+    assertFalse(Page().IsOpen());
+}
+
+test(IsobusVtInterface, tap_lostConnectionDropsThePress) {
+    Reset();
+    WorkingSet().AttachCalibration(&Page());
+    KeyCode(Key_Calibrate, kPressed);
+    WorkingSet().Update(false);                          // cable pulled
+    WorkingSet().Update(true);
+    KeyCode(Key_Calibrate, kReleased);
+    assertFalse(Page().IsOpen());
+}
+
+test(IsobusVtInterface, tap_anotherKeysPressDoesNotCount) {
+    Reset();
+    WorkingSet().AttachCalibration(&Page());
+    KeyCode(Key_CalCancel, kPressed);
+    KeyCode(Key_Calibrate, kReleased);
+    assertFalse(Page().IsOpen());
+}
+
+// #320, the width procedure's Breder / Smaller: the same rule as the main
+// soft keys.
+void OpenWidthOnThePage() {
+    WorkingSet().AttachCalibration(&Page());
+    KeyCode(Key_Calibrate, kPressed);
+    KeyCode(Key_Calibrate, kReleased);
+    KeyCode(Key_CalWidth, kPressed);
+    KeyCode(Key_CalWidth, kReleased);
+}
+
+test(IsobusVtInterface, widthKey_stillHeldWithoutPressDrivesNothing) {
+    Reset();
+    OpenWidthOnThePage();
+    assertTrue(Page().IsWidthProcedureOpen());
+    KeyCode(Key_CalWider, kStillHeld);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    KeyCode(Key_CalWider, kPressed);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    KeyCode(Key_CalWider, kReleased);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    KeyCode(Key_CalWidthBack, kPressed);
+    KeyCode(Key_CalWidthBack, kReleased);
+    KeyCode(Key_CalCancel, kPressed);
+    KeyCode(Key_CalCancel, kReleased);
+}
+
+test(IsobusVtInterface, widthKey_stillHeldAfterTheTimeoutDoesNotRestart) {
+    Reset();
+    OpenWidthOnThePage();
+    KeyCode(Key_CalNarrower, kPressed);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
+    millisValue(IsobusVtCalibration::kHeldTimeoutMs + 1);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+    millisValue(IsobusVtCalibration::kHeldTimeoutMs + 100);
+    KeyCode(Key_CalNarrower, kStillHeld);
+    IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+    KeyCode(Key_CalWidthBack, kPressed);
+    KeyCode(Key_CalWidthBack, kReleased);
+    KeyCode(Key_CalCancel, kPressed);
+    KeyCode(Key_CalCancel, kReleased);
+    millisValue(0);
+}
+
+// #320, AUX-N: an armrest's held status (value 2) only keeps a press alive,
+// and a lost VT connection drops the inputs too (their assignment lives on
+// that VT).
+void AuxWider(std::uint8_t value) {
+    using Vt = isobus::VirtualTerminalClient;
+    Vt::AuxiliaryFunctionEvent event{ Vt::AssignedAuxiliaryFunction(Aux_Wider, 5, Vt::AuxiliaryTypeTwoFunctionType::BooleanMomentary),
+                                      nullptr, value, 0 };
+    IsobusVtInterfaceTestAccess::Client(Fixture()).get_auxiliary_function_event_dispatcher().invoke(std::move(event));
+}
+
+test(IsobusVtInterface, aux_lostConnectionDropsTheInput) {
+    Reset();
+    millisValue(9000);
+    AuxWider(1);
+    assertTrue(WorkingSet().IsWiderHeld());
+    WorkingSet().Update(false);
+    assertFalse(WorkingSet().IsWiderHeld());
+    millisValue(9200);
+    AuxWider(2);
+    assertFalse(WorkingSet().IsWiderHeld());
+    AuxWider(0);
+    millisValue(0);
 }
 
 // Calibrate opens the VT calibration page (#240), acting on release only; it
@@ -832,7 +989,7 @@ test(IsobusVtInterface, key_widthKeysReachThePage_asHeldLevels) {
     KeyCode(Key_CalWider, kPressed);
     IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
-    Release(Key_CalWider);
+    KeyCode(Key_CalWider, kReleased);
     IsobusVtInterfaceTestAccess::UpdateCalibration(WorkingSet());
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
     // Nor do they move the main screen's held levels.
@@ -840,4 +997,19 @@ test(IsobusVtInterface, key_widthKeysReachThePage_asHeldLevels) {
     Release(Key_CalWidthBack);
     Release(Key_CalCancel);
     assertFalse(Page().IsOpen());
+}
+
+// #318: the main screen's state follows InterfacePlough's mode in the LCD's
+// letters, and CAL wins over every mode while a calibration holds the
+// control (its mode is stale then: main.cpp skips InterfacePlough::Update()).
+test(IsobusVtInterface, stateString_followsTheModeAndCalibrationWins) {
+    assertEqual((int)PloughVtWorkingSet::StateString(0, false, HoldReason::Gps), (int)Str_StateAuto);
+    assertEqual((int)PloughVtWorkingSet::StateString(1, false, HoldReason::Speed), (int)Str_StateHoldSpeed);
+    assertEqual((int)PloughVtWorkingSet::StateString(1, false, HoldReason::Gps), (int)Str_StateHoldGps);
+    assertEqual((int)PloughVtWorkingSet::StateString(2, false, HoldReason::Gps), (int)Str_StateHand);
+    assertEqual((int)PloughVtWorkingSet::StateString(9, false, HoldReason::Gps), (int)Str_StateHand);
+    for (uint8_t mode = 0; mode <= 2; mode++) {
+        assertEqual((int)PloughVtWorkingSet::StateString(mode, true, HoldReason::Speed), (int)Str_StateCal);
+        assertEqual((int)PloughVtWorkingSet::StateString(mode, true, HoldReason::Gps), (int)Str_StateCal);
+    }
 }

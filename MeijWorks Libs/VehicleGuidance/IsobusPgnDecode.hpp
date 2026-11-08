@@ -315,8 +315,9 @@ struct XteResult {
 //              bit 1 = the tractor's autosteer is engaged; bit 0 repeats byte 7 == 4
 //   byte 7     0 = booting, 1 = no line, 4 = line present: the only validity flag
 // The 1200's side is the direction to steer: "right" means the vehicle is LEFT of the
-// line. The XTE is committed with the John Deere decoder's sign (positive = right of
-// the line), so "right" gives a negative XTE. Session 19 (#252): with the side read as
+// line. Triton's XTE is positive when the vehicle is right of the line, so "right"
+// gives a negative XTE. This is the field-proven reference: #304 negated the John
+// Deere decoder to match it. Session 19 (#252): with the side read as
 // the vehicle's, the control was only right with the plough-side swap set, and then
 // the side letter and the VT picture showed the wrong side. The XTE is committed
 // whether or not autosteer is engaged (owner's decision 2026-10-13): ploughing is

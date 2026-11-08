@@ -490,7 +490,11 @@ XteResult DecodeLegacyXteJohnDeere(uint8_t sourceAddress, const uint8_t* data, u
 
     result.valid = true;
     result.hasQuality = true;
-    result.xteHundredthsMeter = int(val - 32000) >> 1;
+    // Negated (#304): John Deere's sign is the opposite of Ag Leader's (65462,
+    // Triton's field-proven reference since #252/#253). The plough's v1.x
+    // control loop flipped the correction, so JD units have been running with
+    // a reversed side setting to compensate; same magnitude as before.
+    result.xteHundredthsMeter = -(int(val - 32000) >> 1);
     // High nibble of byte 1 == 0x1 signals quality=4 -- reverse-engineered
     // and verified years ago; matches CanSerialParser's CAN_XTE case
     // (t[2] == '1', the ASCII-hex form of this same nibble check).

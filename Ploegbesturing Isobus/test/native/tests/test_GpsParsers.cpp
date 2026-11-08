@@ -312,6 +312,16 @@ test(CanSerialParser, xte_and_quality) {
     assertEqual((int)state.GetQuality(), 4);
 }
 
+// #304: the JD converter's serial line, same sign as the CAN decoder.
+test(CanSerialParser, johnDeereXte_signIsTheAgLeaderConvention) {
+    GuidanceSource state;
+    CanSerialParser p;
+    assertTrue(p.claimsSentenceType("0CFFFF2A"));
+    p.parseTerm(1, "001000327D000000");                  // raw 0x7D32 = 32050
+    p.commitTo(&state);
+    assertEqual(state.GetXte(), -25);
+}
+
 test(CanSerialParser, rejects_unknown_header) {
     CanSerialParser p;
     assertFalse(p.claimsSentenceType("DEADBEEF"));

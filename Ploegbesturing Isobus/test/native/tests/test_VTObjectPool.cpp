@@ -67,6 +67,7 @@ test(VTObjectPool, everyDeclaredObjectId_appearsInThePool) {
         if (id == 5 || id == 14) continue;  // the AUTO key and its label until #282
         assertTrue(poolContainsId(id));
     }
+    for (uint16_t id = Ptr_State; id <= Str_StateCal; id++) assertTrue(poolContainsId(id));
 }
 
 test(VTObjectPool, softKeyCodes_areDistinctAndNonZero) {
@@ -481,13 +482,55 @@ test(VTObjectPool, mainScreen_everyRowInCm) {
     assertEqual(memcmp(VT3PoolData + label + 16, "XTE", 3), 0);
 }
 
+// #318: the control's state in the status column, under km/h and above the
+// first row; a pointer over five opaque 4-character strings, HAND at first
+// (InterfacePlough starts in manual).
+test(VTObjectPool, mainScreen_showsTheControlsState) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    const uint32_t mask = objects.at(Plough_DataMask).at;
+    int16_t stateX = -1, stateY = -1, unitY = -1, unitX = -1, rowTop = -1;
+    for (uint8_t c = 0; c < VT3PoolData[mask + 6]; c++) {
+        const uint32_t ref = mask + 8 + c * 6;
+        const int16_t x = int16_t(poolU16(ref + 2)), y = int16_t(poolU16(ref + 4));
+        if (poolU16(ref) == Ptr_State) { stateX = x; stateY = y; }
+        if (poolU16(ref) == Label_SpeedUnit) { unitX = x; unitY = y; }
+        if (poolU16(ref) == Label_Offset) rowTop = y;
+    }
+    assertTrue(stateY >= 0);
+    assertEqual(stateX, unitX);                                   // the status column
+    const uint16_t unitH = poolU16(objects.at(Label_SpeedUnit).at + 5);
+    assertTrue(stateY >= unitY + int16_t(unitH));                 // below km/h
+    assertTrue(isType(objects, Ptr_State, 27));
+    assertEqual((int)poolU16(objects.at(Ptr_State).at + 3), (int)Str_StateHand);
+
+    const struct { uint16_t id; const char* text; } strings[] = {
+        { Str_StateAuto, "AUTO" }, { Str_StateHoldSpeed, "H S!" }, { Str_StateHoldGps, "H G!" },
+        { Str_StateHand, "HAND" }, { Str_StateCal, "CAL" },
+    };
+    for (const auto& s : strings) {
+        assertTrue(isType(objects, s.id, 11));
+        const uint32_t at = objects.at(s.id).at;
+        const uint16_t w = poolU16(at + 3), h = poolU16(at + 5);
+        assertEqual((int)w, 48);
+        assertTrue(stateX + int16_t(w) <= 200);
+        assertTrue(stateY + int16_t(h) <= rowTop);                // clear of the first row
+        assertEqual((int)VT3PoolData[at + 10], 0x00);             // opaque: covers the longer one
+        assertEqual((int)poolU16(at + 8), (int)Font_White_Medium);
+        assertEqual((int)poolU16(at + 14), (int)strlen(s.text));
+        assertEqual(memcmp(VT3PoolData + at + 16, s.text, strlen(s.text)), 0);
+    }
+}
+
 // #282, the owner's layout on a 2 x 6 VT that fills column 2 top to bottom,
 // then column 1 (the bench VT): column 2 row r is position r - 1, column 1
 // row r position 5 + r. + at column 2 row 1 (0) above - at row 2 (1), as
 // the cab buttons, so a 1 x 6 VT shows every key without paging;
 // CALIBR and BREEDTE at column 2 row 3 (2), both OPSLAANs row 4 (3), both
-// ANNUL.s row 6 (5). Every other position up to the last key is a
-// blank NULL pointer.
+// ANNUL.s row 5 (4): the InCommand 1200 shows 2 x 5 keys and misplaced a
+// key on row 6 (session 23), so no mask goes past 5 positions. Every other
+// position up to the last key is a blank NULL pointer.
 namespace {
 bool softKeysAre(const std::map<uint16_t, PoolObject>& objects, uint16_t mask,
                  std::map<uint8_t, uint16_t> keyAt, uint8_t count) {
@@ -508,10 +551,15 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
     assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
                            { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate } }, 3));
     assertTrue(softKeysAre(objects, Plough_CalSoftKeyMask,
-                           { { 2, Key_CalWidth }, { 3, Key_CalSave }, { 5, Key_CalCancel } }, 6));
+                           { { 2, Key_CalWidth }, { 3, Key_CalSave }, { 4, Key_CalCancel } }, 5));
     assertTrue(softKeysAre(objects, Plough_CalWidthSoftKeyMask,
                            { { 0, Key_CalWider }, { 1, Key_CalNarrower }, { 3, Key_CalCapture },
-                             { 5, Key_CalWidthBack } }, 6));
+                             { 4, Key_CalWidthBack } }, 5));
+    // Nothing on row 6 or in column 1 of any mask: a 2 x 5 VT shows all.
+    for (uint16_t mask : { (uint16_t)Plough_SoftKeyMask, (uint16_t)Plough_CalSoftKeyMask,
+                           (uint16_t)Plough_CalWidthSoftKeyMask }) {
+        assertTrue((int)VT3PoolData[objects.at(mask).at + 4] <= 5);
+    }
     // The blanks are NULL pointers, and - and + are one large character each.
     for (uint8_t i = 0; i < kSoftKeySlots; i++) {
         assertTrue(isType(objects, Ptr_KeyBlank0 + i, 27));
