@@ -109,13 +109,6 @@ static void GCanSetup();
 static void GHandleCanMessage(const CANMessage& inMessage);
 #endif
 
-// What the blocking calibration wizard pumps while it waits for a button, so
-// a reference point is taken from a live position: the receiver port, or the
-// ISOBUS stack (which also keeps the address claim alive meanwhile).
-static void GPumpGuidance() {
-    gGuidanceChannel->Update();
-}
-
 // -------------
 // Setup routine
 // -------------
@@ -155,7 +148,7 @@ void setup() {
     gInterface = new triton::InterfaceScraper(gLcd, gImplement, gTractor, gGuidance);
     // Also loads the stored receiver rate index for the detect below (the
     // data model itself never touches EEPROM, #78).
-    gCalibration = new triton::CalibrationScraper(gLcd, gImplement, gTractor, gGuidance, GPumpGuidance, gInterface);
+    gCalibration = new triton::CalibrationScraper(gLcd, gImplement, gGuidance, gInterface);
 
     gTractor->PrintCalibrationData();
     gCalibration->PrintCalibrationData(gSerialDebug);
@@ -231,15 +224,22 @@ void loop() {
     gDebugMenu->Update();
 #endif
 
+    // The calibration wizard is a step runner (#289): while it is open it
+    // takes the buttons and the LCD instead of InterfaceScraper, one pass per
+    // loop(), and everything above keeps running. See CalibrationScraper.hpp.
+    if (gCalibration->IsActive()) {
+        gCalibration->Step();
+        return;
+    }
+
     // Update interface
     gInterface->Update();
 
-    // Both buttons held -> enter the calibration wizard (blocking until it
-    // finishes/is cancelled; a step runner in #289). See
+    // Both buttons held -> open the calibration wizard. See
     // CalibrationScraper.hpp for why this trigger lives here instead of
     // inside InterfaceScraper itself.
     if (gInterface->GetButtons() == 2) {
-        gCalibration->Calibrate();
+        gCalibration->Start();
     }
 }
 
