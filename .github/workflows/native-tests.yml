@@ -1,7 +1,8 @@
 name: Native tests and firmware builds
 
 # SECURITY: this workflow must stay on `pull_request`, never `pull_request_target`.
-# `Ploegbesturing Isobus` sets `extra_scripts = post:scripts/extra_script.py`, so a
+# `Ploegbesturing Isobus` and `Kilverbakbesturing Isobus` set
+# `extra_scripts = post:scripts/extra_script.py`, so a
 # build executes repository Python. Under `pull_request` a fork PR runs with a
 # read-only GITHUB_TOKEN and no access to repository secrets; `pull_request_target`
 # would run that same fork-controlled code with secrets and a writable token.
@@ -42,6 +43,7 @@ jobs:
           - 'Ploegbesturing Isobus'
           - 'Pootmachinebesturing'
           - 'Kilverbakbesturing'
+          - 'Kilverbakbesturing Isobus'
           - 'Motorcontroller'
           # The three below had suites and MSVC scripts but sat only in the
           # cppcheck matrix until NeptuneGPS_Triton#86 (2026-09-15).
@@ -133,6 +135,14 @@ jobs:
             env: teensy41
           - project: 'Kilverbakbesturing'
             env: teensy41
+          - project: 'Kilverbakbesturing Isobus'
+            env: teensy40_isobus
+          - project: 'Kilverbakbesturing Isobus'
+            env: teensy41_isobus
+          - project: 'Kilverbakbesturing Isobus'
+            env: teensy40
+          - project: 'Kilverbakbesturing Isobus'
+            env: teensy41_serial
           - project: 'Motorcontroller'
             env: seeed_xiao
           - project: 'Kipperbesturing'
@@ -205,6 +215,7 @@ jobs:
           - 'Pootmachinebesturing'
           - 'Spuitcomputer SP'
           - 'Kilverbakbesturing'
+          - 'Kilverbakbesturing Isobus'
           - 'Kipperbesturing'
           - 'Rooierbesturing'
     steps:
