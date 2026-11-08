@@ -23,6 +23,7 @@ Session 24 (bench, 2026-11-07) ran `test/session24` d59c191 (v0.24, MW17). `test
 | **Working width DDIs 67-70** on the function element, DDOP label **TC08** | #162 (#150) | No "working width updated" popup on a JD; the terminal shows the plough's real width. Dump: `Working width (DDI 67): N cm, changes c, reported r` |
 | **Own NAME identity** = board serial mod 2^21 (was 1 on every board) | #162 (#45) | Boot print `IsobusGuidanceChannel: identity N (board serial M)`; dump `Address claim: CLAIMED address=0x81  identity=N` |
 | **SPIKE #316: DDI 515 echo** + **TC choice on debug key `t`** (any / TC 1 / TC 2) | spike, never on main | Boot print `SPIKE #316: DDI 515 echo ON`. Dump: 506/515 request counts, `Track control state (DDI 515): commanded=.. we answer=..`, `TC choice: ...` |
+| **Settings console over USB**: `:list` exports every setting as `:set` lines, pasting them into another unit + `:save` copies them (width calibration included) | #326 (#241) | `:help` on the serial port. While a draft is open the plough holds and the cab LCD reads `Calibratie via USB`. Never drives the plough. Section 5b; help file `Documentation/SERIAL_CONSOLE.md` |
 | Version | | Splash `Triton PB-ISO  v0.25`, banner `Triton PB-ISO version 0.25` |
 
 The VT pool is unchanged (**MW17**).
@@ -36,10 +37,10 @@ OneDrive `MeijWorks Projects/Firmware builds/session25/`:
 
 | Hex | For | Contains |
 |---|---|---|
-| `teensy41_isobus_c05b8f1.hex` | the rig Teensy 4.1 (Loader 13249100), parts B and C | `test/session25`: #162 + spike, v0.25 |
-| `teensy40_isobus_c05b8f1.hex` | a standard Teensy 4.0 plough board | the same |
+| `teensy41_isobus_be1a1b0.hex` | the rig Teensy 4.1 (Loader 13249100), parts B and C | `test/session25`: #162 + spike + the settings console (#326), v0.25 |
+| `teensy40_isobus_be1a1b0.hex` | a standard Teensy 4.0 plough board | the same |
 | `teensy40_isobus_fet3_nospike_48063a4.hex` | **the FET client's board (part A)** | main + #162, **no spike**: it is a customer's machine, and the spike never goes into a customer build. Its banner reads **v0.21** (the version bump lives on the session branch) |
-| `teensy40_isobus_fet3_c05b8f1.hex` | a FET-1 board on a test rig only | `test/session25` with the spike |
+| `teensy40_isobus_fet3_be1a1b0.hex` | a FET-1 board on a test rig only | `test/session25` with the spike |
 
 **Fallbacks:**
 - Rig 4.1: `Firmware builds/session24/teensy41_isobus_d59c191.hex`, which is what it runs now.
@@ -111,7 +112,7 @@ the XTE is fixed, so the side must be flipped too, **at the same visit**.
 ## 4. Part B -- J.A. Bos (Fendt + Trimble), the #316 spike
 
 The full plan is #316 (steps T1-T7). This build carries the spike, so **T6 needs no reflash**. The rig 4.1 on
-`teensy41_isobus_c05b8f1.hex`.
+`teensy41_isobus_be1a1b0.hex`.
 
 **Before the visit (D2):** ask the operator whether **Fendt Section Control with Tramline Control** is active, or can be
 switched on as the dealer's 30-day trial. The AGCO TC advertised **0 booms / 0 sections** in session 22, so the package
@@ -134,7 +135,7 @@ What each outcome means is in #316's table.
 
 ## 5. Part C -- van Mastwijk (CNH + InCommand 1200)
 
-The rig 4.1 on `teensy41_isobus_c05b8f1.hex`. The InCommand never polls the tramline DDIs (sessions 7 and 9), so the
+The rig 4.1 on `teensy41_isobus_be1a1b0.hex`. The InCommand never polls the tramline DDIs (sessions 7 and 9), so the
 spike's echo should never be exercised here; if the dump shows 515 requests, note them.
 
 | Step | Do | Expect |
@@ -150,7 +151,27 @@ spike's echo should never be exercised here; if the dump shows 515 requests, not
 **End of part C:**
 - Leave the preferred VT at 2 on this rig (the 1200 = VT 1, the CNH = VT 2).
 - Take a final dump.
-- Leave the board on c05b8f1 if everything passed, or on the session 24 fallback if not.
+- Leave the board on be1a1b0 if everything passed, or on the session 24 fallback if not.
+
+## 5b. The settings console (#326) -- bench, any board on be1a1b0
+
+Best on the workstation before a field part, with a plough board on USB and `tools/serial_logger.ps1` running
+(write each command to its command file). The commands and replies are in `Documentation/SERIAL_CONSOLE.md`.
+
+| Step | Do | Expect |
+|---|---|---|
+| K1 | `:help` | The commands and the nine keys with their ranges, then `OK`. |
+| K2 | `:list`. Save the `:set` lines as `<board serial>_settings.txt`. | Ten `:set` lines (nine keys, then `width`), the same values as the boot print; `OK`. Nothing on the LCD changes. |
+| K3 | `:set deadband <another value>` | `I:draft open ...`, `OK`. **The cab LCD shows `Calibratie via USB` / `Opslaan of annuleren`; the cab buttons do nothing; on a VT the state line shows CAL.** The plough holds. |
+| K4 | `:set shares 99`, `:set width 300 300 500`, `:set nope 1` | `ERR:range`, `ERR:range`, `ERR:key`. The draft (K3) is still open. |
+| K5 | `:save`, then power-cycle the board. | `I:saved`, `OK`; the LCD is back on its main screen. **After the boot the boot print shows the new deadband.** |
+| K6 | Paste all of K2's `:set` lines at once, then `:list`, then `:save`. | Every line `OK`; `:list` equals K2; after `:save` and a power cycle the boot print equals K2's again. |
+| K7 | `:set deadband 3`, then wait **5 minutes** without a command. | `I:draft dropped after 5 minutes ...`; the LCD is back; nothing saved (`:get deadband` = K2's). |
+| K8 | With the menu closed, `1` / `m1q`, then `q`. | The debug menu and the full dump as before: the console doesn't take them. |
+| K9 | (If a second board is to hand.) K2's lines from board 1 pasted into board 2, `:save`, power cycle. | Board 2's boot print shows board 1's settings and width points. |
+
+**RAM1:** the 4.1 session build sits 88 bytes under an ITCM 32 KB block (74.6 KB free for local variables). Anything
+added to this branch must be checked on that number; one more block costs 32 KB.
 
 ## 6. Checklist (copy into the timeline, tick live)
 
@@ -183,6 +204,13 @@ PART C -- VAN MASTWIJK
 - [ ] C4 AUX-N gone Y/N; re-assigned Y/N   - [ ] C5 reconnect unchanged Y/N
 - [ ] final dumps   - [ ] CANedge sessions ____
 
+SETTINGS CONSOLE (#326, bench)
+- [ ] board ______   - [ ] K1 help Y/N   - [ ] K2 list = boot print Y/N (saved as ______)
+- [ ] K3 draft open; LCD "Calibratie via USB" Y/N; buttons dead Y/N; VT CAL Y/N
+- [ ] K4 errors as expected Y/N   - [ ] K5 saved, survives a power cycle Y/N
+- [ ] K6 paste back = K2 Y/N   - [ ] K7 idle drop after 5 min Y/N   - [ ] K8 menu keys / m1q Y/N
+- [ ] K9 copied to a second board Y/N
+
 ## 6b. If something differs
 
 - **Part A:** anything wrong with the side or the correction direction means stop and take the fallback. Use ff14859
@@ -203,5 +231,6 @@ PART C -- VAN MASTWIJK
   - the identity, from every part, to #45;
   - B1-B6 to #316 / #21;
   - C1 to #318 / #319;
-  - C4 to #254.
-- **Merge #162** only after part A passes.
+  - C4 to #254;
+  - K1-K9 to #241 / PR #326.
+- **Merge #162** only after part A passes; **#326** after K1-K8 pass.
