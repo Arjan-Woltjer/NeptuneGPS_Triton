@@ -93,10 +93,18 @@ public:
     // contention window, never called again after setup()), and registers
     // every PGN callback + sends the initial PGN requests once claimed.
     void Begin();
+    // The board's own serial number (Teensy fuse serial, ESP32-S3 MAC; 1 on
+    // the host build) and the 21-bit NAME identity number derived from it:
+    // its low 21 bits, so the mapping stays traceable by hand (#45, #150).
+    static std::uint32_t BoardSerialNumber();
+    static std::uint32_t IdentityNumberFromSerial(std::uint32_t serial);
+    static std::uint32_t BoardIdentityNumber();
     // A Triton ISOBUS NAME in industry group 2 (#202): the manufacturer code
-    // and identity number every Triton shares, plus the machine's own device
-    // class and function code (isobus.net "IG Specific NAME Function").
-    static isobus::NAME BuildName(std::uint8_t deviceClass, std::uint8_t functionCode);
+    // every Triton shares, this board's own identity number (#45), plus the
+    // machine's own device class and function code (isobus.net "IG Specific
+    // NAME Function"). A test passes the identity explicitly.
+    static isobus::NAME BuildName(std::uint8_t deviceClass, std::uint8_t functionCode,
+                                  std::uint32_t identityNumber = BoardIdentityNumber());
     // Request callbacks for our internal control function, registered by
     // Begin() once the address is claimed. Static so a host test can install
     // them on a control function of its own (#23).

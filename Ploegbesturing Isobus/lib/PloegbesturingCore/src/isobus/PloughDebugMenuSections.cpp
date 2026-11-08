@@ -184,6 +184,14 @@ FLASHMEM void PloughDebugMenuSections::PrintDump() {
         // What we report (#305): working = hitch down.
         serialDebug->print("  Work state (DDI 141):    ");
         serialDebug->println(tcInterface->IsWorking() ? "1 working (hitch down)" : "0 not working (hitch up)");
+        // Working width, DDI 67 (#150): changes counted, and how many of them
+        // were sent to the TC (only while connected).
+        serialDebug->print("  Working width (DDI 67):  ");
+        serialDebug->print(tcInterface->GetLastWidthCm());
+        serialDebug->print(" cm, changes ");
+        serialDebug->print(tcInterface->GetWidthChangeCount());
+        serialDebug->print(", reported ");
+        serialDebug->println(tcInterface->GetWidthReportCount());
         // --- What reached our handlers, via AgIsoStack -------------------
         // Labelled as such deliberately. Session 9 read "Value commands: 0"
         // as "the TC never commanded us" when the TC was commanding us at
