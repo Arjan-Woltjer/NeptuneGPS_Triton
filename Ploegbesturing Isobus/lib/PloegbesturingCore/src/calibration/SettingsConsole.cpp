@@ -33,7 +33,7 @@ namespace triton
 namespace {
 
 // A whole decimal number, optionally signed, and nothing after it.
-bool GParseNumber(const char* text, int16_t& value) {
+FLASHMEM bool GParseNumber(const char* text, int16_t& value) {
     if (text == nullptr || *text == '\0') return false;
     char* end = nullptr;
     const long parsed = strtol(text, &end, 10);
@@ -43,7 +43,7 @@ bool GParseNumber(const char* text, int16_t& value) {
 }
 
 // The next space-separated word of `text`, cut off in place; `text` moves past it.
-char* GNextWord(char*& text) {
+FLASHMEM char* GNextWord(char*& text) {
     while (*text == ' ') text++;
     if (*text == '\0') return nullptr;
     char* word = text;
@@ -56,7 +56,7 @@ const char kWidthKey[] = "width";
 
 }  // namespace
 
-SettingsConsole::SettingsConsole(Stream* out, PloughSettings* settings) : out(out), settings(settings) {}
+FLASHMEM SettingsConsole::SettingsConsole(Stream* out, PloughSettings* settings) : out(out), settings(settings) {}
 
 FLASHMEM bool SettingsConsole::Feed(char c, unsigned long nowMs) {
     if (!collecting) {
@@ -89,7 +89,7 @@ FLASHMEM void SettingsConsole::Update(unsigned long nowMs) {
     out->println("I:draft dropped after 5 minutes without a command; nothing was saved");
 }
 
-bool SettingsConsole::TakeSaved() {
+FLASHMEM bool SettingsConsole::TakeSaved() {
     const bool was = saved;
     saved = false;
     return was;
