@@ -272,15 +272,42 @@ test(IsobusGuidanceChannel, name_isATillageMachineControl) {
 }
 
 // The rest of the NAME stays as it was: changing any of it is a change of
-// identity for every terminal's stored pools (#45, #162).
+// identity for every terminal's stored pools (#45, #162). The identity number
+// is the board's own (1 on the host build, which has no fuses).
 test(IsobusGuidanceChannel, name_keepsTheRestOfTheIdentity) {
     const isobus::NAME name = BuildPloughName();
     assertTrue(name.get_arbitrary_address_capable());
     assertEqual((int)name.get_manufacturer_code(), 1407);
-    assertEqual((long)name.get_identity_number(), 1L);
+    assertEqual((long)name.get_identity_number(), (long)IsobusGuidanceChannel::BoardIdentityNumber());
     assertEqual((int)name.get_ecu_instance(), 0);
     assertEqual((int)name.get_function_instance(), 0);
     assertEqual((int)name.get_device_class_instance(), 0);
+}
+
+// ---------------------------------------------------------------------------
+// Our NAME's identity number (#45)
+// ---------------------------------------------------------------------------
+
+// From the board's 24-bit serial: its low 21 bits, the width of the NAME's
+// identity field, so the mapping stays traceable by hand.
+test(IsobusGuidanceChannel, identityNumber_isTheSerialsLow21Bits) {
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(1234567UL), (uint32_t)1234567UL);  // under 2^21: unchanged
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(0xABCDEFUL), (uint32_t)0x0BCDEFUL);
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(0x1FFFFFUL), (uint32_t)0x1FFFFFUL);
+    assertEqual(IsobusGuidanceChannel::IdentityNumberFromSerial(0x200000UL), (uint32_t)0);
+}
+
+// Two boards, two NAMEs: the identity a machine passes is the one claimed.
+// The rig 4.1 and the Kilverbak 4.0: Teensy Loader shows 13249100 and
+// 17321460, the raw fuse serials x10 (shown that way under 10 000 000), so
+// raw 1324910 and 1732146 -- both under 2^21, so the identity is the raw
+// serial itself.
+test(IsobusGuidanceChannel, buildName_carriesTheIdentityItIsGiven) {
+    const isobus::NAME rig       = IsobusGuidanceChannel::BuildName(2, 132, IsobusGuidanceChannel::IdentityNumberFromSerial(1324910UL));
+    const isobus::NAME kilverbak = IsobusGuidanceChannel::BuildName(2, 132, IsobusGuidanceChannel::IdentityNumberFromSerial(1732146UL));
+    assertEqual((long)rig.get_identity_number(), 1324910L);
+    assertEqual((long)kilverbak.get_identity_number(), 1732146L);
+    assertTrue(rig.get_full_name() != kilverbak.get_full_name());
 }
 
 // ---------------------------------------------------------------------------
