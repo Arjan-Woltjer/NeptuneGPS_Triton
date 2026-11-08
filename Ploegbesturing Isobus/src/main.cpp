@@ -29,6 +29,7 @@
 #include "implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
+#include "StackWatermark.hpp"
 #include "config/LanguagePlough.hpp"
 #include "VehicleSensors.hpp"
 
@@ -163,6 +164,10 @@ static void GHandleCanMessage(const CANMessage& inMessage);
 // Setup routine
 // -------------
 void setup() {
+    // First, while the stack is shallow: the dump's "Stack:" line and the 1 Hz
+    // line's stk= read how deep it has reached since here.
+    triton::StackWatermark::Paint();
+
     // Delay to settle voltages and let LCD startup
     delay(3000);
 
@@ -193,6 +198,12 @@ void setup() {
 #endif
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
+#endif
+#if defined(__IMXRT1062__)
+    // A fault (a stack overflow into the core's MPU guard among them) reboots
+    // the Teensy 4 after a few seconds. The core keeps what it saw across the
+    // reboot, and printing it here clears it.
+    if (CrashReport) gSerialDebug->print(CrashReport);
 #endif
 
     // Setup I2C LCD
