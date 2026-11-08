@@ -5,7 +5,7 @@ stands on its own.
 
 | Part | Where | Tractor / terminals | Decides |
 |---|---|---|---|
-| **A** | The FET client | John Deere, Amazone VT, JD TC | #304 (JD XTE sign), #305 (DDI 141 recording), #162 (width + NAME) |
+| **A** | The FET client (Mookhoek), run by the client himself | John Deere, the terminal with the plough screen, JD TC | #304 (JD XTE sign), #305 (DDI 141 recording), #162 (width + NAME) |
 | **B** | J.A. Bos | Fendt VT 0x26, AGCO TC 0xF7, Trimble GFX-1260 (TC 0xF5) | #316 (Tramline Control / DDI 513), #162 on an AGCO TC |
 | **C** | van Mastwijk | CNH VT, InCommand 1200 (VT 1, TC 0xF7), SteerCommand Z2 | session 24's B4 (H S! / AUTO), #162 + #305 on the InCommand, AUX-N after the NAME change |
 
@@ -46,7 +46,22 @@ OneDrive `MeijWorks Projects/Firmware builds/session25/`:
 - FET client: `Firmware builds/main/Ploegbesturing_FET3_update_ff14859.zip` (hex inside), **with "Ploegt naar" set back**.
 
 **Flashing:** `tools/flash_teensy.ps1 -Serial <Loader serial> -Hex <hex>`, with exactly one PJRC board on USB (unplug
-the Saturn) and the serial logger stopped. The FET client can also use the zip flow; the hex goes in its place.
+the Saturn) and the serial logger (`tools/serial_logger.ps1`) stopped.
+
+**The client's package (part A):** `Firmware builds/session25/Ploegbesturing_FET3_update_48063a4.zip`, built by
+`tools/make_client_flash_package.ps1` from `tools/client_flash_fet3/`. It holds the fet3 no-spike hex,
+`Firmware flashen.cmd` (our teensy_loader_cli v2.3 first, then the Teensy Loader) and `Logboek starten.cmd`
+(D = dump, N = note, Q = stop).
+- **Tested 2026-11-08** on a Teensy 4.0 (8908280): it flashed in 8 s from a running board, and every boot-print
+  setting was the same before and after.
+- **The first version of the zip failed:** PlatformIO's loader v2.2 gave "error writing to Teensy", and the fallback
+  crashed. It is kept in `superseded\`; don't send it.
+- The client ticks his own Dutch sheet (U1-U7, V1-V8, Z1-Z2): https://claude.ai/artifact/NxPiQkmkEr181VicnffDci.
+- The main sheet for parts B and C: https://claude.ai/artifact/Q7cFt2fM13U5Sc5QxatV3b.
+
+**Settings across a flash:** from ff14859 (the client) to 48063a4 everything is kept. A board still on a build from
+**before #284** (preferred VT at EEPROM 70) loses its **preferred VT** (→ 0): #274 moved it to byte 14. The
+van Mastwijk 4.0 (8908280) showed this.
 
 **Every part:**
 - **Serial logger** open **before** the board boots, and copy the boot print whole. It now carries the board serial,
@@ -67,7 +82,7 @@ the XTE is fixed, so the side must be flipped too, **at the same visit**.
 |---|---|---|
 | A-S1 | Before flashing: photo the VT main screen and the calibration page, and **write down "Ploegt naar"** as it is now. | The picture shows the **wrong** side (as on 11-03). |
 | A-S2 | Flash `teensy40_isobus_fet3_nospike_48063a4.hex`. Logger open, boot. | Banner `version 0.21`, **no** SPIKE line. `identity N (board serial M)` with N = M mod 2 097 152. Settings as before. |
-| A-S3 | The Amazone VT and the JD TC. | **The VT re-uploads MW17** (note the time) and **the TC takes the DDOP under `TC08`**, with no error on either. A pool or DDOP error: stop and flash the fallback. |
+| A-S3 | The terminal with the plough screen and the JD TC. Which one it is is unconfirmed: 2026-11-03 records an Amazone VT, session 21 at Mookhoek a JD 4640. Note which. | **The VT re-uploads MW17** (note the time) and **the TC takes the DDOP under `TC08`**, with no error on either. A pool or DDOP error: stop and flash the fallback. |
 | A-S4 | **Flip "Ploegt naar"** (VT calibration page PLOEGZIJDE, or the cab wizard), OPSLAAN. | The VT picture now shows the side the plough is **really** ploughing to. |
 
 ### The JD XTE sign (#304)

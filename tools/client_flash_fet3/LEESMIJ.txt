@@ -1,0 +1,78 @@
+﻿Ploegbesturing firmware-update: John Deere-afwijking, werkbreedte, registratie
+==============================================================================
+
+Wat er verandert
+----------------
+- De afwijking (XTE) van John Deere heeft nu het goede teken. Daardoor moet
+  "Ploegt naar" (PLOEGZIJDE) EEN KEER omgezet worden, direct na deze update.
+  Zie het testblad, stap U5.
+- De ploeg meldt zijn werkbreedte aan de John Deere: geen melding
+  "werkbreedte bijgewerkt" meer, en de taakregistratie gebruikt de echte
+  breedte van de ploeg.
+- De ploeg meldt of hij aan het werk is (hef omlaag), zodat de John Deere
+  alleen registreert als de ploeg in de grond zit.
+- Het ploegscherm wordt na de update EEN KEER opnieuw geladen in het
+  terminal. Dat duurt even en is geen fout.
+
+FET 1 blijft buiten gebruik, zoals bij de vorige update:
+  FET 1   niet gebruiken, niets op aansluiten
+  FET 2   ventiel SMALLER (-)
+  FET 3   ventiel BREDER (+)
+
+Je instellingen (kalibratie, aantal scharen enz.) blijven bewaard.
+
+
+Wat je nodig hebt
+-----------------
+- Een Windows-laptop, aan de lader. Zet slaapstand uit of houd de klep open:
+  het logboek stopt als de laptop gaat slapen.
+- Een USB-kabel (micro-USB) naar de besturingskast.
+- Het testblad (link van MeijWorks) op je telefoon, voor de stappen en foto's.
+
+
+Flashen
+-------
+1. Zet de trekker stil, motor uit.
+2. Schrijf op wat "Ploegt naar" nu is en maak foto's (testblad, stap U1).
+3. Pak dit zip-bestand uit: rechtsklik > Alles uitpakken.
+   Niet starten vanuit het zip-bestand zelf.
+4. Sluit de USB-kabel aan tussen de besturingskast en de computer.
+5. Dubbelklik in de uitgepakte map op "Firmware flashen.cmd".
+   Waarschuwt Windows ("Windows heeft uw pc beschermd")? Klik dan op
+   "Meer informatie" en daarna op "Toch uitvoeren".
+6. Volg de tekst in het venster. Haal de USB-kabel er niet uit tijdens
+   het flashen.
+7. Als er "Klaar" staat, sluit dat venster. Laat de kabel zitten.
+
+Meestal gaat het automatisch. Lukt dat niet, dan opent het
+venster "Teensy" en vraagt het script je om:
+  - in dat venster File > Open HEX File te kiezen en het bestand te openen
+    (het pad staat al klaar, plakken met Ctrl+V);
+  - op de knop "Auto" te klikken, zodat hij groen is;
+  - daarna in het script-venster op Enter te drukken.
+Het Teensy-venster vraagt om op een knopje op de besturing te drukken.
+Dat hoeft niet: het script doet dat via de USB-kabel.
+
+
+Logboek
+-------
+Dubbelklik na het flashen op "Logboek starten.cmd" en laat dat venster open
+tijdens alle tests. Het schrijft alles wat de besturing meldt, met de tijd,
+naar een bestand logboek_<datum>_<tijd>.txt in deze map.
+  D   status opslaan (doe dit waar het testblad het zegt)
+  N   een notitie typen, met de tijd erbij
+  Q   stoppen
+Stuur het logboekbestand na afloop naar MeijWorks, samen met de foto's.
+Wil je opnieuw flashen, stop dan eerst het logboek (Q): het houdt de
+USB-verbinding bezet.
+
+
+Terug naar de vorige versie
+---------------------------
+Gaat de ploeg bij een afwijking de verkeerde kant op, of klopt er iets niet:
+zet de ploeg op handbediening en bel MeijWorks. De vorige versie is
+Ploegbesturing_FET3_update_ff14859.zip; zet daarna "Ploegt naar" terug
+zoals je het in stap U1 opschreef.
+
+
+Vragen? Bel MeijWorks.
