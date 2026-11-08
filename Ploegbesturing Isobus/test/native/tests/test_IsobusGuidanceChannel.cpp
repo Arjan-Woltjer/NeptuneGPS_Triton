@@ -298,10 +298,10 @@ test(IsobusGuidanceChannel, identityNumber_isTheSerialsLow21Bits) {
 }
 
 // Two boards, two NAMEs: the identity a machine passes is the one claimed.
-// The rig 4.1 and the Kilverbak 4.0: Teensy Loader shows 13249100 and
-// 17321460, the raw fuse serials x10 (shown that way under 10 000 000), so
-// raw 1324910 and 1732146 -- both under 2^21, so the identity is the raw
-// serial itself.
+// Teensy Loader shows a fuse serial under 10 000 000 multiplied by 10: the
+// Kilverbak 4.0's 17321460 is over 2^24, so it is raw 1732146 shown x10, and
+// the rig 4.1's 13249100 is most likely raw 1324910 (the boot log prints the
+// raw number). Under 2^21, the identity is the raw serial itself.
 test(IsobusGuidanceChannel, buildName_carriesTheIdentityItIsGiven) {
     const isobus::NAME rig       = IsobusGuidanceChannel::BuildName(2, 132, IsobusGuidanceChannel::IdentityNumberFromSerial(1324910UL));
     const isobus::NAME kilverbak = IsobusGuidanceChannel::BuildName(2, 132, IsobusGuidanceChannel::IdentityNumberFromSerial(1732146UL));
