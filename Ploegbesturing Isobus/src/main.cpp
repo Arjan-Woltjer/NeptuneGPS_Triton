@@ -192,7 +192,7 @@ void setup() {
     gSerialDebug->println("--------------------------------");
     gSerialDebug->println("-----------MeijWorks------------");
     gSerialDebug->println("--------------------------------");
-    gSerialDebug->println("   Triton PB-ISO version 0.26   ");
+    gSerialDebug->println("   Triton PB-ISO version 0.27   ");
 #ifdef ISOBUS
     gSerialDebug->println("  SPIKE #316: DDI 515 echo ON   ");
 #endif
