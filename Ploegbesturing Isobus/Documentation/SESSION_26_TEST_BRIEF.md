@@ -17,7 +17,7 @@ This session's notes go on **`test/session26`**, see section 7.
 
 | Change | PR | What to see |
 |---|---|---|
-| **AgIsoStack-plus-plus upstream main 02f3fe9**, through the fork's `neptune-next`: no fork patches left, all upstream | #327 | Nothing on its own. The partner exemption (our 978f5f5) is gone: upstream's #834 takes a partner offline only after **two** missed requests for address claim in a row |
+| **AgIsoStack-plus-plus upstream main 02f3fe9**, fetched from Open-Agriculture itself since ba2ba55 (before: the same commit through our fork's `neptune-next`; the hexes are byte-identical): no fork patches left, all upstream | #327 | Nothing on its own. The partner exemption (our 978f5f5) is gone: upstream's #834 takes a partner offline only after **two** missed requests for address claim in a row |
 | **AUX-N enabled in the VT client** (upstream #655 made it opt-in). Upstream takes assignments only from **VT 1** (function instance 0) | #327 | Part X. On the CNH as VT 2, assigning is refused, as the terminals themselves did in sessions 22 and 23 |
 | **Pool label MW17 -> MW18**: upstream's soft key and font scaling differ from the fork's | #327 | Every VT uploads MW18 fresh, once |
 | **Stack measured**: painted at boot; `Stack: peak N of M bytes since boot, F never used` in the dump; ` stk=N` at the end of the 1 Hz line | #328 | Part S |
@@ -115,5 +115,6 @@ PART X -- AUX-N ON VT 1 (where: ______)
 - **Notes:** serial log and timeline go on **`test/session26`** under `Ploegbesturing Isobus/Documentation/logs/`,
   named `<date>_session26_<place>_*`.
 - **Where results go:** S1-S3, P1-P4 and X1-X6 to PR #327; S2, S5, P4 and P5 (the stack numbers) to PR #328.
-- **When P and X pass:** move the fork's `neptune-main` to 02f3fe9, merge #327 and #328, then the Documentation PR
-  #54. Proteus and Kilverbak's VT stack (#299-#307) follow with their own pins.
+- **When P and X pass:** merge #327 and #328, then the Documentation PR #54. Main then pins no fork at all.
+  Proteus and Kilverbak's VT stack (#299-#307) follow with their own pins. Session 27 moves on to upstream 5ff90cb
+  (`SESSION_27_TEST_BRIEF.md`).
