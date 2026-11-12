@@ -39,10 +39,14 @@
 //#define VOORSERIE   // Arduino Uno pre-series board
 
 // CAN peripheral per board, as an AgIsoStack FlexCANT4Plugin channel number:
-// 0 = FLEXCAN1 (pins 22 TX / 23 RX), 1 = FLEXCAN2 (1 / 0), 2 = FLEXCAN3
-// (31 / 30). Consumed by main.cpp for ISOBUS and for plain CAN (ACAN_T4) alike.
-#ifdef TEENSY40
+// on the Teensy 4, 0 = FLEXCAN1 (pins 22 TX / 23 RX), 1 = FLEXCAN2 (1 / 0),
+// 2 = FLEXCAN3 (31 / 30); on the Teensy 3.2, 0 = CAN0 (3 / 4), its only
+// controller. Consumed by main.cpp for ISOBUS and for plain CAN (ACAN_T4)
+// alike; teensy32_can's ACAN always uses CAN0.
+#if defined(TEENSY40)
 #define ISOBUS_CAN_CHANNEL  0   // FLEXCAN1: pins 22 TX / 23 RX
+#elif defined(TEENSY32)
+#define ISOBUS_CAN_CHANNEL  0   // CAN0: pins 3 TX / 4 RX
 #else
 #define ISOBUS_CAN_CHANNEL  2   // FLEXCAN3: pins 31 TX / 30 RX, bodge-wired on besturing 0.1
 #endif

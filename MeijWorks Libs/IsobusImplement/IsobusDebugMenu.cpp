@@ -245,8 +245,10 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
     serialDebug->println(" us since boot");
     longestPassSinceDumpUs = 0;
     {
-        // How deep the stack has ever reached (StackWatermark). A stack that
-        // reaches the end faults, and the next boot prints a CrashReport.
+        // How deep the stack has ever reached (StackWatermark). On a Teensy 4
+        // a stack that reaches the end faults, and the next boot prints a
+        // CrashReport. On a Teensy 3 the end is the heap's top, so "never
+        // used" is the room left between the heap and the stack.
         const StackUse stack = StackWatermark::Read();
         serialDebug->print("Stack: ");
         if (!stack.available) {
@@ -259,6 +261,17 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
             serialDebug->print(" bytes since boot, ");
             serialDebug->print(stack.size - stack.peak);
             serialDebug->println(" never used");
+        }
+
+        // How much memory the heap has taken. Its top never comes back down,
+        // so this is the most it has held at once since boot.
+        const HeapUse heap = StackWatermark::ReadHeap();
+        if (heap.available) {
+            serialDebug->print("Heap: peak ");
+            serialDebug->print(heap.peak);
+            serialDebug->print(" of ");
+            serialDebug->print(heap.size);
+            serialDebug->println(heap.sharesStack ? " bytes, shared with the stack" : " bytes");
         }
     }
 
@@ -592,12 +605,17 @@ FLASHMEM void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print("ms");
     }
     if (sections != nullptr) sections->PrintPeriodicAfterVt();
-    // The stack's peak since boot, last on the line so the fields before it
-    // keep their places in a log.
+    // The stack's and the heap's peaks since boot, last on the line so the
+    // fields before them keep their places in a log.
     const StackUse stack = StackWatermark::Read();
     if (stack.available) {
         serialDebug->print(" stk=");
         serialDebug->print(stack.peak);
+    }
+    const HeapUse heap = StackWatermark::ReadHeap();
+    if (heap.available) {
+        serialDebug->print(" hp=");
+        serialDebug->print(heap.peak);
     }
     serialDebug->println();
 }
