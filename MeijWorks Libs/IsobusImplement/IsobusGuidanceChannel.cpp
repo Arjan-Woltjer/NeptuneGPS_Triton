@@ -70,13 +70,49 @@ IsobusGuidanceChannel::IsobusGuidanceChannel(Stream* serialDebug,
 //     show (cores/teensy4/usb_desc.c reads the same fuse; it displays it x10
 //     when under 10 000 000, a macOS driver workaround -- this is the raw
 //     number).
+//   Teensy 3.2 / 3.5 / 3.6: the serial PJRC writes into the flash's
+//     program-once field, read with the flash controller's read-once
+//     command exactly as cores/teensy3/usb_desc.c (usb_init_serialnumber)
+//     reads it for USB. Like the Teensy 4, USB shows it x10 when under
+//     10 000 000; this is the raw number. Read once and kept: the command
+//     runs with interrupts off.
 //   ESP32-S3: the NIC half of the factory MAC, in the order the MAC is
 //     written (aa:bb:cc:DD:EE:FF -> 0xDDEEFF).
 //   Host build: 1, the identity every Triton claimed before.
 // ------------------------------------------------------------------
+#if defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+namespace {
+std::uint32_t ReadKinetisSerialNumber() {
+    std::uint32_t num = 0;
+    __disable_irq();
+#if defined(HAS_KINETIS_FLASH_FTFA) || defined(HAS_KINETIS_FLASH_FTFL)
+    FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
+    FTFL_FCCOB0 = 0x41;   // read once
+    FTFL_FCCOB1 = 15;     // record 15: the serial
+    FTFL_FSTAT = FTFL_FSTAT_CCIF;
+    while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) {}
+    num = *(volatile std::uint32_t*)&FTFL_FCCOB7;
+#elif defined(HAS_KINETIS_FLASH_FTFE)
+    kinetis_hsrun_disable();
+    FTFL_FSTAT = FTFL_FSTAT_RDCOLERR | FTFL_FSTAT_ACCERR | FTFL_FSTAT_FPVIOL;
+    *(volatile std::uint32_t*)&FTFL_FCCOB3 = 0x41070000;   // read once, record 7
+    FTFL_FSTAT = FTFL_FSTAT_CCIF;
+    while (!(FTFL_FSTAT & FTFL_FSTAT_CCIF)) {}
+    num = *(volatile std::uint32_t*)&FTFL_FCCOBB;
+    kinetis_hsrun_enable();
+#endif
+    __enable_irq();
+    return num;
+}
+} // namespace
+#endif
+
 std::uint32_t IsobusGuidanceChannel::BoardSerialNumber() {
 #if defined(__IMXRT1062__)
     return HW_OCOTP_MAC0 & 0xFFFFFFUL;
+#elif defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+    static const std::uint32_t serial = ReadKinetisSerialNumber() & 0xFFFFFFUL;
+    return serial;
 #elif defined(ARDUINO_ARCH_ESP32)
     const std::uint64_t mac = ESP.getEfuseMac();   // byte 0 of the MAC is the low byte
     return (static_cast<std::uint32_t>((mac >> 24) & 0xFF) << 16) |
