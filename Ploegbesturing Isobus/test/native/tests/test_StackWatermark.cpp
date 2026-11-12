@@ -66,6 +66,34 @@ test(StackWatermark, theWholeRegionUsed_thenThePeakIsItsSize) {
     assertEqual(StackWatermark::PeakInRegion(region.Bottom(), region.Top()), (uint32_t)(kWords * 4));
 }
 
+test(StackWatermark, heapGrownAfterPaint_thenOnlyTheWordsAboveItCountAsStack) {
+    // Teensy 3: the heap took the bottom 10 painted words after Paint(), and
+    // its data is not the pattern. Read from the heap's top, the stack's peak
+    // is still just its own two words.
+    Region region;
+    for (uint32_t i = 0; i < 10; ++i) region.words[i] = i;
+    region.words[kWords - 1] = 1;
+    region.words[kWords - 2] = 2;
+    const StackUse use = StackWatermark::UseInRegion(region.Bottom() + 10, region.Top());
+    assertTrue(use.available);
+    assertEqual(use.size, (uint32_t)((kWords - 10) * 4));
+    assertEqual(use.peak, (uint32_t)(2 * 4));
+}
+
+test(StackWatermark, stackReachedTheHeap_thenNothingIsLeft) {
+    Region region;
+    region.words[10] = 0;   // the stack's deepest word, right at the heap's top
+    region.words[kWords - 1] = 1;
+    const StackUse use = StackWatermark::UseInRegion(region.Bottom() + 10, region.Top());
+    assertEqual(use.size - use.peak, (uint32_t)0);
+}
+
+test(StackWatermark, offTheTeensy_thenNoHeapReading) {
+    const HeapUse heap = StackWatermark::ReadHeap();
+    assertFalse(heap.available);
+    assertEqual(heap.peak, (uint32_t)0);
+}
+
 test(StackWatermark, offTheTeensy4_thenNotAvailable) {
     StackWatermark::Paint();
     const StackUse use = StackWatermark::Read();

@@ -124,6 +124,9 @@ jobs:
             env: teensy40_can
           - project: 'Ploegbesturing Isobus'
             env: teensy32_can
+          # The 3.2 with full ISOBUS (VT, TC), on AgIsoStack's FlexCANT4Plugin.
+          - project: 'Ploegbesturing Isobus'
+            env: teensy32_isobus
           - project: 'Ploegbesturing Isobus'
             env: micro_serial
           # Triton01 (ESP32-S3): the only envs that link AgIsoStack's TWAI plugin.

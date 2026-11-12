@@ -63,10 +63,9 @@
 // v1.20-v1.31 read it -- acceptance filters for the guidance messages, and
 // every matching frame handed to CanFrameGuidanceChannel. Listen-only in
 // effect: no address claim, no VT, no TC.
-//  - Teensy 3.2 ([env:teensy32_can], -D CAN_ACAN): the full ISOBUS build does
-//    not fit the 3.2 (341 KB flash / 146 KB RAM against 256 / 64), and
-//    AgIsoStack's FlexCAN plugin is Teensy 4 only. pierremolinaro's ACAN on
-//    the 3.2's CAN0.
+//  - Teensy 3.2 ([env:teensy32_can], -D CAN_ACAN): pierremolinaro's ACAN on
+//    the 3.2's CAN0. The full ISOBUS build for the 3.2 is
+//    [env:teensy32_isobus], not this one.
 //  - Teensy 4.1 / 4.0 ([env:teensy41_can], [env:teensy40_can], -D
 //    CAN_ACAN_T4): ACAN_T4, its Teensy 4 successor, on the FlexCAN the board
 //    wires to its transceiver (ISOBUS_CAN_CHANNEL, ConfigPlough.hpp). What
