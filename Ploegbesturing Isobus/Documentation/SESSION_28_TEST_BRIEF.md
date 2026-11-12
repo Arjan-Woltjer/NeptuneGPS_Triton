@@ -21,8 +21,9 @@ This session's notes go on **`test/session28`**, see section 7.
 **Q1 -- the send queue (PR #341).** `FLEXCAN_T4_PLUGIN_TX_QUEUE_SIZE=64`: FlexCAN_T4 queues 64 frames for sending
 instead of 512, 4 960 B of RAM instead of 17 056 B. AgIsoStack keeps its own queue of 40 frames, which it only hands
 to the driver in `update()`, once per loop pass; the driver's queue only has to keep the bus busy until the next pass.
-At 250 kbit/s a frame takes about 0.55 ms. The 3.2 has 8 transmit mailboxes, so 8 + 64 frames is about 40 ms of bus
-time. On the 4.1 the longest pass is about 3 ms, apart from one 120 ms stall in the USB serial right after a flash. A
+At 250 kbit/s a frame takes about 0.55 ms. The plugin sends in order through one transmit mailbox, which the queue
+refills from the interrupt, so 64 frames is about 35 ms of bus time. One `update()` hands over at most AgIsoStack's 40
+frames, so a queue above that adds nothing but delay (proposed upstream as the default for every Teensy, on #887). On the 4.1 the longest pass is about 3 ms, apart from one 120 ms stall in the USB serial right after a flash. A
 full queue loses nothing: the frame waits in AgIsoStack's queue, and only the pool upload slows down. B5 reads the
 3.2's longest loop pass; the queue can then be set to what that pass needs.
 
