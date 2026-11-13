@@ -1,0 +1,10 @@
+:set shares 4
+:set side 0
+:set hitchinv 1
+:set bypass 1
+:set deadband 2
+:set maxcorr 75
+:set vt 2
+:set lightbar 0
+:set rtkq 4
+:set width 21 144 266

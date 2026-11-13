@@ -1,0 +1,304 @@
+19:17:04.856 === logger start COM7 ===
+19:17:04.873 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=596009 vtgAge=596009 xteAge=596009 vt=Y(21/22) vtstat=384/710ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:04.874 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=597009 vtgAge=597009 xteAge=597009 vt=Y(21/22) vtstat=385/694ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:05.130 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=600009 vtgAge=600009 xteAge=600009 vt=Y(21/22) vtstat=388/651ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:06.082 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=601009 vtgAge=601009 xteAge=601009 vt=Y(21/22) vtstat=389/639ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:07.105 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=602009 vtgAge=602009 xteAge=602009 vt=Y(21/22) vtstat=390/623ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:08.109 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=603009 vtgAge=603009 xteAge=603009 vt=Y(21/22) vtstat=391/611ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:09.120 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=604009 vtgAge=604009 xteAge=604009 vt=Y(21/22) vtstat=392/595ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:10.113 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=605009 vtgAge=605009 xteAge=605009 vt=Y(21/22) vtstat=393/583ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:11.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=606009 vtgAge=606009 xteAge=606009 vt=Y(21/22) vtstat=394/567ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:12.109 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=607009 vtgAge=607009 xteAge=607009 vt=Y(21/22) vtstat=395/555ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:13.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=608009 vtgAge=608009 xteAge=608009 vt=Y(21/22) vtstat=396/539ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:14.125 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=609009 vtgAge=609009 xteAge=609009 vt=Y(21/22) vtstat=397/527ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:15.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=610009 vtgAge=610009 xteAge=610009 vt=Y(21/22) vtstat=398/511ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:16.079 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=611009 vtgAge=611009 xteAge=611009 vt=Y(21/22) vtstat=399/499ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:17.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=612009 vtgAge=612009 xteAge=612009 vt=Y(21/22) vtstat=400/483ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:18.081 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=613009 vtgAge=613009 xteAge=613009 vt=Y(21/22) vtstat=401/475ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:19.097 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=614009 vtgAge=614009 xteAge=614009 vt=Y(21/22) vtstat=402/455ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:20.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=615009 vtgAge=615009 xteAge=615009 vt=Y(21/22) vtstat=403/443ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:21.099 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=616009 vtgAge=616009 xteAge=616009 vt=Y(21/22) vtstat=404/435ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:22.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=617009 vtgAge=617009 xteAge=617009 vt=Y(21/22) vtstat=405/419ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:23.104 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=618009 vtgAge=618009 xteAge=618009 vt=Y(21/22) vtstat=406/407ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:24.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=619009 vtgAge=619009 xteAge=619009 vt=Y(21/22) vtstat=407/400ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:25.123 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=620009 vtgAge=620009 xteAge=620009 vt=Y(21/22) vtstat=408/380ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:26.122 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=621009 vtgAge=621009 xteAge=621009 vt=Y(21/22) vtstat=409/368ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:27.128 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=622009 vtgAge=622009 xteAge=622009 vt=Y(21/22) vtstat=410/356ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:28.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=623009 vtgAge=623009 xteAge=623009 vt=Y(21/22) vtstat=411/344ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:29.085 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=624009 vtgAge=624009 xteAge=624009 vt=Y(21/22) vtstat=412/332ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:30.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=625009 vtgAge=625009 xteAge=625009 vt=Y(21/22) vtstat=413/324ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:31.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=626009 vtgAge=626009 xteAge=626009 vt=Y(21/22) vtstat=414/304ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:32.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=627009 vtgAge=627009 xteAge=627009 vt=Y(21/22) vtstat=415/292ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:33.120 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=628009 vtgAge=628009 xteAge=628009 vt=Y(21/22) vtstat=416/280ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:34.121 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=629009 vtgAge=629009 xteAge=629009 vt=Y(21/22) vtstat=417/264ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:35.114 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=630009 vtgAge=630009 xteAge=630009 vt=Y(21/22) vtstat=418/252ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:36.127 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=631009 vtgAge=631009 xteAge=631009 vt=Y(21/22) vtstat=419/236ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:37.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=632009 vtgAge=632009 xteAge=632009 vt=Y(21/22) vtstat=420/224ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:38.080 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=633009 vtgAge=633009 xteAge=633009 vt=Y(21/22) vtstat=421/208ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:39.100 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=634009 vtgAge=634009 xteAge=634009 vt=Y(21/22) vtstat=422/192ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:40.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=635009 vtgAge=635009 xteAge=635009 vt=Y(21/22) vtstat=423/180ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:41.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=636009 vtgAge=636009 xteAge=636009 vt=Y(21/22) vtstat=424/168ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:42.117 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=637009 vtgAge=637009 xteAge=637009 vt=Y(21/22) vtstat=425/156ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:43.077 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=638009 vtgAge=638009 xteAge=638009 vt=Y(21/22) vtstat=426/144ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:44.129 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=639009 vtgAge=639009 xteAge=639009 vt=Y(21/22) vtstat=427/128ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:45.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=640009 vtgAge=640009 xteAge=640009 vt=Y(21/22) vtstat=428/116ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:46.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=641009 vtgAge=641009 xteAge=641009 vt=Y(21/22) vtstat=429/104ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:47.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=642009 vtgAge=642009 xteAge=642009 vt=Y(21/22) vtstat=430/88ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:50.817 === port reopened ===
+19:17:53.721 --------------------------------
+19:17:53.721 -----------MeijWorks------------
+19:17:53.721 --------------------------------
+19:17:53.721    Triton PB-ISO version 0.28   
+19:17:53.721   SPIKE #316: DDI 515 echo ON   
+19:17:53.721 (c) 2011 - 2026 by J.A. Woltjer 
+19:17:53.721 --------------------------------
+19:17:54.040 -------------------------------
+19:17:54.041 Tractor using following data:
+19:17:54.041 -------------------------------
+19:17:54.041 Speed calibration
+19:17:54.041 250
+19:17:54.041 -------------------------------
+19:17:54.041 Simspeed
+19:17:54.041 1.00
+19:17:54.041 -------------------------------
+19:17:54.041 Sim time
+19:17:54.041 2
+19:17:54.041 -------------------------------
+19:17:54.041 Sim mode
+19:17:54.041 1
+19:17:54.041 -------------------------------
+19:17:54.041 Invert hitch signal
+19:17:54.041 1
+19:17:54.041 -------------------------------
+19:17:54.041 Times started
+19:17:54.041 255
+19:17:54.041 --------------------------
+19:17:54.041 Using following data:
+19:17:54.041 --------------------------
+19:17:54.042 Offset calibration data
+19:17:54.042 21, 34
+19:17:54.042 144, 42
+19:17:54.042 266, 50
+19:17:54.042 --------------------------
+19:17:54.042 Number of shares
+19:17:54.042 4
+19:17:54.042 --------------------------
+19:17:54.042 Deadband (cm)
+19:17:54.042 2
+19:17:54.042 --------------------------
+19:17:54.042 error ploughside
+19:17:54.042 0
+19:17:54.042 --------------------------
+19:17:54.042 Bypass valve
+19:17:54.042 1
+19:17:54.042 --------------------------
+19:17:54.042 Maximum correction per share (mm)
+19:17:54.042 75
+19:17:54.042 Maximum correction (mm)
+19:17:54.042 300
+19:17:54.042 --------------------------
+19:17:54.042 =====================================
+19:17:54.042 Guidance source using following data:
+19:17:54.042 =====================================
+19:17:54.042 Baudrate
+19:17:54.043 4800
+19:17:54.043 -------------------------------
+19:17:54.043 RTK Quality
+19:17:54.043 4
+19:17:54.043 -------------------------------
+19:17:54.043 Preferred VT (0 = none)
+19:17:54.043 2
+19:17:54.043 -------------------------------
+19:17:54.043 Ag Leader lightbar
+19:17:54.043 AUTO
+19:17:54.043 -------------------------------
+19:17:54.043 Times started
+19:17:54.043 255
+19:17:54.043 --------------------------
+19:17:54.043 Using following data:
+19:17:54.043 --------------------------
+19:17:54.043 Offset calibration data
+19:17:54.043 21, 34
+19:17:54.043 144, 42
+19:17:54.043 266, 50
+19:17:54.043 --------------------------
+19:17:54.043 Number of shares
+19:17:54.044 4
+19:17:54.044 --------------------------
+19:17:54.044 Deadband (cm)
+19:17:54.044 2
+19:17:54.044 --------------------------
+19:17:54.044 error ploughside
+19:17:54.044 0
+19:17:54.044 --------------------------
+19:17:54.044 Bypass valve
+19:17:54.044 1
+19:17:54.044 --------------------------
+19:17:54.044 Maximum correction per share (mm)
+19:17:54.044 75
+19:17:54.044 Maximum correction (mm)
+19:17:54.044 300
+19:17:54.044 --------------------------
+19:17:54.044 CAN controller at start: error-active, TX err 0, RX err 0
+19:17:54.300 IsobusGuidanceChannel: identity 1324910 (board serial 1324910), claiming... address claimed: 0x81
+19:17:54.300 CAN controller after the claim: error-active, TX err 0, RX err 0
+19:17:54.300 Lightbar: Ag Leader L160 emulation, mode AUTO
+19:17:54.300 I] [NM]: A partner with name 000000000000000lx has claimed address 536925300 on channel 2950692864.
+19:17:54.300 IsobusDebugMenu: send any character to open the status menu.
+19:17:56.376 I] [VT]: VT Server has a matching label for MW18   . It will be loaded and upload will be skipped.
+19:17:56.376 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+19:18:10.955 >>> sent: :help
+
+19:18:12.908 I:plough settings console -- lines start with ':'
+19:18:12.909 I: :list                   every setting as a :set line (paste them into another unit, then :save)
+19:18:12.909 I: :get <key>              one setting
+19:18:12.909 I: :set <key> <value>      stage a value; the plough holds until :save or :cancel
+19:18:12.909 I: :set width <a> <b> <c>  stage the width sensor readings at the 34, 42 and 50 cm points
+19:18:12.909 I: :save                   apply and store the staged values
+19:18:12.909 I: :cancel                 drop the staged values
+19:18:12.910 I:keys:
+19:18:12.910 I: shares 2..10
+19:18:12.910 I: side 0..1
+19:18:12.910 I: hitchinv 0..1
+19:18:12.910 I: bypass 0..1
+19:18:12.910 I: deadband 2..10
+19:18:12.910 I: maxcorr 25..100
+19:18:12.910 I: vt 0..9
+19:18:12.910 I: lightbar 0..2
+19:18:12.910 I: rtkq 4 or 2
+19:18:12.910 I: width 0..1023 each, neighbours different
+19:18:12.910 OK
+19:18:21.261 >>> sent: :list
+
+19:18:23.195 :set shares 4
+19:18:23.195 :set side 0
+19:18:23.195 :set hitchinv 1
+19:18:23.195 :set bypass 1
+19:18:23.195 :set deadband 2
+19:18:23.195 :set maxcorr 75
+19:18:23.195 :set vt 2
+19:18:23.195 :set lightbar 0
+19:18:23.195 :set rtkq 4
+19:18:23.195 :set width 21 144 266
+19:18:23.195 OK
+19:18:37.267 >>> sent: :set deadband 3
+
+19:18:42.323 I:draft open -- the plough holds until :save or :cancel
+19:18:42.323 OK
+19:19:42.051 >>> sent: :set shares 99
+
+19:19:46.790 ERR:range
+19:19:49.247 >>> sent: :set width 300 300 500
+
+19:19:56.500 ERR:range
+19:19:58.497 >>> sent: :set nope 1
+
+19:20:02.320 ERR:key
+19:20:10.020 >>> sent: :save
+
+19:20:11.949 I:saved
+19:20:11.949 OK
+19:20:43.571 === port reopened ===
+19:20:46.469 --------------------------------
+19:20:46.469 -----------MeijWorks------------
+19:20:46.469 --------------------------------
+19:20:46.469    Triton PB-ISO version 0.28   
+19:20:46.469   SPIKE #316: DDI 515 echo ON   
+19:20:46.469 (c) 2011 - 2026 by J.A. Woltjer 
+19:20:46.469 --------------------------------
+19:20:46.788 -------------------------------
+19:20:46.788 Tractor using following data:
+19:20:46.788 -------------------------------
+19:20:46.788 Speed calibration
+19:20:46.788 250
+19:20:46.788 -------------------------------
+19:20:46.788 Simspeed
+19:20:46.788 1.00
+19:20:46.788 -------------------------------
+19:20:46.789 Sim time
+19:20:46.789 2
+19:20:46.789 -------------------------------
+19:20:46.789 Sim mode
+19:20:46.789 1
+19:20:46.789 -------------------------------
+19:20:46.789 Invert hitch signal
+19:20:46.789 1
+19:20:46.789 -------------------------------
+19:20:46.789 Times started
+19:20:46.789 255
+19:20:46.789 --------------------------
+19:20:46.789 Using following data:
+19:20:46.789 --------------------------
+19:20:46.789 Offset calibration data
+19:20:46.789 21, 34
+19:20:46.789 144, 42
+19:20:46.789 266, 50
+19:20:46.789 --------------------------
+19:20:46.789 Number of shares
+19:20:46.789 4
+19:20:46.789 --------------------------
+19:20:46.789 Deadband (cm)
+19:20:46.789 3
+19:20:46.789 --------------------------
+19:20:46.789 error ploughside
+19:20:46.789 0
+19:20:46.789 --------------------------
+19:20:46.789 Bypass valve
+19:20:46.789 1
+19:20:46.789 --------------------------
+19:20:46.789 Maximum correction per share (mm)
+19:20:46.789 75
+19:20:46.790 Maximum correction (mm)
+19:20:46.790 300
+19:20:46.790 --------------------------
+19:20:46.790 =====================================
+19:20:46.790 Guidance source using following data:
+19:20:46.790 =====================================
+19:20:46.790 Baudrate
+19:20:46.790 4800
+19:20:46.790 -------------------------------
+19:20:46.790 RTK Quality
+19:20:46.790 4
+19:20:46.790 -------------------------------
+19:20:46.790 Preferred VT (0 = none)
+19:20:46.790 2
+19:20:46.790 -------------------------------
+19:20:46.790 Ag Leader lightbar
+19:20:46.790 AUTO
+19:20:46.790 -------------------------------
+19:20:46.790 Times started
+19:20:46.790 255
+19:20:46.790 --------------------------
+19:20:46.790 Using following data:
+19:20:46.790 --------------------------
+19:20:46.790 Offset calibration data
+19:20:46.790 21, 34
+19:20:46.790 144, 42
+19:20:46.790 266, 50
+19:20:46.790 --------------------------
+19:20:46.791 Number of shares
+19:20:46.791 4
+19:20:46.791 --------------------------
+19:20:46.791 Deadband (cm)
+19:20:46.791 3
+19:20:46.791 --------------------------
+19:20:46.791 error ploughside
+19:20:46.791 0
+19:20:46.791 --------------------------
+19:20:46.791 Bypass valve
+19:20:46.791 1
+19:20:46.791 --------------------------
+19:20:46.791 Maximum correction per share (mm)
+19:20:46.791 75
+19:20:46.791 Maximum correction (mm)
+19:20:46.791 300
+19:20:46.791 --------------------------
+19:20:46.791 CAN controller at start: error-active, TX err 0, RX err 0
+19:20:47.047 IsobusGuidanceChannel: identity 1324910 (board serial 1324910), claiming... address claimed: 0x81
+19:20:47.047 CAN controller after the claim: error-active, TX err 0, RX err 0
+19:20:47.047 Lightbar: Ag Leader L160 emulation, mode AUTO
+19:20:47.047 I] [NM]: A partner with name 000000000000000lx has claimed address 536925300 on channel 2950692864.
+19:20:47.047 IsobusDebugMenu: send any character to open the status menu.
+19:20:49.121 I] [VT]: VT Server has a matching label for MW18   . It will be loaded and upload will be skipped.
+19:20:49.121 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+19:21:02.083 === logger stop ===

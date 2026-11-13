@@ -1,0 +1,112 @@
+Flashing 13249100 (TEENSY41) on COM7 with C:\Users\arjan\OneDrive\MeijWorks Projects\Firmware builds\session28\teensy41_isobus_325650a.hex
+Teensy Loader, Command Line, Version 2.3
+Read "C:\Users\arjan\OneDrive\MeijWorks Projects\Firmware builds\session28\teensy41_isobus_325650a.hex": 274432 bytes, 3.4% usage
+Waiting for Teensy device...
+ (hint: press the reset button)
+Found HalfKay Bootloader
+Read "C:\Users\arjan\OneDrive\MeijWorks Projects\Firmware builds\session28\teensy41_isobus_325650a.hex": 274432 bytes, 3.4% usage
+Programming.........................................................................................................................................................................................................................................................................
+Booting
+OK: 13249100 is running the new firmware.
+--- COM7, first 25 s ---
+--------------------------------
+-----------MeijWorks------------
+--------------------------------
+   Triton PB-ISO version 0.28   
+  SPIKE #316: DDI 515 echo ON   
+(c) 2011 - 2026 by J.A. Woltjer 
+--------------------------------
+-------------------------------
+Tractor using following data:
+-------------------------------
+Speed calibration
+250
+-------------------------------
+Simspeed
+1.00
+-------------------------------
+Sim time
+2
+-------------------------------
+Sim mode
+1
+-------------------------------
+Invert hitch signal
+1
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+21, 34
+144, 42
+266, 50
+--------------------------
+Number of shares
+4
+--------------------------
+Deadband (cm)
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Bypass valve
+1
+--------------------------
+Maximum correction per share (mm)
+75
+Maximum correction (mm)
+300
+--------------------------
+=====================================
+Guidance source using following data:
+=====================================
+Baudrate
+4800
+-------------------------------
+RTK Quality
+4
+-------------------------------
+Preferred VT (0 = none)
+2
+-------------------------------
+Ag Leader lightbar
+AUTO
+-------------------------------
+Times started
+255
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+21, 34
+144, 42
+266, 50
+--------------------------
+Number of shares
+4
+--------------------------
+Deadband (cm)
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Bypass valve
+1
+--------------------------
+Maximum correction per share (mm)
+75
+Maximum correction (mm)
+300
+--------------------------
+CAN controller at start: error-active, TX err 0, RX err 0
+IsobusGuidanceChannel: identity 1324910 (board serial 1324910), claiming... address claimed: 0x81
+CAN controller after the claim: error-PASSIVE, TX err 128, RX err 0
+Lightbar: Ag Leader L160 emulation, mode AUTO
+IsobusDebugMenu: send any character to open the status menu.
+VT: partner 0xFE silent -- requesting address claims to find another VT
+

@@ -1,0 +1,119 @@
+Flashing 7515900 (TEENSY31) on COM18 with C:\Users\arjan\wt\triton-t32\Ploegbesturing Isobus\.pio\build\teensy32_isobus\firmware.hex
+Teensy Loader, Command Line, Version 2.3
+Read "C:\Users\arjan\wt\triton-t32\Ploegbesturing Isobus\.pio\build\teensy32_isobus\firmware.hex": 249604 bytes, 95.2% usage
+Waiting for Teensy device...
+ (hint: press the reset button)
+Found HalfKay Bootloader
+Read "C:\Users\arjan\wt\triton-t32\Ploegbesturing Isobus\.pio\build\teensy32_isobus\firmware.hex": 249604 bytes, 95.2% usage
+Programming....................................................................................................................................................................................................................................................
+Booting
+OK: 7515900 is running the new firmware.
+--- COM18, first 20 s ---
+--------------------------------
+-----------MeijWorks------------
+--------------------------------
+   Triton PB-ISO version 0.28   
+  SPIKE #316: DDI 515 echo ON   
+(c) 2011 - 2026 by J.A. Woltjer 
+--------------------------------
+-------------------------------
+Tractor using following data:
+-------------------------------
+Speed calibration
+250
+-------------------------------
+Simspeed
+1.00
+-------------------------------
+Sim time
+2
+-------------------------------
+Sim mode
+1
+-------------------------------
+Invert hitch signal
+0
+-------------------------------
+Times started
+3
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+Deadband (cm)
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Bypass valve
+0
+--------------------------
+Maximum correction per share (mm)
+50
+Maximum correction (mm)
+200
+--------------------------
+=====================================
+Guidance source using following data:
+=====================================
+Baudrate
+4800
+-------------------------------
+RTK Quality
+4
+-------------------------------
+Preferred VT (0 = none)
+0
+-------------------------------
+Ag Leader lightbar
+AUTO
+-------------------------------
+Times started
+3
+--------------------------
+Using following data:
+--------------------------
+Offset calibration data
+600, 34
+461, 42
+308, 50
+--------------------------
+Number of shares
+4
+--------------------------
+Deadband (cm)
+2
+--------------------------
+error ploughside
+0
+--------------------------
+Bypass valve
+0
+--------------------------
+Maximum correction per share (mm)
+50
+Maximum correction (mm)
+200
+--------------------------
+DBG 3564 Begin
+DBG 3564 start()...
+DBG 3565 start() done
+DBG 3565 it=0 MCR=64EB300F CTRL1=037B4002 CTRL2=00B70000 ECR=00000000 ESR1=00000000 IMASK1=0000FF20 IFLAG1=00000000 6:0 7:0 8:8 9:8 10:8 11:8 12:8 13:8 14:8 15:8
+DBG 3565 first update()...
+DBG 3565 first update() done
+DBG 3565 control function created
+IsobusGuidanceChannel: identity 751590 (board serial 751590), claiming... DBG 3565 it=1 MCR=64EB300F CTRL1=037B4002 CTRL2=00B70000 ECR=00000000 ESR1=00040080 IMASK1=0000FF20 IFLAG1=00000000 6:0 7:0 8:8 9:8 10:8 11:8 12:8 13:8 14:8 15:8
+DBG 3833 claim loop left
+address claimed: 0x81
+Lightbar: Ag Leader L160 emulation, mode AUTO
+IsobusDebugMenu: send any character to open the status menu.
+VT: partner 0xFE silent -- requesting address claims to find another VT
+

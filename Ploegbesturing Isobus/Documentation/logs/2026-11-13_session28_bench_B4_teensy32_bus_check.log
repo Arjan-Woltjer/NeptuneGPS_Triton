@@ -1,0 +1,107 @@
+19:43:45.737 === logger start COM18 ===
+19:43:45.753 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:43:45.754 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:43:45.754 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:43:45.754 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:43:52.113 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:44:02.104 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:44:12.083 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:44:22.140 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:44:32.070 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:44:42.068 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:44:52.094 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:45:02.108 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:45:12.066 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:45:22.069 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:45:32.074 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:45:42.103 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:45:47.301 >>> sent: x
+19:45:47.373 === ISOBUS DEBUG MENU ===
+19:45:47.373 1. Full status dump
+19:45:47.373 2. Periodic summary line (OFF - press to toggle)
+19:45:47.373 3. Reset message counters
+19:45:47.373 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+19:45:47.373 t. Task Controller choice (SPIKE #316), now: any TC
+19:45:47.373 5. Dump VT object pool as hex
+19:45:47.373 q. Exit
+19:45:48.303 >>> sent: 1
+19:45:48.362 === ISOBUS STATUS ===
+19:45:48.362 Address claim: CLAIMED  address=0x81  identity=751590
+19:45:48.362 CAN controller: not sampled on this build
+19:45:48.362 Bus load (ch0): 0.0 %
+19:45:48.362 CAN receive queue: high water 0 of 64, dropped 0
+19:45:48.363 Loop pass: longest 2789 us since the last dump, 117160 us since boot
+19:45:48.363 Stack: peak 1260 of 4792 bytes since boot, 3532 never used
+19:45:48.363 Heap: peak 37708 of 42500 bytes, shared with the stack
+19:45:48.363 --- Message counters ---
+19:45:48.363   PGN 129025 Position NMEA2000: 0
+19:45:48.363   PGN 129026 Speed NMEA2000:    0
+19:45:48.363   PGN 129283 XTE NMEA2000:      0
+19:45:48.363   PGN 65267  Position legacy:   0
+19:45:48.363   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+19:45:48.363   PGN 65535  all senders:       0   last SA=0xFF
+19:45:48.363   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+19:45:48.363              raw: nothing from 0x2A or 0x80 yet
+19:45:48.363   PGN 65535  GNSS status 0x80:  0   (none)
+19:45:48.363   PGN 60160  XTE Trimble legacy:0   last SA=0xFF
+19:45:48.363   PGN 64770  AISO stop:         0   last 0 ms ago
+19:45:48.363   TOTAL:                        0
+19:45:48.363 --- Guidance telemetry ---
+19:45:48.363   XTE:          0.00 m
+19:45:48.363   Speed:        0.00 m/s (0.00 kn)
+19:45:48.363   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+19:45:48.363   PGN 129027 position deltas: 0
+19:45:48.364   Guidance machine info (PGN 44032): (none received)
+19:45:48.364   IsRtkQuality=N
+19:45:48.364   GGA fix age:  265081 ms
+19:45:48.364   VTG fix age:  265081 ms
+19:45:48.364   XTE fix age:  265081 ms
+19:45:48.364   Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+19:45:48.364 --- Virtual Terminal ---
+19:45:48.364   Connected:    N
+19:45:48.364   State:        0/22  Disconnected
+19:45:48.364   VT version:  (unknown)
+19:45:48.364   VT status msgs: 0   last 0 ms ago
+19:45:48.364   Partner: addr=0xFE valid=N  reconnect attempts=0
+19:45:48.364   VT failover: switches=0 claim requests=25 rejoins=0 preferred=none
+19:45:48.364   AUX-N: Breder events=0 Smaller events=0 held=--
+19:45:48.364 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+19:45:48.364   Mode: AUTO  NOT RUNNING  (no Ag Leader display seen)
+19:45:48.364   Address claim: NOT CLAIMED
+19:45:48.364   Display partner: 0xFF  identification requests=0 answered=0 unknown=0  last DID=0x0  hello=N  stack partner=N
+19:45:48.364   Sent: frames=0 failures=0 heartbeats=0 softwareId=N  proprietary A from display=0
+19:45:48.364   Requests: softwareId=0 (sent 0x) ignored=0 last ignored PGN=0
+19:45:48.364   PGN 65462 XTE: frames=0 committed=0
+19:45:48.365 --- Task Controller ---
+19:45:48.365   Connected:    N
+19:45:48.365   TC-GEO (with/without pos): (not connected)
+19:45:48.365   Task active:  N
+19:45:48.365   DRP deviation (DDI 513): 0 mm, last 265082 ms ago
+19:45:48.365   GNSS quality (DDI 514):  0, last 265082 ms ago
+19:45:48.365   Work state (DDI 141):    0 not working (hitch up)
+19:45:48.365   Working width (DDI 67):  160 cm, changes 0, reported 0
+19:45:48.365   [via stack] Value cmds to handler: 0  last DDI=(none)
+19:45:48.365   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+19:45:48.365   [on bus] Requests for our values: 0
+19:45:48.365   [on bus] Set-value commands:      0
+19:45:48.365   [on bus] Measurement commands:    0  (none)
+19:45:48.365   [on bus] Other, addressed to us:  0
+19:45:48.365   Partner: addr=0xFE valid=N  reconnect attempts=0
+19:45:48.365   TC choice: any TC  bound: none
+19:45:48.365   Tramline setpoint (DDI 506): (not connected)
+19:45:48.365   [on bus] Requests for DDI 506: 0  DDI 515: 0
+19:45:48.365   Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+19:45:48.365   Guidance track (DDI 507-511): (not connected)
+19:45:48.365 === ISOBUS DEBUG MENU ===
+19:45:48.365 1. Full status dump
+19:45:48.365 2. Periodic summary line (OFF - press to toggle)
+19:45:48.365 3. Reset message counters
+19:45:48.365 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+19:45:48.365 t. Task Controller choice (SPIKE #316), now: any TC
+19:45:48.365 5. Dump VT object pool as hex
+19:45:48.365 q. Exit
+19:45:51.305 >>> sent: q
+19:45:51.364 Exiting.
+19:45:52.141 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:46:02.091 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:50:14.873 === logger stop ===

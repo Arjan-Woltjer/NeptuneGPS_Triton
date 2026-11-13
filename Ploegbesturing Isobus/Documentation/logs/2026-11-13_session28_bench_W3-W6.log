@@ -1,0 +1,583 @@
+19:08:21.208 === logger start COM7 ===
+19:08:22.065 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:08:22.066 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:08:22.066 === ISOBUS DEBUG MENU ===
+19:08:22.066 1. Full status dump
+19:08:22.066 2. Periodic summary line (OFF - press to toggle)
+19:08:22.067 3. Reset message counters
+19:08:22.067 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+19:08:22.067 t. Task Controller choice (SPIKE #316), now: any TC
+19:08:22.067 5. Dump VT object pool as hex
+19:08:22.069 q. Exit
+19:08:22.069 Periodic summary line: ON
+19:08:22.069 === ISOBUS DEBUG MENU ===
+19:08:22.069 1. Full status dump
+19:08:22.069 2. Periodic summary line (ON - press to toggle)
+19:08:22.069 3. Reset message counters
+19:08:22.069 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+19:08:22.069 t. Task Controller choice (SPIKE #316), now: any TC
+19:08:22.070 5. Dump VT object pool as hex
+19:08:22.070 q. Exit
+19:08:22.070 Exiting.
+19:08:22.070 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=77009 vtgAge=77009 xteAge=77009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:23.101 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78009 vtgAge=78009 xteAge=78009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:23.934 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:08:24.071 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79009 vtgAge=79009 xteAge=79009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:25.078 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=80009 vtgAge=80009 xteAge=80009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:26.067 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=81009 vtgAge=81009 xteAge=81009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:27.103 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=82009 vtgAge=82009 xteAge=82009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:28.110 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=83009 vtgAge=83009 xteAge=83009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:29.101 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=84009 vtgAge=84009 xteAge=84009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:30.113 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=85009 vtgAge=85009 xteAge=85009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:31.056 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=86009 vtgAge=86009 xteAge=86009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:32.062 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=87009 vtgAge=87009 xteAge=87009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:33.065 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=88009 vtgAge=88009 xteAge=88009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:33.945 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:08:34.065 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=89009 vtgAge=89009 xteAge=89009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:35.099 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=90009 vtgAge=90009 xteAge=90009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:36.070 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91009 vtgAge=91009 xteAge=91009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:37.073 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=92009 vtgAge=92009 xteAge=92009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:38.077 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=93009 vtgAge=93009 xteAge=93009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:39.112 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=94009 vtgAge=94009 xteAge=94009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:40.068 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95009 vtgAge=95009 xteAge=95009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:41.056 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=96009 vtgAge=96009 xteAge=96009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:42.094 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=97009 vtgAge=97009 xteAge=97009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:43.057 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=98009 vtgAge=98009 xteAge=98009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:43.924 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:08:44.123 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=99009 vtgAge=99009 xteAge=99009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:45.077 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=100009 vtgAge=100009 xteAge=100009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:46.081 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=101009 vtgAge=101009 xteAge=101009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:47.070 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=102009 vtgAge=102009 xteAge=102009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:48.074 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=103009 vtgAge=103009 xteAge=103009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:49.065 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=104009 vtgAge=104009 xteAge=104009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:50.055 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=105009 vtgAge=105009 xteAge=105009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:51.076 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=106009 vtgAge=106009 xteAge=106009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:52.101 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=107009 vtgAge=107009 xteAge=107009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:53.073 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=108009 vtgAge=108009 xteAge=108009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:53.912 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:08:54.107 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=109009 vtgAge=109009 xteAge=109009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:55.123 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=110009 vtgAge=110009 xteAge=110009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:56.100 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=111009 vtgAge=111009 xteAge=111009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:57.073 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=112009 vtgAge=112009 xteAge=112009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:58.064 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=113009 vtgAge=113009 xteAge=113009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:08:59.097 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=114009 vtgAge=114009 xteAge=114009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:00.085 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=115009 vtgAge=115009 xteAge=115009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:01.092 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=116009 vtgAge=116009 xteAge=116009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:02.098 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=117009 vtgAge=117009 xteAge=117009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:03.075 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=118009 vtgAge=118009 xteAge=118009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:03.944 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:09:04.064 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=119009 vtgAge=119009 xteAge=119009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:05.069 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=120009 vtgAge=120009 xteAge=120009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:06.102 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=121009 vtgAge=121009 xteAge=121009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:07.108 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=122009 vtgAge=122009 xteAge=122009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:08.069 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=123009 vtgAge=123009 xteAge=123009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:09.101 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=124009 vtgAge=124009 xteAge=124009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:10.112 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=125009 vtgAge=125009 xteAge=125009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:11.101 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=126009 vtgAge=126009 xteAge=126009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:12.086 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=127009 vtgAge=127009 xteAge=127009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:13.105 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=128009 vtgAge=128009 xteAge=128009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:13.942 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:09:14.066 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=129009 vtgAge=129009 xteAge=129009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:15.082 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=130009 vtgAge=130009 xteAge=130009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:16.121 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=131009 vtgAge=131009 xteAge=131009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:17.077 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=132009 vtgAge=132009 xteAge=132009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:18.093 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=133009 vtgAge=133009 xteAge=133009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:19.095 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=134009 vtgAge=134009 xteAge=134009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:20.055 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=135009 vtgAge=135009 xteAge=135009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:21.106 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=136009 vtgAge=136009 xteAge=136009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:22.105 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=137009 vtgAge=137009 xteAge=137009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:23.108 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=138009 vtgAge=138009 xteAge=138009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:23.928 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:09:24.123 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=139009 vtgAge=139009 xteAge=139009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:25.113 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=140009 vtgAge=140009 xteAge=140009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:26.074 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=141009 vtgAge=141009 xteAge=141009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:27.080 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=142009 vtgAge=142009 xteAge=142009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:28.092 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=143009 vtgAge=143009 xteAge=143009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:29.100 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=144009 vtgAge=144009 xteAge=144009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:30.077 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=145009 vtgAge=145009 xteAge=145009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:31.081 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=146009 vtgAge=146009 xteAge=146009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:32.102 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=147009 vtgAge=147009 xteAge=147009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:33.124 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=148009 vtgAge=148009 xteAge=148009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:33.938 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:09:34.074 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=149009 vtgAge=149009 xteAge=149009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:35.082 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=150009 vtgAge=150009 xteAge=150009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:36.080 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=151009 vtgAge=151009 xteAge=151009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:37.081 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=152009 vtgAge=152009 xteAge=152009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:38.084 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=153009 vtgAge=153009 xteAge=153009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:39.084 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=154009 vtgAge=154009 xteAge=154009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:40.090 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=155009 vtgAge=155009 xteAge=155009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:41.086 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=156009 vtgAge=156009 xteAge=156009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:42.064 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=157009 vtgAge=157009 xteAge=157009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:43.067 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=158009 vtgAge=158009 xteAge=158009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:43.939 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:09:44.064 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=159009 vtgAge=159009 xteAge=159009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:45.085 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=160009 vtgAge=160009 xteAge=160009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:46.087 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=161009 vtgAge=161009 xteAge=161009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:47.104 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=162009 vtgAge=162009 xteAge=162009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:48.097 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=163009 vtgAge=163009 xteAge=163009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:49.058 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=164009 vtgAge=164009 xteAge=164009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:50.078 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=165009 vtgAge=165009 xteAge=165009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:51.099 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=166009 vtgAge=166009 xteAge=166009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:52.101 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=167009 vtgAge=167009 xteAge=167009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:53.060 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=168009 vtgAge=168009 xteAge=168009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:53.953 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:09:54.091 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=169009 vtgAge=169009 xteAge=169009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:55.105 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=170009 vtgAge=170009 xteAge=170009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:56.111 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=171009 vtgAge=171009 xteAge=171009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:57.083 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=172009 vtgAge=172009 xteAge=172009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:58.106 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=173009 vtgAge=173009 xteAge=173009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:09:59.111 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=174009 vtgAge=174009 xteAge=174009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:00.056 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=175009 vtgAge=175009 xteAge=175009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:01.112 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=176009 vtgAge=176009 xteAge=176009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:02.056 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=177009 vtgAge=177009 xteAge=177009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:03.077 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=178009 vtgAge=178009 xteAge=178009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:03.947 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:10:04.068 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=179009 vtgAge=179009 xteAge=179009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:05.086 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=180009 vtgAge=180009 xteAge=180009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:06.086 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=181009 vtgAge=181009 xteAge=181009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:07.089 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=182009 vtgAge=182009 xteAge=182009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:08.109 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=183009 vtgAge=183009 xteAge=183009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:09.099 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=184009 vtgAge=184009 xteAge=184009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:10.109 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=185009 vtgAge=185009 xteAge=185009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:11.057 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=186009 vtgAge=186009 xteAge=186009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:12.127 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=187009 vtgAge=187009 xteAge=187009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:13.064 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=188009 vtgAge=188009 xteAge=188009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:13.955 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:10:14.109 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=189009 vtgAge=189009 xteAge=189009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:15.098 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=190009 vtgAge=190009 xteAge=190009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:16.109 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=191009 vtgAge=191009 xteAge=191009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:17.115 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=192009 vtgAge=192009 xteAge=192009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:18.075 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=193009 vtgAge=193009 xteAge=193009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:19.068 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=194009 vtgAge=194009 xteAge=194009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:20.075 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=195009 vtgAge=195009 xteAge=195009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:21.106 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=196009 vtgAge=196009 xteAge=196009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:22.098 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=197009 vtgAge=197009 xteAge=197009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:23.063 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=198009 vtgAge=198009 xteAge=198009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:23.929 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:10:24.113 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=199009 vtgAge=199009 xteAge=199009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:25.074 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=200009 vtgAge=200009 xteAge=200009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:26.080 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=201009 vtgAge=201009 xteAge=201009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:27.103 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=202009 vtgAge=202009 xteAge=202009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:28.110 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=203009 vtgAge=203009 xteAge=203009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:29.091 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=204009 vtgAge=204009 xteAge=204009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:30.084 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=205009 vtgAge=205009 xteAge=205009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:31.097 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=206009 vtgAge=206009 xteAge=206009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:32.071 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=207009 vtgAge=207009 xteAge=207009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:33.091 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=208009 vtgAge=208009 xteAge=208009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:33.903 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:10:34.085 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=209009 vtgAge=209009 xteAge=209009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:35.110 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=210009 vtgAge=210009 xteAge=210009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:36.072 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=211009 vtgAge=211009 xteAge=211009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:37.066 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=212009 vtgAge=212009 xteAge=212009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:38.087 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=213009 vtgAge=213009 xteAge=213009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:39.107 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=214009 vtgAge=214009 xteAge=214009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:40.114 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=215009 vtgAge=215009 xteAge=215009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:41.077 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=216009 vtgAge=216009 xteAge=216009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:42.066 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=217009 vtgAge=217009 xteAge=217009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:43.071 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=218009 vtgAge=218009 xteAge=218009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:43.943 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:10:44.066 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=219009 vtgAge=219009 xteAge=219009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:45.073 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=220009 vtgAge=220009 xteAge=220009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:46.069 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=221009 vtgAge=221009 xteAge=221009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:47.096 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=222009 vtgAge=222009 xteAge=222009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:48.103 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=223009 vtgAge=223009 xteAge=223009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:49.112 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=224009 vtgAge=224009 xteAge=224009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:50.117 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=225009 vtgAge=225009 xteAge=225009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:51.074 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=226009 vtgAge=226009 xteAge=226009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:52.080 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=227009 vtgAge=227009 xteAge=227009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:53.074 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=228009 vtgAge=228009 xteAge=228009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:53.899 VT: partner 0xFE silent -- requesting address claims to find another VT
+19:10:54.083 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=229009 vtgAge=229009 xteAge=229009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:55.090 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=230009 vtgAge=230009 xteAge=230009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:56.096 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=231009 vtgAge=231009 xteAge=231009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:57.104 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=232009 vtgAge=232009 xteAge=232009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:58.110 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=233009 vtgAge=233009 xteAge=233009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:10:59.105 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=234009 vtgAge=234009 xteAge=234009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:11:00.127 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=235009 vtgAge=235009 xteAge=235009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:11:01.059 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=236009 vtgAge=236009 xteAge=236009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:11:02.128 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=237009 vtgAge=237009 xteAge=237009 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=30180
+19:11:02.525 I] [NM]: Partnered control function with name 000000000000000lx has claimed address 2950692864 on channel 2684361984.
+19:11:02.710 I] [VT]: No version label from the VT matched. Client will upload the pool and store it instead.
+19:11:03.108 [ISOBUS] addr=0x81 claimed=Y load=23.9% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=238009 vtgAge=238009 xteAge=238009 vt=N(18/22) vtstat=26/340ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:04.105 [ISOBUS] addr=0x81 claimed=Y load=62.5% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=239009 vtgAge=239009 xteAge=239009 vt=N(18/22) vtstat=27/328ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:04.809 I] [VT]: Stored object pool with no error.
+19:11:05.115 [ISOBUS] addr=0x81 claimed=Y load=40.9% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=240009 vtgAge=240009 xteAge=240009 vt=Y(21/22) vtstat=29/312ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:06.110 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=241009 vtgAge=241009 xteAge=241009 vt=Y(21/22) vtstat=30/304ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:07.061 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=242009 vtgAge=242009 xteAge=242009 vt=Y(21/22) vtstat=31/292ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:08.115 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=243009 vtgAge=243009 xteAge=243009 vt=Y(21/22) vtstat=32/280ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:09.090 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=244009 vtgAge=244009 xteAge=244009 vt=Y(21/22) vtstat=33/268ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:10.084 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=245009 vtgAge=245009 xteAge=245009 vt=Y(21/22) vtstat=34/252ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:11.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=246009 vtgAge=246009 xteAge=246009 vt=Y(21/22) vtstat=35/244ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:12.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=247009 vtgAge=247009 xteAge=247009 vt=Y(21/22) vtstat=36/224ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:13.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=248009 vtgAge=248009 xteAge=248009 vt=Y(21/22) vtstat=37/212ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:14.127 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=249009 vtgAge=249009 xteAge=249009 vt=Y(21/22) vtstat=38/200ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:15.129 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=250009 vtgAge=250009 xteAge=250009 vt=Y(21/22) vtstat=39/184ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:16.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=251009 vtgAge=251009 xteAge=251009 vt=Y(21/22) vtstat=40/172ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:17.084 VT: Calibrate pressed
+19:11:17.084 VT: calibration page open
+19:11:17.084 [ISOBUS] addr=0x81 claimed=Y load=1.2% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=252009 vtgAge=252009 xteAge=252009 vt=Y(21/22) vtstat=41/156ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:18.089 [ISOBUS] addr=0x81 claimed=Y load=2.5% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=253009 vtgAge=253009 xteAge=253009 vt=Y(21/22) vtstat=42/937ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:19.111 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=254009 vtgAge=254009 xteAge=254009 vt=Y(21/22) vtstat=43/893ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:20.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=255009 vtgAge=255009 xteAge=255009 vt=Y(21/22) vtstat=44/881ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:21.071 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=256009 vtgAge=256009 xteAge=256009 vt=Y(21/22) vtstat=45/869ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:22.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=257009 vtgAge=257009 xteAge=257009 vt=Y(21/22) vtstat=46/853ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:23.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=258009 vtgAge=258009 xteAge=258009 vt=Y(21/22) vtstat=47/837ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:24.075 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=259009 vtgAge=259009 xteAge=259009 vt=Y(21/22) vtstat=48/817ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:25.093 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=260009 vtgAge=260009 xteAge=260009 vt=Y(21/22) vtstat=49/805ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:26.086 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=261009 vtgAge=261009 xteAge=261009 vt=Y(21/22) vtstat=50/789ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:27.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=262009 vtgAge=262009 xteAge=262009 vt=Y(21/22) vtstat=51/777ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:28.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=263009 vtgAge=263009 xteAge=263009 vt=Y(21/22) vtstat=52/761ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:29.065 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=264009 vtgAge=264009 xteAge=264009 vt=Y(21/22) vtstat=53/749ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:30.069 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=265009 vtgAge=265009 xteAge=265009 vt=Y(21/22) vtstat=54/737ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:31.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=266009 vtgAge=266009 xteAge=266009 vt=Y(21/22) vtstat=55/721ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:32.114 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=267009 vtgAge=267009 xteAge=267009 vt=Y(21/22) vtstat=56/705ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:33.062 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=268009 vtgAge=268009 xteAge=268009 vt=Y(21/22) vtstat=57/693ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:34.067 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=269009 vtgAge=269009 xteAge=269009 vt=Y(21/22) vtstat=58/677ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:35.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=270009 vtgAge=270009 xteAge=270009 vt=Y(21/22) vtstat=59/665ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:36.087 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=271009 vtgAge=271009 xteAge=271009 vt=Y(21/22) vtstat=60/649ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:37.110 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=272009 vtgAge=272009 xteAge=272009 vt=Y(21/22) vtstat=61/633ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:38.119 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=273009 vtgAge=273009 xteAge=273009 vt=Y(21/22) vtstat=62/617ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:39.080 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=274009 vtgAge=274009 xteAge=274009 vt=Y(21/22) vtstat=63/605ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:40.087 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=275009 vtgAge=275009 xteAge=275009 vt=Y(21/22) vtstat=64/593ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:41.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=276009 vtgAge=276009 xteAge=276009 vt=Y(21/22) vtstat=65/581ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:42.065 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=277009 vtgAge=277009 xteAge=277009 vt=Y(21/22) vtstat=66/565ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:43.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=278009 vtgAge=278009 xteAge=278009 vt=Y(21/22) vtstat=67/554ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:44.065 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=279009 vtgAge=279009 xteAge=279009 vt=Y(21/22) vtstat=68/542ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:45.119 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=280009 vtgAge=280009 xteAge=280009 vt=Y(21/22) vtstat=69/526ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:46.082 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=281009 vtgAge=281009 xteAge=281009 vt=Y(21/22) vtstat=70/514ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:47.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=282009 vtgAge=282009 xteAge=282009 vt=Y(21/22) vtstat=71/502ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:48.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=283009 vtgAge=283009 xteAge=283009 vt=Y(21/22) vtstat=72/490ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:49.086 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=284009 vtgAge=284009 xteAge=284009 vt=Y(21/22) vtstat=73/474ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:50.064 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=285009 vtgAge=285009 xteAge=285009 vt=Y(21/22) vtstat=74/462ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:51.084 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=286009 vtgAge=286009 xteAge=286009 vt=Y(21/22) vtstat=75/446ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:52.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=287009 vtgAge=287009 xteAge=287009 vt=Y(21/22) vtstat=76/430ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:53.086 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=288009 vtgAge=288009 xteAge=288009 vt=Y(21/22) vtstat=77/418ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:54.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=289009 vtgAge=289009 xteAge=289009 vt=Y(21/22) vtstat=78/406ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:55.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=290009 vtgAge=290009 xteAge=290009 vt=Y(21/22) vtstat=79/394ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:56.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=291009 vtgAge=291009 xteAge=291009 vt=Y(21/22) vtstat=80/386ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:57.115 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=292009 vtgAge=292009 xteAge=292009 vt=Y(21/22) vtstat=81/370ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:58.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=293009 vtgAge=293009 xteAge=293009 vt=Y(21/22) vtstat=82/358ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:11:59.106 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=294009 vtgAge=294009 xteAge=294009 vt=Y(21/22) vtstat=83/346ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:00.080 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=295009 vtgAge=295009 xteAge=295009 vt=Y(21/22) vtstat=84/334ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:01.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=296009 vtgAge=296009 xteAge=296009 vt=Y(21/22) vtstat=85/318ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:02.098 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=297009 vtgAge=297009 xteAge=297009 vt=Y(21/22) vtstat=86/306ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:03.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=298009 vtgAge=298009 xteAge=298009 vt=Y(21/22) vtstat=87/294ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:04.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=299009 vtgAge=299009 xteAge=299009 vt=Y(21/22) vtstat=88/282ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:05.061 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=300009 vtgAge=300009 xteAge=300009 vt=Y(21/22) vtstat=89/270ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:06.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=301009 vtgAge=301009 xteAge=301009 vt=Y(21/22) vtstat=90/254ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:07.086 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=302009 vtgAge=302009 xteAge=302009 vt=Y(21/22) vtstat=91/242ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:08.109 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=303009 vtgAge=303009 xteAge=303009 vt=Y(21/22) vtstat=92/230ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:09.118 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=304009 vtgAge=304009 xteAge=304009 vt=Y(21/22) vtstat=93/218ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:10.081 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=305009 vtgAge=305009 xteAge=305009 vt=Y(21/22) vtstat=94/206ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:11.100 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=306009 vtgAge=306009 xteAge=306009 vt=Y(21/22) vtstat=95/194ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:12.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=307009 vtgAge=307009 xteAge=307009 vt=Y(21/22) vtstat=96/178ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:13.079 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=308009 vtgAge=308009 xteAge=308009 vt=Y(21/22) vtstat=97/166ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:14.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=309009 vtgAge=309009 xteAge=309009 vt=Y(21/22) vtstat=98/158ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:15.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=310009 vtgAge=310009 xteAge=310009 vt=Y(21/22) vtstat=99/146ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:16.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=311009 vtgAge=311009 xteAge=311009 vt=Y(21/22) vtstat=100/130ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:17.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=312009 vtgAge=312009 xteAge=312009 vt=Y(21/22) vtstat=101/114ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:18.109 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=313009 vtgAge=313009 xteAge=313009 vt=Y(21/22) vtstat=102/102ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:19.073 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=314009 vtgAge=314009 xteAge=314009 vt=Y(21/22) vtstat=103/86ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:20.085 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=315009 vtgAge=315009 xteAge=315009 vt=Y(21/22) vtstat=104/74ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:21.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=316009 vtgAge=316009 xteAge=316009 vt=Y(21/22) vtstat=105/58ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:22.061 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=317009 vtgAge=317009 xteAge=317009 vt=Y(21/22) vtstat=106/46ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:23.132 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=318009 vtgAge=318009 xteAge=318009 vt=Y(21/22) vtstat=107/30ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:24.079 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=319009 vtgAge=319009 xteAge=319009 vt=Y(21/22) vtstat=108/18ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:25.082 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=320009 vtgAge=320009 xteAge=320009 vt=Y(21/22) vtstat=109/2ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:26.074 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=321009 vtgAge=321009 xteAge=321009 vt=Y(21/22) vtstat=109/1002ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:27.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=322009 vtgAge=322009 xteAge=322009 vt=Y(21/22) vtstat=110/986ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:28.104 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=323009 vtgAge=323009 xteAge=323009 vt=Y(21/22) vtstat=111/974ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:29.115 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=324009 vtgAge=324009 xteAge=324009 vt=Y(21/22) vtstat=112/962ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:30.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=325009 vtgAge=325009 xteAge=325009 vt=Y(21/22) vtstat=113/946ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:31.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=326009 vtgAge=326009 xteAge=326009 vt=Y(21/22) vtstat=114/938ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:32.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=327009 vtgAge=327009 xteAge=327009 vt=Y(21/22) vtstat=115/927ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:33.117 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=328009 vtgAge=328009 xteAge=328009 vt=Y(21/22) vtstat=116/915ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:34.062 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=329009 vtgAge=329009 xteAge=329009 vt=Y(21/22) vtstat=117/903ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:35.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=330009 vtgAge=330009 xteAge=330009 vt=Y(21/22) vtstat=118/887ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:36.079 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=331009 vtgAge=331009 xteAge=331009 vt=Y(21/22) vtstat=119/875ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:37.100 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=332009 vtgAge=332009 xteAge=332009 vt=Y(21/22) vtstat=120/863ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:38.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=333009 vtgAge=333009 xteAge=333009 vt=Y(21/22) vtstat=121/847ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:39.068 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=334009 vtgAge=334009 xteAge=334009 vt=Y(21/22) vtstat=122/835ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:40.119 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=335009 vtgAge=335009 xteAge=335009 vt=Y(21/22) vtstat=123/819ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:41.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=336009 vtgAge=336009 xteAge=336009 vt=Y(21/22) vtstat=124/807ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:42.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=337009 vtgAge=337009 xteAge=337009 vt=Y(21/22) vtstat=125/791ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:43.099 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=338009 vtgAge=338009 xteAge=338009 vt=Y(21/22) vtstat=126/779ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:44.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=339009 vtgAge=339009 xteAge=339009 vt=Y(21/22) vtstat=127/763ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:45.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=340009 vtgAge=340009 xteAge=340009 vt=Y(21/22) vtstat=128/747ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:46.114 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=341009 vtgAge=341009 xteAge=341009 vt=Y(21/22) vtstat=129/735ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:47.119 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=342009 vtgAge=342009 xteAge=342009 vt=Y(21/22) vtstat=130/727ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:48.066 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=343009 vtgAge=343009 xteAge=343009 vt=Y(21/22) vtstat=131/711ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:49.130 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=344009 vtgAge=344009 xteAge=344009 vt=Y(21/22) vtstat=132/695ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:50.066 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=345009 vtgAge=345009 xteAge=345009 vt=Y(21/22) vtstat=133/683ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:51.132 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=346009 vtgAge=346009 xteAge=346009 vt=Y(21/22) vtstat=134/671ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:52.062 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=347009 vtgAge=347009 xteAge=347009 vt=Y(21/22) vtstat=135/659ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:53.131 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=348009 vtgAge=348009 xteAge=348009 vt=Y(21/22) vtstat=136/643ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:54.122 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=349009 vtgAge=349009 xteAge=349009 vt=Y(21/22) vtstat=137/627ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:55.068 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=350009 vtgAge=350009 xteAge=350009 vt=Y(21/22) vtstat=138/611ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:56.073 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=351009 vtgAge=351009 xteAge=351009 vt=Y(21/22) vtstat=139/595ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:57.099 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=352009 vtgAge=352009 xteAge=352009 vt=Y(21/22) vtstat=140/583ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:58.114 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=353009 vtgAge=353009 xteAge=353009 vt=Y(21/22) vtstat=141/563ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:12:59.108 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=354009 vtgAge=354009 xteAge=354009 vt=Y(21/22) vtstat=142/555ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:00.119 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=355009 vtgAge=355009 xteAge=355009 vt=Y(21/22) vtstat=143/539ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:00.837 VT: width calibration open
+19:13:01.097 [ISOBUS] addr=0x81 claimed=Y load=2.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=356009 vtgAge=356009 xteAge=356009 vt=Y(21/22) vtstat=145/235ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:02.102 [ISOBUS] addr=0x81 claimed=Y load=1.6% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=357009 vtgAge=357009 xteAge=357009 vt=Y(21/22) vtstat=146/207ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:03.063 [ISOBUS] addr=0x81 claimed=Y load=1.7% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=358009 vtgAge=358009 xteAge=358009 vt=Y(21/22) vtstat=147/191ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:04.078 [ISOBUS] addr=0x81 claimed=Y load=1.6% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=359009 vtgAge=359009 xteAge=359009 vt=Y(21/22) vtstat=148/175ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:05.084 [ISOBUS] addr=0x81 claimed=Y load=1.7% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=360009 vtgAge=360009 xteAge=360009 vt=Y(21/22) vtstat=149/163ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:06.078 [ISOBUS] addr=0x81 claimed=Y load=1.7% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=361009 vtgAge=361009 xteAge=361009 vt=Y(21/22) vtstat=150/147ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:07.118 [ISOBUS] addr=0x81 claimed=Y load=1.7% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=362009 vtgAge=362009 xteAge=362009 vt=Y(21/22) vtstat=151/131ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:08.133 [ISOBUS] addr=0x81 claimed=Y load=1.7% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=363009 vtgAge=363009 xteAge=363009 vt=Y(21/22) vtstat=152/111ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:09.068 [ISOBUS] addr=0x81 claimed=Y load=2.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=364009 vtgAge=364009 xteAge=364009 vt=Y(21/22) vtstat=153/95ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:10.074 [ISOBUS] addr=0x81 claimed=Y load=1.7% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=365009 vtgAge=365009 xteAge=365009 vt=Y(21/22) vtstat=154/79ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:11.080 [ISOBUS] addr=0x81 claimed=Y load=2.6% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=366009 vtgAge=366009 xteAge=366009 vt=Y(21/22) vtstat=155/927ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:12.099 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=367009 vtgAge=367009 xteAge=367009 vt=Y(21/22) vtstat=156/915ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:12.741 VT: calibration cancelled
+19:13:13.108 [ISOBUS] addr=0x81 claimed=Y load=1.6% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=368009 vtgAge=368009 xteAge=368009 vt=Y(21/22) vtstat=158/344ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:14.114 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=369009 vtgAge=369009 xteAge=369009 vt=Y(21/22) vtstat=159/333ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:15.104 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=370009 vtgAge=370009 xteAge=370009 vt=Y(21/22) vtstat=160/321ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:16.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=371009 vtgAge=371009 xteAge=371009 vt=Y(21/22) vtstat=161/305ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:17.117 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=372009 vtgAge=372009 xteAge=372009 vt=Y(21/22) vtstat=162/293ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:18.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=373009 vtgAge=373009 xteAge=373009 vt=Y(21/22) vtstat=163/277ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:19.133 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=374009 vtgAge=374009 xteAge=374009 vt=Y(21/22) vtstat=164/261ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:20.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=375009 vtgAge=375009 xteAge=375009 vt=Y(21/22) vtstat=165/253ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:21.073 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=376009 vtgAge=376009 xteAge=376009 vt=Y(21/22) vtstat=166/238ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:22.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=377009 vtgAge=377009 xteAge=377009 vt=Y(21/22) vtstat=167/226ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:23.098 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=378009 vtgAge=378009 xteAge=378009 vt=Y(21/22) vtstat=168/214ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:24.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=379009 vtgAge=379009 xteAge=379009 vt=Y(21/22) vtstat=169/202ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:25.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=380009 vtgAge=380009 xteAge=380009 vt=Y(21/22) vtstat=170/186ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:26.077 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=381009 vtgAge=381009 xteAge=381009 vt=Y(21/22) vtstat=171/174ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:27.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=382009 vtgAge=382009 xteAge=382009 vt=Y(21/22) vtstat=172/158ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:28.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=383009 vtgAge=383009 xteAge=383009 vt=Y(21/22) vtstat=173/138ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:29.098 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=384009 vtgAge=384009 xteAge=384009 vt=Y(21/22) vtstat=174/122ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:30.091 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=385009 vtgAge=385009 xteAge=385009 vt=Y(21/22) vtstat=175/110ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:31.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=386009 vtgAge=386009 xteAge=386009 vt=Y(21/22) vtstat=176/90ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:32.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=387009 vtgAge=387009 xteAge=387009 vt=Y(21/22) vtstat=177/82ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:33.069 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=388009 vtgAge=388009 xteAge=388009 vt=Y(21/22) vtstat=178/66ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:34.125 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=389009 vtgAge=389009 xteAge=389009 vt=Y(21/22) vtstat=179/54ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:35.123 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=390009 vtgAge=390009 xteAge=390009 vt=Y(21/22) vtstat=180/42ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:36.068 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=391009 vtgAge=391009 xteAge=391009 vt=Y(21/22) vtstat=181/30ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:37.076 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=392009 vtgAge=392009 xteAge=392009 vt=Y(21/22) vtstat=182/14ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:38.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=393009 vtgAge=393009 xteAge=393009 vt=Y(21/22) vtstat=182/1014ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:39.093 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=394009 vtgAge=394009 xteAge=394009 vt=Y(21/22) vtstat=183/998ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:40.117 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=395009 vtgAge=395009 xteAge=395009 vt=Y(21/22) vtstat=184/986ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:41.108 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=396009 vtgAge=396009 xteAge=396009 vt=Y(21/22) vtstat=185/970ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:42.068 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=397009 vtgAge=397009 xteAge=397009 vt=Y(21/22) vtstat=186/954ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:43.123 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=398009 vtgAge=398009 xteAge=398009 vt=Y(21/22) vtstat=187/942ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:44.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=399009 vtgAge=399009 xteAge=399009 vt=Y(21/22) vtstat=188/926ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:45.077 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=400009 vtgAge=400009 xteAge=400009 vt=Y(21/22) vtstat=189/914ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:46.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=401009 vtgAge=401009 xteAge=401009 vt=Y(21/22) vtstat=190/898ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:47.112 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=402009 vtgAge=402009 xteAge=402009 vt=Y(21/22) vtstat=191/882ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:48.071 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=403009 vtgAge=403009 xteAge=403009 vt=Y(21/22) vtstat=192/866ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:49.084 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=404009 vtgAge=404009 xteAge=404009 vt=Y(21/22) vtstat=193/850ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:50.077 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=405009 vtgAge=405009 xteAge=405009 vt=Y(21/22) vtstat=194/838ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:51.082 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=406009 vtgAge=406009 xteAge=406009 vt=Y(21/22) vtstat=195/822ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:52.080 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=407009 vtgAge=407009 xteAge=407009 vt=Y(21/22) vtstat=196/806ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:53.075 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=408009 vtgAge=408009 xteAge=408009 vt=Y(21/22) vtstat=197/794ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:54.098 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=409009 vtgAge=409009 xteAge=409009 vt=Y(21/22) vtstat=198/778ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:55.108 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=410009 vtgAge=410009 xteAge=410009 vt=Y(21/22) vtstat=199/766ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:56.113 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=411009 vtgAge=411009 xteAge=411009 vt=Y(21/22) vtstat=200/750ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:57.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=412009 vtgAge=412009 xteAge=412009 vt=Y(21/22) vtstat=201/738ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:58.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=413009 vtgAge=413009 xteAge=413009 vt=Y(21/22) vtstat=202/722ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:13:59.114 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=414009 vtgAge=414009 xteAge=414009 vt=Y(21/22) vtstat=203/710ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:00.124 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=415009 vtgAge=415009 xteAge=415009 vt=Y(21/22) vtstat=204/698ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:01.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=416009 vtgAge=416009 xteAge=416009 vt=Y(21/22) vtstat=205/686ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:02.135 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=417009 vtgAge=417009 xteAge=417009 vt=Y(21/22) vtstat=206/674ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:03.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=418009 vtgAge=418009 xteAge=418009 vt=Y(21/22) vtstat=207/658ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:04.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=419009 vtgAge=419009 xteAge=419009 vt=Y(21/22) vtstat=208/642ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:05.125 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=420009 vtgAge=420009 xteAge=420009 vt=Y(21/22) vtstat=209/634ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:06.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=421009 vtgAge=421009 xteAge=421009 vt=Y(21/22) vtstat=210/618ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:07.122 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=422009 vtgAge=422009 xteAge=422009 vt=Y(21/22) vtstat=211/606ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:08.084 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=423009 vtgAge=423009 xteAge=423009 vt=Y(21/22) vtstat=212/594ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:09.092 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=424009 vtgAge=424009 xteAge=424009 vt=Y(21/22) vtstat=213/583ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:10.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=425009 vtgAge=425009 xteAge=425009 vt=Y(21/22) vtstat=214/571ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:11.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=426009 vtgAge=426009 xteAge=426009 vt=Y(21/22) vtstat=215/559ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:12.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=427009 vtgAge=427009 xteAge=427009 vt=Y(21/22) vtstat=216/543ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:13.099 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=428009 vtgAge=428009 xteAge=428009 vt=Y(21/22) vtstat=217/527ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:14.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=429009 vtgAge=429009 xteAge=429009 vt=Y(21/22) vtstat=218/515ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:15.070 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=430009 vtgAge=430009 xteAge=430009 vt=Y(21/22) vtstat=219/503ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:16.124 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=431009 vtgAge=431009 xteAge=431009 vt=Y(21/22) vtstat=220/487ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:17.087 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=432009 vtgAge=432009 xteAge=432009 vt=Y(21/22) vtstat=221/475ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:18.094 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=433009 vtgAge=433009 xteAge=433009 vt=Y(21/22) vtstat=222/463ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:19.083 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=434009 vtgAge=434009 xteAge=434009 vt=Y(21/22) vtstat=223/451ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:20.075 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=435009 vtgAge=435009 xteAge=435009 vt=Y(21/22) vtstat=224/439ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:21.099 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=436009 vtgAge=436009 xteAge=436009 vt=Y(21/22) vtstat=225/423ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:22.120 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=437009 vtgAge=437009 xteAge=437009 vt=Y(21/22) vtstat=226/407ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:23.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=438009 vtgAge=438009 xteAge=438009 vt=Y(21/22) vtstat=227/395ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:24.127 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=439009 vtgAge=439009 xteAge=439009 vt=Y(21/22) vtstat=228/383ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:25.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=440009 vtgAge=440009 xteAge=440009 vt=Y(21/22) vtstat=229/367ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:26.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=441009 vtgAge=441009 xteAge=441009 vt=Y(21/22) vtstat=230/355ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:27.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=442009 vtgAge=442009 xteAge=442009 vt=Y(21/22) vtstat=231/343ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:28.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=443009 vtgAge=443009 xteAge=443009 vt=Y(21/22) vtstat=232/327ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:29.097 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=444009 vtgAge=444009 xteAge=444009 vt=Y(21/22) vtstat=233/311ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:30.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=445009 vtgAge=445009 xteAge=445009 vt=Y(21/22) vtstat=234/295ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:31.115 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=446009 vtgAge=446009 xteAge=446009 vt=Y(21/22) vtstat=235/279ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:32.124 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=447009 vtgAge=447009 xteAge=447009 vt=Y(21/22) vtstat=236/267ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:33.120 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=448009 vtgAge=448009 xteAge=448009 vt=Y(21/22) vtstat=237/255ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:34.113 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=449009 vtgAge=449009 xteAge=449009 vt=Y(21/22) vtstat=238/243ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:35.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=450009 vtgAge=450009 xteAge=450009 vt=Y(21/22) vtstat=239/231ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:36.124 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=451009 vtgAge=451009 xteAge=451009 vt=Y(21/22) vtstat=240/219ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:37.103 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=452009 vtgAge=452009 xteAge=452009 vt=Y(21/22) vtstat=241/207ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:38.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=453009 vtgAge=453009 xteAge=453009 vt=Y(21/22) vtstat=242/191ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:39.123 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=454009 vtgAge=454009 xteAge=454009 vt=Y(21/22) vtstat=243/175ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:40.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=455009 vtgAge=455009 xteAge=455009 vt=Y(21/22) vtstat=244/163ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:41.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=456009 vtgAge=456009 xteAge=456009 vt=Y(21/22) vtstat=245/151ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:42.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=457009 vtgAge=457009 xteAge=457009 vt=Y(21/22) vtstat=246/135ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:43.071 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=458009 vtgAge=458009 xteAge=458009 vt=Y(21/22) vtstat=247/119ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:44.130 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=459009 vtgAge=459009 xteAge=459009 vt=Y(21/22) vtstat=248/107ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:45.079 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=460009 vtgAge=460009 xteAge=460009 vt=Y(21/22) vtstat=249/95ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:46.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=461009 vtgAge=461009 xteAge=461009 vt=Y(21/22) vtstat=250/83ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:47.081 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=462009 vtgAge=462009 xteAge=462009 vt=Y(21/22) vtstat=251/67ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:48.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=463009 vtgAge=463009 xteAge=463009 vt=Y(21/22) vtstat=252/55ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:49.093 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=464009 vtgAge=464009 xteAge=464009 vt=Y(21/22) vtstat=253/35ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:50.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=465009 vtgAge=465009 xteAge=465009 vt=Y(21/22) vtstat=254/23ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:51.093 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=466009 vtgAge=466009 xteAge=466009 vt=Y(21/22) vtstat=255/7ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:52.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=467009 vtgAge=467009 xteAge=467009 vt=Y(21/22) vtstat=255/1007ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:53.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=468009 vtgAge=468009 xteAge=468009 vt=Y(21/22) vtstat=256/995ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:54.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=469009 vtgAge=469009 xteAge=469009 vt=Y(21/22) vtstat=257/979ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:55.096 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=470009 vtgAge=470009 xteAge=470009 vt=Y(21/22) vtstat=258/963ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:56.093 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=471009 vtgAge=471009 xteAge=471009 vt=Y(21/22) vtstat=259/951ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:57.112 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=472009 vtgAge=472009 xteAge=472009 vt=Y(21/22) vtstat=260/939ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:58.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=473009 vtgAge=473009 xteAge=473009 vt=Y(21/22) vtstat=261/927ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:14:59.081 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=474009 vtgAge=474009 xteAge=474009 vt=Y(21/22) vtstat=262/912ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:00.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=475009 vtgAge=475009 xteAge=475009 vt=Y(21/22) vtstat=263/904ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:01.071 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=476009 vtgAge=476009 xteAge=476009 vt=Y(21/22) vtstat=264/888ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:02.067 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=477009 vtgAge=477009 xteAge=477009 vt=Y(21/22) vtstat=265/872ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:03.075 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=478009 vtgAge=478009 xteAge=478009 vt=Y(21/22) vtstat=266/860ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:04.126 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=479009 vtgAge=479009 xteAge=479009 vt=Y(21/22) vtstat=267/852ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:05.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=480009 vtgAge=480009 xteAge=480009 vt=Y(21/22) vtstat=268/840ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:06.094 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=481009 vtgAge=481009 xteAge=481009 vt=Y(21/22) vtstat=269/828ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:07.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=482009 vtgAge=482009 xteAge=482009 vt=Y(21/22) vtstat=270/820ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:08.122 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=483009 vtgAge=483009 xteAge=483009 vt=Y(21/22) vtstat=271/804ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:09.069 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=484009 vtgAge=484009 xteAge=484009 vt=Y(21/22) vtstat=272/788ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:10.077 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=485009 vtgAge=485009 xteAge=485009 vt=Y(21/22) vtstat=273/776ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:11.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=486009 vtgAge=486009 xteAge=486009 vt=Y(21/22) vtstat=274/764ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:12.094 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=487009 vtgAge=487009 xteAge=487009 vt=Y(21/22) vtstat=275/752ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:13.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=488009 vtgAge=488009 xteAge=488009 vt=Y(21/22) vtstat=276/736ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:14.081 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=489009 vtgAge=489009 xteAge=489009 vt=Y(21/22) vtstat=277/724ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:15.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=490009 vtgAge=490009 xteAge=490009 vt=Y(21/22) vtstat=278/708ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:16.079 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=491009 vtgAge=491009 xteAge=491009 vt=Y(21/22) vtstat=279/696ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:17.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=492009 vtgAge=492009 xteAge=492009 vt=Y(21/22) vtstat=280/684ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:18.121 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=493009 vtgAge=493009 xteAge=493009 vt=Y(21/22) vtstat=281/672ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:19.115 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=494009 vtgAge=494009 xteAge=494009 vt=Y(21/22) vtstat=282/656ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:20.127 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=495009 vtgAge=495009 xteAge=495009 vt=Y(21/22) vtstat=283/644ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:21.104 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=496009 vtgAge=496009 xteAge=496009 vt=Y(21/22) vtstat=284/632ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:22.093 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=497009 vtgAge=497009 xteAge=497009 vt=Y(21/22) vtstat=285/616ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:23.119 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=498009 vtgAge=498009 xteAge=498009 vt=Y(21/22) vtstat=286/604ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:24.110 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=499009 vtgAge=499009 xteAge=499009 vt=Y(21/22) vtstat=287/588ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:25.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=500009 vtgAge=500009 xteAge=500009 vt=Y(21/22) vtstat=288/576ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:26.068 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=501009 vtgAge=501009 xteAge=501009 vt=Y(21/22) vtstat=289/560ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:27.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=502009 vtgAge=502009 xteAge=502009 vt=Y(21/22) vtstat=290/548ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:28.095 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=503009 vtgAge=503009 xteAge=503009 vt=Y(21/22) vtstat=291/536ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:29.121 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=504009 vtgAge=504009 xteAge=504009 vt=Y(21/22) vtstat=292/524ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:30.112 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=505009 vtgAge=505009 xteAge=505009 vt=Y(21/22) vtstat=293/508ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:31.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=506009 vtgAge=506009 xteAge=506009 vt=Y(21/22) vtstat=294/492ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:32.113 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=507009 vtgAge=507009 xteAge=507009 vt=Y(21/22) vtstat=295/476ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:33.117 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=508009 vtgAge=508009 xteAge=508009 vt=Y(21/22) vtstat=296/464ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:34.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=509009 vtgAge=509009 xteAge=509009 vt=Y(21/22) vtstat=297/448ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:35.121 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=510009 vtgAge=510009 xteAge=510009 vt=Y(21/22) vtstat=298/440ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:36.128 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=511009 vtgAge=511009 xteAge=511009 vt=Y(21/22) vtstat=299/428ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:37.091 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=512009 vtgAge=512009 xteAge=512009 vt=Y(21/22) vtstat=300/412ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:38.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=513009 vtgAge=513009 xteAge=513009 vt=Y(21/22) vtstat=301/396ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:39.100 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=514009 vtgAge=514009 xteAge=514009 vt=Y(21/22) vtstat=302/384ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:40.123 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=515009 vtgAge=515009 xteAge=515009 vt=Y(21/22) vtstat=303/372ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:41.072 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=516009 vtgAge=516009 xteAge=516009 vt=Y(21/22) vtstat=304/360ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:42.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=517009 vtgAge=517009 xteAge=517009 vt=Y(21/22) vtstat=305/344ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:43.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=518009 vtgAge=518009 xteAge=518009 vt=Y(21/22) vtstat=306/328ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:44.084 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=519009 vtgAge=519009 xteAge=519009 vt=Y(21/22) vtstat=307/312ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:45.109 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=520009 vtgAge=520009 xteAge=520009 vt=Y(21/22) vtstat=308/300ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:46.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=521009 vtgAge=521009 xteAge=521009 vt=Y(21/22) vtstat=309/284ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:47.112 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=522009 vtgAge=522009 xteAge=522009 vt=Y(21/22) vtstat=310/273ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:48.124 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=523009 vtgAge=523009 xteAge=523009 vt=Y(21/22) vtstat=311/257ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:49.085 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=524009 vtgAge=524009 xteAge=524009 vt=Y(21/22) vtstat=312/241ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:50.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=525009 vtgAge=525009 xteAge=525009 vt=Y(21/22) vtstat=313/229ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:51.101 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=526009 vtgAge=526009 xteAge=526009 vt=Y(21/22) vtstat=314/217ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:52.093 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=527009 vtgAge=527009 xteAge=527009 vt=Y(21/22) vtstat=315/201ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:53.118 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=528009 vtgAge=528009 xteAge=528009 vt=Y(21/22) vtstat=316/189ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:54.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=529009 vtgAge=529009 xteAge=529009 vt=Y(21/22) vtstat=317/177ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:55.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=530009 vtgAge=530009 xteAge=530009 vt=Y(21/22) vtstat=318/165ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:56.083 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=531009 vtgAge=531009 xteAge=531009 vt=Y(21/22) vtstat=319/149ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:57.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=532009 vtgAge=532009 xteAge=532009 vt=Y(21/22) vtstat=320/137ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:58.085 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=533009 vtgAge=533009 xteAge=533009 vt=Y(21/22) vtstat=321/121ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:15:59.078 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=534009 vtgAge=534009 xteAge=534009 vt=Y(21/22) vtstat=322/109ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:00.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=535009 vtgAge=535009 xteAge=535009 vt=Y(21/22) vtstat=323/93ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:01.115 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=536009 vtgAge=536009 xteAge=536009 vt=Y(21/22) vtstat=324/77ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:02.126 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=537009 vtgAge=537009 xteAge=537009 vt=Y(21/22) vtstat=325/61ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:03.073 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=538009 vtgAge=538009 xteAge=538009 vt=Y(21/22) vtstat=326/49ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:04.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=539009 vtgAge=539009 xteAge=539009 vt=Y(21/22) vtstat=327/37ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:05.111 [ISOBUS] addr=0x81 claimed=Y load=0.2% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=540009 vtgAge=540009 xteAge=540009 vt=Y(21/22) vtstat=327/1037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:06.123 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=541009 vtgAge=541009 xteAge=541009 vt=Y(21/22) vtstat=327/2037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:06.367 W] [VT]: Server response to a command timed out
+19:16:07.050 E] [VT]: Status Timeout
+19:16:07.110 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=542009 vtgAge=542009 xteAge=542009 vt=N(1/22) vtstat=327/3037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:08.118 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=543009 vtgAge=543009 xteAge=543009 vt=N(1/22) vtstat=327/4037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:09.111 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=544009 vtgAge=544009 xteAge=544009 vt=N(1/22) vtstat=327/5037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:10.073 E] [VT]: Timed out waiting for the VT Status message.
+19:16:10.073 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=545009 vtgAge=545009 xteAge=545009 vt=N(22/22) vtstat=327/6037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:11.083 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=546009 vtgAge=546009 xteAge=546009 vt=N(22/22) vtstat=327/7037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:12.093 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=547009 vtgAge=547009 xteAge=547009 vt=N(22/22) vtstat=327/8037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:13.070 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=548009 vtgAge=548009 xteAge=548009 vt=N(22/22) vtstat=327/9037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:14.126 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=549009 vtgAge=549009 xteAge=549009 vt=N(22/22) vtstat=327/10037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:15.090 I] [VT]: Resetting Failed VT Connection
+19:16:15.090 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=550009 vtgAge=550009 xteAge=550009 vt=N(1/22) vtstat=327/11037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:16.082 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=551009 vtgAge=551009 xteAge=551009 vt=N(1/22) vtstat=327/12037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:17.094 VT: disconnected 10s after having been connected -- forcing reconnect attempt 1 (partner addr=0x26 valid=Y)
+19:16:17.094 I] [VT]: VT Client connection has been terminated.
+19:16:17.094 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=552009 vtgAge=552009 xteAge=552009 vt=N(1/22) vtstat=327/13037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:18.084 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=553009 vtgAge=553009 xteAge=553009 vt=N(1/22) vtstat=327/14037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:19.032 VT: partner 0x26 silent -- requesting address claims to find another VT
+19:16:19.108 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=554009 vtgAge=554009 xteAge=554009 vt=N(1/22) vtstat=327/15037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:20.036 E] [VT]: Timed out waiting for the VT Status message.
+19:16:20.096 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=555009 vtgAge=555009 xteAge=555009 vt=N(22/22) vtstat=327/16037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:21.122 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=556009 vtgAge=556009 xteAge=556009 vt=N(22/22) vtstat=327/17037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:22.113 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=557009 vtgAge=557009 xteAge=557009 vt=N(22/22) vtstat=327/18037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:23.117 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=558009 vtgAge=558009 xteAge=558009 vt=N(22/22) vtstat=327/19037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:24.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=559009 vtgAge=559009 xteAge=559009 vt=N(22/22) vtstat=327/20037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:25.074 I] [VT]: Resetting Failed VT Connection
+19:16:25.074 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=560009 vtgAge=560009 xteAge=560009 vt=N(1/22) vtstat=327/21037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:26.069 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=561009 vtgAge=561009 xteAge=561009 vt=N(1/22) vtstat=327/22037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:27.093 VT: disconnected 20s after having been connected -- forcing reconnect attempt 2 (partner addr=0x26 valid=Y)
+19:16:27.093 I] [VT]: VT Client connection has been terminated.
+19:16:27.093 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=562009 vtgAge=562009 xteAge=562009 vt=N(1/22) vtstat=327/23037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:28.103 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=563009 vtgAge=563009 xteAge=563009 vt=N(1/22) vtstat=327/24037ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:28.915 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+19:16:28.916 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+19:16:28.916 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+19:16:28.916 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+19:16:28.916 E] [VT]: The VT Server is NACK-ing our VT messages. Disconnecting.
+19:16:28.916 I] [VT]: VT Server has a matching label for MW18   . It will be loaded and upload will be skipped.
+19:16:28.975 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+19:16:28.975 W] [VT]: Server response to a command timed out
+19:16:29.099 [ISOBUS] addr=0x81 claimed=Y load=4.5% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=564009 vtgAge=564009 xteAge=564009 vt=Y(21/22) vtstat=353/109ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:30.106 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=565009 vtgAge=565009 xteAge=565009 vt=Y(21/22) vtstat=354/97ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:31.115 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=566009 vtgAge=566009 xteAge=566009 vt=Y(21/22) vtstat=355/81ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:32.111 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=567009 vtgAge=567009 xteAge=567009 vt=Y(21/22) vtstat=356/69ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:33.105 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=568009 vtgAge=568009 xteAge=568009 vt=Y(21/22) vtstat=357/57ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:34.097 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=569009 vtgAge=569009 xteAge=569009 vt=Y(21/22) vtstat=358/45ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:35.075 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=570009 vtgAge=570009 xteAge=570009 vt=Y(21/22) vtstat=359/30ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:36.085 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=571009 vtgAge=571009 xteAge=571009 vt=Y(21/22) vtstat=360/14ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:37.104 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=572009 vtgAge=572009 xteAge=572009 vt=Y(21/22) vtstat=361/6ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:38.123 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=573009 vtgAge=573009 xteAge=573009 vt=Y(21/22) vtstat=361/1006ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:39.072 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=574009 vtgAge=574009 xteAge=574009 vt=Y(21/22) vtstat=362/990ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:40.081 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=575009 vtgAge=575009 xteAge=575009 vt=Y(21/22) vtstat=363/978ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:41.094 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=576009 vtgAge=576009 xteAge=576009 vt=Y(21/22) vtstat=364/962ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:42.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=577009 vtgAge=577009 xteAge=577009 vt=Y(21/22) vtstat=365/950ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:43.091 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=578009 vtgAge=578009 xteAge=578009 vt=Y(21/22) vtstat=366/938ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:44.089 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=579009 vtgAge=579009 xteAge=579009 vt=Y(21/22) vtstat=367/922ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:45.092 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=580009 vtgAge=580009 xteAge=580009 vt=Y(21/22) vtstat=368/906ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:46.102 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=581009 vtgAge=581009 xteAge=581009 vt=Y(21/22) vtstat=369/898ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:47.107 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=582009 vtgAge=582009 xteAge=582009 vt=Y(21/22) vtstat=370/886ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:48.100 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=583009 vtgAge=583009 xteAge=583009 vt=Y(21/22) vtstat=371/874ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:49.123 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=584009 vtgAge=584009 xteAge=584009 vt=Y(21/22) vtstat=372/862ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:50.116 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=585009 vtgAge=585009 xteAge=585009 vt=Y(21/22) vtstat=373/850ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:51.140 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=586009 vtgAge=586009 xteAge=586009 vt=Y(21/22) vtstat=374/838ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:52.071 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=587009 vtgAge=587009 xteAge=587009 vt=Y(21/22) vtstat=375/822ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:53.128 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=588009 vtgAge=588009 xteAge=588009 vt=Y(21/22) vtstat=376/810ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:54.088 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=589009 vtgAge=589009 xteAge=589009 vt=Y(21/22) vtstat=377/798ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:55.080 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=590009 vtgAge=590009 xteAge=590009 vt=Y(21/22) vtstat=378/790ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:56.090 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=591009 vtgAge=591009 xteAge=591009 vt=Y(21/22) vtstat=379/770ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:57.084 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=592009 vtgAge=592009 xteAge=592009 vt=Y(21/22) vtstat=380/758ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:58.124 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=593009 vtgAge=593009 xteAge=593009 vt=Y(21/22) vtstat=381/746ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:16:59.117 [ISOBUS] addr=0x81 claimed=Y load=1.4% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=594009 vtgAge=594009 xteAge=594009 vt=Y(21/22) vtstat=382/734ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:00.113 [ISOBUS] addr=0x81 claimed=Y load=1.1% msgs=2 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=595009 vtgAge=595009 xteAge=595009 vt=Y(21/22) vtstat=383/722ms tc=N drp=0mm tcq=0 stk=1776 hp=58572
+19:17:00.266 === logger stop ===

@@ -1,0 +1,33 @@
+[2026-11-13 19:26:17] Teensy 3.2 USB serial 1258170, COM12, old firmware, before flashing (B0)
+42
+===============================
+===========MeijWorks===========
+===============================
+    Control version 1.4_CAN
+(c) 2011 - 2026 by J.A. Woltjer
+-------------------------------
+-------------------------------
+Times started:
+142
+-------------------------------
+Running program:
+3
+-------------------------------
+===============================
+CANBUS using following data
+===============================
+Bit Rate prescaler
+4
+-------------------------------
+Propagation Segment
+5
+-------------------------------
+Phase segment 1
+5
+-------------------------------
+Phase segment 2
+5
+--------------------
+
+M
+[trimmed: followed by 268488 lines 'M:000' in 15 s, the planter's manual-mode DEBUG print; the rest of the boot print was cut off by it]

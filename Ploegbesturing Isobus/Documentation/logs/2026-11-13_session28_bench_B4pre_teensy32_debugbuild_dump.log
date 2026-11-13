@@ -1,0 +1,91 @@
+[19:43:11]
+VT: partner 0xFE silent -- requesting address claims to find another VT
+VT: partner 0xFE silent -- requesting address claims to find another VT
+VT: partner 0xFE silent -- requesting address claims to find another VT
+VT: partner 0xFE silent -- requesting address claims to find another VT
+VT: partner 0xFE silent -- requesting address claims to find another VT
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+t. Task Controller choice (SPIKE #316), now: any TC
+5. Dump VT object pool as hex
+q. Exit
+=== ISOBUS STATUS ===
+Address claim: CLAIMED  address=0x81  identity=751590
+CAN controller: not sampled on this build
+Bus load (ch0): 0.0 %
+CAN receive queue: high water 0 of 64, dropped 0
+Loop pass: longest 117160 us since the last dump, 117160 us since boot
+Stack: peak 1260 of 7352 bytes since boot, 6092 never used
+Heap: peak 35148 of 42500 bytes, shared with the stack
+--- Message counters ---
+  PGN 129025 Position NMEA2000: 0
+  PGN 129026 Speed NMEA2000:    0
+  PGN 129283 XTE NMEA2000:      0
+  PGN 65267  Position legacy:   0
+  PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+  PGN 65535  all senders:       0   last SA=0xFF
+  PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+             raw: nothing from 0x2A or 0x80 yet
+  PGN 65535  GNSS status 0x80:  0   (none)
+  PGN 60160  XTE Trimble legacy:0   last SA=0xFF
+  PGN 64770  AISO stop:         0   last 0 ms ago
+  TOTAL:                        0
+--- Guidance telemetry ---
+  XTE:          0.00 m
+  Speed:        0.00 m/s (0.00 kn)
+  Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+  PGN 129027 position deltas: 0
+  Guidance machine info (PGN 44032): (none received)
+  IsRtkQuality=N
+  GGA fix age:  102653 ms
+  VTG fix age:  102653 ms
+  XTE fix age:  102653 ms
+  Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+--- Virtual Terminal ---
+  Connected:    N
+  State:        0/22  Disconnected
+  VT version:  (unknown)
+  VT status msgs: 0   last 0 ms ago
+  Partner: addr=0xFE valid=N  reconnect attempts=0
+  VT failover: switches=0 claim requests=9 rejoins=0 preferred=none
+  AUX-N: Breder events=0 Smaller events=0 held=--
+--- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+  Mode: AUTO  NOT RUNNING  (no Ag Leader display seen)
+  Address claim: NOT CLAIMED
+  Display partner: 0xFF  identification requests=0 answered=0 unknown=0  last DID=0x0  hello=N  stack partner=N
+  Sent: frames=0 failures=0 heartbeats=0 softwareId=N  proprietary A from display=0
+  Requests: softwareId=0 (sent 0x) ignored=0 last ignored PGN=0
+  PGN 65462 XTE: frames=0 committed=0
+--- Task Controller ---
+  Connected:    N
+  TC-GEO (with/without pos): (not connected)
+  Task active:  N
+  DRP deviation (DDI 513): 0 mm, last 102654 ms ago
+  GNSS quality (DDI 514):  0, last 102654 ms ago
+  Work state (DDI 141):    0 not working (hitch up)
+  Working width (DDI 67):  160 cm, changes 0, reported 0
+  [via stack] Value cmds to handler: 0  last DDI=(none)
+  [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+  [on bus] Requests for our values: 0
+  [on bus] Set-value commands:      0
+  [on bus] Measurement commands:    0  (none)
+  [on bus] Other, addressed to us:  0
+  Partner: addr=0xFE valid=N  reconnect attempts=0
+  TC choice: any TC  bound: none
+  Tramline setpoint (DDI 506): (not connected)
+  [on bus] Requests for DDI 506: 0  DDI 515: 0
+  Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+  Guidance track (DDI 507-511): (not connected)
+=== ISOBUS DEBUG MENU ===
+1. Full status dump
+2. Periodic summary line (OFF - press to toggle)
+3. Reset message counters
+4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+t. Task Controller choice (SPIKE #316), now: any TC
+5. Dump VT object pool as hex
+q. Exit
+Exiting.
+
