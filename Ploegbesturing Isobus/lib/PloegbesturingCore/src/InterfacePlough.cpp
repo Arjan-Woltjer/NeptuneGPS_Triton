@@ -170,11 +170,13 @@ void InterfacePlough::UpdateScreen(bool rewrite) {
     LcdWriteNumber(lcd, implement->GetRotation(), 3, 9, 4);
 #endif
 
+    // The side the soil goes to, as the VT picture shows it (#330):
+    // GetSide() true throws the soil to the right.
     if (implement->GetSide()) {
-        lcd->WriteBuffer('L', 3, 15);
+        lcd->WriteBuffer('R', 3, 15);
     }
     else {
-        lcd->WriteBuffer('R', 3, 15);
+        lcd->WriteBuffer('L', 3, 15);
     }
 
     switch (mode) {

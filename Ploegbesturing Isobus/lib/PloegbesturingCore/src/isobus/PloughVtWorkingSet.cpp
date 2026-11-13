@@ -197,8 +197,9 @@ void PloughVtWorkingSet::UpdateValues() {
         client->send_change_numeric_value(Var_Offset, static_cast<uint32_t>(offset));
         lastSentOffset = offset;
     }
-    // The picture follows the ploughing side: GetSide() is true for left
-    // (the reversible plough's turn sensor, with the configured swap applied).
+    // The picture follows the ploughing side (the reversible plough's turn
+    // sensor, with the configured swap applied): GetSide() true is the picture
+    // that throws the soil to the right, which the LCD calls R (#330).
     const uint16_t ploughImage = implement->GetSide() ? Img_PloughLeft : Img_PloughRight;
     if (forceSend || ploughImage != lastSentPloughImage) {
         client->send_change_numeric_value(Ptr_PloughImage, ploughImage);

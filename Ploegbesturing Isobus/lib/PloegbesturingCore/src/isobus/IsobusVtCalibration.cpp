@@ -148,9 +148,10 @@ FLASHMEM uint32_t IsobusVtCalibration::ToVt(PloughSetting id, int16_t value) con
     switch (PloughSettings::Line(id).kind) {
         case SettingKind::PloughSide: {
             // The side the swap gives: the plough-side input XOR the swap,
-            // as the cab wizard shows it (L = 1, R = 0).
+            // named by where the soil goes, as the cab wizard shows it (#330).
+            // The list's items: 0 = RECHTS, 1 = LINKS.
             const bool input = implement->GetSide() != implement->GetSwap();
-            return (input != (value != 0)) ? 1 : 0;
+            return (input != (value != 0)) ? 0 : 1;
         }
         case SettingKind::RtkQuality:
             return value == 4 ? 1 : 0;
@@ -163,7 +164,7 @@ FLASHMEM int16_t IsobusVtCalibration::FromVt(PloughSetting id, uint32_t vtValue)
     switch (PloughSettings::Line(id).kind) {
         case SettingKind::PloughSide: {
             const bool input = implement->GetSide() != implement->GetSwap();
-            return (input != (vtValue != 0)) ? 1 : 0;
+            return (input != (vtValue == 0)) ? 1 : 0;
         }
         case SettingKind::RtkQuality:
             return vtValue == 1 ? 4 : vtValue == 0 ? 2 : -1;
