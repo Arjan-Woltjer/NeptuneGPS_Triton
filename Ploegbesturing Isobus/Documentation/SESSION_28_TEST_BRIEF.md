@@ -1,176 +1,243 @@
-# Session 28 test brief -- full ISOBUS on an original Teensy 3.2 board
+# Session 28 test brief -- one combined session for everything since session 24
 
-Written 2026-11-12. Session 28 runs the plough with the **VT, the TC and diagnostics on a Teensy 3.2**, on an
-**unmodified original board**: the Teensy 3.2 PCB as ploegbesturing v1.20-v1.31 used it, CAN on the 3.2's only
-controller CAN0, **pins 3 TX / 4 RX, no bodge wire**. It is env `teensy32_isobus`, PR #341.
+Written 2026-11-12, rewritten 2026-11-13. Sessions 25, 26 and 27 were each written as a visit of their own, and none of
+them has run. Each session branch is built on the one before, so **`test/session28` already carries all of them**:
+one build, tested once, in three places. The older hexes stay as a **fallback ladder**: when a step fails, flash the
+next one down and repeat only that step, and the step tells you which change broke it.
 
-`test/session28` is `test/session27` (41b8ca1) plus #341, #342, #343 and the v0.28 bump. For the Teensy 4 builds
-that means one more library step, AgIsoStack upstream 5ff90cb to **707ad5c** (#343: no C++ streams, one CAN port),
-plus the new `Heap:` line. **Session 26 and 27 keep their order** on the rig 4.1: part R runs only after session 27
-passes, so a finding there can only come from #343. Parts B and L need only a 3.2 board and the bench, any time.
+| Part | Where | Time | Decides |
+|---|---|---|---|
+| **W** | The workstation bench: rig 4.1 + Saturn + PC VT, then a Teensy 3.2 from the shelf | one evening | Boot, stack and heap numbers, MW18, the console, the 3.2 bring-up |
+| **V** | van Mastwijk: CNH VT + InCommand 1200 (TC), SteerCommand | one visit, at least an hour on the bus | Both VTs, TC08, failover, AUX-N, AUTO |
+| **A** | The FET client (John Deere), run by the client himself | 15 min, next time he ploughs | The three width steps his first run skipped |
 
-| Part | Where | Decides |
-|---|---|---|
-| **B** | The bench: an original 3.2 board + Saturn + the PC VT | Boots, claims, keeps the old calibration, uploads MW18; **the heap and stack numbers after the upload** |
-| **L** | The bench, the same board | An hour on the VT: the heap does not creep, the stack stays clear of it |
-| **T** | Optional, only where a TC is on the bus (the 1200 at van Mastwijk), owner's call | The DDOP uploads and the TC connects |
-| **R** | The rig 4.1, **after session 27**: bench, then van Mastwijk | AgIsoStack 707ad5c (#343): boots, VT by Load Version, TC, failover; the stack headroom |
+**Already done, not repeated:** session 25 part A's XTE sign, AUTO and recording steps (the client, 2026-11-09, see
+section 5); session 23 (2026-11-07) passed the MW16 checks on both VTs and session 21's C8, E6 and L2.
 
-This session's notes go on **`test/session28`**, see section 7.
+**Parked** (not in this session): the #316 tramline spike at J.A. Bos (session 25 part B) and the 3.2 on a real TC.
+They come back only if this session passes and there is time.
 
-## 0. Before the session: questions for the owner
+This session's notes go on **`test/session28`**, see section 8.
 
-**Q1 -- the send queue (PR #341).** `FLEXCAN_T4_PLUGIN_TX_QUEUE_SIZE=64`: FlexCAN_T4 queues 64 frames for sending
-instead of 512, 4 960 B of RAM instead of 17 056 B. AgIsoStack hands frames to the driver in `update()`, once per
-loop pass, so the driver's queue only has to keep the bus busy until the next pass. At 250 kbit/s a frame takes about
-0.55 ms; the plugin sends in order through one transmit mailbox, refilled from the queue in the interrupt, so 64
-frames is about 35 ms of bus time. On the 4.1 the longest pass is about 3 ms, apart from one 120 ms stall in the USB
-serial right after a flash. A full queue loses nothing: the frame waits in AgIsoStack's own transmit queue and only
-the pool upload slows down. **That queue is unbounded on the Teensy** (without threads it is an `std::queue` on the
-heap; upstream #915), so an ETP burst of up to 255 frames waits there during the pool upload and counts in the heap
-peak of B5. B5 also reads the 3.2's longest loop pass; the queue can then be set to what that pass needs (default 64
-for every Teensy proposed upstream on #887).
+## 0. Before the session
 
-**Q2 -- the NAME identity on a 3.2: DECIDED, fix in (PR #342).** `BoardSerialNumber()` returned 1 on a Teensy 3.x,
-so every 3.2 claimed identity 1. It now reads the 3.2's own serial from the flash, as the core does for USB.
+**Q1 -- the 3.2's send queue (PR #341).** `FLEXCAN_T4_PLUGIN_TX_QUEUE_SIZE=64`: 4 960 B of RAM instead of 17 056 B.
+AgIsoStack hands frames to the driver once per loop pass, so the driver's queue only has to keep the bus busy until
+the next pass: 64 frames is about 35 ms at 250 kbit/s (the 4.1's longest pass is about 3 ms). A full queue loses
+nothing; the frame waits in AgIsoStack's own transmit queue, which on the Teensy is unbounded (an `std::queue` on the
+heap, upstream #915), so an ETP burst of up to 255 frames waits there during the pool upload and counts in the heap
+peak. W-3 reads the 3.2's longest loop pass; the queue is set from that (64 proposed upstream as the default, #887).
 
-## 1. What is new on the board
+**Session 27's Q1 -- the reconnect watchdog vs upstream #868** stays open. No step below needs a rejected pool; if a
+VT ever rejects MW18, see section 7.
 
-| Change | PR | What to see |
-|---|---|---|
-| Full ISOBUS (VT MW18, TC, diagnostics, failover, lightbar) on the Teensy 3.2 | #341 | The same dump and VT screens as the 4.1 |
-| ISOBUS on CAN0, pins 3 TX / 4 RX (it was FLEXCAN3, which a 3.2 does not have) | #341 | Address claim on the bus |
-| The NAME's identity is the 3.2's own serial (it was 1 on every Teensy 3) | #342 | Dump: `identity N` = the board's serial |
-| AgIsoStack upstream main **707ad5c** for every env: no C++ streams (#879 #882 #884), a listener use-after-free fixed (#842), callbacks outside the locks (#867 #881, threaded builds only); `CAN_PORT_MAXIMUM_VALUE=1`; the `NanoLibcCompat.cpp` shim removed | #343 | 4.1: `Stack:` size about 228 KB (session 27: 71 KB). Nothing else should differ |
-| The 3.2 adds #886 + #887 (FlexCANT4Plugin on the Teensy 3, one controller): our fork's `neptune-teensy3-707ad5c` branch, **this env only** | #341 | |
-| On a 3.2 the heap and the stack share one region. The dump's `Stack:` size is the room between the heap's top and the top of RAM; "never used" is what is left between the two. The core's `malloc()` fails 4 KB before they meet | #341 | `Stack:` line |
-| New dump line `Heap: peak N of M bytes, shared with the stack` (on a 4.1 without ", shared ..."); ` hp=N` after `stk=` on the 1 Hz line. The heap's top never comes down, so the peak is the most it ever held | #341 | `Heap:` line, `hp=` |
-| Version | | Splash `Triton PB-ISO  v0.28`, banner `Triton PB-ISO version 0.28` |
+## 1. What is on the board
 
-Build: `teensy32_isobus` **248 500 of 262 144 B flash (94.8 %)**, **22 660 of 65 536 B static RAM**, so the heap and
-stack share 42.9 KB. The Teensy 4.1 build has **228 544 B free for local variables** (session 27: 71 488 B), the 4.0
-229 664 B. Expected heap peak on the 3.2 after the upload: about 23 KB (the CAN controller 5 KB, AgIsoStack's tables,
-the scaled copy of the pool during the upload) **plus the ETP burst waiting in AgIsoStack's transmit queue** (up to
-255 frames, a few KB; see Q1). **That leaves the stack about 16 KB; under 4 KB "never used" would mean
-`malloc()` is close to failing.**
+Everything since session 24 (d59c191, v0.24, MW17), in the order it was stacked:
 
-**Not on a 3.2:** the CAN error-state line in the dump (#149) reads the Teensy 4's FlexCAN registers and stays empty.
-A bench without a partner that ACKs shows nothing there; look at the claim and the VT instead.
+| Since | Change | PR | What to see |
+|---|---|---|---|
+| 25 | **TC08**: working width DDIs 67-70 on the function element | #162 | No width popup on a JD; dump `Working width (DDI 67): N cm, changes c, reported r` |
+| 25 | **Own NAME identity** = board serial mod 2^21 | #162 | Boot print `identity N (board serial M)`. Terminals store AUX-N assignments against the NAME: expect them gone once |
+| 25 | **DDI 141 Actual Work State** from the hitch; the JD XTE sign | #322, #323 | Dump `Work state (DDI 141):` |
+| 25 | **SPIKE #316**: DDI 515 echo, TC choice on debug key `t` (not on main, never in a customer build) | spike | Boot print `SPIKE #316: DDI 515 echo ON` |
+| 25 | **Settings console over USB** (`:help`, `:list`, `:set`, `:save`) | #326 | Section W-2; `Documentation/SERIAL_CONSOLE.md` |
+| 26 | **AgIsoStack upstream** instead of our fork; **AUX-N** through upstream (VT 1 only); pool **MW17 -> MW18** | #327 | MW18 uploads once on every VT |
+| 26 | **Stack measured** (`Stack:` in the dump, ` stk=` on the 1 Hz line), **CrashReport** at boot after a fault | #328 | `Stack:` line; a `CrashReport:` block is a fault |
+| 27 | AgIsoStack 5ff90cb: a **rejected pool is not re-sent**; a Store Version timeout goes to `Connected`; fast packet callbacks outside the locks | #331 | Nothing on a VT that accepts MW18 |
+| 28 | AgIsoStack **707ad5c**: no C++ streams, one CAN port, the `NanoLibcCompat.cpp` shim removed | #343 | 4.1 `Stack:` size about **228 KB** (session 27: 71 KB) |
+| 28 | **Heap reading**: dump `Heap: peak N of M bytes`, ` hp=` on the 1 Hz line | #341 | `Heap:` line |
+| 28 | **Full ISOBUS on the Teensy 3.2**, CAN0 on pins 3/4, the NAME from the 3.2's own serial; the 3.2 adds upstream PRs #886 + #887 (fork branch `neptune-teensy3-707ad5c`) | #341, #342 | Part W-3 |
+| 28 | Version | | Splash `Triton PB-ISO  v0.28`, banner `Triton PB-ISO version 0.28` |
 
-## 2. Kit and builds
+**Sizes:** 4.1 228 544 B free for local variables, 4.0 229 664 B. `teensy32_isobus` 248 500 of 262 144 B flash
+(94.8 %), 22 660 B static RAM, so heap and stack share 42.9 KB.
 
-OneDrive `MeijWorks Projects/Firmware builds/session28/`:
+**Expected once per terminal, not a fault:** MW18 uploads once on every VT, and a TC that hasn't seen TC08 with this
+NAME uploads the DDOP once.
 
-| Hex | For | Contains |
-|---|---|---|
-| `teensy32_isobus_f8a25f0.hex` | an original Teensy 3.2 board (CAN on 3/4) | `test/session28`, v0.28 |
-| `teensy41_isobus_f8a25f0.hex` | the rig 4.1 (Loader 13249100), **only after session 27** | session 27 + AgIsoStack 707ad5c (#343) + the `Heap:` line |
-| `teensy40_isobus_f8a25f0.hex` | a standard Teensy 4.0 plough board | the same |
-| `teensy32_can_f8a25f0.hex` | the 3.2 board, **fallback** | plain CAN (ACAN, no VT/TC), v0.28 |
+## 2. Kit, builds and the fallback ladder
 
-**Fallback for the 4.1:** `Firmware builds/session27/teensy41_isobus_fa27718.hex` (v0.27, upstream 5ff90cb, the same
-MW18 label, so going back uploads nothing).
+OneDrive `MeijWorks Projects/Firmware builds/`:
 
-**No customer board gets this build.** The 3.2 board is a spare from the shelf.
+| Hex | For |
+|---|---|
+| `session28/teensy41_isobus_f8a25f0.hex` | the rig 4.1 (Loader 13249100), parts W and V |
+| `session28/teensy40_isobus_f8a25f0.hex` | a standard Teensy 4.0 plough board (spare) |
+| `session28/teensy32_isobus_f8a25f0.hex` | an original Teensy 3.2 board (CAN on 3/4), part W-3 |
+| `session28/teensy32_can_f8a25f0.hex` | the 3.2 board, fallback: plain CAN through ACAN, as before ISOBUS |
+| `session25/Ploegbesturing_FET3_update_48063a4.zip` | **the client, part A**: main + #162, **no spike**, its own package; banner v0.21 |
 
-**Before flashing the 3.2:** open its serial port and **save the old firmware's boot print** (version and calibration)
-to the logs. Legacy firmware prints it once, late after boot, and Windows buffers it until the port opens, so save the
-first read to a file. There is no hex of the old firmware in `Firmware builds/`; that boot print is the only record.
+**The fallback ladder for the 4.1.** Each hex adds one step to the one below it:
 
-**Flashing the 3.2:** `tools/flash_teensy.ps1 -Serial <USB serial> -Hex <hex> -Mcu TEENSY31` (teensy_loader_cli
-calls the 3.2 `TEENSY31`), with exactly one PJRC board on USB and the Saturn unplugged. The script was written for the
-Teensy 4: if it aborts on the 3.2 (old firmware not a USB serial device, or a HalfKay serial it does not expect), use
-the Teensy Loader GUI with the board's button, **still with the Saturn and every other Teensy unplugged**.
+| Hex | Adds | Pool | A failure that goes away here points at |
+|---|---|---|---|
+| `session28/teensy41_isobus_f8a25f0.hex` | AgIsoStack 707ad5c (#343), the heap line | MW18 | #343 |
+| `session27/teensy41_isobus_fa27718.hex` | AgIsoStack 5ff90cb (#331) | MW18 | #331: a VT stuck in `Failed`, PGN 129029 lost |
+| `session26/teensy41_isobus_f434459.hex` | AgIsoStack upstream + AUX-N (#327), stack + CrashReport + cold code (#328) | MW18 | #327 / #328: partners going offline, AUX-N, the stack |
+| `session25/teensy41_isobus_be1a1b0.hex` | TC08 + NAME (#162), spike, console (#326) | MW17 | #162 / #326: width popup, DDI 141, the console |
+| `session24/teensy41_isobus_d59c191.hex` | the known-good build the rig ran before | MW17 | |
 
-**Every part:** serial logger open **before** the board boots, the 1 Hz line on (debug `2`), CANedge on the bench bus
-if it is free.
+Going down from 26 to 25 changes MW18 back to MW17: every VT uploads once. Settings are kept all the way down.
 
-**Read-only:** nothing on the bench drives a valve from the laptop. The console's `:set` and the wizard store values;
-the valves are not connected on the bench.
+**Flashing:** `tools/flash_teensy.ps1 -Serial <Loader serial> -Hex <hex>` (add `-Mcu TEENSY31` for the 3.2), with
+exactly one PJRC board on USB, **the Saturn unplugged** and the serial logger stopped. If the script aborts on the 3.2
+(the old firmware isn't a USB serial device), use the Teensy Loader GUI with the board's button, still with only that
+board on USB.
 
-## 3. Part B -- the bench
+**Every part:** serial logger (`tools/serial_logger.ps1`) open **before** the board boots, copy the boot print whole,
+the 1 Hz line on (debug `2`), CANedge on the ISOBUS in part V. Times to the second.
 
-| Step | Do | Expect |
-|---|---|---|
-| B1 | Old boot print saved, flash, logger open, boot. | Banner `version 0.28`, splash `v0.28` on the LCD. No hang. |
-| B2 | Debug `1` at once, before the VT. | `Stack:` and `Heap:` lines; note both. **`identity` = the board's serial**: the USB serial Windows shows, divided by 10 if it is under 100 000 000 and ends in 0 (#342). Not 1. |
-| B3 | `:list` on the console. | **The calibration the old firmware printed**: points, shares, side, bypass, deadband. If they differ, note both and recalibrate with the wizard; that is a finding for the EEPROM layout, not for #341. |
-| B4 | Saturn + PC VT on the bus. | Address claim; **a full MW18 upload** (identity 1 has never stored MW18, so no Load Version). Note the upload time (Q1). The main screen comes up; the plough picture matches the side switch. |
-| B5 | **Debug `1` straight after the upload.** | `Heap: peak N of M`: about 23 KB. `Stack:` "never used": **well above 4 KB**. These are the numbers that decide. Also note `Loop pass: longest ... us` (Q1). |
-| B6 | Soft keys and cab buttons as session 24 (width +/-, CALIBR, BREEDTE page), valves not connected. | As on the 4.1: the screens follow, values stored. |
-| B7 | Unplug the Saturn 20 s, plug it back. | Reconnect by Load Version now (it stored MW18 in B4). Debug `1`: heap peak unchanged or a little higher, never used still well above 4 KB. |
-| B8 | Power-cycle the board. | Boots again, Load Version on the PC VT, calibration kept. |
+**Read-only:** nothing drives a valve from the laptop. The console's `:set` and the wizard only store values.
 
-## 4. Part L -- an hour on the bench
+## 3. Part W -- the bench, one evening
+
+### W-1 -- the rig 4.1 on v0.28
 
 | Step | Do | Expect |
 |---|---|---|
-| L1 | Leave it on the PC VT for **at least an hour**, the 1 Hz line on. | `hp=` flat after the upload; `stk=` flat. No reboot, no banner in the middle of the log. |
-| L2 | Debug `1` at the end. | Heap peak and stack never used against B5. `CAN receive queue: dropped 0`. |
+| W1 | Flash `teensy41_isobus_f8a25f0.hex`, logger open, boot. | Banner `version 0.28`, the SPIKE line, `identity 1324910 (board serial 1324910)` (the Loader shows it x10: 13249100). **No `CrashReport:` block.** Settings as on be1a1b0. |
+| W2 | Debug `1` at once. | `Stack:` size about **228 KB**, peak a few KB. `Heap: peak N of M bytes`. Note both. |
+| W3 | PC VT on the Saturn. | **MW18 uploads once** (the PC VT stored MW17). Note the time from the first request to the main mask. Soft keys and the main screen as with MW17. |
+| W4 | The 1 Hz line for a minute. | ` stk=N hp=N` at the end; neither goes down. |
+| W5 | Unplug the Saturn for 20 s, plug it back. | Reconnect by **Load Version**, no second upload. Dump: the stack peak after it. |
+| W6 | Power-cycle the board. | Load Version again; settings kept. |
 
-## 5. Part T -- the TC (optional, owner's call)
-
-Only where a TC is on the bus: today that is the InCommand 1200 at van Mastwijk. A spare 3.2 on that bus is a second
-plough NAME next to the rig unit, so only with the rig unit unplugged, and only if the owner wants it.
-
-| Step | Do | Expect |
-|---|---|---|
-| T1 | Boot on that bus. | DDOP upload, the TC connects (TC08), the plough on its VT. |
-| T2 | Debug `1` after both uploads. | Heap peak: the DDOP adds to B5's. Stack never used still well above 4 KB. |
-
-## 5b. Part R -- the rig 4.1 on AgIsoStack 707ad5c (only after session 27 passes)
+### W-2 -- the settings console (#326), on the same board
 
 | Step | Do | Expect |
 |---|---|---|
-| R1 | Flash `teensy41_isobus_f8a25f0.hex`, logger open, boot. | Banner `version 0.28`. **No `CrashReport:` block.** Settings as session 27. |
-| R2 | Debug `1` at once. | `Stack:` size about **228 KB** (session 27: 71 KB). `Heap:` line present. Note both. |
-| R3 | PC VT on the Saturn, then unplug 20 s and back. | MW18 by **Load Version**, no upload (the pool is the same). Reconnect by Load Version. |
-| R4 | At van Mastwijk: boot with the tractor, both VTs, at least an hour, as session 27's P1-P6. | Load Version on both VTs, the TC takes the DDOP (TC08), failover and back by Load Version, `PGN 129029` still counted, no `E] [VT]` / `W] [VT]` lines, no stalls. Stack peak at the end against session 27's P6. |
+| K1 | `:help` | The commands and the nine keys with their ranges, then `OK`. |
+| K2 | `:list`; save the lines as `1324910_settings.txt`. | Ten `:set` lines (nine keys, then `width`), equal to the boot print; `OK`. The LCD doesn't change. |
+| K3 | `:set deadband <another value>` | `I:draft open ...`, `OK`. The cab LCD shows `Calibratie via USB`; the cab buttons do nothing; the VT state line shows CAL. The plough holds. |
+| K4 | `:set shares 99`, `:set width 300 300 500`, `:set nope 1` | `ERR:range`, `ERR:range`, `ERR:key`; the draft stays open. |
+| K5 | `:save`, power-cycle. | `I:saved`, `OK`; after the boot the boot print shows the new deadband. |
+| K6 | Paste all of K2's lines, `:list`, `:save`, power-cycle. | Every line `OK`; `:list` equals K2; the boot print equals K2 again. |
+
+K7-K9 (draft timeout, debug menu, copying to a second board) are in `SESSION_25_TEST_BRIEF.md` section 5b if there is time.
+
+### W-3 -- a Teensy 3.2 from the shelf (original board, CAN on 3/4, no bodge)
+
+| Step | Do | Expect |
+|---|---|---|
+| B0 | **Before flashing:** open its serial port and save the old firmware's boot print (version and calibration) to the logs. It prints once, late; Windows buffers it until the port opens. There is no hex of the old firmware: this print is the only record. | |
+| B1 | Flash `teensy32_isobus_f8a25f0.hex`, logger open, boot. | Banner and splash `0.28`. No hang. |
+| B2 | Debug `1`, before the VT. | `Stack:` and `Heap:` lines. **`identity` = the board's serial** (the USB serial Windows shows, /10 if under 100 000 000 and ending in 0), **not 1** (#342). |
+| B3 | `:list` | **The calibration from the old boot print.** If it differs, note both and recalibrate with the wizard; that is an EEPROM finding, not #341's. |
+| B4 | Saturn + PC VT. | Address claim; a full MW18 upload (new NAME). Note the upload time (Q1). The plough picture matches the side switch. |
+| B5 | **Debug `1` straight after the upload.** | `Heap: peak N of M` (about 23 KB plus the ETP burst); `Stack:` "never used" **well above 4 KB**: the numbers that decide #341. Note `Loop pass: longest ... us` (Q1). |
+| B6 | Soft keys and cab buttons (width +/-, CALIBR, BREEDTE page), valves not connected. | As on the 4.1. |
+| B7 | Unplug the Saturn 20 s, back. | Reconnect by Load Version. Heap unchanged or a little higher. |
+| L1 | Leave it on the PC VT for **an hour**, the 1 Hz line on (the rest of the evening). | `hp=` and `stk=` flat after the upload; no reboot. Debug `1` at the end: `CAN receive queue: dropped 0`. |
+
+**Not on a 3.2:** the CAN error-state line (#149) reads Teensy 4 registers and stays empty.
+
+## 4. Part V -- van Mastwijk, one visit
+
+The rig 4.1 on `f8a25f0`, preferred VT 2 (the 1200 = VT 1, the CNH = VT 2). **The VT numbers are still swapped from
+the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on the ISOBUS.
+
+| Step | Do | Expect | If not: ladder step |
+|---|---|---|---|
+| V1 | Boot with the tractor. | MW18 uploads **once on each VT** (they stored MW17); the 1200's TC takes the DDOP under **TC08**. No errors. Note the times. | 25 (TC08), 26 (MW18) |
+| V2 | On TC connect and on the 1200's implement screen. | Note any width popup and the width the 1200 shows. After a BREDER/SMALLER press, `reported` above 0 = the 1200 subscribed to DDI 67. | 25 |
+| V3 | Start recording on the 1200. Hitch down 50 m, up 20 m, down. | Note what the 1200 records: DDI 141, the hitch as before, or nothing. Dump DDI 141 goes 1 / 0 / 1. | 25 |
+| V4 | AB line, AUTO, RTK. Drop and regain RTK, or stop below MINSPEED. | The VT state line: `AUTO` while steering, `H S!` on a speed hold, `H G!` on a GPS hold, as the cab LCD. **If the plough stops following the setpoint in AUTO** (#329: the end-shutoff latch, field day session 112), note the time to the second; switching to HAND and back does not clear it, a restart does. | 24 |
+| V5 | **AUX-N on VT 1** (the CNH, while the numbers are swapped): assign BREDER and SMALLER to armrest 28100/28101, press each held and released, unplug the plough's ISOBUS 20 s and replug, power-cycle the plough, unassign. | Assigns; BREDER wider, SMALLER narrower; note what the VT shows after the replug and after the power cycle. Then **put the numbers back** (1200 = VT 1, CNH = VT 2), restart, try to assign on the CNH: **refused** (upstream's rule). | 26 |
+| V6 | **At least an hour** with both VTs on the bus, working or standing. | The plough stays on its VT and TC. Afterwards, from the log: `is now offline` for VT 0x26 / 1200 0x80 / the TC; `E] [VT]` and `W] [VT]` lines; all expected 0. No VT stalls, `CAN receive queue: dropped 0`. | 26 (offline), 27 (`Failed`) |
+| V7 | Debug `1` a few times during V6. | `PGN 129029 GNSS position:` count rising, `RTK quality` as before. | 27 |
+| V8 | Failover: the 1200 off and on again. | To the CNH VT and back as before, by Load Version. A switch builds a new VT client: it must reach `Connected`. Dump after each switch: the stack peak. | 27 |
+| V9 | TC reconnect: unplug the plough's ISOBUS 20 s, replug, on the line with guidance on. | XTE and the operator's settings unchanged; no width popup. | 25 |
+| V10 | End of the day: debug `1`. | Stack peak and never used; any `CrashReport:` at any boot of the day. | 26 / 28 |
+| V11 | **#330, the side labels** (owner's look, no change made): with the plough in each turn position, note which way the soil is thrown, the cab LCD's side letter (row 3, col 15), the calibration's side (LCD `L`/`R`, VT `LINKS`/`RECHTS`) and the VT picture. | Steering and picture right (as at the client); the question is whether "left" means the side the soil goes to. Photo of each. | (#330) |
+
+**End of part V:** preferred VT 2, VT numbers as the farmer uses them (1200 = VT 1), a final dump. Leave the board on
+f8a25f0 if V passed, otherwise on the highest ladder step that passed.
+
+## 5. Part A -- the FET client's John Deere
+
+**Run on 2026-11-09** by the client on `48063a4` (main + #162, no spike), his sheet
+https://claude.ai/artifact/NxPiQkmkEr181VicnffDci:
+
+| His step | Brief | Result |
+|---|---|---|
+| U1-U6 | A-S1 to A-S4 | **Pass.** Flashed, MW17 reloaded once, "Ploegt naar" flipped; picture and steering right. **But the side labels now read wrong** (LCD L/R, calibration LINKS/RECHTS): **#330** |
+| V1, V2 | A1, A2 | **Pass.** Follows the line; corrects **toward** the line on both sides: the JD XTE sign (#304) is right |
+| V3 | C1 | **Pass.** AUTO / `H S!` as the cab LCD |
+| V5 | A5 | **Pass.** The JD records with the hitch down, not up (#305) |
+| V8, Z2 | A8 | **Pass.** Nothing else different; the new build stays on |
+| U7, Z1 | A3 | Skipped: no status dump, no log file |
+| V4, V6, V7 | A4, A7, A6 | **Skipped: the working width (#162) has not been seen on a JD yet** |
+
+**Still to do at the client, next time he ploughs (about 15 minutes), on the build he has:** his V4 (no width popup,
+the JD shows the real width), V6 (3x BREDER, 3x SMALLER standing on the line: does the JD's XTE jump per press, and by
+how much) and V7 (ISOBUS plug out 20 s: back without a popup, XTE unchanged), with the logger running (`D` after each).
+That decides whether the live width reporting needs damping. No reflash.
 
 ## 6. Checklist (copy into the timeline, tick live)
 
 BEFORE
-- [ ] Q1 send queue: 64 for now, set from B5's loop pass ______
-- [ ] Old firmware boot print saved Y/N; version ______
+- [ ] Q1 send queue: 64, set from B5's loop pass ______
 
-PART B -- BENCH
-- [ ] B1 banner 0.28 Y/N; splash 0.28 Y/N
-- [ ] B2 stack ______ of ______; heap ______ of ______; identity ______ (USB serial ______)
+PART W-1 -- RIG 4.1 ON v0.28
+- [ ] W1 banner 0.28 Y/N; SPIKE Y/N; identity ______; CrashReport none Y/N
+- [ ] W2 stack ______ of ______; heap ______ of ______
+- [ ] W3 MW18 upload __ s; screen as MW17 Y/N
+- [ ] W4 stk= hp= on the 1 Hz line Y/N
+- [ ] W5 reconnect by Load Version Y/N; peak after ______
+- [ ] W6 Load Version after power cycle Y/N; settings kept Y/N
+
+PART W-2 -- CONSOLE
+- [ ] K1 Y/N  - [ ] K2 == boot print Y/N  - [ ] K3 CAL on LCD/VT Y/N  - [ ] K4 ERR codes Y/N  - [ ] K5 saved Y/N  - [ ] K6 paste back Y/N
+
+PART W-3 -- TEENSY 3.2
+- [ ] B0 old boot print saved Y/N; version ______
+- [ ] B1 banner 0.28 Y/N
+- [ ] B2 stack ______; heap ______; identity ______ (USB serial ______)
 - [ ] B3 `:list` == old boot print Y/N (differences ______)
-- [ ] B4 claim Y/N; MW18 upload __ s; main screen Y/N; picture side right Y/N
-- [ ] B5 heap peak ______ of ______; stack peak ______, never used ______; longest loop pass ______ us
-- [ ] B6 soft keys + cab buttons as 4.1 Y/N
-- [ ] B7 reconnect by Load Version Y/N; heap ______; never used ______
-- [ ] B8 reboot, Load Version Y/N, calibration kept Y/N
+- [ ] B4 MW18 upload __ s; picture side right Y/N
+- [ ] B5 heap peak ______ of ______; never used ______; longest loop pass ______ us
+- [ ] B6 keys + buttons Y/N  - [ ] B7 Load Version Y/N; heap ______
+- [ ] L1 from __:__ to __:__; hp= stk= flat Y/N; reboots __; dropped __
 
-PART L -- AN HOUR
-- [ ] L1 from __:__ to __:__; hp= flat Y/N; stk= flat Y/N; reboots __
-- [ ] L2 heap ______; never used ______; dropped __
+PART V -- VAN MASTWIJK
+- [ ] V1 MW18 1200 __ s, CNH __ s; TC08 Y/N; errors ______
+- [ ] V2 width popup Y/N; 1200 shows ____; reported __
+- [ ] V3 1200 records: ______; DDI 141 1/0/1 Y/N
+- [ ] V4 AUTO / H S! / H G! Y/N; stopped lowering in AUTO: Y/N at __:__:__
+- [ ] V5 assign Y/N; presses Y/N; after replug ______; after power cycle ______; numbers back Y/N; CNH refused Y/N
+- [ ] V6 from __:__ to __:__; offline VT __ 1200 __ TC __; `E]`/`W] [VT]` __; stalls __; dropped __
+- [ ] V7 129029 rising Y/N; RTK quality ______
+- [ ] V8 failover to CNH Y/N, back Y/N, Load Version Y/N; peak after ______
+- [ ] V9 reconnect: XTE unchanged Y/N; popup Y/N
+- [ ] V10 stack peak ______ never used ______; CrashReport at any boot Y/N
+- [ ] V11 (#330) turn pos 1: soil to ______, letter __, cal __, picture ______; turn pos 2: soil to ______, letter __, cal __, picture ______
+- [ ] left on: f8a25f0 / ladder step ______
 
-PART R -- RIG 4.1 (after session 27)
-- [ ] R1 banner 0.28 Y/N; CrashReport none Y/N
-- [ ] R2 stack ______ of ______; heap ______ of ______
-- [ ] R3 Load Version Y/N; reconnect by Load Version Y/N
-- [ ] R4 Load Version 1200 Y/N, CNH Y/N; TC08 Y/N; failover + back Y/N; 129029 rising Y/N; `E]`/`W] [VT]` __; stalls __; end peak ______
-
-PART T -- TC (optional)
-- [ ] T1 DDOP Y/N; TC08 Y/N
-- [ ] T2 heap ______; never used ______
+PART A -- THE CLIENT (his sheet)
+- [ ] V4 width popup Y/N; JD width ______
+- [ ] V6 XTE jump per press ______ cm (or none)
+- [ ] V7 back without popup Y/N; XTE unchanged Y/N
+- [ ] log file received Y/N
 
 ## 7. If something differs
 
-- **No banner, or the board resets in a loop:** keep the log and note it on #341. The old firmware cannot go back (no
-  hex), so flash the fallback `teensy32_can_bdda49f.hex`: plain CAN through ACAN, as the board ran before ISOBUS.
-- **`Not enough memory for the CAN controller`** in the log: `malloc()` failed at boot. Note the `Heap:` line; that is
-  #341's finding, and Q1 (a smaller queue) or a smaller AgIsoStack table is the next step.
-- **The upload stops, or the VT shows an error after it:** debug `1` at once (heap, stack), keep the CANedge; a heap
-  that ran into the stack fails silently.
-- **"Never used" under 4 KB** anywhere: not a failure yet, but #341 is not ready to merge on that number.
-- **The calibration lost in B3:** recalibrate, note the old and new values; a separate issue.
+- **A step fails on the 4.1:** note it, flash the next ladder step down (section 2), repeat only that step. The step
+  where it passes names the PR. Don't go further down than needed; settings are kept.
+- **A VT stuck in `Failed`** (dump `1`): note the time and which VT, keep the log and the CANedge, power-cycle that VT
+  once. That is upstream #868 doing what it says; the question is why the VT rejected MW18 (session 27's Q1).
+- **A `CrashReport:` block:** keep the whole block and the log before it; ladder step 27.
+- **The 3.2:** no banner or a reset loop: keep the log, flash `teensy32_can_f8a25f0.hex`. `Not enough memory for the CAN
+  controller` = `malloc()` failed at boot: note the `Heap:` line (#341). "Never used" under 4 KB anywhere: not a failure,
+  but #341 doesn't merge on it.
+- **Not a difference:** a VT or TC uploading once because it never stored MW18 / TC08 with this NAME.
 
 ## 8. Afterwards
 
-- **Notes:** serial log, old boot print and timeline go on **`test/session28`** under
+- **Notes:** serial logs, the 3.2's old boot print and the timeline go on **`test/session28`** under
   `Ploegbesturing Isobus/Documentation/logs/`, named `<date>_session28_<place>_*`.
-- **Where results go:** B, L and T to PR #341, with Q1's answer; B2's identity to PR #342; R to PR #343.
-- **When B and L pass:** #341 is ready once #886 and #887 are merged upstream and the env is pinned to upstream main.
+- **Where results go:** W-1 and V to the PR its row names (#162, #326, #327, #328, #331, #343); W-3 to #341 (with Q1)
+  and #342; part A to #162 (and #304/#305, whose steps passed on 2026-11-09); V11 to #330.
+- **When it passes:** merge in stack order (#162 and #326, then #327 + #328, #331, #343, then #341/#342 once upstream
+  has #886/#887), retargeting each child before `--delete-branch`. Then main is v0.28 and the session briefs 25-27 are
+  history.
