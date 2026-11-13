@@ -1,0 +1,203 @@
+20:56:14.203 === logger start COM7 ===
+20:56:14.220 --------------------------------
+20:56:14.221 -----------MeijWorks------------
+20:56:14.221 --------------------------------
+20:56:14.221    Triton PB-ISO version 0.28   
+20:56:14.221   SPIKE #316: DDI 515 echo ON   
+20:56:14.221 (c) 2011 - 2026 by J.A. Woltjer 
+20:56:14.222 --------------------------------
+20:56:14.222 -------------------------------
+20:56:14.222 Tractor using following data:
+20:56:14.222 -------------------------------
+20:56:14.222 Speed calibration
+20:56:14.222 250
+20:56:14.224 -------------------------------
+20:56:14.224 Simspeed
+20:56:14.224 1.00
+20:56:14.224 -------------------------------
+20:56:14.224 Sim time
+20:56:14.224 2
+20:56:14.224 -------------------------------
+20:56:14.224 Sim mode
+20:56:14.224 1
+20:56:14.224 -------------------------------
+20:56:14.225 Invert hitch signal
+20:56:14.225 1
+20:56:14.225 -------------------------------
+20:56:14.225 Times started
+20:56:14.225 255
+20:56:14.225 --------------------------
+20:56:14.225 Using following data:
+20:56:14.225 --------------------------
+20:56:14.225 Offset calibration data
+20:56:14.225 21, 34
+20:56:14.225 144, 42
+20:56:14.225 266, 50
+20:56:14.226 --------------------------
+20:56:14.226 Number of shares
+20:56:14.226 4
+20:56:14.226 --------------------------
+20:56:14.226 Deadband (cm)
+20:56:14.226 2
+20:56:14.226 --------------------------
+20:56:14.226 error ploughside
+20:56:14.226 0
+20:56:14.226 --------------------------
+20:56:14.227 Bypass valve
+20:56:14.227 1
+20:56:14.227 --------------------------
+20:56:14.227 Maximum correction per share (mm)
+20:56:14.227 75
+20:56:14.227 Maximum correction (mm)
+20:56:14.227 300
+20:56:14.227 --------------------------
+20:56:14.227 =====================================
+20:56:14.227 Guidance source using following data:
+20:56:14.227 =====================================
+20:56:14.227 Baudrate
+20:56:14.227 4800
+20:56:14.227 -------------------------------
+20:56:14.228 RTK Quality
+20:56:14.228 4
+20:56:14.228 -------------------------------
+20:56:14.228 Preferred VT (0 = none)
+20:56:14.228 2
+20:56:14.228 -------------------------------
+20:56:14.228 Ag Leader lightbar
+20:56:14.228 AUTO
+20:56:14.228 -------------------------------
+20:56:14.228 Times started
+20:56:14.228 255
+20:56:14.228 --------------------------
+20:56:14.228 Using following data:
+20:56:14.229 --------------------------
+20:56:14.229 Offset calibration data
+20:56:14.229 21, 34
+20:56:14.229 144, 42
+20:56:14.229 266, 50
+20:56:14.229 --------------------------
+20:56:14.229 Number of shares
+20:56:14.229 4
+20:56:14.229 --------------------------
+20:56:14.229 Deadband (cm)
+20:56:14.229 2
+20:56:14.229 --------------------------
+20:56:14.229 error ploughside
+20:56:14.229 0
+20:56:14.229 --------------------------
+20:56:14.229 Bypass valve
+20:56:14.230 1
+20:56:14.230 --------------------------
+20:56:14.230 Maximum correction per share (mm)
+20:56:14.230 75
+20:56:14.230 Maximum correction (mm)
+20:56:14.230 300
+20:56:14.230 --------------------------
+20:56:14.230 CAN controller at start: error-active, TX err 0, RX err 0
+20:56:14.230 IsobusGuidanceChannel: identity 1324910 (board serial 1324910), claiming... address claimed: 0x81
+20:56:14.230 CAN controller after the claim: error-PASSIVE, TX err 128, RX err 0
+20:56:14.230 Lightbar: Ag Leader L160 emulation, mode AUTO
+20:56:14.230 IsobusDebugMenu: send any character to open the status menu.
+20:56:16.642 >>> sent: :set deadband 3
+
+20:56:16.703 I:draft open -- the plough holds until :save or :cancel
+20:56:16.704 OK
+21:01:16.664 I:draft dropped after 5 minutes without a command; nothing was saved
+21:01:55.521 >>> sent: :get deadband
+
+21:01:55.573 :set deadband 2
+21:01:55.573 OK
+21:02:06.377 >>> sent: x
+21:02:06.438 === ISOBUS DEBUG MENU ===
+21:02:06.438 1. Full status dump
+21:02:06.438 2. Periodic summary line (OFF - press to toggle)
+21:02:06.438 3. Reset message counters
+21:02:06.439 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+21:02:06.439 t. Task Controller choice (SPIKE #316), now: any TC
+21:02:06.439 5. Dump VT object pool as hex
+21:02:06.439 q. Exit
+21:02:08.407 >>> sent: 1
+21:02:08.469 === ISOBUS STATUS ===
+21:02:08.470 Address claim: CLAIMED  address=0x81  identity=1324910
+21:02:08.470 CAN controller: error-active  TX err 0 (peak 248)  RX err 0 (peak 5)
+21:02:08.471   error-passive entries: 2  bus-off entries: 1  longest episode: 12069 ms
+21:02:08.471   last bus-off 391593 ms ago
+21:02:08.471 Bus load (ch0): 1.1 %
+21:02:08.471 CAN receive queue: high water 1 of 64, dropped 0
+21:02:08.471 Loop pass: longest 121017 us since the last dump, 121017 us since boot
+21:02:08.471 Stack: peak 1144 of 228512 bytes since boot, 227368 never used
+21:02:08.472 Heap: peak 47236 of 495488 bytes
+21:02:08.472 --- Message counters ---
+21:02:08.472   PGN 129025 Position NMEA2000: 0
+21:02:08.472   PGN 129026 Speed NMEA2000:    0
+21:02:08.472   PGN 129283 XTE NMEA2000:      0
+21:02:08.472   PGN 65267  Position legacy:   0
+21:02:08.472   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+21:02:08.472   PGN 65535  all senders:       0   last SA=0xFF
+21:02:08.472   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+21:02:08.473              raw: nothing from 0x2A or 0x80 yet
+21:02:08.473   PGN 65535  GNSS status 0x80:  0   (none)
+21:02:08.473   PGN 60160  XTE Trimble legacy:2   last SA=0x26
+21:02:08.473   PGN 64770  AISO stop:         0   last 0 ms ago
+21:02:08.473   TOTAL:                        2
+21:02:08.473 --- Guidance telemetry ---
+21:02:08.473   XTE:          0.00 m
+21:02:08.473   Speed:        0.00 m/s (0.00 kn)
+21:02:08.473   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+21:02:08.473   PGN 129027 position deltas: 0
+21:02:08.473   Guidance machine info (PGN 44032): (none received)
+21:02:08.473   IsRtkQuality=N
+21:02:08.473   GGA fix age:  405366 ms
+21:02:08.474   VTG fix age:  405366 ms
+21:02:08.474   XTE fix age:  405366 ms
+21:02:08.474   Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+21:02:08.474 --- Virtual Terminal ---
+21:02:08.474   Connected:    Y
+21:02:08.474   State:        21/22  Connected
+21:02:08.474   VT version:  5
+21:02:08.474   VT status msgs: 373   last 237 ms ago
+21:02:08.474   Partner: addr=0x26 valid=Y  reconnect attempts=0
+21:02:08.474   VT failover: switches=0 claim requests=1 rejoins=0 preferred=VT2 (not seen)
+21:02:08.474   AUX-N: Breder events=0 Smaller events=0 held=--
+21:02:08.474 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+21:02:08.474   Mode: AUTO  NOT RUNNING  (no Ag Leader display seen)
+21:02:08.474   Address claim: NOT CLAIMED
+21:02:08.474   Display partner: 0xFF  identification requests=0 answered=0 unknown=0  last DID=0x0  hello=N  stack partner=N
+21:02:08.474   Sent: frames=0 failures=0 heartbeats=0 softwareId=N  proprietary A from display=0
+21:02:08.474   Requests: softwareId=0 (sent 0x) ignored=0 last ignored PGN=0
+21:02:08.474   PGN 65462 XTE: frames=0 committed=0
+21:02:08.474 --- Task Controller ---
+21:02:08.474   Connected:    N
+21:02:08.474   TC-GEO (with/without pos): (not connected)
+21:02:08.475   Task active:  N
+21:02:08.475   DRP deviation (DDI 513): 0 mm, last 405366 ms ago
+21:02:08.475   GNSS quality (DDI 514):  0, last 405366 ms ago
+21:02:08.475   Work state (DDI 141):    1 working (hitch down)
+21:02:08.475   Working width (DDI 67):  200 cm, changes 0, reported 0
+21:02:08.475   [via stack] Value cmds to handler: 0  last DDI=(none)
+21:02:08.475   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+21:02:08.475   [on bus] Requests for our values: 0
+21:02:08.475   [on bus] Set-value commands:      0
+21:02:08.475   [on bus] Measurement commands:    0  (none)
+21:02:08.475   [on bus] Other, addressed to us:  0
+21:02:08.475   Partner: addr=0xFE valid=N  reconnect attempts=0
+21:02:08.475   TC choice: any TC  bound: none
+21:02:08.475   Tramline setpoint (DDI 506): (not connected)
+21:02:08.475   [on bus] Requests for DDI 506: 0  DDI 515: 0
+21:02:08.475   Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+21:02:08.475   Guidance track (DDI 507-511): (not connected)
+21:02:08.475 === ISOBUS DEBUG MENU ===
+21:02:08.475 1. Full status dump
+21:02:08.475 2. Periodic summary line (OFF - press to toggle)
+21:02:08.475 3. Reset message counters
+21:02:08.475 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+21:02:08.475 t. Task Controller choice (SPIKE #316), now: any TC
+21:02:08.475 5. Dump VT object pool as hex
+21:02:08.475 q. Exit
+21:02:10.381 >>> sent: q
+21:02:10.440 Exiting.
+21:02:12.413 >>> sent: :get shares
+
+21:02:12.478 :set shares 4
+21:02:12.478 OK
+21:04:29.144 === logger stop ===
