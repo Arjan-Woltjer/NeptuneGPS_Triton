@@ -1,0 +1,21 @@
+21:16:58.311 === logger start COM7 ===
+21:17:22.253 VT: Calibrate pressed
+21:17:22.254 VT: calibration page open
+21:17:30.713 VT: calibration saved
+21:18:15.674 VT: Calibrate pressed
+21:18:15.674 VT: calibration page open
+21:18:21.025 VT: calibration saved
+21:18:30.225 >>> sent: :list
+
+21:18:30.292 :set shares 4
+21:18:30.292 :set side 0
+21:18:30.292 :set hitchinv 1
+21:18:30.292 :set bypass 1
+21:18:30.292 :set deadband 2
+21:18:30.292 :set maxcorr 75
+21:18:30.292 :set vt 2
+21:18:30.292 :set lightbar 0
+21:18:30.293 :set rtkq 4
+21:18:30.293 :set width 21 144 266
+21:18:30.294 OK
+21:18:43.396 === logger stop ===
