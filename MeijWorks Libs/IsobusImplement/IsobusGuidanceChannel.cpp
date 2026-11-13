@@ -34,6 +34,8 @@
 #include <isobus/hardware_integration/can_hardware_interface.hpp>
 #include <isobus/isobus/can_network_manager.hpp>
 #include <isobus/isobus/can_parameter_group_number_request_protocol.hpp>
+#include <isobus/utility/system_timing.hpp>
+#include <isobus/utility/time_source.hpp>
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
@@ -44,6 +46,40 @@ using namespace isobus;
 
 namespace triton
 {
+
+#if defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+namespace {
+// AgIsoStack's default clock is std::chrono::steady_clock. On a Teensy 3 that
+// comes from the core's _gettimeofday(), which reads the RTC, and the RTC only
+// runs with the optional 32.768 kHz crystal: without it the time stays at 0,
+// so the address claim waits forever and nothing is ever sent (Teensy 3.2,
+// session 28 bench, 2026-11-13). millis()/micros() always run. The Teensy 4
+// RTC always runs, and the native tests keep AgIsoStack's own clock.
+class ArduinoTimeSource : public isobus::TimeSource {
+public:
+    std::uint32_t get_current_time_ms() const override {
+        return millis();
+    }
+
+    // micros() wraps after 71 minutes; carry the wraps into the top 32 bits so
+    // an elapsed time across a wrap stays right.
+    std::uint64_t get_current_time_us() const override {
+        const std::uint32_t now = micros();
+        if (now < lastUs) {
+            wraps += (static_cast<std::uint64_t>(1) << 32);
+        }
+        lastUs = now;
+        return wraps + now;
+    }
+
+private:
+    mutable std::uint32_t lastUs = 0;
+    mutable std::uint64_t wraps = 0;
+};
+
+ArduinoTimeSource arduinoTimeSource;
+}  // namespace
+#endif
 
 // ------------------------------------------------------------------
 // Constructor
@@ -200,6 +236,10 @@ NAME IsobusGuidanceChannel::BuildName(std::uint8_t deviceClass, std::uint8_t fun
 // Begin -- call once from setup()
 // ------------------------------------------------------------------
 void IsobusGuidanceChannel::Begin() {
+#if defined(__MK20DX256__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)
+    // Before anything in AgIsoStack reads the time: see ArduinoTimeSource.
+    SystemTiming::override_time_source(&arduinoTimeSource);
+#endif
     CANHardwareInterface::set_number_of_can_channels(1);
     CANHardwareInterface::assign_can_channel_frame_handler(0, canPlugin);
     CANHardwareInterface::start();

@@ -98,6 +98,9 @@ public:
     // VtWorkingSet
     const char*    GetProductModel() const override { return "Ploegbesturing Isobus"; }
     void           BuildPool() override;
+#if defined(__MK20DX256__)
+    void           BuildPoolInto(uint8_t* target, uint32_t capacity) override;
+#endif
     const uint8_t* GetPoolData() const override;
     uint32_t       GetPoolSize() const override;
     const char*    GetPoolLabel() const override;
