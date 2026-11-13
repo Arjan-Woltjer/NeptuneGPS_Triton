@@ -59,6 +59,13 @@ public:
     // Builds the object pool. Called once, from IsobusVtInterface::Begin(),
     // before the first client is created.
     virtual void BuildPool() = 0;
+#if defined(__MK20DX256__)
+    // Teensy 3.2 (64 KB RAM): a working set that keeps no pool buffer of its
+    // own returns null from GetPoolData() and builds the pool into the buffer
+    // it is given here, see IsobusVtInterface.cpp. One that keeps its own
+    // buffer leaves this alone.
+    virtual void BuildPoolInto(uint8_t* target, uint32_t capacity) { (void)target; (void)capacity; }
+#endif
     virtual const uint8_t* GetPoolData() const = 0;
     virtual uint32_t       GetPoolSize() const = 0;
     // The version label terminals cache the pool under: bump it on every

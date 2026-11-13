@@ -41,6 +41,12 @@ void PloughVtWorkingSet::BuildPool() {
     BuildObjectPool();
 }
 
+#if defined(__MK20DX256__)
+void PloughVtWorkingSet::BuildPoolInto(uint8_t* target, uint32_t capacity) {
+    BuildObjectPoolInto(target, capacity);
+}
+#endif
+
 const uint8_t* PloughVtWorkingSet::GetPoolData() const {
     return VT3PoolData;
 }

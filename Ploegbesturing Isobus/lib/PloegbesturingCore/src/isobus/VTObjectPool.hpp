@@ -218,6 +218,11 @@ extern uint32_t       VT3PoolSize;
 
 // Call once in setup(), before VT client initialization.
 void BuildObjectPool();
+#if defined(__MK20DX256__)
+// Teensy 3.2: BuildObjectPool() leaves VT3PoolData null and only sets
+// VT3PoolSize; this writes the pool into the caller's buffer.
+void BuildObjectPoolInto(uint8_t* target, uint32_t capacity);
+#endif
 
 }  // namespace triton
 
