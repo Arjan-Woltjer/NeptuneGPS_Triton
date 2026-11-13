@@ -66,7 +66,18 @@ namespace triton
 #ifndef DMAMEM
 #define DMAMEM
 #endif
+#if defined(__MK20DX256__)
+// Teensy 3.2 (64 KB RAM): no buffer of our own. AgIsoStack makes its own
+// read/write copy of the pool before the upload, to scale it, and two copies
+// (16 KB here, 13 KB there) don't fit: the copy's allocation failed and the
+// board faulted (bench, 2026-11-13). BuildObjectPool() only measures the pool
+// here; BuildObjectPoolInto() writes it straight into AgIsoStack's copy.
+static uint8_t* poolBuffer = nullptr;
+static uint32_t poolCapacity = 0;
+#else
 DMAMEM static uint8_t poolBuffer[16384];
+static const uint32_t poolCapacity = sizeof(poolBuffer);
+#endif
 static uint32_t poolPos = 0;
 
 const uint8_t* VT3PoolData = nullptr;
@@ -78,7 +89,7 @@ uint32_t       VT3PoolSize = 0;
 // Never writes past the buffer: an oversized pool shows up as VT3PoolSize
 // exceeding the capacity (test_VTObjectPool.cpp checks it), not as corruption.
 static void pu8(uint8_t v) {
-    if (poolPos < sizeof(poolBuffer)) poolBuffer[poolPos] = v;
+    if (poolPos < poolCapacity) poolBuffer[poolPos] = v;
     poolPos++;
 }
 static void pu16(uint16_t v) { pu8(v & 0xFF); pu8(v >> 8); }
@@ -624,6 +635,17 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendOutputString(Str_CalBlank, 196, ROW_H, Font_White_Medium, 0, " ");
     appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, "ONGELDIG");
 }
+
+#if defined(__MK20DX256__)
+void BuildObjectPoolInto(uint8_t* target, uint32_t capacity) {
+    poolBuffer = target;
+    poolCapacity = capacity;
+    BuildObjectPool();
+    poolBuffer = nullptr;
+    poolCapacity = 0;
+    VT3PoolData = nullptr;   // the target is the caller's
+}
+#endif
 
 FLASHMEM void BuildObjectPool() {
     poolPos = 0;

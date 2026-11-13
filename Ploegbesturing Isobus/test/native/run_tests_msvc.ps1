@@ -25,7 +25,8 @@ $includes = @(
     '..\MeijWorks Libs\TritonText',
     '..\MeijWorks Libs\EndShutoff',
     '..\MeijWorks Libs\ButtonPair',
-    '..\MeijWorks Libs\IsobusImplement'
+    '..\MeijWorks Libs\IsobusImplement',
+    '..\MeijWorks Libs\StackWatermark'
 )
 $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',

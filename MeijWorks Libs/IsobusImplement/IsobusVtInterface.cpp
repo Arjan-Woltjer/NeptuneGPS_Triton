@@ -40,6 +40,26 @@ using namespace isobus;
 namespace triton
 {
 
+#if defined(__MK20DX256__)
+namespace {
+// Teensy 3.2 (64 KB RAM): the pool exists once, in AgIsoStack's own buffer.
+// Before the upload AgIsoStack copies every pool to scale it, and for a pool
+// given by callback it asks for that copy one byte at a time, into a buffer it
+// has already sized for the whole pool. The working set's generator fills all
+// of that buffer at the first byte, so there is no second copy in RAM. Any
+// other request is refused: if AgIsoStack ever asks differently, the upload
+// fails instead of sending a corrupt pool.
+VtWorkingSet* gPoolSource = nullptr;
+std::uint32_t gPoolSize = 0;
+bool PoolIntoStackBuffer(std::uint32_t, std::uint32_t bytesOffset, std::uint32_t numberOfBytesNeeded,
+                         std::uint8_t* chunkBuffer, void*) {
+    if (numberOfBytesNeeded != 1 || chunkBuffer == nullptr || gPoolSource == nullptr) return false;
+    if (bytesOffset == 0) gPoolSource->BuildPoolInto(chunkBuffer, gPoolSize);
+    return true;
+}
+}  // namespace
+#endif
+
 // ----------------------------------------------------------------
 // Logger
 // ----------------------------------------------------------------
@@ -133,6 +153,14 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     // answered End of Object Pool "other error" with no object, on every pool
     // too big for TP. Still bounded by each receiver's own CTS window.
     CANNetworkManager::CANNetwork.get_configuration().set_number_of_packets_per_dpo_message(255);
+#if defined(__MK20DX256__)
+    if (workingSet->GetPoolData() == nullptr) {
+        // No buffer of its own: see PoolIntoStackBuffer().
+        gPoolSource = workingSet;
+        gPoolSize = workingSet->GetPoolSize();
+        vtClient->register_object_pool_data_chunk_callback(0, gPoolSize, PoolIntoStackBuffer, workingSet->GetPoolLabel());
+    } else
+#endif
     vtClient->set_object_pool(0, workingSet->GetPoolData(), workingSet->GetPoolSize(), workingSet->GetPoolLabel());
     // Scale the pool to each terminal's real screen. It is drawn for the VT3
     // minimum, a 200 px data mask, and 60 px soft keys (VTObjectPool.cpp's

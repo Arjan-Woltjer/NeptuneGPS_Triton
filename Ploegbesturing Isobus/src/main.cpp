@@ -26,6 +26,7 @@
 #include "implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "InterfacePlough.hpp"
+#include "StackWatermark.hpp"
 #include "config/LanguagePlough.hpp"
 #include "VehicleSensors.hpp"
 
@@ -59,10 +60,9 @@
 // v1.20-v1.31 read it -- acceptance filters for the guidance messages, and
 // every matching frame handed to CanFrameGuidanceChannel. Listen-only in
 // effect: no address claim, no VT, no TC.
-//  - Teensy 3.2 ([env:teensy32_can], -D CAN_ACAN): the full ISOBUS build does
-//    not fit the 3.2 (341 KB flash / 146 KB RAM against 256 / 64), and
-//    AgIsoStack's FlexCAN plugin is Teensy 4 only. pierremolinaro's ACAN on
-//    the 3.2's CAN0.
+//  - Teensy 3.2 ([env:teensy32_can], -D CAN_ACAN): pierremolinaro's ACAN on
+//    the 3.2's CAN0. The full ISOBUS build for the 3.2 is
+//    [env:teensy32_isobus], not this one.
 //  - Teensy 4.1 / 4.0 ([env:teensy41_can], [env:teensy40_can], -D
 //    CAN_ACAN_T4): ACAN_T4, its Teensy 4 successor, on the FlexCAN the board
 //    wires to its transceiver (ISOBUS_CAN_CHANNEL, ConfigPlough.hpp). What
@@ -155,6 +155,10 @@ static void GHandleCanMessage(const CANMessage& inMessage);
 // Setup routine
 // -------------
 void setup() {
+    // First, while the stack is shallow: the dump's "Stack:" line and the 1 Hz
+    // line's stk= read how deep it has reached since here.
+    triton::StackWatermark::Paint();
+
     // Delay to settle voltages and let LCD startup
     delay(3000);
 
@@ -182,6 +186,12 @@ void setup() {
     gSerialDebug->println("   Triton PB-ISO version 0.24   ");
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
+#endif
+#if defined(__IMXRT1062__)
+    // A fault (a stack overflow into the core's MPU guard among them) reboots
+    // the Teensy 4 after a few seconds. The core keeps what it saw across the
+    // reboot, and printing it here clears it.
+    if (CrashReport) gSerialDebug->print(CrashReport);
 #endif
 
     // Setup I2C LCD
