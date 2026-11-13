@@ -54,7 +54,7 @@ $sources = @(
     '..\MeijWorks Libs\VehicleGuidance\IsobusPgnDecode.cpp',
     '..\MeijWorks Libs\VehicleGuidance\CanFrameGuidanceChannel.cpp'
 )
-$defines = @('ISOBUS', 'CAN_STACK_DISABLE_THREADS')
+$defines = @('ISOBUS', 'CAN_STACK_DISABLE_THREADS', 'CAN_PORT_MAXIMUM_VALUE=1')
 
 & "$root\..\tools\run_native_tests_msvc.ps1" -ProjectRoot $root -Name PloegbesturingNativeTests -Includes $includes -Sources $sources -Defines $defines
 exit $LASTEXITCODE
