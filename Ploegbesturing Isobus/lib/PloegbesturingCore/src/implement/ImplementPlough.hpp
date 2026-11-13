@@ -193,6 +193,12 @@ public:
         return positionCalibrationPoints[i];
     }
 
+    // The width sensor reading stored for calibration point i (the serial
+    // console's export, #241).
+    inline short int GetPositionCalibrationData(short int i) {
+        return positionCalibrationData[i];
+    }
+
 #ifdef ROTATION
     inline short int GetRotationCalibrationPoint(short int i) {
         return rotationCalibrationPoints[i];

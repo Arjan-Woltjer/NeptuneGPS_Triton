@@ -64,10 +64,12 @@ public:
     bool Start();
     bool IsActive() const { return screen != kIdle; }
     // A calibration holds the control: the cab wizard is open, or the VT
-    // calibration page (#240) holds the settings session. main.cpp then skips
-    // InterfacePlough::Update(), so its mode is stale; the VT shows CAL
-    // instead (#318).
-    bool HoldsTheControl() const { return IsActive() || settings.GetOwner() == SettingsOwner::Vt; }
+    // calibration page (#240) or the serial console (#241) holds the settings
+    // session. main.cpp then skips InterfacePlough::Update(), so its mode is
+    // stale; the VT shows CAL instead (#318).
+    bool HoldsTheControl() const {
+        return IsActive() || settings.GetOwner() == SettingsOwner::Vt || settings.GetOwner() == SettingsOwner::Serial;
+    }
     // One pass of the open wizard; nothing when it is closed.
     void Step();
 
@@ -81,6 +83,11 @@ public:
     // lets go redraws the main screen and returns false.
     bool HoldWhileVtCalibrates();
 #endif
+
+    // The same while the serial console (#241) holds a draft: the control
+    // holds, the cab shows the calibration is over USB and its buttons do
+    // nothing, until the console saves or cancels (or drops an idle draft).
+    bool HoldWhileSerialCalibrates();
 
     // The two guidance values this board persists, as in the regular
     // Ploegbesturing. GuidanceSource is a shared data model with no storage
@@ -161,8 +168,10 @@ private:
     int16_t       value = 0;
     unsigned long pauseStartMs = 0;
     bool          holdingForVt = false;
+    bool          holdingForSerial = false;
 
     bool loadGuidanceCalibration();
+    bool holdFor(SettingsOwner who, bool& holding, const char* line0, const char* line1);
     void enterScreen(uint8_t next);
     void accept();
     void decline();

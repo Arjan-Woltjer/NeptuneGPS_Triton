@@ -103,6 +103,12 @@ public:
 
     void SetCanReceiveQueueStatsSource(CanReceiveQueueStatsSource source) { receiveQueueStats = source; }
 
+    // Optional: sees every serial byte while the menu is closed, before the
+    // menu does; returning true keeps the byte from the menu. The plough's
+    // settings console (#241) takes its ':' lines this way.
+    using InputFilter = bool (*)(char c);
+    void SetInputFilter(InputFilter filter) { inputFilter = filter; }
+
 private:
     enum class State { IDLE, MENU };
 
@@ -119,6 +125,7 @@ private:
     unsigned long longestPassSinceDumpUs = 0;
     unsigned long longestPassUs = 0;
     CanReceiveQueueStatsSource receiveQueueStats = nullptr;
+    InputFilter                inputFilter = nullptr;
 
     void printMenu();
     void handleMenu(char c);

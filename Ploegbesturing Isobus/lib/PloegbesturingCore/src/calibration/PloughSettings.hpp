@@ -74,11 +74,12 @@ struct PloughSettingLine {
 };
 
 // Who holds the open session. One at a time: while the cab wizard edits, the
-// VT page cannot, and the other way round.
+// VT page and the serial console (#241) cannot, and so on.
 enum class SettingsOwner : uint8_t {
     None,
     Cab,
     Vt,
+    Serial,
 };
 
 class PloughSettings {
@@ -118,6 +119,10 @@ public:
     // boot load (ImplementPlough::IsValidPositionCalibration).
     bool StageWidthCalibration(SettingsOwner who, const short int adc[3]);
     bool HasStagedWidthCalibration() const { return widthStaged; }
+
+    // The three width sensor readings: the staged ones while a draft holds
+    // them, else the ones the plough holds (the serial console's export, #241).
+    void GetWidthCalibration(short int adc[3]) const;
 
     // Applies the draft to the plough and writes EEPROM through the same
     // commits the wizard's COMPLETE step makes, then closes the session.
