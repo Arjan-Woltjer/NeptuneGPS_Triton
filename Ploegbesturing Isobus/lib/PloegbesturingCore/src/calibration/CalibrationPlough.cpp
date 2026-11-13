@@ -314,9 +314,10 @@ FLASHMEM void CalibrationPlough::drawValue() {
             lcd->WriteBuffer(value % 10 + '0', 3, 16);
             break;
         case PloughSetting::Swap: {
-            // The side this swap gives: the plough-side input XOR the swap.
+            // The side this swap gives: the plough-side input XOR the swap,
+            // named by where the soil goes, as on the main screen (#330).
             const bool input = implement->GetSide() != implement->GetSwap();
-            lcd->WriteBuffer((input != (value != 0)) ? 'L' : 'R', 3, 16);
+            lcd->WriteBuffer((input != (value != 0)) ? 'R' : 'L', 3, 16);
             break;
         }
         case PloughSetting::HitchInversion:

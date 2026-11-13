@@ -353,6 +353,24 @@ test(InterfacePlough, updateScreen_rewrite_autoMode_bothPloughSides) {
     assertEqual((int)iface.GetMode(), 0);
 }
 
+// The side letter on the main screen names the side the soil goes to (#330),
+// as the VT picture does: GetSide() true is the picture that throws the soil
+// to the right.
+test(InterfacePlough, updateScreen_sideLetter_isTheSideTheSoilGoesTo) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    InterfacePlough iface(nullptr, &mockLcd, &impl, &mockTractor, &mockGuidance);
+    iface.Update();
+    digitalReadValue(PLOUGHSIDE_PIN_2, false);
+    iface.UpdateScreen(true);
+    assertFalse(impl.GetSide());
+    assertEqual(mockLcd.Row(3)[15], 'L');
+    digitalReadValue(PLOUGHSIDE_PIN_2, true);
+    iface.UpdateScreen(true);
+    assertTrue(impl.GetSide());
+    assertEqual(mockLcd.Row(3)[15], 'R');
+}
+
 test(InterfacePlough, updateScreen_rewrite_holdMode_slowThenStaleSpeed) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);

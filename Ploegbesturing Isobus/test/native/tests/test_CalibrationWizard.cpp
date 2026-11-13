@@ -222,17 +222,19 @@ testF(CalibrationWizard, editsThenCompleteDeclined_leaveThePloughAndEepromAsThey
     assertEqual((int)EEPROM.read(64), 255);
 }
 
-testF(CalibrationWizard, swap_showsTheSideItGives) {
+// "Ploegt naar" names the side the soil goes to (#330): the side the VT
+// picture shows, which is the opposite of what this screen used to say.
+testF(CalibrationWizard, swap_showsTheSideTheSoilGoesTo) {
     resetAll();
     Wizard w;
     assertTrue(w.cal.Start());
     skipTo(w, L_CAL_SWAP);
     accept(w);
-    assertEqual(row(3).c_str(), editRow(L_CAL_SWAP_AD, 16, "R").c_str());   // input low, no swap
+    assertEqual(row(3).c_str(), editRow(L_CAL_SWAP_AD, 16, "L").c_str());   // input low, no swap
     step(w, true);
-    assertEqual(row(3).c_str(), editRow(L_CAL_SWAP_AD, 16, "L").c_str());
-    step(w, false);
     assertEqual(row(3).c_str(), editRow(L_CAL_SWAP_AD, 16, "R").c_str());
+    step(w, false);
+    assertEqual(row(3).c_str(), editRow(L_CAL_SWAP_AD, 16, "L").c_str());
 }
 
 testF(CalibrationWizard, yesNoScreens_showJaNee_andAreSaved) {

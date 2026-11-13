@@ -107,7 +107,7 @@ test(IsobusVtCalibration, calibrateKey_opensThePage_onTheDraft_andShowsEveryValu
     assertEqual(r.out.last(input(PloughSetting::Deadband)), 2L);
     assertEqual(r.out.last(input(PloughSetting::MaxCorrectionPerShare)), 50L);
     assertEqual(r.out.last(input(PloughSetting::Bypass)), 0L);
-    assertEqual(r.out.last(input(PloughSetting::Swap)), 0L);         // input low, no swap: R
+    assertEqual(r.out.last(input(PloughSetting::Swap)), 1L);         // input low, no swap: LINKS (#330)
     assertEqual(r.out.last(input(PloughSetting::RtkQuality)), 1L);   // 4 is the RTK entry
     assertTrue(pgDebug.has("VT: calibration page open"));
 }
@@ -171,7 +171,7 @@ test(IsobusVtCalibration, lists_mapTheirEntriesToTheSettings) {
     r.page.OnNumericValue(input(PloughSetting::Bypass), 1);
     r.page.OnNumericValue(input(PloughSetting::HitchInversion), 1);
     r.page.OnNumericValue(input(PloughSetting::RtkQuality), 0);
-    r.page.OnNumericValue(input(PloughSetting::Swap), 1);          // LINKS with the input low: swap
+    r.page.OnNumericValue(input(PloughSetting::Swap), 0);          // RECHTS with the input low: swap (#330)
     assertEqual(r.settings().Get(PloughSetting::Bypass), (int16_t)1);
     assertEqual(r.settings().Get(PloughSetting::HitchInversion), (int16_t)1);
     assertEqual(r.settings().Get(PloughSetting::RtkQuality), (int16_t)2);
@@ -196,19 +196,19 @@ test(IsobusVtCalibration, lightbarList_isTheMode_andIsSaved) {
     assertEqual((int)r.cal.GetLightbarMode(), (int)LightbarMode::Off);
 }
 
-// The side list shows the side the plough gives, which follows the
-// plough-side input while the page is open.
+// The side list shows the side the soil goes to (#330; list item 0 = RECHTS,
+// 1 = LINKS), which follows the plough-side input while the page is open.
 test(IsobusVtCalibration, sideList_followsThePloughSideInput) {
     resetAll();
     Rig r;
     r.page.OnCalibrateKey();
     r.page.Update(r.out);
-    assertEqual(r.out.last(input(PloughSetting::Swap)), 0L);
+    assertEqual(r.out.last(input(PloughSetting::Swap)), 1L);
     digitalReadValue(PLOUGHSIDE_PIN_2, true);
     r.page.Update(r.out);
-    assertEqual(r.out.last(input(PloughSetting::Swap)), 1L);
-    // LINKS with the input high is no swap.
-    r.page.OnNumericValue(input(PloughSetting::Swap), 1);
+    assertEqual(r.out.last(input(PloughSetting::Swap)), 0L);
+    // RECHTS with the input high is no swap.
+    r.page.OnNumericValue(input(PloughSetting::Swap), 0);
     assertEqual(r.settings().Get(PloughSetting::Swap), (int16_t)0);
 }
 
