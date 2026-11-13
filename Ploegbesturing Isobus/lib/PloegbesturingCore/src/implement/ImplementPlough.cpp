@@ -252,6 +252,17 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
     // latched direction drives again once the plough has moved the other way.
     // Moving means kShutoffMoveCm away from where the timer last restarted, so
     // a 1 cm flip on sensor noise doesn't keep restarting it at the stop.
+    //
+    // A change of mode (AUTO / HOLD / MANUAL) clears the latch and restarts the
+    // timer (#329). Before, only driving the other way cleared it, so a
+    // direction that latched away from a real end stop kept the valve off in
+    // AUTO until a restart: the headland's HAND and back didn't help. A real end
+    // stop latches again after the shutoff time in the new mode.
+    if (mode != lastAdjustMode) {
+        endShutoff.Begin(SHUTOFF_2, millis());
+        shutoffPosition = position;
+        lastAdjustMode = mode;
+    }
     const bool positionChanged = abs(position - shutoffPosition) >= kShutoffMoveCm;
     if (positionChanged) shutoffPosition = position;
     if (actualPosition < setpoint - deadband && !endShutoff.Latched(EndShutoff::kNarrower)) {
