@@ -48,10 +48,11 @@ Everything since session 24 (d59c191, v0.24, MW17), in the order it was stacked:
 | 28 | AgIsoStack **707ad5c**: no C++ streams, one CAN port, the `NanoLibcCompat.cpp` shim removed | #343 | 4.1 `Stack:` size about **228 KB** (session 27: 71 KB) |
 | 28 | **Heap reading**: dump `Heap: peak N of M bytes`, ` hp=` on the 1 Hz line | #341 | `Heap:` line |
 | 28 | **Full ISOBUS on the Teensy 3.2**, CAN0 on pins 3/4, the NAME from the 3.2's own serial; the 3.2 adds upstream PRs #886 + #887 (fork branch `neptune-teensy3-707ad5c`) | #341, #342 | Part W-3 |
+| 28 | **The end-shutoff latch clears on every mode change** (AUTO / HOLD / MANUAL); before, a direction latched away from a real end stop stayed off in AUTO until a restart (field day session 112) | #344 (#329) | Part V4: HAND and back always gets the plough moving again |
 | 28 | Version | | Splash `Triton PB-ISO  v0.28`, banner `Triton PB-ISO version 0.28` |
 
 **Sizes:** 4.1 228 544 B free for local variables, 4.0 229 664 B. `teensy32_isobus` 248 500 of 262 144 B flash
-(94.8 %), 22 660 B static RAM, so heap and stack share 42.9 KB.
+(94.8 %; 248 548 B), 22 660 B static RAM, so heap and stack share 42.9 KB.
 
 **Expected once per terminal, not a fault:** MW18 uploads once on every VT, and a TC that hasn't seen TC08 with this
 NAME uploads the DDOP once.
@@ -62,17 +63,17 @@ OneDrive `MeijWorks Projects/Firmware builds/`:
 
 | Hex | For |
 |---|---|
-| `session28/teensy41_isobus_f8a25f0.hex` | the rig 4.1 (Loader 13249100), parts W and V |
-| `session28/teensy40_isobus_f8a25f0.hex` | a standard Teensy 4.0 plough board (spare) |
-| `session28/teensy32_isobus_f8a25f0.hex` | an original Teensy 3.2 board (CAN on 3/4), part W-3 |
-| `session28/teensy32_can_f8a25f0.hex` | the 3.2 board, fallback: plain CAN through ACAN, as before ISOBUS |
+| `session28/teensy41_isobus_325650a.hex` | the rig 4.1 (Loader 13249100), parts W and V |
+| `session28/teensy40_isobus_325650a.hex` | a standard Teensy 4.0 plough board (spare) |
+| `session28/teensy32_isobus_325650a.hex` | an original Teensy 3.2 board (CAN on 3/4), part W-3 |
+| `session28/teensy32_can_325650a.hex` | the 3.2 board, fallback: plain CAN through ACAN, as before ISOBUS |
 | `session25/Ploegbesturing_FET3_update_48063a4.zip` | **the client, part A**: main + #162, **no spike**, its own package; banner v0.21 |
 
 **The fallback ladder for the 4.1.** Each hex adds one step to the one below it:
 
 | Hex | Adds | Pool | A failure that goes away here points at |
 |---|---|---|---|
-| `session28/teensy41_isobus_f8a25f0.hex` | AgIsoStack 707ad5c (#343), the heap line | MW18 | #343 |
+| `session28/teensy41_isobus_325650a.hex` | AgIsoStack 707ad5c (#343), the heap line | MW18 | #343 |
 | `session27/teensy41_isobus_fa27718.hex` | AgIsoStack 5ff90cb (#331) | MW18 | #331: a VT stuck in `Failed`, PGN 129029 lost |
 | `session26/teensy41_isobus_f434459.hex` | AgIsoStack upstream + AUX-N (#327), stack + CrashReport + cold code (#328) | MW18 | #327 / #328: partners going offline, AUX-N, the stack |
 | `session25/teensy41_isobus_be1a1b0.hex` | TC08 + NAME (#162), spike, console (#326) | MW17 | #162 / #326: width popup, DDI 141, the console |
@@ -96,7 +97,7 @@ the 1 Hz line on (debug `2`), CANedge on the ISOBUS in part V. Times to the seco
 
 | Step | Do | Expect |
 |---|---|---|
-| W1 | Flash `teensy41_isobus_f8a25f0.hex`, logger open, boot. | Banner `version 0.28`, the SPIKE line, `identity 1324910 (board serial 1324910)` (the Loader shows it x10: 13249100). **No `CrashReport:` block.** Settings as on be1a1b0. |
+| W1 | Flash `teensy41_isobus_325650a.hex`, logger open, boot. | Banner `version 0.28`, the SPIKE line, `identity 1324910 (board serial 1324910)` (the Loader shows it x10: 13249100). **No `CrashReport:` block.** Settings as on be1a1b0. |
 | W2 | Debug `1` at once. | `Stack:` size about **228 KB**, peak a few KB. `Heap: peak N of M bytes`. Note both. |
 | W3 | PC VT on the Saturn. | **MW18 uploads once** (the PC VT stored MW17). Note the time from the first request to the main mask. Soft keys and the main screen as with MW17. |
 | W4 | The 1 Hz line for a minute. | ` stk=N hp=N` at the end; neither goes down. |
@@ -121,7 +122,7 @@ K7-K9 (draft timeout, debug menu, copying to a second board) are in `SESSION_25_
 | Step | Do | Expect |
 |---|---|---|
 | B0 | **Before flashing:** open its serial port and save the old firmware's boot print (version and calibration) to the logs. It prints once, late; Windows buffers it until the port opens. There is no hex of the old firmware: this print is the only record. | |
-| B1 | Flash `teensy32_isobus_f8a25f0.hex`, logger open, boot. | Banner and splash `0.28`. No hang. |
+| B1 | Flash `teensy32_isobus_325650a.hex`, logger open, boot. | Banner and splash `0.28`. No hang. |
 | B2 | Debug `1`, before the VT. | `Stack:` and `Heap:` lines. **`identity` = the board's serial** (the USB serial Windows shows, /10 if under 100 000 000 and ending in 0), **not 1** (#342). |
 | B3 | `:list` | **The calibration from the old boot print.** If it differs, note both and recalibrate with the wizard; that is an EEPROM finding, not #341's. |
 | B4 | Saturn + PC VT. | Address claim; a full MW18 upload (new NAME). Note the upload time (Q1). The plough picture matches the side switch. |
@@ -134,7 +135,7 @@ K7-K9 (draft timeout, debug menu, copying to a second board) are in `SESSION_25_
 
 ## 4. Part V -- van Mastwijk, one visit
 
-The rig 4.1 on `f8a25f0`, preferred VT 2 (the 1200 = VT 1, the CNH = VT 2). **The VT numbers are still swapped from
+The rig 4.1 on `325650a`, preferred VT 2 (the 1200 = VT 1, the CNH = VT 2). **The VT numbers are still swapped from
 the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on the ISOBUS.
 
 | Step | Do | Expect | If not: ladder step |
@@ -142,7 +143,7 @@ the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on
 | V1 | Boot with the tractor. | MW18 uploads **once on each VT** (they stored MW17); the 1200's TC takes the DDOP under **TC08**. No errors. Note the times. | 25 (TC08), 26 (MW18) |
 | V2 | On TC connect and on the 1200's implement screen. | Note any width popup and the width the 1200 shows. After a BREDER/SMALLER press, `reported` above 0 = the 1200 subscribed to DDI 67. | 25 |
 | V3 | Start recording on the 1200. Hitch down 50 m, up 20 m, down. | Note what the 1200 records: DDI 141, the hitch as before, or nothing. Dump DDI 141 goes 1 / 0 / 1. | 25 |
-| V4 | AB line, AUTO, RTK. Drop and regain RTK, or stop below MINSPEED. | The VT state line: `AUTO` while steering, `H S!` on a speed hold, `H G!` on a GPS hold, as the cab LCD. **If the plough stops following the setpoint in AUTO** (#329: the end-shutoff latch, field day session 112), note the time to the second; switching to HAND and back does not clear it, a restart does. | 24 |
+| V4 | AB line, AUTO, RTK. Drop and regain RTK, or stop below MINSPEED. | The VT state line: `AUTO` while steering, `H S!` on a speed hold, `H G!` on a GPS hold, as the cab LCD. **#344:** if the plough ever stops following the setpoint in AUTO, note the time to the second, then switch to HAND and back: it must move again at once (before #344 only a restart helped). At a real end stop it cuts again after 3 s. | 24 (#344 is new in 28) |
 | V5 | **AUX-N on VT 1** (the CNH, while the numbers are swapped): assign BREDER and SMALLER to armrest 28100/28101, press each held and released, unplug the plough's ISOBUS 20 s and replug, power-cycle the plough, unassign. | Assigns; BREDER wider, SMALLER narrower; note what the VT shows after the replug and after the power cycle. Then **put the numbers back** (1200 = VT 1, CNH = VT 2), restart, try to assign on the CNH: **refused** (upstream's rule). | 26 |
 | V6 | **At least an hour** with both VTs on the bus, working or standing. | The plough stays on its VT and TC. Afterwards, from the log: `is now offline` for VT 0x26 / 1200 0x80 / the TC; `E] [VT]` and `W] [VT]` lines; all expected 0. No VT stalls, `CAN receive queue: dropped 0`. | 26 (offline), 27 (`Failed`) |
 | V7 | Debug `1` a few times during V6. | `PGN 129029 GNSS position:` count rising, `RTK quality` as before. | 27 |
@@ -152,7 +153,7 @@ the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on
 | V11 | **#330, the side labels** (owner's look, no change made): with the plough in each turn position, note which way the soil is thrown, the cab LCD's side letter (row 3, col 15), the calibration's side (LCD `L`/`R`, VT `LINKS`/`RECHTS`) and the VT picture. | Steering and picture right (as at the client); the question is whether "left" means the side the soil goes to. Photo of each. | (#330) |
 
 **End of part V:** preferred VT 2, VT numbers as the farmer uses them (1200 = VT 1), a final dump. Leave the board on
-f8a25f0 if V passed, otherwise on the highest ladder step that passed.
+325650a if V passed, otherwise on the highest ladder step that passed.
 
 ## 5. Part A -- the FET client's John Deere
 
@@ -204,7 +205,7 @@ PART V -- VAN MASTWIJK
 - [ ] V1 MW18 1200 __ s, CNH __ s; TC08 Y/N; errors ______
 - [ ] V2 width popup Y/N; 1200 shows ____; reported __
 - [ ] V3 1200 records: ______; DDI 141 1/0/1 Y/N
-- [ ] V4 AUTO / H S! / H G! Y/N; stopped lowering in AUTO: Y/N at __:__:__
+- [ ] V4 AUTO / H S! / H G! Y/N; stopped following in AUTO: Y/N at __:__:__; HAND and back moved again Y/N
 - [ ] V5 assign Y/N; presses Y/N; after replug ______; after power cycle ______; numbers back Y/N; CNH refused Y/N
 - [ ] V6 from __:__ to __:__; offline VT __ 1200 __ TC __; `E]`/`W] [VT]` __; stalls __; dropped __
 - [ ] V7 129029 rising Y/N; RTK quality ______
@@ -212,7 +213,7 @@ PART V -- VAN MASTWIJK
 - [ ] V9 reconnect: XTE unchanged Y/N; popup Y/N
 - [ ] V10 stack peak ______ never used ______; CrashReport at any boot Y/N
 - [ ] V11 (#330) turn pos 1: soil to ______, letter __, cal __, picture ______; turn pos 2: soil to ______, letter __, cal __, picture ______
-- [ ] left on: f8a25f0 / ladder step ______
+- [ ] left on: 325650a / ladder step ______
 
 PART A -- THE CLIENT (his sheet)
 - [ ] V4 width popup Y/N; JD width ______
@@ -227,7 +228,7 @@ PART A -- THE CLIENT (his sheet)
 - **A VT stuck in `Failed`** (dump `1`): note the time and which VT, keep the log and the CANedge, power-cycle that VT
   once. That is upstream #868 doing what it says; the question is why the VT rejected MW18 (session 27's Q1).
 - **A `CrashReport:` block:** keep the whole block and the log before it; ladder step 27.
-- **The 3.2:** no banner or a reset loop: keep the log, flash `teensy32_can_f8a25f0.hex`. `Not enough memory for the CAN
+- **The 3.2:** no banner or a reset loop: keep the log, flash `teensy32_can_325650a.hex`. `Not enough memory for the CAN
   controller` = `malloc()` failed at boot: note the `Heap:` line (#341). "Never used" under 4 KB anywhere: not a failure,
   but #341 doesn't merge on it.
 - **Not a difference:** a VT or TC uploading once because it never stored MW18 / TC08 with this NAME.
@@ -236,8 +237,8 @@ PART A -- THE CLIENT (his sheet)
 
 - **Notes:** serial logs, the 3.2's old boot print and the timeline go on **`test/session28`** under
   `Ploegbesturing Isobus/Documentation/logs/`, named `<date>_session28_<place>_*`.
-- **Where results go:** W-1 and V to the PR its row names (#162, #326, #327, #328, #331, #343); W-3 to #341 (with Q1)
+- **Where results go:** W-1 and V to the PR its row names (#162, #326, #327, #328, #331, #343, #344); W-3 to #341 (with Q1)
   and #342; part A to #162 (and #304/#305, whose steps passed on 2026-11-09); V11 to #330.
 - **When it passes:** merge in stack order (#162 and #326, then #327 + #328, #331, #343, then #341/#342 once upstream
-  has #886/#887), retargeting each child before `--delete-branch`. Then main is v0.28 and the session briefs 25-27 are
+  has #886/#887; #344 is on main's base and can go at any point), retargeting each child before `--delete-branch`. Then main is v0.28 and the session briefs 25-27 are
   history.
