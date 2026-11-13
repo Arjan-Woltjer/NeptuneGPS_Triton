@@ -112,6 +112,10 @@ private:
     // End-of-travel latch (MeijWorks Libs/EndShutoff)
     EndShutoff endShutoff;
 
+    // The mode Adjust() last ran in; a change clears the end-shutoff latch
+    // (#329). 0xFF until the first call.
+    byte lastAdjustMode = 0xFF;
+
     // Objects
     Stream*     serialDebug;
     GuidanceSource* guidance;
