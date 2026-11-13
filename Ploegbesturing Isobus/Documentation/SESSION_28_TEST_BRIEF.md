@@ -24,12 +24,12 @@ This session's notes go on **`test/session28`**, see section 8.
 
 ## 0. Before the session
 
-**Q1 -- the 3.2's send queue (PR #341).** `FLEXCAN_T4_PLUGIN_TX_QUEUE_SIZE=64`: 4 960 B of RAM instead of 17 056 B.
-AgIsoStack hands frames to the driver once per loop pass, so the driver's queue only has to keep the bus busy until
-the next pass: 64 frames is about 35 ms at 250 kbit/s (the 4.1's longest pass is about 3 ms). A full queue loses
+**Q1 -- the 3.2's send queue (PR #341): answered on the bench, 16.** AgIsoStack hands frames to the driver once per
+loop pass, so the driver's queue only has to keep the bus busy until the next pass. The 3.2's pass is about 3 ms
+(18 ms once, while the pool is scaled), about 6 frames at 250 kbit/s. With `FLEXCAN_T4_PLUGIN_TX_QUEUE_SIZE=16` the pool
+upload took 2.6 s. An entry costs about 27 B of heap, so 16 instead of 64 saves about 1.3 KB. A full queue loses
 nothing; the frame waits in AgIsoStack's own transmit queue, which on the Teensy is unbounded (an `std::queue` on the
-heap, upstream #915), so an ETP burst of up to 255 frames waits there during the pool upload and counts in the heap
-peak. W-3 reads the 3.2's longest loop pass; the queue is set from that (64 proposed upstream as the default, #887).
+heap, upstream #915).
 
 **Session 27's Q1 -- the reconnect watchdog vs upstream #868** stays open. No step below needs a rejected pool; if a
 VT ever rejects MW18, see section 7.
@@ -50,13 +50,14 @@ Everything since session 24 (d59c191, v0.24, MW17), in the order it was stacked:
 | 27 | AgIsoStack 5ff90cb: a **rejected pool is not re-sent**; a Store Version timeout goes to `Connected`; fast packet callbacks outside the locks | #331 | Nothing on a VT that accepts MW18 |
 | 28 | AgIsoStack **707ad5c**: no C++ streams, one CAN port, the `NanoLibcCompat.cpp` shim removed | #343 | 4.1 `Stack:` size about **228 KB** (session 27: 71 KB) |
 | 28 | **Heap reading**: dump `Heap: peak N of M bytes`, ` hp=` on the 1 Hz line | #341 | `Heap:` line |
-| 28 | **Full ISOBUS on the Teensy 3.2**, CAN0 on pins 3/4, the NAME from the 3.2's own serial; the 3.2 adds upstream PRs #886 + #887 (fork branch `neptune-teensy3-707ad5c`) | #341, #342 | Part W-3 |
+| 28 | **Full ISOBUS on the Teensy 3.2**, CAN0 on pins 3/4, the NAME from the 3.2's own serial; the 3.2 adds upstream PRs #886 + #887 and two fixes the bench found (fork branch `neptune-teensy3-707ad5c-fixes`, 84e1630), and keeps no object pool buffer of its own | #341, #342 | Part W-3 |
 | 28 | **The end-shutoff latch clears on every mode change** (AUTO / HOLD / MANUAL); before, a direction latched away from a real end stop stayed off in AUTO until a restart (field day session 112) | #344 (#329) | Part V4: HAND and back always gets the plough moving again |
 | 28 | **The plough side is named by where the soil goes** (owner, 2026-11-13): the cab LCD letter, the wizard's "Ploegt naar" and the VT calibration's LINKS/RECHTS flip; the input, the swap, the steering and the picture don't; the pool stays MW18 | #345 (#330) | V11 and J4: the letter matches the picture and the soil |
 | 28 | Version | | Splash `Triton PB-ISO  v0.28`, banner `Triton PB-ISO version 0.28` |
 
-**Sizes:** 4.1 228 544 B free for local variables, 4.0 229 664 B. `teensy32_isobus` 248 500 of 262 144 B flash
-(94.8 %; 248 548 B), 22 660 B static RAM, so heap and stack share 42.9 KB.
+**Sizes:** 4.1 228 544 B free for local variables, 4.0 229 664 B. `teensy32_isobus` 247 284 of 262 144 B flash
+(94.3 %), 6 308 B static RAM, so heap and stack share 58.9 KB; after the pool is scaled the heap peak is 50.9 KB and
+6.3 KB of stack is never used.
 
 **Expected once per terminal, not a fault:** MW18 uploads once on every VT, and a TC that hasn't seen TC08 with this
 NAME uploads the DDOP once.
@@ -69,7 +70,7 @@ OneDrive `MeijWorks Projects/Firmware builds/`:
 |---|---|
 | `session28/teensy41_isobus_a160ce6.hex` | the rig 4.1 (Loader 13249100), parts W and V |
 | `session28/teensy40_isobus_a160ce6.hex` | a standard Teensy 4.0 plough board (spare) |
-| `session28/teensy32_isobus_a160ce6.hex` | an original Teensy 3.2 board (CAN on 3/4), part W-3 |
+| `session28/teensy32_isobus_4c96780.hex` | an original Teensy 3.2 board (CAN on 3/4), part W-3. Built from the session branch after #341's fixes were merged; the 4.1 hex of that commit is byte-identical to `a160ce6`'s |
 | `session28/teensy32_can_a160ce6.hex` | the 3.2 board, fallback: plain CAN through ACAN, as before ISOBUS |
 | (after the merge) | **the client**: a FET3 package built from main once session 28 has merged, no spike |
 
@@ -99,9 +100,41 @@ the 1 Hz line on (debug `2`), CANedge on the ISOBUS in part V. Times to the seco
 
 **Done 2026-11-13** (sheet https://claude.ai/artifact/GDziQaEETM9hcoFg3BqbJV, logs `logs/2026-11-13_session28_bench_*`):
 W1-W6 and K1-K8 **PASS** on the rig 4.1 (stack 228 KB, MW18 in 2.1 s on PC VT 1.7.0, Load Version after a replug and a
-power cycle); #326 merged on it. W-3 **FAILED** and is **parked**: the 3.2 hangs in the address claim (a clock fix is
-on #341, a second hang remains). #330 was reproduced, fixed as #345 and passed on the bench on `a160ce6` (letter matches
+power cycle); #326 merged on it. #330 was reproduced, fixed as #345 and passed on the bench on `a160ce6` (letter matches
 the picture, flips with a swap; settings back as K2).
+
+**W-3, the Teensy 3.2 (board 7515900): PASS on `4c96780`, after four fixes found that evening.** `325650a` and
+`a160ce6` did not get past the address claim. In the order they showed:
+
+1. **The clock.** AgIsoStack's default clock is `std::chrono::steady_clock`, which on a Teensy 3 reads the RTC, and
+   that only runs with the optional crystal: time stood still and the claim never went out. The channel now gives
+   AgIsoStack a `millis()` clock on the Teensy 3.
+2. **A hard fault at the first frame another node acknowledged.** Our upstream draft #886 created the FlexCAN
+   controller in memory that was not zeroed, and FlexCAN_T4 leaves its handler pointers as they are: the interrupt
+   called one. Fixed with `calloc` (fork 47d0f29).
+3. **Out of memory at the pool upload.** AgIsoStack copies the whole pool to the heap (13 373 B) to scale it, next to
+   the plough's own 16 KB buffer. On the 3.2 the plough keeps no buffer now: its generator writes the pool straight
+   into AgIsoStack's copy.
+4. **Out of memory in the scaling.** AgIsoStack built a 5 to 6 KB table of maps on the heap for every font object.
+   It is constant data now (fork 84e1630).
+
+Found without a debugger: a capture build that prints nothing while it runs (a sampling interrupt, its own hard-fault
+handler and the watchdog store where the processor was, and the next boot prints it). Logs `..._T32_capture*.log`.
+
+| Step | Result on `teensy32_isobus_4c96780.hex` |
+|---|---|
+| B0 | Two shelf boards run a planter control (7516680, 1258170): not flashed, boot prints kept. 7515900's old firmware printed nothing |
+| B1 | Banner and splash 0.28, address claimed |
+| B2 | `identity 751590` = USB serial 7515900 / 10, not 1 (#342) |
+| B3 | Not judged: this board had no plough calibration; `:list` shows the defaults |
+| B4 | On the VT. Full upload 2.6 s, `Stored object pool with no error` (22:06, experimental build, same code); the clean build came up by Load Version |
+| B5 | Heap peak 50 908 of 58 868 B; stack 6 816 B never used (6 296 B after two bus drops); loop pass longest 18 ms while scaling, about 3 ms otherwise; receive queue high water 2 of 64, dropped 0 |
+| B6 | Soft keys, CALIBR, BREEDTE and the cab wizard work; a setting saved from the cab |
+| B7 | Twice: back by Load Version; the heap rose 472 B the first time and not the second |
+| L1 | An hour on the VT (experimental build): heap and stack the same on all 3 621 lines, no reboot, no VT error |
+
+Still open for the 3.2: the legacy calibration read (B3, needs a board that ran the plough), a real TC, and the
+upstream side (the two fixes, #886 and #887).
 
 ### W-1 -- the rig 4.1 on v0.28
 
@@ -132,7 +165,7 @@ K7-K9 (draft timeout, debug menu, copying to a second board) are in `SESSION_25_
 | Step | Do | Expect |
 |---|---|---|
 | B0 | **Before flashing:** open its serial port and save the old firmware's boot print (version and calibration) to the logs. It prints once, late; Windows buffers it until the port opens. There is no hex of the old firmware: this print is the only record. | |
-| B1 | Flash `teensy32_isobus_a160ce6.hex`, logger open, boot. | Banner and splash `0.28`. No hang. |
+| B1 | Flash `teensy32_isobus_4c96780.hex`, logger open, boot. | Banner and splash `0.28`. No hang. |
 | B2 | Debug `1`, before the VT. | `Stack:` and `Heap:` lines. **`identity` = the board's serial** (the USB serial Windows shows, /10 if under 100 000 000 and ending in 0), **not 1** (#342). |
 | B3 | `:list` | **The calibration from the old boot print.** If it differs, note both and recalibrate with the wizard; that is an EEPROM finding, not #341's. |
 | B4 | Saturn + PC VT. | Address claim; a full MW18 upload (new NAME). Note the upload time (Q1). The plough picture matches the side switch. |
@@ -197,7 +230,7 @@ His skipped V4, V6 and V7 are J1, J2 and J3 above. His label finding is #330, fi
 ## 6. Checklist (copy into the timeline, tick live)
 
 BEFORE
-- [ ] Q1 send queue: 64, set from B5's loop pass ______
+- [x] Q1 send queue: 16 (loop pass about 3 ms, 18 ms while scaling)
 
 PART W-1 -- RIG 4.1 ON v0.28
 - [ ] W1 banner 0.28 Y/N; SPIKE Y/N; identity ______; CrashReport none Y/N
@@ -259,7 +292,7 @@ PART J -- VAN OS (JOHN DEERE)
 - **Notes:** serial logs, the 3.2's old boot print and the timeline go on **`test/session28`** under
   `Ploegbesturing Isobus/Documentation/logs/`, named `<date>_session28_<place>_*`.
 - **Where results go:** W-1 and V to the PR its row names (#162, #327, #328, #331, #343, #344, #345); J to #162 and #345; W-3 to #341 (with Q1)
-  and #342 (parked); V11 to #345.
+  and #342; V11 to #345.
 - **When it passes:** merge in stack order (#162, then #327 + #328, #331, #343; #344 and #345 are on main's base and
-  can go at any point; #326 merged 2026-11-13; #341/#342 are parked), retargeting each child before `--delete-branch`. Then main is v0.28 and the session briefs 25-27 are
+  can go at any point; #326 merged 2026-11-13; #341/#342 wait for upstream to have #886, #887 and the two fixes), retargeting each child before `--delete-branch`. Then main is v0.28 and the session briefs 25-27 are
   history.

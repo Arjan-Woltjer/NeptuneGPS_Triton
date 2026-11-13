@@ -1,0 +1,124 @@
+21:40:38.371 === logger start COM18 ===
+21:40:38.389 --------------------------------
+21:40:38.391 -----------MeijWorks------------
+21:40:38.391 --------------------------------
+21:40:38.391    Triton PB-ISO version 0.28   
+21:40:38.391   SPIKE #316: DDI 515 echo ON   
+21:40:38.391 (c) 2011 - 2026 by J.A. Woltjer 
+21:40:38.391 --------------------------------
+21:40:51.942 -------------------------------
+21:40:51.942 Tractor using following data:
+21:40:51.942 -------------------------------
+21:40:51.942 Speed calibration
+21:40:51.943 250
+21:40:51.943 -------------------------------
+21:40:51.943 Simspeed
+21:40:51.943 1.00
+21:40:51.943 -------------------------------
+21:40:51.943 Sim time
+21:40:51.943 2
+21:40:51.943 -------------------------------
+21:40:51.943 Sim mode
+21:40:51.943 1
+21:40:51.943 -------------------------------
+21:40:51.943 Invert hitch signal
+21:40:51.943 0
+21:40:51.943 -------------------------------
+21:40:51.943 Times started
+21:40:51.943 3
+21:40:51.943 --------------VT: partner 0xFE silent -- requesting address claims to find another VT
+21:41:01.937 VT: partner 0xFE silent -- requesting address claims to find another VT
+21:41:07.480 >>> sent: x
+21:41:07.551 === ISOBUS DEBUG MENU ===
+21:41:07.552 1. Full status dump
+21:41:07.552 2. Periodic summary line (OFF - press to toggle)
+21:41:07.552 3. Reset message counters
+21:41:07.552 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+21:41:07.552 t. Task Controller choice (SPIKE #316), now: any TC
+21:41:07.552 5. Dump VT object pool as hex
+21:41:07.552 q. Exit
+21:41:09.515 >>> sent: 1
+21:41:09.574 === ISOBUS STATUS ===
+21:41:09.574 Address claim: CLAIMED  address=0x81  identity=751590
+21:41:09.574 CAN controller: not sampled on this build
+21:41:09.574 Bus load (ch0): 0.0 %
+21:41:09.574 CAN receive queue: high water 0 of 64, dropped 0
+21:41:09.574 Loop pass: longest 3079 us since the last dump, 3079 us since boot
+21:41:09.574 Stack: peak 1144 of 6928 bytes since boot, 5784 never used
+21:41:09.574 Heap: peak 34628 of 41556 bytes, shared with the stack
+21:41:09.574 --- Message counters ---
+21:41:09.574   PGN 129025 Position NMEA2000: 0
+21:41:09.574   PGN 129026 Speed NMEA2000:    0
+21:41:09.574   PGN 129283 XTE NMEA2000:      0
+21:41:09.574   PGN 65267  Position legacy:   0
+21:41:09.574   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+21:41:09.574   PGN 65535  all senders:       0   last SA=0xFF
+21:41:09.574   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+21:41:09.574              raw: nothing from 0x2A or 0x80 yet
+21:41:09.574   PGN 65535  GNSS status 0x80:  0   (none)
+21:41:09.574   PGN 60160  XTE Trimble legacy:0   last SA=0xFF
+21:41:09.574   PGN 64770  AISO stop:         0   last 0 ms ago
+21:41:09.575   TOTAL:                        0
+21:41:09.575 --- Guidance telemetry ---
+21:41:09.575   XTE:          0.00 m
+21:41:09.575   Speed:        0.00 m/s (0.00 kn)
+21:41:09.575   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+21:41:09.575   PGN 129027 position deltas: 0
+21:41:09.575   Guidance machine info (PGN 44032): (none received)
+21:41:09.575   IsRtkQuality=N
+21:41:09.575   GGA fix age:  38550 ms
+21:41:09.575   VTG fix age:  38550 ms
+21:41:09.575   XTE fix age:  38550 ms
+21:41:09.575   Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+21:41:09.575 --- Virtual Terminal ---
+21:41:09.575   Connected:    N
+21:41:09.575   State:        0/22  Disconnected
+21:41:09.575   VT version:  (unknown)
+21:41:09.575   VT status msgs: 0   last 0 ms ago
+21:41:09.575   Partner: addr=0xFE valid=N  reconnect attempts=0
+21:41:09.575   VT failover: switches=0 claim requests=2 rejoins=0 preferred=none
+21:41:09.575   AUX-N: Breder events=0 Smaller events=0 held=--
+21:41:09.575 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+21:41:09.575   Mode: AUTO  NOT RUNNING  (no Ag Leader display seen)
+21:41:09.575   Address claim: NOT CLAIMED
+21:41:09.576   Display partner: 0xFF  identification requests=0 answered=0 unknown=0  last DID=0x0  hello=N  stack partner=N
+21:41:09.576   Sent: frames=0 failures=0 heartbeats=0 softwareId=N  proprietary A from display=0
+21:41:09.576   Requests: softwareId=0 (sent 0x) ignored=0 last ignored PGN=0
+21:41:09.576   PGN 65462 XTE: frames=0 committed=0
+21:41:09.576 --- Task Controller ---
+21:41:09.576   Connected:    N
+21:41:09.576   TC-GEO (with/without pos): (not connected)
+21:41:09.576   Task active:  N
+21:41:09.576   DRP deviation (DDI 513): 0 mm, last 38550 ms ago
+21:41:09.576   GNSS quality (DDI 514):  0, last 38550 ms ago
+21:41:09.576   Work state (DDI 141):    0 not working (hitch up)
+21:41:09.576   Working width (DDI 67):  160 cm, changes 0, reported 0
+21:41:09.576   [via stack] Value cmds to handler: 0  last DDI=(none)
+21:41:09.576   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+21:41:09.576   [on bus] Requests for our values: 0
+21:41:09.576   [on bus] Set-value commands:      0
+21:41:09.576   [on bus] Measurement commands:    0  (none)
+21:41:09.576   [on bus] Other, addressed to us:  0
+21:41:09.576   Partner: addr=0xFE valid=N  reconnect attempts=0
+21:41:09.576   TC choice: any TC  bound: none
+21:41:09.576   Tramline setpoint (DDI 506): (not connected)
+21:41:09.576   [on bus] Requests for DDI 506: 0  DDI 515: 0
+21:41:09.576   Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+21:41:09.576   Guidance track (DDI 507-511): (not connected)
+21:41:09.576 === ISOBUS DEBUG MENU ===
+21:41:09.576 1. Full status dump
+21:41:09.577 2. Periodic summary line (OFF - press to toggle)
+21:41:09.577 3. Reset message counters
+21:41:09.577 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+21:41:09.577 t. Task Controller choice (SPIKE #316), now: any TC
+21:41:09.577 5. Dump VT object pool as hex
+21:41:09.577 q. Exit
+21:41:11.527 >>> sent: q
+21:41:11.585 Exiting.
+21:41:11.962 VT: partner 0xFE silent -- requesting address claims to find another VT
+21:41:17.668 I] [NM]: Partnered control function with name 000000000000000lx has claimed address 2950692864 on channel 2684361984.
+21:41:17.790 I] [VT]: No version label from the VT matched. Client will upload the pool and store it instead.
+21:42:10.074 >>> sent: x
+21:42:12.052 >>> sent: 1
+21:42:14.074 >>> sent: q
+21:53:18.562 === logger stop ===
