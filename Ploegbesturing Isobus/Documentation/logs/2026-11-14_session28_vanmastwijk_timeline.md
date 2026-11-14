@@ -9,7 +9,7 @@ on `a160ce6` (v0.28). Morning run (09:45-10:12): see `session28_vanmastwijk_hand
 | 15:35:45 | Dump: receive queue high water 63 of 64, **dropped 328** (boot, the splash delay); stack peak 1 176, heap 47 460; TC not connected | dump |
 | 15:35:44 - 15:36:45 | Calibration page on the CNH VT opened three times, saved 15:35:49, 15:35:58, 15:36:45. Owner: V11 pass; preferred VT set to 1 | log, owner |
 | 15:37:01 | 1200 up: lightbar partner 0xF5 seen, plough claims 0xDC | log |
-| 15:37:09 | TC 0xF7: `DDOP Activated without error` (TC08 stored). **V6's hour starts here** | log |
+| 15:37:09 | TC 0xF7: `DDOP Activated without error` (a full upload: the 1200 keeps no DDOP, see the handover). **V6's hour starts here** | log |
 | 15:37:20 | Dump: `preferred=VT1 at 0x26 (bound)`; TC connected, task active, bound TC 1 manufacturer 97 version 3 booms 1 sections 144; requests 0, measurement commands 0; dropped 328; PGN 129029 none received; lightbar `autosteer off` | dump |
 | 15:37:45 | RTK quality 1 -> 4 | 1 Hz line |
 | about 15:37:56 | V13: owner presses the autosteer enable switch. It was already on "field"; to enable after a restart it has to go to road and back to field | owner |
@@ -62,7 +62,7 @@ The owner agreed at 15:46 to stop V6 after 30 minutes and use the light for the 
 | 16:21:47, 16:21:48 | Wider pressed twice on the VT; the owner also restarted the task and moved the hitch: "nothing from the 1200" | log, owner |
 | 16:22:47 | Last dump on the spike: width 183 cm, changes 3, **reported 3**; TC wrote 160: never; 290: never; requests 0, set-value 0, measurement 0 | dump |
 | 16:22:54 - 16:23:04 | Flashed back to `session28/teensy41_isobus_a160ce6.hex` (script fixed: OK) | laptop |
-| 16:23:05 | a160ce6 boots: v0.28, no `SPIKE #347` line; CNH VT by Load Version 16:23:08; TC `DDOP Activated without error` 16:23:14 (TC08 was still stored). Boot print: **max correction per share 100 mm** (75 this morning), preferred VT 1, width 183 cm | log |
+| 16:23:05 | a160ce6 boots: v0.28, no `SPIKE #347` line; CNH VT by Load Version 16:23:08; TC `DDOP Activated without error` 16:23:14 (a full upload again: the 1200 keeps no DDOP, see the handover). Boot print: **max correction per share 100 mm** (75 this morning; set by the owner on purpose), preferred VT 1, width 183 cm | log |
 | 16:24:09 | Rig 4.1 unplugged from the ISOBUS for V12 (VT and TC time out). Dump 16:24:24: dropped 423 at this boot | log, dump |
 | 16:25:07 | Teensy 3.2 (7515900, `teensy32_isobus_4c96780.hex`) boots on USB: v0.28, identity 751590, claims 0x81. Its stored settings: offset calibration 600/34, 4 shares, max correction per share 50 mm, preferred VT 0, plough side 1 | `..._teensy32_serial.log` |
 | 16:25 - 16:29 | The 3.2 on the ISOBUS plug: **not one frame received** (msgs=0, receive queue high water 0 of 64, 1 Hz line load 0.0 %), `VT: partner 0xFE silent` every 10 s. Dump 16:27:11: heap peak 33 852 of 58 868 B, stack 23 872 B never used, longest loop pass 3 047 us | log, dump |
@@ -73,7 +73,9 @@ The owner agreed at 15:46 to stop V6 after 30 minutes and use the light for the 
 
 - **#347 spike on the InCommand 1200:** the 1200 accepts a one-section DDOP (TC09) and then ignores it exactly as it
   ignores TC08: in 8 minutes with an active task it sent no value request, no measurement command and no command on
-  DDI 160 or 290, also after a task restart, two width steps and a hitch move. The echo hex was not flashed: it only
+  DDI 160 or 290, also after a task restart, two width steps and a hitch move
+  (the bus shows the width steps fell in a stopped task and the hitch move did not change the work state, see the
+  handover). The echo hex was not flashed: it only
   differs after the TC writes DDI 160, and the TC wrote nothing. The TC10 hex was not needed.
 - **V12 not run:** this Teensy 3.2 board has CAN high and low crossed at its connector. It heard nothing and its
   own transmit attempts disturbed the tractor's bus until it was unplugged. The CANedge has that interval
