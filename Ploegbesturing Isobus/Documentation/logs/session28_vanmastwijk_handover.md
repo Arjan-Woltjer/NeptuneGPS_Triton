@@ -52,8 +52,9 @@ Rig 4.1 13249100 on `teensy41_isobus_a160ce6.hex`, v0.28, identity 1324910, addr
 ## State the tractor was left in
 
 Per the log: preferred VT 2, saved from the VT at 10:09:34; the plough went to the 1200 at 0x80 as VT 2 at 10:10:46,
-so the VT numbers are still swapped. The owner's sheet note says "1200 = vt2! preferred vt set to 1": to be
-confirmed. Bus off at 10:12:12.
+so the VT numbers are still swapped. The owner confirmed this at 14:50: the board is still on preferred VT 2, and
+the preferred VT **still has to be set to 1** (his sheet note "preferred vt set to 1" was the intention). Bus off
+at 10:12:12.
 
 ## Next visit needs
 
