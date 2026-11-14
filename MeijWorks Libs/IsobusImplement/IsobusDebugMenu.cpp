@@ -17,6 +17,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "IsobusDebugMenu.hpp"
+#include "StackWatermark.hpp"
 
 // FLASHMEM runs rarely used code from flash instead of the Teensy 4's RAM1
 // (#192). The Teensy 4 core defines it; the ESP32 core does not, so fill the
@@ -247,6 +248,23 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
     serialDebug->print(longestPassUs);
     serialDebug->println(" us since boot");
     longestPassSinceDumpUs = 0;
+    {
+        // How deep the stack has ever reached (StackWatermark). A stack that
+        // reaches the end faults, and the next boot prints a CrashReport.
+        const StackUse stack = StackWatermark::Read();
+        serialDebug->print("Stack: ");
+        if (!stack.available) {
+            serialDebug->println("not measured on this build");
+        } else {
+            serialDebug->print("peak ");
+            serialDebug->print(stack.peak);
+            serialDebug->print(" of ");
+            serialDebug->print(stack.size);
+            serialDebug->print(" bytes since boot, ");
+            serialDebug->print(stack.size - stack.peak);
+            serialDebug->println(" never used");
+        }
+    }
 
     serialDebug->println("--- Message counters ---");
     serialDebug->print("  PGN 129025 Position NMEA2000: ");
@@ -578,6 +596,13 @@ FLASHMEM void IsobusDebugMenu::printPeriodicLine() {
         serialDebug->print("ms");
     }
     if (sections != nullptr) sections->PrintPeriodicAfterVt();
+    // The stack's peak since boot, last on the line so the fields before it
+    // keep their places in a log.
+    const StackUse stack = StackWatermark::Read();
+    if (stack.available) {
+        serialDebug->print(" stk=");
+        serialDebug->print(stack.peak);
+    }
     serialDebug->println();
 }
 
