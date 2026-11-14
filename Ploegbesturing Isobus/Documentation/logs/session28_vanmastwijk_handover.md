@@ -81,3 +81,16 @@ Read against the serial log, the firmware source and CANedge session 129 (`bucke
   has no `%llx`); it was noted at W3 on the bench on 2026-11-13. The empty `error flags )` is a second one:
   `isobus::to_string()` writes a `std::uint8_t` as a character; the raw byte 0x10 is in the log file.
 - **Finding 5, the count.** The 72 lines are 54 "Request to Send" plus 18 "Abort" with a global destination.
+
+## The XTE gap at 09:53 (added 15:30, rig laptop)
+
+The serial log has two XTE gaps while the 1200 was up (laptop clock):
+
+| Gap | VT 0x80 | TC | GGA | Cause |
+|---|---|---|---|---|
+| 09:53:29 - 09:56:16 | connected, status never older than 0.5 s | connected | arriving | The owner **stopped the task on the 1200** (his recollection, "might have been"). TC status: task inactive 09:53:22, active again 09:55:03 (CANedge clock); the XTE came back about 70 s after that |
+| 10:09:55 - 10:10:53 | lost | lost | lost | The 1200 switched off for V8 |
+
+So the 1200 stops sending XTE while its task is stopped, with position and RTK quality still arriving. The bits of
+PGN 0xFFB6 from 0xF5 that change at 09:53:22 and 09:56:14 therefore mark the task or the line, not necessarily the
+autosteer engage; V13 has to separate the two (nothing else touched on the 1200 during its runs).
