@@ -12,7 +12,7 @@ may go out again on Monday 2026-11-16; which tractor is not decided, so this cov
 - **Failed at van Mastwijk:** V2 and V3 (the InCommand 1200 never subscribes to the plough; not a regression; #346,
   #347) and V5 (the CNH VT rejects the stored AUX-N assignment after a replug; #327).
 - **Not run:** V12 (the Teensy 3.2 on a live bus; its CAN lines were crossed) and all of part J.
-- **Sheet:** https://claude.ai/artifact/GDziQaEETM9hcoFg3BqbJV (version 8 or later). The new steps are in the phases
+- **Sheet:** https://claude.ai/artifact/GDziQaEETM9hcoFg3BqbJV (version 9 or later). The new steps are in the phases
   "The remainder of session 28, on the John Deere" and "Left for the next visit here". Read the live page before you
   republish it; ticks and notes are in its database, not in the page.
 - **Brief:** `SESSION_28_TEST_BRIEF.md`, sections 4 (end) and 5.
@@ -24,7 +24,8 @@ may go out again on Monday 2026-11-16; which tractor is not decided, so this cov
 2. The hexes are in OneDrive `Firmware builds/`. Check that OneDrive has synced them: the first 16 characters of the
    SHA-256 are in section 4.
 3. The workstation session works in its own clones and does not touch the OneDrive checkout. Its name for messages is
-   `neptune-gps-8c`.
+   `neptune-gps-8c`; on the laptop it is listed by its title, "Code size reduction for #879" (Remote Control). A reply
+   to the sender of the handover message reaches it either way.
 4. Logger (`tools/serial_logger.ps1`) open **before** the board gets power, every boot. On 2026-11-14 a boot print was
    lost because the logger opened 18 s late.
 
