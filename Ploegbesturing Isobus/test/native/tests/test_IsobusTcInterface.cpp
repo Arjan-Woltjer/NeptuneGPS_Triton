@@ -295,7 +295,7 @@ test(IsobusTcInterface, ddop_workingWidthIsReportedOnChangeWithShareBasedLimits)
         if (object == nullptr) continue;
         if (object->get_object_type() == ObjectTypes::DeviceProcessData) {
             auto dpd = std::static_pointer_cast<DeviceProcessDataObject>(object);
-            if (dpd->get_ddi() == 67) {
+            if (dpd->get_ddi() == 67 && actualId == 0xFFFF) {   // Ploughbody's; SPIKE #347's TC10 tree adds a second
                 actualId         = dpd->get_object_id();
                 actualProperties = dpd->get_properties_bitfield();
                 actualTriggers   = dpd->get_trigger_methods_bitfield();
@@ -401,7 +401,8 @@ test(IsobusTcInterface, spike347_ddopHasOneSectionUnderPloughbodyWithTheSharedWi
 
     using namespace isobus::task_controller_object;
     int sections = 0;
-    std::uint16_t sectionParent = 0xFFFF, functionId = 0xFFFE, widthId = 0xFFFD;
+    std::uint16_t sectionParent = 0xFFFF, functionId = 0xFFFE;
+    std::set<std::uint16_t> widthIds;
     std::set<std::uint16_t> sectionChildren, functionChildren;
     for (std::uint16_t i = 0; i < parsed.size(); i++) {
         auto object = parsed.get_object_by_index(i);
@@ -418,14 +419,26 @@ test(IsobusTcInterface, spike347_ddopHasOneSectionUnderPloughbodyWithTheSharedWi
             }
         } else if (object->get_object_type() == ObjectTypes::DeviceProcessData) {
             auto dpd = std::static_pointer_cast<DeviceProcessDataObject>(object);
-            if (dpd->get_ddi() == 67) widthId = dpd->get_object_id();
+            if (dpd->get_ddi() == 67) widthIds.insert(dpd->get_object_id());
         }
     }
     assertEqual(sections, 1);
     assertEqual((int)sectionParent, (int)functionId);
     assertEqual((int)sectionChildren.size(), 3);              // offset X, offset Y, width
-    assertTrue(sectionChildren.count(widthId) != 0);
-    assertTrue(functionChildren.count(widthId) != 0);         // still on Ploughbody too
+    int onSection = 0, onFunction = 0, onBoth = 0;
+    for (std::uint16_t id : widthIds) {
+        const bool s = sectionChildren.count(id) != 0, f = functionChildren.count(id) != 0;
+        onSection += s; onFunction += f; onBoth += (s && f);
+    }
+    assertEqual(onSection, 1);                                // the section has exactly one width
+    assertEqual(onFunction, 1);                               // and Ploughbody still has its own
+#ifdef SPIKE347_SECTION_OWN_WIDTH
+    assertEqual((int)widthIds.size(), 2);                     // tree TC10: two objects
+    assertEqual(onBoth, 0);
+#else
+    assertEqual((int)widthIds.size(), 1);                     // tree TC09: one object, shared
+    assertEqual(onBoth, 1);
+#endif
 }
 
 // On the parent, as the DDI 161 and 290 definitions ask: 161 is ours (default

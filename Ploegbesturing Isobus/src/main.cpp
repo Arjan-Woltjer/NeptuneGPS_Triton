@@ -199,6 +199,11 @@ void setup() {
 #else
     gSerialDebug->println(" SPIKE #347: 1 section, 160 = 0 ");
 #endif
+#ifdef SPIKE347_SECTION_OWN_WIDTH
+    gSerialDebug->println(" SPIKE #347: TC10, own width obj");
+#else
+    gSerialDebug->println(" SPIKE #347: TC09, shared width ");
+#endif
 #endif
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");

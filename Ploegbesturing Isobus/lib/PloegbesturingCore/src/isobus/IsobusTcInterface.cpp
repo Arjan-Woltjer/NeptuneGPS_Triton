@@ -88,6 +88,9 @@ constexpr std::uint16_t kObjSectionOffsetY      = 23;  // DDI 135, property
 constexpr std::uint16_t kObjCondensedActual     = 24;  // DDI 161, reported by us
 constexpr std::uint16_t kObjCondensedSetpoint   = 25;  // DDI 290, written by the TC, stored only
 constexpr std::uint16_t kObjSectionControlState = 26;  // DDI 160, written by the TC, stored only
+#ifdef SPIKE347_SECTION_OWN_WIDTH
+constexpr std::uint16_t kObjSectionWidth        = 27;  // DDI 67 of the section's own, tree TC10 only
+#endif
 
 // DDI 505 value: bitfield of Tramline Control Levels we support.
 //   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
@@ -205,7 +208,12 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
+#ifdef SPIKE347_SECTION_OWN_WIDTH
+                      "TC10",  // SPIKE #347, the fallback tree: as TC09, but the section has a width
+                               // object of its own (see the end of buildDdop()).
+#else
                       "TC09",  // Structure label -- bumped from TC01 for the
+#endif
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
@@ -499,7 +507,19 @@ void IsobusTcInterface::buildDdop() {
     auto sectionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjSection));
     sectionElement->add_reference_to_child_object(kObjSectionOffsetX);
     sectionElement->add_reference_to_child_object(kObjSectionOffsetY);
+#ifdef SPIKE347_SECTION_OWN_WIDTH
+    // Tree TC10, to flash only if a TC refuses TC09: one process data object
+    // referenced by two elements has no tested precedent (AgIsoStack's own
+    // section-control example gives every section its own width object). The
+    // value is the same: OnValueRequest() answers DDI 67 for any element.
+    ddop->add_device_process_data("Section Width",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth),
+                                   NULL_OBJECT_ID,
+                                   kDefaultSet, kTriggers, kObjSectionWidth);
+    sectionElement->add_reference_to_child_object(kObjSectionWidth);
+#else
     sectionElement->add_reference_to_child_object(kObjActualWidth);
+#endif
 }
 
 // ------------------------------------------------------------------

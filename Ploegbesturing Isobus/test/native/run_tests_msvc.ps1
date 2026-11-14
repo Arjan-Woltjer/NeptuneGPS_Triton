@@ -55,6 +55,8 @@ $sources = @(
     '..\MeijWorks Libs\VehicleGuidance\CanFrameGuidanceChannel.cpp'
 )
 $defines = @('ISOBUS', 'CAN_STACK_DISABLE_THREADS', 'CAN_PORT_MAXIMUM_VALUE=1')
+# SPIKE #347: extra defines for a variant build, e.g. $env:TRITON_TEST_DEFINES = 'SPIKE347_SECTION_OWN_WIDTH'
+if ($env:TRITON_TEST_DEFINES) { $defines += $env:TRITON_TEST_DEFINES -split ';' }
 
 & "$root\..\tools\run_native_tests_msvc.ps1" -ProjectRoot $root -Name PloegbesturingNativeTests -Includes $includes -Sources $sources -Defines $defines
 exit $LASTEXITCODE
