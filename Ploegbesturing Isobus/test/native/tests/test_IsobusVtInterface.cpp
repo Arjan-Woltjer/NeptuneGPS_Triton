@@ -23,6 +23,7 @@
 
 // Standard headers first: the Arduino stub behind AUnit.h defines min/max as
 // macros, and GCC's <string>/<vector> use std::min/max with three arguments.
+#include <chrono>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -900,6 +901,59 @@ test(IsobusVtInterface, failover_switchesToTheVtThatIsStillTalking) {
     assertTrue(Fixture().IsPartnerAddressValid());
     assertEqual(Fixture().GetPartner()->get_NAME().get_full_name(), kInCommandVtName);
     millisValue(0);
+}
+
+namespace {
+
+// One frame from another CF, straight into the network manager, then processed.
+void ReceiveFrame(std::uint32_t identifier, const std::vector<std::uint8_t>& data) {
+    isobus::CANMessageFrame frame = {};
+    frame.identifier      = identifier;
+    frame.isExtendedFrame = true;
+    frame.dataLength      = static_cast<std::uint8_t>(data.size());
+    for (std::size_t i = 0; i < data.size(); i++) frame.data[i] = data[i];
+    isobus::CANNetworkManager::CANNetwork.process_receive_can_message_frame(frame);
+    isobus::CANNetworkManager::CANNetwork.update();
+}
+
+}  // namespace
+
+// AgIsoStack 02f3fe9 (upstream #655) made the client's AUX-N handling opt-in:
+// without set_auxiliary_functions_enabled(true) before initialize() it ignores
+// the VT's Auxiliary Assignment commands, so Breder and Smaller (#254) could
+// not be assigned. Runs after the switch above, which leaves the client bound
+// to the InCommand's VT, function instance 0: the only VT the client takes
+// assignments from. "Unassign all" needs no input unit, and is answered.
+test(IsobusVtInterface, failover_thenTheVtCanAssignAuxFunctions) {
+    Reset();
+    ClaimAddress(0x80, kInCommandVtName);
+    assertEqual(Fixture().GetPartnerAddress(), (std::uint8_t)0x80);
+    FakeCanPlugin* bus = Bus();
+    bus->Clear();
+
+    // Auxiliary Assignment Type 2, 14 bytes, so over TP from the VT (0x80) to
+    // us: the default NAME, function type 0x1F with bit 7 set (not stored as
+    // preferred), no input and no function.
+    // TP needs our own claimed address, which takes ~250 ms of wall-clock time
+    // inside AgIsoStack (test_IsobusGuidanceChannel.cpp waits the same way).
+    const auto ours = IsobusVtInterfaceTestAccess::Client(Fixture()).get_internal_control_function();
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+    while (!ours->get_address_valid() && std::chrono::steady_clock::now() < deadline) {
+        isobus::CANHardwareInterface::update();
+    }
+    assertTrue(ours->get_address_valid());
+    const std::uint32_t us = ours->get_address();
+    ReceiveFrame(0x1CEC0080u | (us << 8), { 0x10, 14, 0x00, 2, 0xFF, 0x00, 0xE6, 0x00 });   // TP.CM RTS, PGN 0xE600
+    ReceiveFrame(0x1CEB0080u | (us << 8), { 1, 0x24, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
+    ReceiveFrame(0x1CEB0080u | (us << 8), { 2, 0xFF, 0xFF, 0x9F, 0xFF, 0xFF, 0xFF, 0xFF });
+    isobus::CANHardwareInterface::update();
+
+    bool answered = false;
+    for (const auto& frame : bus->tx) {
+        const std::uint32_t pgnAndDestination = (frame.identifier >> 8) & 0xFFFF;
+        if ((pgnAndDestination == 0xE780) && (frame.dataLength == 8) && (frame.data[0] == 0x24)) answered = true;
+    }
+    assertTrue(answered);
 }
 
 // ---------------------------------------------------------------------------

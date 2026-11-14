@@ -154,6 +154,11 @@ void IsobusVtInterface::createClient(const std::vector<NAMEFilter>& filters) {
     auxFunctionListener = vtClient->get_auxiliary_function_event_dispatcher().add_listener(
         [this](const VirtualTerminalClient::AuxiliaryFunctionEvent& e) { workingSet->OnAuxFunction(e); });
     workingSet->OnClientCreated(vtClient);
+    // AUX-N is opt-in since AgIsoStack 02f3fe9 (upstream #655): without this
+    // the client ignores the VT's assignment commands (#254). It can only be
+    // set before initialize(), and the reconnect's terminate() + initialize()
+    // keeps it.
+    vtClient->set_auxiliary_functions_enabled(true);
     vtClient->initialize(false);
 }
 

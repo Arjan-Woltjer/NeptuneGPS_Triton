@@ -94,7 +94,10 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // MW16 -> MW17, 2026-11-07: the control's state on the main screen
     // (#318), and both ANNUL. keys on row 5 for the 1200's 2 x 5 keys
     // (session 23).
-    return "MW17";
+    // MW17 -> MW18, 2026-11-08: AgIsoStack on upstream main 02f3fe9, whose soft
+    // key and font scaling (#827, #832, #833) differ from the fork's 4625be4, so
+    // no VT may keep serving a pool scaled by the old library.
+    return "MW18";
 }
 
 uint16_t PloughVtWorkingSet::StateString(uint8_t mode, bool calibrating, HoldReason hold) {
