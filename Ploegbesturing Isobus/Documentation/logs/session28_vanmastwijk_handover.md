@@ -51,6 +51,12 @@ Rig 4.1 13249100 on `teensy41_isobus_a160ce6.hex`, v0.28, identity 1324910, addr
 
 ## State the tractor was left in
 
+**Owner, 2026-11-14 (evening):** CNH = VT 1, 1200 = VT 2 and preferred VT 1 (the CNH) is the intended state. Both
+terminals used to be VT 1; he first made the 1200 VT 1 and the CNH VT 2 for the farmer, AUX-N did not work that way
+either, so he turned them round. Nothing has to be put back. The afternoon's last save left preferred VT 1.
+
+What the morning's log showed:
+
 Per the log: preferred VT 2, saved from the VT at 10:09:34; the plough went to the 1200 at 0x80 as VT 2 at 10:10:46,
 so the VT numbers are still swapped. The owner confirmed this at 14:40: the board is still on preferred VT 2, and
 the preferred VT **still has to be set to 1** (his sheet note "preferred vt set to 1" was the intention). Bus off

@@ -178,6 +178,12 @@ K7-K9 (draft timeout, debug menu, copying to a second board) are in `SESSION_25_
 
 ## 4. Part V -- van Mastwijk, one visit
 
+**The VT numbers on this tractor (owner, 2026-11-14): CNH = VT 1, InCommand 1200 = VT 2, and the plough's preferred VT
+is 1, the CNH. That is the intended state, not a leftover.** Both terminals used to be VT 1. The owner first made the
+1200 VT 1 and the CNH VT 2 for the farmer; AUX-N did not work that way either (upstream's rule: AUX-N on VT 1 only,
+and the armrest belongs to the CNH), so he turned them round. The text below was written before that: where it says
+"still swapped" or "put them back", nothing has to be put back.
+
 The rig 4.1 on `a160ce6`, preferred VT 2 (the 1200 = VT 1, the CNH = VT 2). **The VT numbers are still swapped from
 the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on the ISOBUS.
 
@@ -212,7 +218,7 @@ else that is still open has moved to the John Deere, section 5.
 | Step | Do | Expect |
 |---|---|---|
 | V5B | **AUX-N without the padding**, on the CNH as VT 1. Flash `spike327_auxn/teensy41_isobus_spike327_auxn_nopad_6228e84.hex` (boot print `SPIKE #327: AUX-N no padding`). Wait for `Discovered auxiliary input device` in the log: without it nothing is sent. Assign BREDER and SMALLER, press each, unplug the plough's ISOBUS 20 s, replug; then power-cycle the plough. | **Pass:** the buttons work after the replug and after the power cycle without assigning again; no `VT rejected the preferred assignment command`. Still rejected: note the time, keep the log and the CANedge (then it is the timing, not the padding). Then back to a160ce6. |
-| V5C | The rest of V5: for one restart make the CNH **not** VT 1, and try to assign on it. Then the VT numbers as the farmer wants them. | **Refused** (upstream's rule: AUX-N on VT 1 only). Note how the numbers were left. |
+| V5C | The rest of V5: for one restart make the CNH **not** VT 1, and try to assign on it. Then back to CNH = VT 1, 1200 = VT 2. | **Refused** (upstream's rule: AUX-N on VT 1 only). The numbers back as they were. |
 
 ## 5. Part J -- Van Os, John Deere
 
@@ -321,7 +327,7 @@ PART J -- VAN OS (JOHN DEERE)
 
 LEFT FOR VAN MASTWIJK
 - [ ] V5B (no padding, CNH) input device discovered Y/N; after the replug Y/N; after the power cycle Y/N; rejected at __:__:__
-- [ ] V5C refused on the CNH when it is not VT 1 Y/N; numbers left as ______
+- [ ] V5C refused on the CNH when it is not VT 1 Y/N; back to CNH = VT 1, 1200 = VT 2 Y/N
 
 ## 7. If something differs
 

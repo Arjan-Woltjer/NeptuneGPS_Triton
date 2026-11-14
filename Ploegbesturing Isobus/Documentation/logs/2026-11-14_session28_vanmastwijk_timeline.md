@@ -81,4 +81,4 @@ The owner agreed at 15:46 to stop V6 after 30 minutes and use the light for the 
   own transmit attempts disturbed the tractor's bus until it was unplugged. The CANedge has that interval
   (about 16:25-16:28 laptop time).
 - **Left as found?** The rig 4.1 is off the tractor. On the rig board: width 183 cm (200 cm at 09:45), max correction
-  per share 100 mm (75 at 09:45), preferred VT 1. The tractor's VT numbers are still swapped (1200 = VT 2).
+  per share 100 mm (75 at 09:45), preferred VT 1. The tractor's VT numbers are CNH = VT 1, 1200 = VT 2: the intended state (owner, see the handover).
