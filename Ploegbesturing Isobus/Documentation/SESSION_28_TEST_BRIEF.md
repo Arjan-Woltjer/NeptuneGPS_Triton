@@ -218,7 +218,9 @@ else that is still open has moved to the John Deere, section 5.
 | Step | Do | Expect |
 |---|---|---|
 | V5B | **AUX-N without the padding**, on the CNH as VT 1. Flash `spike327_auxn/teensy41_isobus_spike327_auxn_nopad_6228e84.hex` (boot print `SPIKE #327: AUX-N no padding`). Wait for `Discovered auxiliary input device` in the log: without it nothing is sent. Assign BREDER and SMALLER, press each, unplug the plough's ISOBUS 20 s, replug; then power-cycle the plough. | **Pass:** the buttons work after the replug and after the power cycle without assigning again; no `VT rejected the preferred assignment command`. Still rejected: note the time, keep the log and the CANedge (then it is the timing, not the padding). Then back to a160ce6. |
-| V5C | The rest of V5: for one restart make the CNH **not** VT 1, and try to assign on it. Then back to CNH = VT 1, 1200 = VT 2. | **Refused** (upstream's rule: AUX-N on VT 1 only). The numbers back as they were. |
+
+V5's refusal check on a terminal that is not VT 1 is dropped (owner, 2026-11-14): nobody will use that numbering, and
+the owner saw AUX-N not working with the CNH as VT 2.
 
 ## 5. Part J -- Van Os, John Deere
 
@@ -327,7 +329,6 @@ PART J -- VAN OS (JOHN DEERE)
 
 LEFT FOR VAN MASTWIJK
 - [ ] V5B (no padding, CNH) input device discovered Y/N; after the replug Y/N; after the power cycle Y/N; rejected at __:__:__
-- [ ] V5C refused on the CNH when it is not VT 1 Y/N; back to CNH = VT 1, 1200 = VT 2 Y/N
 
 ## 7. If something differs
 
