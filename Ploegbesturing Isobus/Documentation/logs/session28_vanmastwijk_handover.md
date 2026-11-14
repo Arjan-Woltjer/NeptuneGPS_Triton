@@ -59,3 +59,25 @@ at 10:12:12.
 ## Next visit needs
 
 A dump (`m1q`) after every step, V5's power cycle and refusal check, V6's hour, V10, V11's photos, V12 and part J.
+
+## Checked on the workstation (2026-11-14, afternoon)
+
+Read against the serial log, the firmware source and CANedge session 129 (`bucket-AD4F266A/session-00000129`).
+
+- **Finding 2, the rejected preferred assignment: the frames.** The plough announced **24 bytes** in 4 packets
+  (`10 18 00 04`, 10:03:00.896, 1 ms after the Load Version response). The content is 21 bytes: `22 01`, NAME
+  A00086000BC9F19F, model 85, 2 functions, 170 -> 28100, 171 -> 28102. The last packet is `04 ff ff ff ff ff ff ff`:
+  three 0xFF bytes counted into the message length. AgIsoStack does this on purpose (`prepare_auxiliary_assignment_
+  transaction_locked()`, "padding to the next eight-byte boundary", upstream e399f72, still on main e2bda27). The CNH
+  answered `22 10 ff ff` at 10:03:00.918. The CNH's own Auxiliary Assignment to us is a 14-byte TP message, not
+  padded to 16. **Likely cause, not proven:** the CNH counts three bytes too many. Second candidate: the message
+  came 1 ms after the Load Version response. The empty one (`22 00`, 8 bytes, no padding question) was accepted at
+  10:00:58.573.
+- **Finding 3, the 352 dropped frames: explained.** `setup()` starts the ISOBUS stack and then waits in
+  `delay(2000)` for the splash screen (src/main.cpp:355) before the first `loop()`. Nobody reads the receive queue
+  in those 2 s: 64 + 352 = 416 frames in 2 s is 208 frames/s, which is a 12 % bus. The count stayed 352, so nothing
+  was dropped after boot. For V6: compare against the boot figure, not against 0.
+- **Finding 4, the log formatting: old, not from #343.** The `000000000000000lx` line is upstream #923 (newlib-nano
+  has no `%llx`); it was noted at W3 on the bench on 2026-11-13. The empty `error flags )` is a second one:
+  `isobus::to_string()` writes a `std::uint8_t` as a character; the raw byte 0x10 is in the log file.
+- **Finding 5, the count.** The 72 lines are 54 "Request to Send" plus 18 "Abort" with a global destination.
