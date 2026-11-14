@@ -181,7 +181,13 @@ FLASHMEM void IsobusDebugMenu::printFullDump() {
 
     serialDebug->print("Address claim: ");
     serialDebug->print(claimed ? "CLAIMED  address=0x" : "NOT CLAIMED");
-    if (claimed) serialDebug->print(controlFunction->get_address(), HEX);
+    if (claimed) {
+        serialDebug->print(controlFunction->get_address(), HEX);
+        // Our NAME's identity, from the board's serial since TC08 (#45) --
+        // what to look for on the bus to tell two machines apart.
+        serialDebug->print("  identity=");
+        serialDebug->print(controlFunction->get_NAME().get_identity_number());
+    }
     serialDebug->println();
 
     {
