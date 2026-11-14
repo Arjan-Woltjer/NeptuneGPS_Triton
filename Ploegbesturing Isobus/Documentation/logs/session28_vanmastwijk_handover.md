@@ -28,7 +28,7 @@ Rig 4.1 13249100 on `teensy41_isobus_a160ce6.hex`, v0.28, identity 1324910, addr
 | V4 | pass | Owner: the VT state line follows the cab LCD exactly. Object 172 on the bus: 173 AUTO, 174 hold speed, 175 hold GPS (at boot and after the replug), 176, 177 CAL. No deliberate RTK drop; the #344 case (stops following in AUTO) was not reported |
 | V5 | fail | Assigned on the CNH (VT 1) at 10:02; Breder 28100 and Smaller 28102 pressed and released. After the 20 s unplug the assignments were gone and had to be made again (10:03:38; presses 10:04:34, Smaller now 28101). **Not done:** the plough's power cycle; numbers back + the refusal on the CNH |
 | V8 | pass | 1200 silent 10:09:51, plough on the CNH 10:10:04 (Load Version); 1200 back 10:10:46, plough back on it (Load Version), TC DDOP active 10:10:49 |
-| V9 | fail, no note | The unplug was 10:02:42-10:03:02, standing. XTE 0.04 m and width 1800 mm before and after; VT back 10:03:04 after one "The VT Server is NACK-ing our VT messages"; TC back 10:03:09. Reason for the fail to be confirmed with the owner (the lost AUX-N assignment?) |
+| V9 | pass (owner, 14:45; the fail tick at 10:11 was a mistake) | The unplug was 10:02:42-10:03:02, standing, not on the line in AUTO. XTE 0.04 m and width 1800 mm before and after; VT back 10:03:04 after one "The VT Server is NACK-ing our VT messages"; TC back 10:03:09. The AUX-N assignment lost at this replug is V5 |
 | V6, V7, V10, V11, V12, part J | open | Both VTs were on the bus for 24 minutes, not an hour; no dumps, so no PGN 129029 count and no end-of-day receive-queue figure |
 
 ## Findings
