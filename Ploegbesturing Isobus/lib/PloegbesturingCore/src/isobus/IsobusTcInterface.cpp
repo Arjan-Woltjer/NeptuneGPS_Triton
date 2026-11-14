@@ -53,6 +53,7 @@ namespace {
 constexpr std::uint16_t kElementDevice    = 0;
 constexpr std::uint16_t kElementConnector = 1;
 constexpr std::uint16_t kElementFunction  = 2;
+constexpr std::uint16_t kElementSection   = 3;  // SPIKE #347
 
 constexpr std::uint16_t kObjDevice       = 0;
 constexpr std::uint16_t kObjPloughDevice = 1;  // root DeviceElement, Type::Device -- see buildDdop()
@@ -79,6 +80,14 @@ constexpr std::uint16_t kObjActualWidth  = 17;  // DDI 67, process data, reporte
 constexpr std::uint16_t kObjDefaultWidth = 18;  // DDI 68, property
 constexpr std::uint16_t kObjMinWidth     = 19;  // DDI 69, property
 constexpr std::uint16_t kObjMaxWidth     = 20;  // DDI 70, property
+
+// SPIKE #347, TC09: the plough as a one-section implement.
+constexpr std::uint16_t kObjSection             = 21;  // DeviceElement, Type::Section, under Ploughbody
+constexpr std::uint16_t kObjSectionOffsetX      = 22;  // DDI 134, property
+constexpr std::uint16_t kObjSectionOffsetY      = 23;  // DDI 135, property
+constexpr std::uint16_t kObjCondensedActual     = 24;  // DDI 161, reported by us
+constexpr std::uint16_t kObjCondensedSetpoint   = 25;  // DDI 290, written by the TC, stored only
+constexpr std::uint16_t kObjSectionControlState = 26;  // DDI 160, written by the TC, stored only
 
 // DDI 505 value: bitfield of Tramline Control Levels we support.
 //   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
@@ -196,7 +205,7 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC08",  // Structure label -- bumped from TC01 for the
+                      "TC09",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
@@ -222,6 +231,12 @@ void IsobusTcInterface::buildDdop() {
                                // 67-70) and ships with the board-serial NAME
                                // identity (#45), so terminals re-upload our
                                // pools once, on purpose.
+                               // TC09 (SPIKE #347) adds one Section element
+                               // and DDIs 160, 161 and 290. Spike branch
+                               // only: whatever goes up under TC09 is burned
+                               // for the real #347 unless its tree is
+                               // byte-identical. A change to this tree between
+                               // two tries at a tractor needs TC10, TC11, ...
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by
@@ -440,6 +455,51 @@ void IsobusTcInterface::buildDdop() {
     functionElement->add_reference_to_child_object(kObjDefaultWidth);
     functionElement->add_reference_to_child_object(kObjMinWidth);
     functionElement->add_reference_to_child_object(kObjMaxWidth);
+
+    // --- SPIKE #347: one section (TC09) ------------------------------------
+    // The InCommand 1200's TC does section control and position-based control
+    // and no documentation (version response 10 03 28 14 00 01 90 01), and it
+    // never asked a DDOP without a section for a single value (session 28,
+    // 2026-11-14). So the plough presents itself as one section wide.
+    //
+    // On the parent (Ploughbody), per the DDI 161 and 290 definitions: the
+    // actual condensed work state, reported by us from the hitch like 141; the
+    // setpoint condensed work state and the section control state, both
+    // written by the TC. The section itself carries only its geometry: the
+    // offsets and the width. Its width is the same process data object as
+    // Ploughbody's DDI 67, so it follows the Wider/Narrower keys.
+    //
+    // NOTHING THE TC WRITES HERE MOVES THE PLOUGH. OnValueCommand() stores
+    // and counts 160 and 290 and that is all: no valve, no mode change, no
+    // hold; 141 and 161 stay the hitch also when the TC says "off".
+    ddop->add_device_process_data("Actual Condensed Work State",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualCondensedWorkState1_16),
+                                   NULL_OBJECT_ID,
+                                   kDefaultSet, kTriggers, kObjCondensedActual);
+    ddop->add_device_process_data("Setpoint Condensed Work State",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::SetpointCondensedWorkState1_16),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjCondensedSetpoint);
+    ddop->add_device_process_data("Section Control State",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::SectionControlState),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjSectionControlState);
+    functionElement->add_reference_to_child_object(kObjCondensedActual);
+    functionElement->add_reference_to_child_object(kObjCondensedSetpoint);
+    functionElement->add_reference_to_child_object(kObjSectionControlState);
+
+    ddop->add_device_element("Section 1", kElementSection, kObjFunction,
+                              task_controller_object::DeviceElementObject::Type::Section, kObjSection);
+    ddop->add_device_property("Offset X", 0,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::DeviceElementOffsetX),
+                               NULL_OBJECT_ID, kObjSectionOffsetX);
+    ddop->add_device_property("Offset Y", 0,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::DeviceElementOffsetY),
+                               NULL_OBJECT_ID, kObjSectionOffsetY);
+    auto sectionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjSection));
+    sectionElement->add_reference_to_child_object(kObjSectionOffsetX);
+    sectionElement->add_reference_to_child_object(kObjSectionOffsetY);
+    sectionElement->add_reference_to_child_object(kObjActualWidth);
 }
 
 // ------------------------------------------------------------------
@@ -519,6 +579,13 @@ void IsobusTcInterface::resetTcObservations() {
     trackControlStateSeen      = false;
     commandedTrackControlState = 0;
     trackControlReportPending  = false;
+    sectionControlStateSeen      = false;
+    commandedSectionControlState = 0;
+    sectionControlCommandCount   = 0;
+    sectionControlReportPending  = false;
+    sectionSetpointSeen          = false;
+    commandedSectionSetpoint     = 0;
+    sectionSetpointCommandCount  = 0;
 }
 
 void IsobusTcInterface::createClient() {
@@ -542,14 +609,15 @@ void IsobusTcInterface::createClient() {
     tcClient = std::make_shared<TaskControllerClient>(partner, controlFunction, primaryVtPartner);
 
     tcClient->configure(ddop,
-                        0,      // maxNumberBoomsSupported -- plough has no booms
-                        0,      // maxNumberSectionsSupported -- no section control
+                        1,      // maxNumberBoomsSupported -- SPIKE #347: the plough body
+                        1,      // maxNumberSectionsSupported -- SPIKE #347: one section
                         1,      // maxNumberChannelsSupportedForPositionBasedControl
                         false,  // reportToTCSupportsDocumentation
                         false,  // ...TCGEOWithoutPositionBasedControl
                         true,   // ...TCGEOWithPositionBasedControl <-- required for 513/514
                         false,  // ...PeerControlAssignment
-                        false); // ...ImplementSectionControl
+                        true);  // ...ImplementSectionControl -- SPIKE #347; documentation
+                                // stays false so a different answer from the 1200 has one cause
 
     tcClient->add_value_command_callback(OnValueCommand, this);
     tcClient->add_request_value_callback(OnValueRequest, this);
@@ -571,6 +639,8 @@ void IsobusTcInterface::SetWorking(bool isWorking) {
     // that connects later reads the current value by request or trigger.
     if (IsConnected()) {
         tcClient->on_value_changed_trigger(kElementFunction, static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkState));
+        // SPIKE #347: the section's state is the same hitch.
+        tcClient->on_value_changed_trigger(kElementFunction, static_cast<std::uint16_t>(DataDescriptionIndex::ActualCondensedWorkState1_16));
     }
 }
 
@@ -585,6 +655,12 @@ void IsobusTcInterface::Update() {
             tcClient->on_value_changed_trigger(kElementFunction,
                                                static_cast<std::uint16_t>(DataDescriptionIndex::TrackControlState));
             trackControlReportPending = false;
+        }
+        // SPIKE #347: the same for DDI 160, whose definition 515 shares.
+        if (sectionControlReportPending && tcClient->get_is_connected()) {
+            tcClient->on_value_changed_trigger(kElementFunction,
+                                               static_cast<std::uint16_t>(DataDescriptionIndex::SectionControlState));
+            sectionControlReportPending = false;
         }
         tcClient->update();
         updateReconnectWatchdog();
@@ -613,6 +689,9 @@ void IsobusTcInterface::reportWidthIfChanged() {
     widthChangeCount++;
     if (IsConnected()) {
         tcClient->on_value_changed_trigger(kElementFunction,
+                                           static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth));
+        // SPIKE #347: the section shares the width object.
+        tcClient->on_value_changed_trigger(kElementSection,
                                            static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth));
         widthReportCount++;
     }
@@ -818,6 +897,26 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastTrackControlCommandMs  = millis();
             break;
 
+        // SPIKE #347. Stored and counted, NOTHING ELSE: the plough does not
+        // switch, hold or change mode on a TC's section command, and 141 and
+        // 161 keep reporting the hitch.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SectionControlState):  // 160
+            if (!self->sectionControlStateSeen || processVariableValue != self->commandedSectionControlState) {
+                self->sectionControlReportPending = true;   // "the client replies with its own"
+            }
+            self->commandedSectionControlState = processVariableValue;
+            self->sectionControlStateSeen      = true;
+            self->sectionControlCommandCount++;
+            self->lastSectionControlCommandMs  = millis();
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointCondensedWorkState1_16):  // 290
+            self->commandedSectionSetpoint    = processVariableValue;
+            self->sectionSetpointSeen         = true;
+            self->sectionSetpointCommandCount++;
+            self->lastSectionSetpointMs       = millis();
+            break;
+
         case static_cast<std::uint16_t>(DataDescriptionIndex::UniqueGuidanceReferenceLineID):  // 508
             self->abLineId            = processVariableValue;
             self->guidanceTrackSeen   = true;
@@ -884,6 +983,24 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkState):  // 141, #305
             processVariableValue = self->working ? 1 : 0;
+            break;
+
+        // SPIKE #347: one section, in bits 0-1 (01 = on, 00 = off); the other
+        // fifteen read 11 = not installed, as the DDI 161 definition asks.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualCondensedWorkState1_16):  // 161
+            processVariableValue = self->GetReportedCondensedWorkState();
+            break;
+
+        // SPIKE #347: our own state (0 = manual/off: the plough does not
+        // follow a section command), or the TC's while the echo build is on.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SectionControlState):  // 160
+            processVariableValue = self->GetReportedSectionControlState();
+            break;
+
+        // The TC's own last command, echoed like the other settable ones.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::SetpointCondensedWorkState1_16):  // 290
+            processVariableValue = self->sectionSetpointSeen ? self->commandedSectionSetpoint
+                                                              : static_cast<std::int32_t>(0xFFFFFFFFu);  // all "no change"
             break;
 
         // The plough's working width in mm; offset is kept in cm (#150).

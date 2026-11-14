@@ -386,6 +386,74 @@ test(IsobusTcInterface, ddop_hasExactlyOneRootDeviceElement) {
 }
 
 // ---------------------------------------------------------------------------
+// SPIKE #347 (TC09): the plough as a one-section implement, for a TC that only
+// does section control (the InCommand 1200). In the bytes we upload.
+// ---------------------------------------------------------------------------
+
+// One Section element, under the Ploughbody function element, carrying its two
+// offsets and the SAME width object as Ploughbody's DDI 67, so the section is
+// as wide as the plough is set.
+test(IsobusTcInterface, spike347_ddopHasOneSectionUnderPloughbodyWithTheSharedWidth) {
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+
+    using namespace isobus::task_controller_object;
+    int sections = 0;
+    std::uint16_t sectionParent = 0xFFFF, functionId = 0xFFFE, widthId = 0xFFFD;
+    std::set<std::uint16_t> sectionChildren, functionChildren;
+    for (std::uint16_t i = 0; i < parsed.size(); i++) {
+        auto object = parsed.get_object_by_index(i);
+        if (object == nullptr) continue;
+        if (object->get_object_type() == ObjectTypes::DeviceElement) {
+            auto det = std::static_pointer_cast<DeviceElementObject>(object);
+            if (det->get_type() == DeviceElementObject::Type::Section) {
+                sections++;
+                sectionParent = det->get_parent_object();
+                for (std::uint16_t c = 0; c < det->get_number_child_objects(); c++) sectionChildren.insert(det->get_child_object_id(c));
+            } else if (det->get_type() == DeviceElementObject::Type::Function) {
+                functionId = det->get_object_id();
+                for (std::uint16_t c = 0; c < det->get_number_child_objects(); c++) functionChildren.insert(det->get_child_object_id(c));
+            }
+        } else if (object->get_object_type() == ObjectTypes::DeviceProcessData) {
+            auto dpd = std::static_pointer_cast<DeviceProcessDataObject>(object);
+            if (dpd->get_ddi() == 67) widthId = dpd->get_object_id();
+        }
+    }
+    assertEqual(sections, 1);
+    assertEqual((int)sectionParent, (int)functionId);
+    assertEqual((int)sectionChildren.size(), 3);              // offset X, offset Y, width
+    assertTrue(sectionChildren.count(widthId) != 0);
+    assertTrue(functionChildren.count(widthId) != 0);         // still on Ploughbody too
+}
+
+// On the parent, as the DDI 161 and 290 definitions ask: 161 is ours (default
+// set, not settable), 290 and 160 are the TC's to write (settable).
+test(IsobusTcInterface, spike347_ddopDeclaresTheSectionControlDdis) {
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+
+    using namespace isobus::task_controller_object;
+    std::map<std::uint16_t, int> properties;
+    for (std::uint16_t i = 0; i < parsed.size(); i++) {
+        auto object = parsed.get_object_by_index(i);
+        if (object == nullptr || object->get_object_type() != ObjectTypes::DeviceProcessData) continue;
+        auto dpd = std::static_pointer_cast<DeviceProcessDataObject>(object);
+        properties[dpd->get_ddi()] = dpd->get_properties_bitfield();
+    }
+    assertEqual((int)properties.count(161), 1);
+    assertEqual((int)properties.count(290), 1);
+    assertEqual((int)properties.count(160), 1);
+    assertEqual(properties[161], 0x01);   // default set, reported by us
+    assertEqual(properties[290], 0x02);   // settable
+    assertEqual(properties[160], 0x02);   // settable
+    assertEqual((int)properties.count(289), 0);   // no single setpoint work state next to the condensed one
+}
+
+// ---------------------------------------------------------------------------
 // What the TC writes to us, and what we answer when it asks
 //
 // Both callbacks are static and take plain integers, so they are driven here
@@ -627,6 +695,43 @@ test(IsobusTcInterface, watchdog_restartsAreOnePerFifteenSecondsNotOnePerLoop) {
     // The outage starts at 2000; restarts land at 17000, 32000 ... 92000.
     assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)6);
     millisValue(0);
+}
+
+// ---------------------------------------------------------------------------
+// SPIKE #347: what the TC writes to the one section never reaches the plough.
+// ---------------------------------------------------------------------------
+
+// The section's state is the hitch: section 1 in bits 0-1, the other fifteen
+// "not installed" (11). A TC that commands the section off and section control
+// on is stored and counted, and 141 and 161 keep saying what the hitch says.
+test(IsobusTcInterface, spike347_sectionStateFollowsTheHitch_notTheTc) {
+    Fixture().SetWorking(true);
+    assertEqual(Request(isobus::DataDescriptionIndex::ActualCondensedWorkState1_16), (std::int32_t)0xFFFFFFFDu);
+
+    const unsigned long before = Fixture().GetSectionSetpointCommandCount();
+    assertTrue(Command(isobus::DataDescriptionIndex::SetpointCondensedWorkState1_16, (std::int32_t)0xFFFFFFFCu));  // section 1 off
+    assertTrue(Command(isobus::DataDescriptionIndex::SectionControlState, 1));                                     // auto/on
+    assertEqual(Fixture().GetSectionSetpointCommandCount(), before + 1);
+    assertTrue(Fixture().HasSectionSetpoint());
+    assertEqual((int)(Fixture().GetCommandedSectionSetpoint() & 0x3), 0);
+    assertTrue(Fixture().HasSectionControlState());
+    assertEqual(Fixture().GetCommandedSectionControlState(), (std::int32_t)1);
+
+    assertTrue(Fixture().IsWorking());
+    assertEqual(Request(isobus::DataDescriptionIndex::ActualWorkState), (std::int32_t)1);
+    assertEqual(Request(isobus::DataDescriptionIndex::ActualCondensedWorkState1_16), (std::int32_t)0xFFFFFFFDu);
+    // The TC's own setpoint is echoed back, like the other settable DDIs.
+    assertEqual(Request(isobus::DataDescriptionIndex::SetpointCondensedWorkState1_16), (std::int32_t)0xFFFFFFFCu);
+    // 160: our own state (manual/off), or the TC's in the echo hex.
+    assertEqual(Request(isobus::DataDescriptionIndex::SectionControlState),
+                (std::int32_t)(Fixture().IsSectionControlEchoOn() ? 1 : 0));
+
+    Fixture().SetWorking(false);
+    assertEqual(Request(isobus::DataDescriptionIndex::ActualCondensedWorkState1_16), (std::int32_t)0xFFFFFFFCu);
+    assertTrue(Command(isobus::DataDescriptionIndex::SetpointCondensedWorkState1_16, (std::int32_t)0xFFFFFFFDu));  // section 1 on
+    assertFalse(Fixture().IsWorking());
+    assertEqual(Request(isobus::DataDescriptionIndex::ActualWorkState), (std::int32_t)0);
+    assertEqual(Request(isobus::DataDescriptionIndex::ActualCondensedWorkState1_16), (std::int32_t)0xFFFFFFFCu);
 }
 
 #endif  // ISOBUS

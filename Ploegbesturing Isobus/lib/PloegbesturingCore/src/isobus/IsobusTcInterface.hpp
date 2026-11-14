@@ -240,6 +240,26 @@ public:
     }
     inline bool          IsTrackControlEchoOn() const      { return kEchoTrackControlState; }
     inline bool          IsTrackControlReportPending() const { return trackControlReportPending; }
+
+    // SPIKE #347: the plough as one section. What we report, and what the TC
+    // wrote to us; a TC's section command is stored and never acted on.
+    // DDI 161: section 1 in bits 0-1 (01 = on, 00 = off), the other fifteen
+    // 11 = not installed.
+    inline std::int32_t  GetReportedCondensedWorkState() const {
+        return static_cast<std::int32_t>(0xFFFFFFFCu | (working ? 0x1u : 0x0u));
+    }
+    inline std::int32_t  GetReportedSectionControlState() const {
+        return kEchoSectionControlState ? commandedSectionControlState : kReportedSectionControlState;
+    }
+    inline bool          IsSectionControlEchoOn() const        { return kEchoSectionControlState; }
+    inline bool          HasSectionControlState() const        { return sectionControlStateSeen; }
+    inline std::int32_t  GetCommandedSectionControlState() const { return commandedSectionControlState; }
+    inline unsigned long GetSectionControlCommandCount() const { return sectionControlCommandCount; }
+    inline unsigned long GetSectionControlCommandMs() const    { return lastSectionControlCommandMs; }
+    inline bool          HasSectionSetpoint() const            { return sectionSetpointSeen; }
+    inline std::int32_t  GetCommandedSectionSetpoint() const   { return commandedSectionSetpoint; }
+    inline unsigned long GetSectionSetpointCommandCount() const { return sectionSetpointCommandCount; }
+    inline unsigned long GetSectionSetpointMs() const          { return lastSectionSetpointMs; }
     inline unsigned long GetBusRequest506Count() const     { return busRequest506Count; }
     inline unsigned long GetBusRequest515Count() const     { return busRequest515Count; }
     inline std::int32_t  GetAbLineId() const          { return abLineId; }
@@ -399,6 +419,29 @@ private:
     // under the client mutex). The plough still computes no tramline.
     static constexpr bool kEchoTrackControlState = true;
     bool            trackControlReportPending = false;
+
+    // SPIKE #347 -- time-boxed, spike branch only. What the TC wrote to the
+    // one section (DDI 160 section control state, DDI 290 setpoint condensed
+    // work state). Stored for the dump; nothing in the plough reads them.
+    bool            sectionControlStateSeen      = false;
+    std::int32_t    commandedSectionControlState = 0;
+    unsigned long   sectionControlCommandCount   = 0;
+    unsigned long   lastSectionControlCommandMs  = 0;
+    bool            sectionControlReportPending  = false;
+    bool            sectionSetpointSeen          = false;
+    std::int32_t    commandedSectionSetpoint     = 0;
+    unsigned long   sectionSetpointCommandCount  = 0;
+    unsigned long   lastSectionSetpointMs        = 0;
+    // 0 = manual/off: the plough does not follow a section command, so that
+    // is the honest answer to a read of 160. The second hex of the spike is
+    // built with -DSPIKE347_ECHO_SECTION_CONTROL_STATE and answers what the TC
+    // commanded, in case a TC only records an implement that says "auto".
+    static constexpr std::int32_t kReportedSectionControlState = 0;
+#ifdef SPIKE347_ECHO_SECTION_CONTROL_STATE
+    static constexpr bool kEchoSectionControlState = true;
+#else
+    static constexpr bool kEchoSectionControlState = false;
+#endif
 
     // Requests for our values on the wire, by DDI: the AGCO TC on the Fendt
     // polled 515 at ~1 Hz and 506 every ~10 s for a whole session (#316)

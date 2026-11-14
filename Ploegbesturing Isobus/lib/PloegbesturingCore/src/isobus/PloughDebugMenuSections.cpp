@@ -218,6 +218,34 @@ FLASHMEM void PloughDebugMenuSections::PrintDump() {
         serialDebug->print(tcInterface->GetWidthChangeCount());
         serialDebug->print(", reported ");
         serialDebug->println(tcInterface->GetWidthReportCount());
+        // SPIKE #347: the one section. What we report, what the TC wrote.
+        serialDebug->print("  Section (SPIKE #347): we report 161 = ");
+        serialDebug->print(tcInterface->IsWorking() ? "on" : "off");
+        serialDebug->print(", 160 = ");
+        serialDebug->print(tcInterface->GetReportedSectionControlState());
+        serialDebug->println(tcInterface->IsSectionControlEchoOn() ? "  [echo ON]" : "  [our own: manual/off]");
+        serialDebug->print("    TC wrote 160 (control state): ");
+        serialDebug->print(tcInterface->GetSectionControlCommandCount());
+        if (tcInterface->HasSectionControlState()) {
+            serialDebug->print("x, last ");
+            serialDebug->print(tcInterface->GetCommandedSectionControlState());
+            serialDebug->print(", ");
+            serialDebug->print(millis() - tcInterface->GetSectionControlCommandMs());
+            serialDebug->println(" ms ago");
+        } else {
+            serialDebug->println("x (never)");
+        }
+        serialDebug->print("    TC wrote 290 (section setpoint): ");
+        serialDebug->print(tcInterface->GetSectionSetpointCommandCount());
+        if (tcInterface->HasSectionSetpoint()) {
+            serialDebug->print("x, last section 1 = ");
+            serialDebug->print(tcInterface->GetCommandedSectionSetpoint() & 0x3);
+            serialDebug->print(" (0 off, 1 on, 3 no change), ");
+            serialDebug->print(millis() - tcInterface->GetSectionSetpointMs());
+            serialDebug->println(" ms ago  -- stored only, the plough does not act on it");
+        } else {
+            serialDebug->println("x (never)");
+        }
         // --- What reached our handlers, via AgIsoStack -------------------
         // Labelled as such deliberately. Session 9 read "Value commands: 0"
         // as "the TC never commanded us" when the TC was commanding us at
