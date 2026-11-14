@@ -1,6 +1,6 @@
 # Session 28 part V, van Mastwijk, 2026-11-14 09:45-10:12 -- handover
 
-Written on the rig laptop at 14:40. The workstation's Remote Control session was not reachable from the laptop
+Written on the rig laptop at 14:27. The workstation's Remote Control session was not reachable from the laptop
 session at that time, so this file is the handover.
 
 ## Where the data is
@@ -28,7 +28,7 @@ Rig 4.1 13249100 on `teensy41_isobus_a160ce6.hex`, v0.28, identity 1324910, addr
 | V4 | pass | Owner: the VT state line follows the cab LCD exactly. Object 172 on the bus: 173 AUTO, 174 hold speed, 175 hold GPS (at boot and after the replug), 176, 177 CAL. No deliberate RTK drop; the #344 case (stops following in AUTO) was not reported |
 | V5 | fail | Assigned on the CNH (VT 1) at 10:02; Breder 28100 and Smaller 28102 pressed and released. After the 20 s unplug the assignments were gone and had to be made again (10:03:38; presses 10:04:34, Smaller now 28101). **Not done:** the plough's power cycle; numbers back + the refusal on the CNH |
 | V8 | pass | 1200 silent 10:09:51, plough on the CNH 10:10:04 (Load Version); 1200 back 10:10:46, plough back on it (Load Version), TC DDOP active 10:10:49 |
-| V9 | pass (owner, 14:45; the fail tick at 10:11 was a mistake) | The unplug was 10:02:42-10:03:02, standing, not on the line in AUTO. XTE 0.04 m and width 1800 mm before and after; VT back 10:03:04 after one "The VT Server is NACK-ing our VT messages"; TC back 10:03:09. The AUX-N assignment lost at this replug is V5 |
+| V9 | pass (owner, 14:39; the fail tick at 10:11 was a mistake) | The unplug was 10:02:42-10:03:02, standing, not on the line in AUTO. XTE 0.04 m and width 1800 mm before and after; VT back 10:03:04 after one "The VT Server is NACK-ing our VT messages"; TC back 10:03:09. The AUX-N assignment lost at this replug is V5 |
 | V6, V7, V10, V11, V12, part J | open | Both VTs were on the bus for 24 minutes, not an hour; no dumps, so no PGN 129029 count and no end-of-day receive-queue figure |
 
 ## Findings
@@ -52,7 +52,7 @@ Rig 4.1 13249100 on `teensy41_isobus_a160ce6.hex`, v0.28, identity 1324910, addr
 ## State the tractor was left in
 
 Per the log: preferred VT 2, saved from the VT at 10:09:34; the plough went to the 1200 at 0x80 as VT 2 at 10:10:46,
-so the VT numbers are still swapped. The owner confirmed this at 14:50: the board is still on preferred VT 2, and
+so the VT numbers are still swapped. The owner confirmed this at 14:40: the board is still on preferred VT 2, and
 the preferred VT **still has to be set to 1** (his sheet note "preferred vt set to 1" was the intention). Bus off
 at 10:12:12.
 
@@ -82,7 +82,7 @@ Read against the serial log, the firmware source and CANedge session 129 (`bucke
   `isobus::to_string()` writes a `std::uint8_t` as a character; the raw byte 0x10 is in the log file.
 - **Finding 5, the count.** The 72 lines are 54 "Request to Send" plus 18 "Abort" with a global destination.
 
-## The XTE gap at 09:53 (added 15:30, rig laptop)
+## The XTE gap at 09:53 (added 14:59, rig laptop)
 
 The serial log has two XTE gaps while the 1200 was up (laptop clock):
 
