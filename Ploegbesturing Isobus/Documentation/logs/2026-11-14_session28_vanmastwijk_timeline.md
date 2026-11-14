@@ -44,3 +44,39 @@ The owner agreed at 15:46 to stop V6 after 30 minutes and use the light for the 
 | GNSS (V7) | PGN 65535 status from 0x80: 185 -> 4 199 -> 10 177 -> 17 977; RTK fixed, quality 4 on 1 774 lines; PGN 129029 none, as always on this bus |
 | TC requests | requests 0, measurement commands 0, width `reported 0` (no width change this afternoon) |
 | `[TP]` warnings | 29, from 0xCD after the 1200 came up |
+
+## After V6: the calibration page, the #347 spike, the Teensy 3.2
+
+| Time | What | Source |
+|---|---|---|
+| 16:06:59 | V10's dump on a160ce6 (see above) | dump |
+| 16:10:26 - 16:12:42 | Calibration page on the VT: saved 16:11:11; cancelled 16:11:49; saved 16:12:31 with preferred VT 2 (plough moves to the 1200 at 0x80, Load Version); saved 16:12:42 with preferred VT 1 (back to the CNH, Load Version) | log |
+| 16:13:33 | Dump before the flash: dropped 328, stack peak 1 216, heap peak 55 236, VT switches 2, width 180 cm | dump |
+| 16:13:37 | Logger stopped for the flash. First try refused by `flash_teensy.ps1`'s own guard, nothing written (Windows PowerShell 5.1: `.Count` of a single PnP device is empty) | laptop |
+| 16:14:20 - 16:14:28 | **Spike flashed:** `spike347/teensy41_isobus_spike347_tc09_27e8e16.hex`. The loader's log says `Programming ... Booting`; the script then reported a failure because `ExitCode` was empty (5.1 again) | loader log |
+| 16:14:29 | Spike boots (from the uptime). The boot print was lost: the logger opened the port at 16:14:47 | `..._spike347_serial.log` |
+| by 16:14:47 | TC 0xF7: `DDOP Activated without error`: **the 1200 accepts TC09**, one section, the width object shared by two elements | log |
+| 16:15:10 | Dump: `Section (SPIKE #347): we report 161 = on, 160 = 0`; TC wrote 160: never; 290: never; requests 0, set-value 0, measurement 0; task active; on the CNH VT, preferred VT 1 and width 180 cm kept; dropped 452 at this boot | dump |
+| 16:15 - 16:20 | Owner looks on the 1200 for the plough as an implement or a section: "nothing found" | owner |
+| 16:20:44 | Dump: still 0 / 0 / 0, task active, tc=Y on all 334 lines | dump |
+| 16:21:47, 16:21:48 | Wider pressed twice on the VT; the owner also restarted the task and moved the hitch: "nothing from the 1200" | log, owner |
+| 16:22:47 | Last dump on the spike: width 183 cm, changes 3, **reported 3**; TC wrote 160: never; 290: never; requests 0, set-value 0, measurement 0 | dump |
+| 16:22:54 - 16:23:04 | Flashed back to `session28/teensy41_isobus_a160ce6.hex` (script fixed: OK) | laptop |
+| 16:23:05 | a160ce6 boots: v0.28, no `SPIKE #347` line; CNH VT by Load Version 16:23:08; TC `DDOP Activated without error` 16:23:14 (TC08 was still stored). Boot print: **max correction per share 100 mm** (75 this morning), preferred VT 1, width 183 cm | log |
+| 16:24:09 | Rig 4.1 unplugged from the ISOBUS for V12 (VT and TC time out). Dump 16:24:24: dropped 423 at this boot | log, dump |
+| 16:25:07 | Teensy 3.2 (7515900, `teensy32_isobus_4c96780.hex`) boots on USB: v0.28, identity 751590, claims 0x81. Its stored settings: offset calibration 600/34, 4 shares, max correction per share 50 mm, preferred VT 0, plough side 1 | `..._teensy32_serial.log` |
+| 16:25 - 16:29 | The 3.2 on the ISOBUS plug: **not one frame received** (msgs=0, receive queue high water 0 of 64, 1 Hz line load 0.0 %), `VT: partner 0xFE silent` every 10 s. Dump 16:27:11: heap peak 33 852 of 58 868 B, stack 23 872 B never used, longest loop pass 3 047 us | log, dump |
+| about 16:28 | Owner: CAN high and low are swapped on this board, "and it's messing with the bus". Plug pulled. Owner afterwards: the bus is fine again | owner |
+| 16:29:44 | Loggers stopped. The rig 4.1 was not put back on the tractor | laptop |
+
+## Results of the afternoon
+
+- **#347 spike on the InCommand 1200:** the 1200 accepts a one-section DDOP (TC09) and then ignores it exactly as it
+  ignores TC08: in 8 minutes with an active task it sent no value request, no measurement command and no command on
+  DDI 160 or 290, also after a task restart, two width steps and a hitch move. The echo hex was not flashed: it only
+  differs after the TC writes DDI 160, and the TC wrote nothing. The TC10 hex was not needed.
+- **V12 not run:** this Teensy 3.2 board has CAN high and low crossed at its connector. It heard nothing and its
+  own transmit attempts disturbed the tractor's bus until it was unplugged. The CANedge has that interval
+  (about 16:25-16:28 laptop time).
+- **Left as found?** The rig 4.1 is off the tractor. On the rig board: width 183 cm (200 cm at 09:45), max correction
+  per share 100 mm (75 at 09:45), preferred VT 1. The tractor's VT numbers are still swapped (1200 = VT 2).

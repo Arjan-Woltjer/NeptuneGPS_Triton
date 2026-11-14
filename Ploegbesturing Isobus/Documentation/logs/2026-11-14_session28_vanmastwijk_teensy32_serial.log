@@ -1,0 +1,463 @@
+﻿=== 2026-11-14 16:25:08 logger start on COM3
+=== 16:25:08.924 opened COM3
+16:25:09.757 --------------------------------
+16:25:09.779 -----------MeijWorks------------
+16:25:09.779 --------------------------------
+16:25:09.779    Triton PB-ISO version 0.28   
+16:25:09.783   SPIKE #316: DDI 515 echo ON   
+16:25:09.783 (c) 2011 - 2026 by J.A. Woltjer 
+16:25:09.783 --------------------------------
+16:25:10.067 -------------------------------
+16:25:10.067 Tractor using following data:
+16:25:10.068 -------------------------------
+16:25:10.074 Speed calibration
+16:25:10.075 250
+16:25:10.076 -------------------------------
+16:25:10.076 Simspeed
+16:25:10.077 1.00
+16:25:10.078 -------------------------------
+16:25:10.078 Sim time
+16:25:10.079 2
+16:25:10.080 -------------------------------
+16:25:10.080 Sim mode
+16:25:10.081 1
+16:25:10.081 -------------------------------
+16:25:10.081 Invert hitch signal
+16:25:10.099 0
+16:25:10.099 -------------------------------
+16:25:10.099 Times started
+16:25:10.099 3
+16:25:10.099 --------------------------
+16:25:10.099 Using following data:
+16:25:10.099 --------------------------
+16:25:10.099 Offset calibration data
+16:25:10.099 600, 34
+16:25:10.099 461, 42
+16:25:10.099 308, 50
+16:25:10.114 --------------------------
+16:25:10.114 Number of shares
+16:25:10.114 4
+16:25:10.116 --------------------------
+16:25:10.116 Deadband (cm)
+16:25:10.116 2
+16:25:10.118 --------------------------
+16:25:10.118 error ploughside
+16:25:10.118 1
+16:25:10.120 --------------------------
+16:25:10.120 Bypass valve
+16:25:10.120 0
+16:25:10.122 --------------------------
+16:25:10.122 Maximum correction per share (mm)
+16:25:10.122 50
+16:25:10.122 Maximum correction (mm)
+16:25:10.124 200
+16:25:10.124 --------------------------
+16:25:10.124 =====================================
+16:25:10.124 Guidance source using following data:
+16:25:10.126 =====================================
+16:25:10.126 Baudrate
+16:25:10.126 4800
+16:25:10.128 -------------------------------
+16:25:10.128 RTK Quality
+16:25:10.129 4
+16:25:10.129 -------------------------------
+16:25:10.129 Preferred VT (0 = none)
+16:25:10.130 0
+16:25:10.130 -------------------------------
+16:25:10.130 Ag Leader lightbar
+16:25:10.132 AUTO
+16:25:10.132 -------------------------------
+16:25:10.134 Times started
+16:25:10.134 3
+16:25:10.134 --------------------------
+16:25:10.136 Using following data:
+16:25:10.136 --------------------------
+16:25:10.136 Offset calibration data
+16:25:10.137 600, 34
+16:25:10.137 461, 42
+16:25:10.139 308, 50
+16:25:10.139 --------------------------
+16:25:10.139 Number of shares
+16:25:10.140 4
+16:25:10.140 --------------------------
+16:25:10.140 Deadband (cm)
+16:25:10.142 2
+16:25:10.142 --------------------------
+16:25:10.142 error ploughside
+16:25:10.144 1
+16:25:10.144 --------------------------
+16:25:10.144 Bypass valve
+16:25:10.145 0
+16:25:10.145 --------------------------
+16:25:10.145 Maximum correction per share (mm)
+16:25:10.147 50
+16:25:10.147 Maximum correction (mm)
+16:25:10.149 200
+16:25:10.150 --------------------------
+16:25:10.276 IsobusGuidanceChannel: identity 751590 (board serial 751590), claiming... address claimed: 0x81
+16:25:10.278 Lightbar: Ag Leader L160 emulation, mode AUTO
+16:25:10.340 IsobusDebugMenu: send any character to open the status menu.
+16:25:25.299 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:25:35.322 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:25:36.107 >>> sent 'm2q'
+16:25:36.170 === ISOBUS DEBUG MENU ===
+16:25:36.170 1. Full status dump
+16:25:36.173 2. Periodic summary line (OFF - press to toggle)
+16:25:36.173 3. Reset message counters
+16:25:36.175 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:25:36.175 t. Task Controller choice (SPIKE #316), now: any TC
+16:25:36.175 5. Dump VT object pool as hex
+16:25:36.175 q. Exit
+16:25:36.175 Periodic summary line: ON
+16:25:36.175 === ISOBUS DEBUG MENU ===
+16:25:36.175 1. Full status dump
+16:25:36.175 2. Periodic summary line (ON - press to toggle)
+16:25:36.175 3. Reset message counters
+16:25:36.175 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:25:36.175 t. Task Controller choice (SPIKE #316), now: any TC
+16:25:36.175 5. Dump VT object pool as hex
+16:25:36.175 q. Exit
+16:25:36.175 Exiting.
+16:25:36.175 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=29678 vtgAge=29678 xteAge=29678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:37.192 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=30678 vtgAge=30678 xteAge=30678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:38.172 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=31678 vtgAge=31678 xteAge=31678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:39.142 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=32678 vtgAge=32678 xteAge=32678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:40.143 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=33678 vtgAge=33678 xteAge=33678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:41.160 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=34678 vtgAge=34678 xteAge=34678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:42.126 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=35678 vtgAge=35678 xteAge=35678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:43.147 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=36678 vtgAge=36678 xteAge=36678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:44.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=37678 vtgAge=37678 xteAge=37678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:45.130 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=38678 vtgAge=38678 xteAge=38678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:45.327 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:25:46.146 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=39678 vtgAge=39678 xteAge=39678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:47.163 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=40678 vtgAge=40678 xteAge=40678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:48.150 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=41678 vtgAge=41678 xteAge=41678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:49.167 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=42678 vtgAge=42678 xteAge=42678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:50.117 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=43678 vtgAge=43678 xteAge=43678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:51.153 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=44678 vtgAge=44678 xteAge=44678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:52.164 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=45678 vtgAge=45678 xteAge=45678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:53.155 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=46678 vtgAge=46678 xteAge=46678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:54.153 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=47678 vtgAge=47678 xteAge=47678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:55.173 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=48678 vtgAge=48678 xteAge=48678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:55.305 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:25:56.139 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=49678 vtgAge=49678 xteAge=49678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:57.119 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=50678 vtgAge=50678 xteAge=50678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:58.124 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=51678 vtgAge=51678 xteAge=51678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:25:59.156 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=52678 vtgAge=52678 xteAge=52678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:00.143 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=53678 vtgAge=53678 xteAge=53678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:01.144 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=54678 vtgAge=54678 xteAge=54678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:02.173 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=55678 vtgAge=55678 xteAge=55678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:03.145 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=56678 vtgAge=56678 xteAge=56678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:04.176 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=57678 vtgAge=57678 xteAge=57678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:05.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=58678 vtgAge=58678 xteAge=58678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:05.330 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:26:06.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=59678 vtgAge=59678 xteAge=59678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:07.143 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=60678 vtgAge=60678 xteAge=60678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:08.180 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=61678 vtgAge=61678 xteAge=61678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:09.150 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=62678 vtgAge=62678 xteAge=62678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:10.167 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=63678 vtgAge=63678 xteAge=63678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:11.119 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=64678 vtgAge=64678 xteAge=64678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:12.152 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=65678 vtgAge=65678 xteAge=65678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:13.170 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=66678 vtgAge=66678 xteAge=66678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:14.165 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=67678 vtgAge=67678 xteAge=67678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:15.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=68678 vtgAge=68678 xteAge=68678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:15.334 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:26:16.156 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=69678 vtgAge=69678 xteAge=69678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:17.170 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=70678 vtgAge=70678 xteAge=70678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:18.122 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=71678 vtgAge=71678 xteAge=71678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:19.142 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=72678 vtgAge=72678 xteAge=72678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:20.175 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=73678 vtgAge=73678 xteAge=73678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33332
+16:26:21.143 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=74678 vtgAge=74678 xteAge=74678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:22.161 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=75678 vtgAge=75678 xteAge=75678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:23.161 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=76678 vtgAge=76678 xteAge=76678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:24.162 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=77678 vtgAge=77678 xteAge=77678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:25.164 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=78678 vtgAge=78678 xteAge=78678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:25.298 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:26:26.130 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=79678 vtgAge=79678 xteAge=79678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:27.167 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=80678 vtgAge=80678 xteAge=80678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:28.182 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=81678 vtgAge=81678 xteAge=81678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:29.133 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=82678 vtgAge=82678 xteAge=82678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:30.134 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=83678 vtgAge=83678 xteAge=83678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:31.169 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=84678 vtgAge=84678 xteAge=84678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:32.169 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=85678 vtgAge=85678 xteAge=85678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:33.187 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=86678 vtgAge=86678 xteAge=86678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:34.139 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=87678 vtgAge=87678 xteAge=87678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:35.172 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=88678 vtgAge=88678 xteAge=88678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:35.306 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:26:36.145 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=89678 vtgAge=89678 xteAge=89678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:37.158 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=90678 vtgAge=90678 xteAge=90678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:38.175 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=91678 vtgAge=91678 xteAge=91678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:39.141 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=92678 vtgAge=92678 xteAge=92678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:40.177 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=93678 vtgAge=93678 xteAge=93678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:41.156 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=94678 vtgAge=94678 xteAge=94678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:42.127 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=95678 vtgAge=95678 xteAge=95678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:43.140 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=96678 vtgAge=96678 xteAge=96678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:44.179 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=97678 vtgAge=97678 xteAge=97678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:45.146 [ISOBUS] addr=0x81 claimed=Y load=0.4% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=98678 vtgAge=98678 xteAge=98678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:45.344 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:26:46.164 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=99678 vtgAge=99678 xteAge=99678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:47.129 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=100678 vtgAge=100678 xteAge=100678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:48.179 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=101678 vtgAge=101678 xteAge=101678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:49.184 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=102678 vtgAge=102678 xteAge=102678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:50.163 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=103678 vtgAge=103678 xteAge=103678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:51.132 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=104678 vtgAge=104678 xteAge=104678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:52.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=105678 vtgAge=105678 xteAge=105678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:53.170 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=106678 vtgAge=106678 xteAge=106678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:54.136 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=107678 vtgAge=107678 xteAge=107678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:55.154 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=108678 vtgAge=108678 xteAge=108678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:55.288 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:26:56.129 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=109678 vtgAge=109678 xteAge=109678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:57.154 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=110678 vtgAge=110678 xteAge=110678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:58.153 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=111678 vtgAge=111678 xteAge=111678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:26:59.142 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=112678 vtgAge=112678 xteAge=112678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:00.146 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=113678 vtgAge=113678 xteAge=113678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:01.148 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=114678 vtgAge=114678 xteAge=114678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:02.162 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=115678 vtgAge=115678 xteAge=115678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:03.138 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=116678 vtgAge=116678 xteAge=116678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:04.169 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=117678 vtgAge=117678 xteAge=117678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:05.134 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=118678 vtgAge=118678 xteAge=118678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:05.330 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:27:06.167 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=119678 vtgAge=119678 xteAge=119678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:07.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=120678 vtgAge=120678 xteAge=120678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:08.150 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=121678 vtgAge=121678 xteAge=121678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:09.137 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=122678 vtgAge=122678 xteAge=122678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:10.166 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=123678 vtgAge=123678 xteAge=123678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:10.967 >>> sent 'm1q'
+16:27:11.033 === ISOBUS DEBUG MENU ===
+16:27:11.035 1. Full status dump
+16:27:11.035 2. Periodic summary line (ON - press to toggle)
+16:27:11.035 3. Reset message counters
+16:27:11.035 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:27:11.035 t. Task Controller choice (SPIKE #316), now: any TC
+16:27:11.035 5. Dump VT object pool as hex
+16:27:11.035 q. Exit
+16:27:11.035 === ISOBUS STATUS ===
+16:27:11.035 Address claim: CLAIMED  address=0x81  identity=751590
+16:27:11.035 CAN controller: not sampled on this build
+16:27:11.035 Bus load (ch0): 0.3 %
+16:27:11.035 CAN receive queue: high water 0 of 64, dropped 0
+16:27:11.035 Loop pass: longest 3047 us since the last dump, 3047 us since boot
+16:27:11.035 Stack: peak 1144 of 25016 bytes since boot, 23872 never used
+16:27:11.035 Heap: peak 33852 of 58868 bytes, shared with the stack
+16:27:11.035 --- Message counters ---
+16:27:11.035   PGN 129025 Position NMEA2000: 0
+16:27:11.035   PGN 129026 Speed NMEA2000:    0
+16:27:11.035   PGN 129283 XTE NMEA2000:      0
+16:27:11.035   PGN 65267  Position legacy:   0
+16:27:11.035   PGN 65256  Speed legacy:      0   last SA=0xFF raw=0x0
+16:27:11.035   PGN 65535  all senders:       0   last SA=0xFF
+16:27:11.048   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+16:27:11.048              raw: nothing from 0x2A or 0x80 yet
+16:27:11.048   PGN 65535  GNSS status 0x80:  0   (none)
+16:27:11.050   PGN 60160  XTE Trimble legacy:0   last SA=0xFF
+16:27:11.051   PGN 64770  AISO stop:         0   last 0 ms ago
+16:27:11.052   TOTAL:                        0
+16:27:11.052 --- Guidance telemetry ---
+16:27:11.052   XTE:          0.00 m
+16:27:11.052   Speed:        0.00 m/s (0.00 kn)
+16:27:11.052   Quality:      0   RTK quality=4  PGN 129029 GNSS position: (none received)
+16:27:11.052   PGN 129027 position deltas: 0
+16:27:11.052   Guidance machine info (PGN 44032): (none received)
+16:27:11.052   IsRtkQuality=N
+16:27:11.052   GGA fix age:  124530 ms
+16:27:11.052   VTG fix age:  124530 ms
+16:27:11.052   XTE fix age:  124530 ms
+16:27:11.052   Lat/Lon/Alt/Course: 0.000000 / 0.000000 / 0.0 m / 0.0 deg
+16:27:11.052 --- Virtual Terminal ---
+16:27:11.052   Connected:    N
+16:27:11.052   State:        0/22  Disconnected
+16:27:11.052   VT version:  (unknown)
+16:27:11.052   VT status msgs: 0   last 0 ms ago
+16:27:11.052   Partner: addr=0xFE valid=N  reconnect attempts=0
+16:27:11.052   VT failover: switches=0 claim requests=11 rejoins=0 preferred=none
+16:27:11.064   AUX-N: Breder events=0 Smaller events=0 held=--
+16:27:11.064 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+16:27:11.064   Mode: AUTO  NOT RUNNING  (no Ag Leader display seen)
+16:27:11.067   Address claim: NOT CLAIMED
+16:27:11.067   Display partner: 0xFF  identification requests=0 answered=0 unknown=0  last DID=0x0  hello=N  stack partner=N
+16:27:11.067   Sent: frames=0 failures=0 heartbeats=0 softwareId=N  proprietary A from display=0
+16:27:11.067   Requests: softwareId=0 (sent 0x) ignored=0 last ignored PGN=0
+16:27:11.067   PGN 65462 XTE: frames=0 committed=0
+16:27:11.067 --- Task Controller ---
+16:27:11.067   Connected:    N
+16:27:11.067   TC-GEO (with/without pos): (not connected)
+16:27:11.067   Task active:  N
+16:27:11.072   DRP deviation (DDI 513): 0 mm, last 124531 ms ago
+16:27:11.072   GNSS quality (DDI 514):  0, last 124531 ms ago
+16:27:11.072   Work state (DDI 141):    0 not working (hitch up)
+16:27:11.072   Working width (DDI 67):  160 cm, changes 0, reported 0
+16:27:11.072   [via stack] Value cmds to handler: 0  last DDI=(none)
+16:27:11.072   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+16:27:11.072   [on bus] Requests for our values: 0
+16:27:11.072   [on bus] Set-value commands:      0
+16:27:11.072   [on bus] Measurement commands:    0  (none)
+16:27:11.079   [on bus] Other, addressed to us:  0
+16:27:11.079   Partner: addr=0xFE valid=N  reconnect attempts=0
+16:27:11.079   TC choice: any TC  bound: none
+16:27:11.079   Tramline setpoint (DDI 506): (not connected)
+16:27:11.079   [on bus] Requests for DDI 506: 0  DDI 515: 0
+16:27:11.079   Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+16:27:11.079   Guidance track (DDI 507-511): (not connected)
+16:27:11.083 === ISOBUS DEBUG MENU ===
+16:27:11.083 1. Full status dump
+16:27:11.084 2. Periodic summary line (ON - press to toggle)
+16:27:11.084 3. Reset message counters
+16:27:11.084 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:27:11.084 t. Task Controller choice (SPIKE #316), now: any TC
+16:27:11.084 5. Dump VT object pool as hex
+16:27:11.084 q. Exit
+16:27:11.084 Exiting.
+16:27:11.150 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=124678 vtgAge=124678 xteAge=124678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:12.186 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=125678 vtgAge=125678 xteAge=125678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:13.153 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=126678 vtgAge=126678 xteAge=126678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:14.132 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=127678 vtgAge=127678 xteAge=127678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:15.127 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=128678 vtgAge=128678 xteAge=128678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:15.304 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:27:16.133 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=129678 vtgAge=129678 xteAge=129678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:17.173 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=130678 vtgAge=130678 xteAge=130678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:18.157 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=131678 vtgAge=131678 xteAge=131678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:19.123 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=132678 vtgAge=132678 xteAge=132678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:20.140 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=133678 vtgAge=133678 xteAge=133678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:21.150 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=134678 vtgAge=134678 xteAge=134678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:22.126 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=135678 vtgAge=135678 xteAge=135678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:23.161 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=136678 vtgAge=136678 xteAge=136678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:24.127 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=137678 vtgAge=137678 xteAge=137678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:25.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=138678 vtgAge=138678 xteAge=138678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:25.335 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:27:26.146 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=139678 vtgAge=139678 xteAge=139678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:27.180 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=140678 vtgAge=140678 xteAge=140678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:28.145 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=141678 vtgAge=141678 xteAge=141678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:29.170 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=142678 vtgAge=142678 xteAge=142678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:30.178 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=143678 vtgAge=143678 xteAge=143678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:31.156 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=144678 vtgAge=144678 xteAge=144678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:32.184 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=145678 vtgAge=145678 xteAge=145678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:33.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=146678 vtgAge=146678 xteAge=146678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:34.128 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=147678 vtgAge=147678 xteAge=147678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:35.180 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=148678 vtgAge=148678 xteAge=148678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:35.304 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:27:36.157 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=149678 vtgAge=149678 xteAge=149678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:37.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=150678 vtgAge=150678 xteAge=150678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:38.165 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=151678 vtgAge=151678 xteAge=151678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:39.155 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=152678 vtgAge=152678 xteAge=152678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:40.141 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=153678 vtgAge=153678 xteAge=153678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:41.178 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=154678 vtgAge=154678 xteAge=154678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:42.144 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=155678 vtgAge=155678 xteAge=155678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:43.169 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=156678 vtgAge=156678 xteAge=156678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:44.173 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=157678 vtgAge=157678 xteAge=157678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:45.141 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=158678 vtgAge=158678 xteAge=158678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:45.333 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:27:46.133 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=159678 vtgAge=159678 xteAge=159678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:47.145 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=160678 vtgAge=160678 xteAge=160678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:48.172 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=161678 vtgAge=161678 xteAge=161678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:49.182 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=162678 vtgAge=162678 xteAge=162678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:50.170 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=163678 vtgAge=163678 xteAge=163678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:51.124 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=164678 vtgAge=164678 xteAge=164678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:52.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=165678 vtgAge=165678 xteAge=165678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:53.127 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=166678 vtgAge=166678 xteAge=166678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:54.125 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=167678 vtgAge=167678 xteAge=167678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:55.166 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=168678 vtgAge=168678 xteAge=168678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:55.295 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:27:56.152 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=169678 vtgAge=169678 xteAge=169678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:57.174 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=170678 vtgAge=170678 xteAge=170678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:58.179 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=171678 vtgAge=171678 xteAge=171678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:27:59.179 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=172678 vtgAge=172678 xteAge=172678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:00.134 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=173678 vtgAge=173678 xteAge=173678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:01.174 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=174678 vtgAge=174678 xteAge=174678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:02.139 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=175678 vtgAge=175678 xteAge=175678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:03.157 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=176678 vtgAge=176678 xteAge=176678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:04.130 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=177678 vtgAge=177678 xteAge=177678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:05.173 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=178678 vtgAge=178678 xteAge=178678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:05.304 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:28:06.155 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=179678 vtgAge=179678 xteAge=179678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:07.185 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=180678 vtgAge=180678 xteAge=180678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:08.134 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=181678 vtgAge=181678 xteAge=181678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:09.131 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=182678 vtgAge=182678 xteAge=182678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:10.173 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=183678 vtgAge=183678 xteAge=183678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:11.129 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=184678 vtgAge=184678 xteAge=184678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:12.162 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=185678 vtgAge=185678 xteAge=185678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:13.186 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=186678 vtgAge=186678 xteAge=186678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:14.132 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=187678 vtgAge=187678 xteAge=187678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:15.170 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=188678 vtgAge=188678 xteAge=188678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:15.302 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:28:16.171 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=189678 vtgAge=189678 xteAge=189678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:17.182 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=190678 vtgAge=190678 xteAge=190678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:18.137 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=191678 vtgAge=191678 xteAge=191678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:19.156 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=192678 vtgAge=192678 xteAge=192678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:20.183 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=193678 vtgAge=193678 xteAge=193678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:21.172 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=194678 vtgAge=194678 xteAge=194678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:22.141 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=195678 vtgAge=195678 xteAge=195678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:23.142 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=196678 vtgAge=196678 xteAge=196678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:24.140 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=197678 vtgAge=197678 xteAge=197678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:25.132 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=198678 vtgAge=198678 xteAge=198678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:25.319 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:28:26.160 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=199678 vtgAge=199678 xteAge=199678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:27.163 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=200678 vtgAge=200678 xteAge=200678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:28.174 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=201678 vtgAge=201678 xteAge=201678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:29.133 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=202678 vtgAge=202678 xteAge=202678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:30.164 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=203678 vtgAge=203678 xteAge=203678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:31.149 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=204678 vtgAge=204678 xteAge=204678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:32.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=205678 vtgAge=205678 xteAge=205678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:33.146 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=206678 vtgAge=206678 xteAge=206678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:34.150 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=207678 vtgAge=207678 xteAge=207678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:35.165 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=208678 vtgAge=208678 xteAge=208678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:35.302 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:28:36.168 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=209678 vtgAge=209678 xteAge=209678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:37.185 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=210678 vtgAge=210678 xteAge=210678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:38.158 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=211678 vtgAge=211678 xteAge=211678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:39.171 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=212678 vtgAge=212678 xteAge=212678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:40.171 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=213678 vtgAge=213678 xteAge=213678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:41.141 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=214678 vtgAge=214678 xteAge=214678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:42.181 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=215678 vtgAge=215678 xteAge=215678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:43.138 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=216678 vtgAge=216678 xteAge=216678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:44.125 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=217678 vtgAge=217678 xteAge=217678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:45.152 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=218678 vtgAge=218678 xteAge=218678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:45.350 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:28:46.191 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=219678 vtgAge=219678 xteAge=219678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:47.137 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=220678 vtgAge=220678 xteAge=220678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:48.156 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=221678 vtgAge=221678 xteAge=221678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:49.159 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=222678 vtgAge=222678 xteAge=222678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:50.183 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=223678 vtgAge=223678 xteAge=223678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:51.149 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=224678 vtgAge=224678 xteAge=224678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:52.171 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=225678 vtgAge=225678 xteAge=225678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:53.177 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=226678 vtgAge=226678 xteAge=226678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:54.152 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=227678 vtgAge=227678 xteAge=227678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:55.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=228678 vtgAge=228678 xteAge=228678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:55.342 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:28:56.137 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=229678 vtgAge=229678 xteAge=229678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:57.154 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=230678 vtgAge=230678 xteAge=230678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:58.161 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=231678 vtgAge=231678 xteAge=231678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:28:59.139 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=232678 vtgAge=232678 xteAge=232678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:00.148 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=233678 vtgAge=233678 xteAge=233678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:01.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=234678 vtgAge=234678 xteAge=234678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:02.151 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=235678 vtgAge=235678 xteAge=235678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:03.135 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=236678 vtgAge=236678 xteAge=236678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:04.162 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=237678 vtgAge=237678 xteAge=237678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:05.139 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=238678 vtgAge=238678 xteAge=238678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:05.326 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:29:06.137 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=239678 vtgAge=239678 xteAge=239678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:07.155 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=240678 vtgAge=240678 xteAge=240678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:08.153 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=241678 vtgAge=241678 xteAge=241678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:09.163 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=242678 vtgAge=242678 xteAge=242678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:10.163 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=243678 vtgAge=243678 xteAge=243678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=33852
+16:29:11.166 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=244678 vtgAge=244678 xteAge=244678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:12.165 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=245678 vtgAge=245678 xteAge=245678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:13.168 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=246678 vtgAge=246678 xteAge=246678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:14.134 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=247678 vtgAge=247678 xteAge=247678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:15.145 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=248678 vtgAge=248678 xteAge=248678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:15.350 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:29:16.130 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=249678 vtgAge=249678 xteAge=249678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:17.136 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=250678 vtgAge=250678 xteAge=250678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:18.129 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=251678 vtgAge=251678 xteAge=251678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:19.154 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=252678 vtgAge=252678 xteAge=252678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:20.153 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=253678 vtgAge=253678 xteAge=253678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:21.147 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=254678 vtgAge=254678 xteAge=254678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:22.176 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=255678 vtgAge=255678 xteAge=255678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:23.157 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=256678 vtgAge=256678 xteAge=256678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:24.158 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=257678 vtgAge=257678 xteAge=257678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:25.175 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=258678 vtgAge=258678 xteAge=258678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:25.314 VT: partner 0xFE silent -- requesting address claims to find another VT
+16:29:26.137 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=259678 vtgAge=259678 xteAge=259678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:27.139 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=260678 vtgAge=260678 xteAge=260678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:28.161 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=261678 vtgAge=261678 xteAge=261678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+16:29:29.181 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=0 aiso=0(0ms) xte=0.00m spd=0.00m/s q=0 ggaAge=262678 vtgAge=262678 xteAge=262678 vt=N(0/22) vtstat=0/0ms tc=N drp=0mm tcq=0 stk=1144 hp=34364
+=== 16:29:44.569 logger stopped

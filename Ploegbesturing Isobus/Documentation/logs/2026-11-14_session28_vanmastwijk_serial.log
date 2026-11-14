@@ -4600,3 +4600,721 @@
 16:07:52.838 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=77756 aiso=2015(2019814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3866/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
 16:07:53.857 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=77797 aiso=2016(2020814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3868/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
 16:07:54.850 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=77838 aiso=2017(2021814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3870/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:07:55.874 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=77879 aiso=2018(2022814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3872/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:07:56.832 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=77920 aiso=2019(2023814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=109 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3874/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:07:57.883 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=77961 aiso=2020(2024814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3876/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:07:58.839 [ISOBUS] addr=0x81 claimed=Y load=15.1% msgs=78002 aiso=2021(2025814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3878/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:07:59.857 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=78043 aiso=2022(2026814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3880/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:00.867 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78084 aiso=2023(2027814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=105 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3882/105ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:01.883 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78125 aiso=2024(2028814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=97 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3884/97ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:02.848 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78166 aiso=2025(2029814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3886/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:03.864 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78207 aiso=2026(2030814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3888/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:04.890 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78248 aiso=2027(2031814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3890/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:05.883 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78289 aiso=2028(2032814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3892/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:06.864 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78330 aiso=2029(2033814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3894/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:07.888 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=78371 aiso=2030(2034814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3896/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:08.853 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78412 aiso=2031(2035814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3898/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:09.895 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=78453 aiso=2032(2036814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3900/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:10.851 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=78494 aiso=2033(2037814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3902/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:11.881 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78535 aiso=2034(2038814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3904/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:12.850 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78576 aiso=2035(2039814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3906/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:13.859 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=78617 aiso=2036(2040814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3908/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:14.866 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78658 aiso=2037(2041814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3910/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:15.848 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78699 aiso=2038(2042814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3912/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:16.864 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=78740 aiso=2039(2043814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3914/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:17.850 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=78781 aiso=2040(2044814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3916/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:18.896 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=78822 aiso=2041(2045814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3918/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:19.869 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=78863 aiso=2042(2046814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3920/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:20.845 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=78904 aiso=2043(2047814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3922/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:21.871 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78945 aiso=2044(2048814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3924/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:22.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=78986 aiso=2045(2049814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3926/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:23.902 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79027 aiso=2046(2050814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3928/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:24.869 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79068 aiso=2047(2051814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3930/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:25.841 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=79109 aiso=2048(2052814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3932/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:26.893 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=79150 aiso=2049(2053814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3934/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:27.875 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=79191 aiso=2050(2054814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3936/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:28.897 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=79232 aiso=2051(2055814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3938/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:29.864 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=79273 aiso=2052(2056814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3940/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:30.861 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=79314 aiso=2053(2057814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=106 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3942/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:31.883 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79355 aiso=2054(2058814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3944/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:32.878 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79396 aiso=2055(2059814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3946/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:33.851 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=79437 aiso=2056(2060814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3948/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:34.882 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79478 aiso=2057(2061814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3950/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:35.869 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79519 aiso=2058(2062814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3952/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:36.843 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=79560 aiso=2059(2063814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3954/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:37.872 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=79601 aiso=2060(2064814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3956/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:38.846 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=79642 aiso=2061(2065814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3958/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:39.882 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=79683 aiso=2062(2066814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3960/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:40.852 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=79724 aiso=2063(2067814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3962/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:41.835 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79765 aiso=2064(2068814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3964/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:42.868 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79806 aiso=2065(2069814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3966/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:43.837 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79847 aiso=2066(2070814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3968/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:44.859 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=79888 aiso=2067(2071814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3970/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:45.858 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=79929 aiso=2068(2072814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3972/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:46.865 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=79970 aiso=2069(2073814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3974/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:47.887 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=80011 aiso=2070(2074814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3976/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:48.858 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=80052 aiso=2071(2075814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3978/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:49.868 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=80093 aiso=2072(2076814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3980/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:50.845 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=80134 aiso=2073(2077814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3982/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:51.844 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80175 aiso=2074(2078814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3984/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:52.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80216 aiso=2075(2079814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3986/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:53.846 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=80257 aiso=2076(2080814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3988/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:54.844 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80298 aiso=2077(2081814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3990/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:55.869 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80339 aiso=2078(2082814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3992/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:56.836 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=80380 aiso=2079(2083814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3994/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:57.872 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=80421 aiso=2080(2084814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3996/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:58.845 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=80462 aiso=2081(2085814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=3998/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:08:59.863 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=80503 aiso=2082(2086814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4000/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:00.845 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=80544 aiso=2083(2087814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4002/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:01.900 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80585 aiso=2084(2088814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4004/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:02.885 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80626 aiso=2085(2089814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4006/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:03.858 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80667 aiso=2086(2090814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4008/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:04.881 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80708 aiso=2087(2091814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4010/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:05.844 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=80749 aiso=2088(2092814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4012/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:06.880 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=80790 aiso=2089(2093814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4014/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:07.850 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=80831 aiso=2090(2094814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4016/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:08.843 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=80872 aiso=2091(2095814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4018/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:09.869 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=80913 aiso=2092(2096814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4020/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:10.898 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=80954 aiso=2093(2097814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4022/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:11.879 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=80995 aiso=2094(2098814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4024/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:12.858 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81036 aiso=2095(2099814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4026/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:13.867 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=81077 aiso=2096(2100814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=7 vtgAge=7 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4028/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:14.857 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81118 aiso=2097(2101814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4030/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:15.844 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81159 aiso=2098(2102814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4032/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:16.857 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=81200 aiso=2099(2103814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4034/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:17.878 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=81241 aiso=2100(2104814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=7 vtgAge=7 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4036/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:18.856 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=81282 aiso=2101(2105814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4038/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:19.886 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=81323 aiso=2102(2106814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4040/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:20.866 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=81364 aiso=2103(2107814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4042/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:21.857 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81405 aiso=2104(2108814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4044/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:22.871 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81446 aiso=2105(2109814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4046/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:23.859 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81487 aiso=2106(2110814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4048/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:24.850 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81528 aiso=2107(2111814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4050/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:25.900 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=81569 aiso=2108(2112814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4052/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:26.871 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=81610 aiso=2109(2113814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4054/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:27.873 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=81651 aiso=2110(2114814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4056/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:28.884 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=81692 aiso=2111(2115814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4058/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:29.879 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=81733 aiso=2112(2116814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4060/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:30.879 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=81774 aiso=2113(2117814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4062/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:31.837 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81815 aiso=2114(2118814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=107 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4064/107ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:32.865 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81856 aiso=2115(2119814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4066/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:33.850 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=81897 aiso=2116(2120814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=107 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4068/107ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:34.871 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81938 aiso=2117(2121814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4070/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:35.861 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=81979 aiso=2118(2122814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=119 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4072/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:36.859 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=82020 aiso=2119(2123814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4074/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:37.885 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=82061 aiso=2120(2124814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4076/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:38.897 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=82102 aiso=2121(2125814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4078/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:39.886 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=82143 aiso=2122(2126814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4080/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:40.856 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=82184 aiso=2123(2127814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4082/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:41.898 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82225 aiso=2124(2128814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4084/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:42.867 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82266 aiso=2125(2129814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4086/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:43.895 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82307 aiso=2126(2130814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4088/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:44.873 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82348 aiso=2127(2131814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4090/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:45.860 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=82389 aiso=2128(2132814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=107 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4092/107ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:46.886 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=82430 aiso=2129(2133814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=7 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4094/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:47.860 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=82471 aiso=2130(2134814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4096/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:48.847 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=82512 aiso=2131(2135814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4098/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:49.883 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=82553 aiso=2132(2136814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4100/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:50.858 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=82594 aiso=2133(2137814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=107 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4102/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:51.890 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82635 aiso=2134(2138814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4104/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:52.856 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82676 aiso=2135(2139814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4106/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:53.855 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=82717 aiso=2136(2140814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=16 xteAge=120 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4108/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:54.887 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=82758 aiso=2137(2141814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4110/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:55.848 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=82799 aiso=2138(2142814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4112/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:56.838 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=82840 aiso=2139(2143814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4114/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:57.892 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=82881 aiso=2140(2144814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=120 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4116/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:58.855 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=82922 aiso=2141(2145814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4118/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:09:59.895 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=82963 aiso=2142(2146814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4120/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:00.875 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83004 aiso=2143(2147814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4122/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:01.837 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83045 aiso=2144(2148814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=120 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4124/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:02.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83086 aiso=2145(2149814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4126/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:03.900 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83127 aiso=2146(2150814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4128/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:04.856 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83168 aiso=2147(2151814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4130/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:05.849 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83209 aiso=2148(2152814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4132/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:06.883 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83250 aiso=2149(2153814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4134/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:07.896 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=83291 aiso=2150(2154814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4136/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:08.885 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83332 aiso=2151(2155814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4138/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:09.836 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=83373 aiso=2152(2156814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4140/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:10.861 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=83414 aiso=2153(2157814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4142/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:11.843 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83455 aiso=2154(2158814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4144/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:12.892 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83496 aiso=2155(2159814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=8 vtgAge=8 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4146/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:13.874 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83537 aiso=2156(2160814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4148/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:14.863 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83578 aiso=2157(2161814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4150/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:15.839 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83619 aiso=2158(2162814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4152/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:16.882 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83660 aiso=2159(2163814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4154/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:17.852 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=83701 aiso=2160(2164814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4156/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:18.907 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=83742 aiso=2161(2165814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4158/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:19.871 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=83783 aiso=2162(2166814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4160/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:20.859 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83824 aiso=2163(2167814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4162/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:21.851 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83865 aiso=2164(2168814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=108 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4164/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:22.901 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83906 aiso=2165(2169814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4166/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:23.884 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=83947 aiso=2166(2170814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4168/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:24.874 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=83988 aiso=2167(2171814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4170/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:25.884 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84029 aiso=2168(2172814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4172/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:26.610 VT: Calibrate pressed
+16:10:26.612 VT: calibration page open
+16:10:26.872 [ISOBUS] addr=0x81 claimed=Y load=17.0% msgs=84070 aiso=2169(2173814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4175/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:27.862 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=84111 aiso=2170(2174814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4177/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:28.881 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84152 aiso=2171(2175814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4179/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:29.893 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=84193 aiso=2172(2176814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4181/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:30.888 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=84234 aiso=2173(2177814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4183/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:31.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=84275 aiso=2174(2178814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4185/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:32.845 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=84316 aiso=2175(2179814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4187/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:33.838 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84357 aiso=2176(2180814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4189/120ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:34.842 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=84398 aiso=2177(2181814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4191/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:35.886 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84439 aiso=2178(2182814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4193/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:36.858 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84480 aiso=2179(2183814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4195/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:37.914 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=84521 aiso=2180(2184814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4197/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:38.896 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84562 aiso=2181(2185814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4199/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:39.885 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=84603 aiso=2182(2186814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4201/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:40.896 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84644 aiso=2183(2187814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4203/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:41.866 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=84685 aiso=2184(2188814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4205/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:42.863 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=84726 aiso=2185(2189814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=16 vtgAge=16 xteAge=116 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4207/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:43.897 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84767 aiso=2186(2190814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=16 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4209/116ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:44.885 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=84808 aiso=2187(2191814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4211/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:45.874 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84849 aiso=2188(2192814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4213/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:46.839 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84890 aiso=2189(2193814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4215/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:47.892 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=84931 aiso=2190(2194814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4217/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:48.871 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=84972 aiso=2191(2195814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4219/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:49.897 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=85013 aiso=2192(2196814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4221/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:50.885 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=85054 aiso=2193(2197814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=109 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4223/121ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:51.858 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=85095 aiso=2194(2198814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4225/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:52.845 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=85136 aiso=2195(2199814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4227/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:53.901 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85177 aiso=2196(2200814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=9 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4229/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:54.893 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=85218 aiso=2197(2201814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4231/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:55.890 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85259 aiso=2198(2202814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4233/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:56.864 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85300 aiso=2199(2203814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4235/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:57.899 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=85341 aiso=2200(2204814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4237/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:58.868 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=85382 aiso=2201(2205814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4239/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:10:59.846 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=85423 aiso=2202(2206814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4241/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:00.843 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85464 aiso=2203(2207814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4243/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:01.861 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=85505 aiso=2204(2208814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4245/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:02.875 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=85546 aiso=2205(2209814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4247/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:03.863 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85587 aiso=2206(2210814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4249/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:04.893 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=85628 aiso=2207(2211814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4251/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:05.875 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85669 aiso=2208(2212814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4253/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:06.862 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85710 aiso=2209(2213814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4255/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:07.896 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=85751 aiso=2210(2214814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4257/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:08.874 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85792 aiso=2211(2215814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=105 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4259/109ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:09.869 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=85833 aiso=2212(2216814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4261/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:10.852 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=85874 aiso=2213(2217814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4263/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:11.178 VT: calibration saved
+16:11:11.898 [ISOBUS] addr=0x81 claimed=Y load=16.2% msgs=85915 aiso=2214(2218814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4265/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:12.887 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=85956 aiso=2215(2219814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4267/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:13.902 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=85997 aiso=2216(2220814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4269/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:14.883 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86038 aiso=2217(2221814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4271/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:15.873 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86079 aiso=2218(2222814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4273/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:16.899 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86120 aiso=2219(2223814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4275/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:17.883 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=86161 aiso=2220(2224814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4277/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:18.872 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=86202 aiso=2221(2225814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4279/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:19.862 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=86243 aiso=2222(2226814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4281/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:20.847 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86284 aiso=2223(2227814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4283/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:21.882 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86325 aiso=2224(2228814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4285/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:22.856 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86366 aiso=2225(2229814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4287/113ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:23.840 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86407 aiso=2226(2230814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4289/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:24.903 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86448 aiso=2227(2231814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=109 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4291/109ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:25.854 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86489 aiso=2228(2232814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4293/117ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:26.440 VT: Calibrate pressed
+16:11:26.440 VT: calibration page open
+16:11:26.860 [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=86530 aiso=2229(2233814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4296/109ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:27.840 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=86571 aiso=2230(2234814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4298/109ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:28.887 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86612 aiso=2231(2235814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4300/105ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:29.862 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=86653 aiso=2232(2236814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4302/105ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:30.865 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=86694 aiso=2233(2237814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4304/105ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:31.839 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86735 aiso=2234(2238814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=113 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4306/105ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:32.876 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86776 aiso=2235(2239814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4308/106ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:33.883 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86817 aiso=2236(2240814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=17 vtgAge=17 xteAge=117 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4310/106ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:34.901 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=86858 aiso=2237(2241814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=17 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4312/106ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:35.872 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86899 aiso=2238(2242814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4314/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:36.857 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=86940 aiso=2239(2243814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4316/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:37.893 [ISOBUS] addr=0x81 claimed=Y load=15.6% msgs=86981 aiso=2240(2244814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4318/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:38.893 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=87022 aiso=2241(2245814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4320/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:39.873 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=87063 aiso=2242(2246814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4322/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:40.862 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=87104 aiso=2243(2247814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4324/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:41.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87145 aiso=2244(2248814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0D060BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4326/98ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:42.848 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87186 aiso=2245(2249814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0D050BFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4328/98ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:43.890 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87227 aiso=2246(2250814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4330/98ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:44.872 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87268 aiso=2247(2251814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4332/98ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:45.845 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87309 aiso=2248(2252814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4334/98ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:46.866 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=87350 aiso=2249(2253814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4336/98ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:47.843 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=87391 aiso=2250(2254814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4338/94ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:48.901 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=87432 aiso=2251(2255814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4340/94ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:49.554 VT: calibration cancelled
+16:11:49.880 [ISOBUS] addr=0x81 claimed=Y load=16.3% msgs=87473 aiso=2252(2256814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4342/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:50.867 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=87514 aiso=2253(2257814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4344/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:51.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87555 aiso=2254(2258814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4346/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:52.879 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87596 aiso=2255(2259814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4348/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:53.858 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=87637 aiso=2256(2260814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4350/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:54.896 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87678 aiso=2257(2261814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4352/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:55.878 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=87719 aiso=2258(2262814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4354/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:56.075 VT: Calibrate pressed
+16:11:56.075 VT: calibration page open
+16:11:56.864 [ISOBUS] addr=0x81 claimed=Y load=17.1% msgs=87760 aiso=2259(2263814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4356/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:57.881 [ISOBUS] addr=0x81 claimed=Y load=15.6% msgs=87801 aiso=2260(2264814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4358/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:58.853 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=87842 aiso=2261(2265814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4360/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:11:59.882 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=87883 aiso=2262(2266814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4362/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:00.869 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=87924 aiso=2263(2267814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4364/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:01.890 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=87965 aiso=2264(2268814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4366/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:02.876 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88006 aiso=2265(2269814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4368/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:03.863 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88047 aiso=2266(2270814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4370/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:04.885 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88088 aiso=2267(2271814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4372/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:05.856 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88129 aiso=2268(2272814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4374/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:06.887 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88170 aiso=2269(2273814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4376/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:07.857 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=88211 aiso=2270(2274814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4378/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:08.888 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88252 aiso=2271(2275814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4380/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:09.887 [ISOBUS] addr=0x81 claimed=Y load=15.6% msgs=88293 aiso=2272(2276814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4382/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:10.903 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88334 aiso=2273(2277814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4384/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:11.886 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=88375 aiso=2274(2278814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4386/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:12.871 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88416 aiso=2275(2279814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4388/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:13.888 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88457 aiso=2276(2280814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4390/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:14.866 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88498 aiso=2277(2281814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4392/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:15.853 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88539 aiso=2278(2282814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4394/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:16.894 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88580 aiso=2279(2283814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=14 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4396/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:17.861 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88621 aiso=2280(2284814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4398/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:18.848 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88662 aiso=2281(2285814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=106 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4400/102ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:19.879 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=88703 aiso=2282(2286814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4402/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:20.840 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88744 aiso=2283(2287814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4404/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:21.874 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=88785 aiso=2284(2288814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4406/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:22.888 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88826 aiso=2285(2289814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=118 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4408/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:23.881 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=88867 aiso=2286(2290814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=18 vtgAge=18 xteAge=114 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4410/118ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:24.860 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88908 aiso=2287(2291814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=18 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4412/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:25.869 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=88949 aiso=2288(2292814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4414/114ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:26.846 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=88990 aiso=2289(2293814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4416/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:27.899 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89031 aiso=2290(2294814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4418/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:28.862 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89072 aiso=2291(2295814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4420/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:29.897 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=89113 aiso=2292(2296814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4422/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:30.887 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89154 aiso=2293(2297814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4424/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=47980
+16:12:31.549 VT: calibration saved
+16:12:31.744 VT: preferred VT 2 up at 0x80 -- moving to it
+16:12:31.744 I] [VT]: VT Client connection has been terminated.
+16:12:31.744 I] [NM]: A partner with name 000000000000000lx has claimed address 536925300 on channel 203452081.
+16:12:31.873 [ISOBUS] addr=0x81 claimed=Y load=16.7% msgs=89197 aiso=2294(2298814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=N(1/22) vtstat=4427/67ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:32.767 I] [VT]: VT Server has a matching label for MW18   . It will be loaded and upload will be skipped.
+16:12:32.838 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+16:12:32.903 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89240 aiso=2295(2299814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4429/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:33.892 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89281 aiso=2296(2300814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4432/119ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:34.872 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89322 aiso=2297(2301814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4434/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:35.896 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89363 aiso=2298(2302814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=111 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4436/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:36.873 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89404 aiso=2299(2303814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4438/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:36.938 VT: Calibrate pressed
+16:12:36.938 VT: calibration page open
+16:12:37.868 [ISOBUS] addr=0x81 claimed=Y load=17.0% msgs=89445 aiso=2300(2304814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4441/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:38.870 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89486 aiso=2301(2305814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4443/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:39.856 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=89527 aiso=2302(2306814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4445/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:40.888 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89568 aiso=2303(2307814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4447/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:41.871 [ISOBUS] addr=0x81 claimed=Y load=15.7% msgs=89609 aiso=2304(2308814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4449/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:42.706 VT: calibration saved
+16:12:42.904 [ISOBUS] addr=0x81 claimed=Y load=15.7% msgs=89650 aiso=2305(2309814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=112 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4451/112ms tc=Y drp=0mm tcq=0 stk=1176 hp=53676
+16:12:43.033 VT: preferred VT 1 up at 0x26 -- moving to it
+16:12:43.033 I] [VT]: VT Client connection has been terminated.
+16:12:43.033 I] [NM]: A partner with name 000000000000000lx has claimed address 536925300 on channel 197275905.
+16:12:43.868 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89691 aiso=2306(2310814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=N(1/22) vtstat=4454/115ms tc=Y drp=0mm tcq=0 stk=1176 hp=55236
+16:12:44.057 I] [VT]: VT Server has a matching label for MW18   . It will be loaded and upload will be skipped.
+16:12:44.252 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+16:12:44.893 [ISOBUS] addr=0x81 claimed=Y load=17.2% msgs=89738 aiso=2307(2311814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4456/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:45.868 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89779 aiso=2308(2312814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4458/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:46.883 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89820 aiso=2309(2313814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4460/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:47.846 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=89861 aiso=2310(2314814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4463/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:48.899 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89902 aiso=2311(2315814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4465/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:49.882 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=89943 aiso=2312(2316814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4467/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:50.843 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=89984 aiso=2313(2317814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4470/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:51.899 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=90025 aiso=2314(2318814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4472/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:52.873 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90066 aiso=2315(2319814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4474/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:53.881 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90107 aiso=2316(2320814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4476/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:54.846 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90148 aiso=2317(2321814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4478/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:55.872 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90189 aiso=2318(2322814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4480/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:56.906 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90230 aiso=2319(2323814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4482/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:57.861 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90271 aiso=2320(2324814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4484/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:58.896 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=90312 aiso=2321(2325814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4486/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:12:59.895 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=90353 aiso=2322(2326814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4488/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:00.871 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90394 aiso=2323(2327814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4490/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:01.882 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=90435 aiso=2324(2328814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4492/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:02.844 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90476 aiso=2325(2329814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=15 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4494/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:03.856 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90517 aiso=2326(2330814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4496/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:04.878 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90558 aiso=2327(2331814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4498/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:05.853 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90599 aiso=2328(2332814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4500/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:06.893 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90640 aiso=2329(2333814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4502/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:07.868 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90681 aiso=2330(2334814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=95 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4504/99ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:08.888 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90722 aiso=2331(2335814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4506/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:09.854 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=90763 aiso=2332(2336814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4508/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:10.854 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=90804 aiso=2333(2337814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4510/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:11.896 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=90845 aiso=2334(2338814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4512/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:12.851 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90886 aiso=2335(2339814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=119 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4514/119ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:13.856 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=90927 aiso=2336(2340814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=15 xteAge=115 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4516/115ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:14.845 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=90968 aiso=2337(2341814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=19 vtgAge=19 xteAge=104 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4518/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:15.867 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91009 aiso=2338(2342814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4520/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:16.899 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91050 aiso=2339(2343814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4522/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:17.847 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91091 aiso=2340(2344814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4524/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:18.896 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=91132 aiso=2341(2345814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4526/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:19.852 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=91173 aiso=2342(2346814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4528/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:20.881 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91214 aiso=2343(2347814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4530/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:21.846 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=91255 aiso=2344(2348814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4532/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:22.901 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91296 aiso=2345(2349814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4534/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:23.896 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91337 aiso=2346(2350814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4536/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:24.867 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91378 aiso=2347(2351814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4538/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:25.884 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91419 aiso=2348(2352814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4540/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:26.848 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91460 aiso=2349(2353814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4542/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:27.901 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91501 aiso=2350(2354814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4544/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:28.849 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91542 aiso=2351(2355814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4546/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:29.888 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=91583 aiso=2352(2356814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4548/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:30.903 [ISOBUS] addr=0x81 claimed=Y load=15.2% msgs=91624 aiso=2353(2357814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4550/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:31.847 [ISOBUS] addr=0x81 claimed=Y load=15.5% msgs=91665 aiso=2354(2358814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4552/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:32.886 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91706 aiso=2355(2359814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4554/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:33.365 >>> sent 'm1q'
+16:13:33.431 === ISOBUS DEBUG MENU ===
+16:13:33.433 1. Full status dump
+16:13:33.433 2. Periodic summary line (ON - press to toggle)
+16:13:33.435 3. Reset message counters
+16:13:33.435 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:13:33.435 t. Task Controller choice (SPIKE #316), now: any TC
+16:13:33.437 5. Dump VT object pool as hex
+16:13:33.437 q. Exit
+16:13:33.437 === ISOBUS STATUS ===
+16:13:33.439 Address claim: CLAIMED  address=0x81  identity=1324910
+16:13:33.441 CAN controller: error-active  TX err 0 (peak 0)  RX err 0 (peak 0)
+16:13:33.441   error-passive entries: 0  bus-off entries: 0  longest episode: 0 ms
+16:13:33.442 Bus load (ch0): 15.3 %
+16:13:33.442 CAN receive queue: high water 63 of 64, dropped 328
+16:13:33.443 Loop pass: longest 2731 us since the last dump, 3161 us since boot
+16:13:33.443 Stack: peak 1216 of 228512 bytes since boot, 227296 never used
+16:13:33.443 Heap: peak 55236 of 495488 bytes
+16:13:33.446 --- Message counters ---
+16:13:33.446   PGN 129025 Position NMEA2000: 0
+16:13:33.446   PGN 129026 Speed NMEA2000:    0
+16:13:33.447   PGN 129283 XTE NMEA2000:      18
+16:13:33.447              last SA=0xCD len=0 raw=-  (2186477 ms ago)
+16:13:33.449              committed=0  rejected: length=18 navTerminated=0 notAvailable=0 error=0
+16:13:33.450   PGN 65267  Position legacy:   21912
+16:13:33.451   PGN 65256  Speed legacy:      21912   last SA=0x80 raw=0x0
+16:13:33.451   PGN 65535  all senders:       21912   last SA=0x80
+16:13:33.451   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+16:13:33.451              raw SA=0x80 word=0xBFF byte1=0x3 payload 510302FF0B050AFF  (37 ms ago)
+16:13:33.454   PGN 65535  GNSS status 0x80:  21912   fix mode 2 (RTK fixed)  (37 ms ago)
+16:13:33.454   PGN 60160  XTE Trimble legacy:70   last SA=0x26
+16:13:33.454   PGN 64770  AISO stop:         2356   last 2360335 ms ago
+16:13:33.456   TOTAL:                        91727
+16:13:33.456 --- Guidance telemetry ---
+16:13:33.458   XTE:          0.11 m
+16:13:33.458   Speed:        0.00 m/s (0.00 kn)
+16:13:33.466   Quality:      4   RTK quality=4  PGN 129029 GNSS position: (none received)
+16:13:33.466   PGN 129027 position deltas: 0
+16:13:33.466   Guidance machine info (PGN 44032): 23547 msgs, last 77 ms ago
+16:13:33.470     lockout=YES/READY  steeringReady=n/a  remoteEngage=n/a  curvature=-11.75 1/km
+16:13:33.471   IsRtkQuality=Y
+16:13:33.471   GGA fix age:  41 ms
+16:13:33.473   VTG fix age:  37 ms
+16:13:33.473   XTE fix age:  37 ms
+16:13:33.475   Lat/Lon/Alt/Course: 53.442081 / 6.755909 / 1.3 m / 300.4 deg
+16:13:33.477 --- Virtual Terminal ---
+16:13:33.478   Connected:    Y
+16:13:33.480   State:        21/22  Connected
+16:13:33.480   VT version:  4
+16:13:33.480   VT status msgs: 4554   last 641 ms ago
+16:13:33.482   Partner: addr=0x26 valid=Y  reconnect attempts=0
+16:13:33.482   VT failover: switches=2 claim requests=0 rejoins=0 preferred=VT1 at 0x26 (bound)
+16:13:33.484   AUX-N: Breder events=0 Smaller events=0 held=--
+16:13:33.485 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+16:13:33.485   Mode: AUTO  RUNNING  (Ag Leader display seen)
+16:13:33.487   Address claim: CLAIMED  address=0xDC
+16:13:33.487   Display partner: 0xF5  identification requests=8 answered=8 unknown=0  last DID=0x8015  hello=Y  stack partner=0xF5
+16:13:33.487   Sent: frames=1331 failures=1 heartbeats=1315 softwareId=Y  proprietary A from display=1
+16:13:33.487   Requests: softwareId=1 (sent 2x) ignored=886 last ignored PGN=60928
+16:13:33.490   PGN 65462 XTE: frames=10946 committed=10925  last 37 ms ago from 0xF5  raw=0B0004002C015104  -> 11 cm left, pass 3L, autosteer off, line  (committed)
+16:13:33.490 --- Task Controller ---
+16:13:33.490   Connected:    Y
+16:13:33.490   TC-GEO (with/without pos): Y/N
+16:13:33.490   Task active:  Y
+16:13:33.490   DRP deviation (DDI 513): 0 mm, last 2360335 ms ago
+16:13:33.490   GNSS quality (DDI 514):  0, last 2360335 ms ago
+16:13:33.497   Work state (DDI 141):    1 working (hitch down)
+16:13:33.497   Working width (DDI 67):  180 cm, changes 0, reported 0
+16:13:33.498   [via stack] Value cmds to handler: 0  last DDI=(none)
+16:13:33.498   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+16:13:33.498   [on bus] Requests for our values: 0
+16:13:33.500   [on bus] Set-value commands:      0
+16:13:33.500   [on bus] Measurement commands:    0  (none)
+16:13:33.500   [on bus] Other, addressed to us:  6
+16:13:33.502   Partner: addr=0xF7 valid=Y  reconnect attempts=0
+16:13:33.502   TC choice: any TC  bound: TC 1 manufacturer 97  version 3 booms 1 sections 144
+16:13:33.502   Tramline setpoint (DDI 506): (none yet)
+16:13:33.504   [on bus] Requests for DDI 506: 0  DDI 515: 0
+16:13:33.504   Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+16:13:33.504   Guidance track (DDI 507-511): (none yet)
+16:13:33.504 === ISOBUS DEBUG MENU ===
+16:13:33.504 1. Full status dump
+16:13:33.504 2. Periodic summary line (ON - press to toggle)
+16:13:33.504 3. Reset message counters
+16:13:33.504 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:13:33.504 t. Task Controller choice (SPIKE #316), now: any TC
+16:13:33.504 5. Dump VT object pool as hex
+16:13:33.504 q. Exit
+16:13:33.504 Exiting.
+16:13:33.847 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91747 aiso=2356(2360814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4556/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:34.865 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91788 aiso=2357(2361814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4558/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:35.899 [ISOBUS] addr=0x81 claimed=Y load=15.3% msgs=91829 aiso=2358(2362814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=16 xteAge=116 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4560/116ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+16:13:36.867 [ISOBUS] addr=0x81 claimed=Y load=15.4% msgs=91870 aiso=2359(2363814ms) xte=0.11m spd=0.00m/s q=4 ggaAge=20 vtgAge=20 xteAge=120 xteraw=80:510302FF0B050AFF x129283=CD:0:- lb=11L-p3L:0B0004002C015104 vt=Y(21/22) vtstat=4562/120ms tc=Y drp=0mm tcq=0 stk=1216 hp=55236
+=== 16:13:37.367 logger stopped
+=== 16:13:37.429 logger stopped
+=== 16:13:37.584 logger stopped
+=== 2026-11-14 16:23:04 logger start on COM4
+=== 16:23:04.456 opened COM4
+16:23:05.530 --------------------------------
+16:23:05.530 -----------MeijWorks------------
+16:23:05.530 --------------------------------
+16:23:05.530    Triton PB-ISO version 0.28   
+16:23:05.530   SPIKE #316: DDI 515 echo ON   
+16:23:05.530 (c) 2011 - 2026 by J.A. Woltjer 
+16:23:05.530 --------------------------------
+16:23:05.835 -------------------------------
+16:23:05.836 Tractor using following data:
+16:23:05.838 -------------------------------
+16:23:05.840 Speed calibration
+16:23:05.841 250
+16:23:05.842 -------------------------------
+16:23:05.842 Simspeed
+16:23:05.842 1.00
+16:23:05.844 -------------------------------
+16:23:05.846 Sim time
+16:23:05.846 2
+16:23:05.848 -------------------------------
+16:23:05.850 Sim mode
+16:23:05.851 1
+16:23:05.852 -------------------------------
+16:23:05.853 Invert hitch signal
+16:23:05.854 1
+16:23:05.855 -------------------------------
+16:23:05.856 Times started
+16:23:05.856 255
+16:23:05.859 --------------------------
+16:23:05.859 Using following data:
+16:23:05.859 --------------------------
+16:23:05.859 Offset calibration data
+16:23:05.864 21, 34
+16:23:05.865 144, 42
+16:23:05.865 266, 50
+16:23:05.867 --------------------------
+16:23:05.867 Number of shares
+16:23:05.867 4
+16:23:05.867 --------------------------
+16:23:05.867 Deadband (cm)
+16:23:05.872 2
+16:23:05.872 --------------------------
+16:23:05.872 error ploughside
+16:23:05.872 0
+16:23:05.872 --------------------------
+16:23:05.872 Bypass valve
+16:23:05.872 1
+16:23:05.872 --------------------------
+16:23:05.872 Maximum correction per share (mm)
+16:23:05.880 100
+16:23:05.880 Maximum correction (mm)
+16:23:05.880 400
+16:23:05.880 --------------------------
+16:23:05.880 =====================================
+16:23:05.885 Guidance source using following data:
+16:23:05.886 =====================================
+16:23:05.887 Baudrate
+16:23:05.888 4800
+16:23:05.888 -------------------------------
+16:23:05.888 RTK Quality
+16:23:05.888 4
+16:23:05.888 -------------------------------
+16:23:05.888 Preferred VT (0 = none)
+16:23:05.888 1
+16:23:05.888 -------------------------------
+16:23:05.888 Ag Leader lightbar
+16:23:05.888 AUTO
+16:23:05.888 -------------------------------
+16:23:05.888 Times started
+16:23:05.888 255
+16:23:05.888 --------------------------
+16:23:05.888 Using following data:
+16:23:05.904 --------------------------
+16:23:05.906 Offset calibration data
+16:23:05.906 21, 34
+16:23:05.906 144, 42
+16:23:05.909 266, 50
+16:23:05.909 --------------------------
+16:23:05.909 Number of shares
+16:23:05.909 4
+16:23:05.909 --------------------------
+16:23:05.909 Deadband (cm)
+16:23:05.909 2
+16:23:05.909 --------------------------
+16:23:05.909 error ploughside
+16:23:05.909 0
+16:23:05.909 --------------------------
+16:23:05.909 Bypass valve
+16:23:05.916 1
+16:23:05.916 --------------------------
+16:23:05.916 Maximum correction per share (mm)
+16:23:05.918 100
+16:23:05.918 Maximum correction (mm)
+16:23:05.920 400
+16:23:05.920 --------------------------
+16:23:05.920 CAN controller at start: error-active, TX err 0, RX err 0
+16:23:06.101 IsobusGuidanceChannel: identity 1324910 (board serial 1324910), claiming... address claimed: 0x81
+16:23:06.101 CAN controller after the claim: error-active, TX err 0, RX err 0
+16:23:06.101 Lightbar: Ag Leader L160 emulation, mode AUTO
+16:23:06.101 I] [NM]: A partner with name 000000000000000lx has claimed address 536925300 on channel 197275905.
+16:23:06.101 I] [NM]: A partner with name 000000000000000lx has claimed address 536925300 on channel 203452081.
+16:23:06.101 IsobusDebugMenu: send any character to open the status menu.
+16:23:08.087 Lightbar: presenting as an Ag Leader L160, claiming 0xDC (mode AUTO, Ag Leader display seen)
+16:23:08.214 I] [VT]: VT Server has a matching label for MW18   . It will be loaded and upload will be skipped.
+16:23:08.338 Lightbar: address claimed: 0xDC
+16:23:08.404 I] [VT]: Loaded object pool version from VT non-volatile memory with no errors.
+16:23:14.158 I] [TC]: DDOP will be generated using the server's version instead of the specified version. New version: 3
+16:23:14.291 I] [TC]: DDOP Activated without error.
+16:24:09.999 W] [VT]: Server response to a command timed out
+16:24:10.889 E] [VT]: Status Timeout
+16:24:13.889 E] [VT]: Timed out waiting for the VT Status message.
+16:24:13.956 E] [TC]: Server Status Message Timeout. The TC may be offline.
+16:24:18.861 I] [VT]: Resetting Failed VT Connection
+16:24:20.855 VT: disconnected 10s after having been connected -- forcing reconnect attempt 1 (partner addr=0x26 valid=Y)
+16:24:20.858 I] [VT]: VT Client connection has been terminated.
+16:24:22.514 >>> sent 'm2q'
+16:24:22.582 === ISOBUS DEBUG MENU ===
+16:24:22.583 1. Full status dump
+16:24:22.583 2. Periodic summary line (OFF - press to toggle)
+16:24:22.583 3. Reset message counters
+16:24:22.583 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:24:22.583 t. Task Controller choice (SPIKE #316), now: any TC
+16:24:22.583 5. Dump VT object pool as hex
+16:24:22.583 q. Exit
+16:24:22.583 Periodic summary line: ON
+16:24:22.583 === ISOBUS DEBUG MENU ===
+16:24:22.583 1. Full status dump
+16:24:22.592 2. Periodic summary line (ON - press to toggle)
+16:24:22.592 3. Reset message counters
+16:24:22.592 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:24:22.592 t. Task Controller choice (SPIKE #316), now: any TC
+16:24:22.592 5. Dump VT object pool as hex
+16:24:22.596 q. Exit
+16:24:22.596 Exiting.
+16:24:22.598 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(80308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=14580 vtgAge=14580 xteAge=14580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/14688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:22.865 VT: partner 0x26 silent -- requesting address claims to find another VT
+16:24:23.564 [ISOBUS] addr=0x81 claimed=Y load=0.2% msgs=2475 aiso=61(81308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=15580 vtgAge=15580 xteAge=15580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/15688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:23.827 E] [VT]: Timed out waiting for the VT Status message.
+16:24:24.535 >>> sent 'm1q'
+16:24:24.610 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=2475 aiso=61(82308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=16580 vtgAge=16580 xteAge=16580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/16688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:24.610 === ISOBUS DEBUG MENU ===
+16:24:24.610 1. Full status dump
+16:24:24.610 2. Periodic summary line (ON - press to toggle)
+16:24:24.610 3. Reset message counters
+16:24:24.614 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:24:24.614 t. Task Controller choice (SPIKE #316), now: any TC
+16:24:24.616 5. Dump VT object pool as hex
+16:24:24.616 q. Exit
+16:24:24.616 === ISOBUS STATUS ===
+16:24:24.618 Address claim: CLAIMED  address=0x81  identity=1324910
+16:24:24.618 CAN controller: error-PASSIVE  TX err 128 (peak 128)  RX err 0 (peak 0)
+16:24:24.618   error-passive entries: 1  bus-off entries: 0  longest episode: 0 ms  (current: 16468 ms)
+16:24:24.618 Bus load (ch0): 0.0 %
+16:24:24.618 CAN receive queue: high water 63 of 64, dropped 423
+16:24:24.618 Loop pass: longest 3133 us since the last dump, 3133 us since boot
+16:24:24.618 Stack: peak 1144 of 228512 bytes since boot, 227368 never used
+16:24:24.618 Heap: peak 48620 of 495488 bytes
+16:24:24.618 --- Message counters ---
+16:24:24.618   PGN 129025 Position NMEA2000: 0
+16:24:24.618   PGN 129026 Speed NMEA2000:    0
+16:24:24.618   PGN 129283 XTE NMEA2000:      1
+16:24:24.618              last SA=0xCD len=0 raw=-  (76474 ms ago)
+16:24:24.626              committed=0  rejected: length=1 navTerminated=0 notAvailable=0 error=0
+16:24:24.626   PGN 65267  Position legacy:   601
+16:24:24.627   PGN 65256  Speed legacy:      601   last SA=0x80 raw=0x0
+16:24:24.627   PGN 65535  all senders:       601   last SA=0x80
+16:24:24.627   PGN 65535  XTE carrier 0x2A:  0   (none decoded)
+16:24:24.627              raw SA=0x80 word=0xBFF byte1=0x3 payload 510302FF0B060AFF  (16609 ms ago)
+16:24:24.630   PGN 65535  GNSS status 0x80:  601   fix mode 2 (RTK fixed)  (16609 ms ago)
+16:24:24.630   PGN 60160  XTE Trimble legacy:9   last SA=0x26
+16:24:24.632   PGN 64770  AISO stop:         61   last 82337 ms ago
+16:24:24.632   TOTAL:                        2475
+16:24:24.632 --- Guidance telemetry ---
+16:24:24.634   XTE:          -0.24 m
+16:24:24.634   Speed:        0.00 m/s (0.00 kn)
+16:24:24.634   Quality:      4   RTK quality=4  PGN 129029 GNSS position: (none received)
+16:24:24.634   PGN 129027 position deltas: 0
+16:24:24.634   Guidance machine info (PGN 44032): 601 msgs, last 16625 ms ago
+16:24:24.634     lockout=YES/READY  steeringReady=n/a  remoteEngage=n/a  curvature=-11.75 1/km
+16:24:24.634   IsRtkQuality=Y
+16:24:24.634   GGA fix age:  16609 ms
+16:24:24.634   VTG fix age:  16609 ms
+16:24:24.634   XTE fix age:  16609 ms
+16:24:24.634   Lat/Lon/Alt/Course: 53.442081 / 6.755909 / 1.3 m / 300.3 deg
+16:24:24.642 --- Virtual Terminal ---
+16:24:24.642   Connected:    N
+16:24:24.642   State:        22/22  Failed
+16:24:24.642   VT version:  4
+16:24:24.642   VT status msgs: 122   last 16717 ms ago
+16:24:24.646   Partner: addr=0x26 valid=Y  reconnect attempts=1
+16:24:24.646   VT failover: switches=0 claim requests=1 rejoins=0 preferred=VT1 at 0x26 (bound)
+16:24:24.646   AUX-N: Breder events=0 Smaller events=0 held=--
+16:24:24.648 --- Lightbar emulation (Ag Leader L160, PGN 65462) ---
+16:24:24.648   Mode: AUTO  RUNNING  (Ag Leader display seen)
+16:24:24.648   Address claim: CLAIMED  address=0xDC
+16:24:24.648   Display partner: 0xF5  identification requests=8 answered=8 unknown=0  last DID=0x8015  hello=Y  stack partner=0xF5
+16:24:24.648   Sent: frames=62 failures=1 heartbeats=46 softwareId=Y  proprietary A from display=1
+16:24:24.648   Requests: softwareId=1 (sent 2x) ignored=34 last ignored PGN=60928
+16:24:24.648   PGN 65462 XTE: frames=289 committed=289  last 16609 ms ago from 0xF5  raw=180004002C019104  -> 24 cm right, pass 3L, autosteer off, line  (committed)
+16:24:24.653 --- Task Controller ---
+16:24:24.653   Connected:    N
+16:24:24.653   TC-GEO (with/without pos): (not connected)
+16:24:24.653   Task active:  N
+16:24:24.653   DRP deviation (DDI 513): 0 mm, last 82337 ms ago
+16:24:24.653   GNSS quality (DDI 514):  0, last 82337 ms ago
+16:24:24.653   Work state (DDI 141):    1 working (hitch down)
+16:24:24.653   Working width (DDI 67):  183 cm, changes 0, reported 0
+16:24:24.653   [via stack] Value cmds to handler: 0  last DDI=(none)
+16:24:24.658   [via stack] Value req callbacks:  0   (mostly AgIsoStack's own re-polling -- NOT bus traffic)
+16:24:24.658   [on bus] Requests for our values: 0
+16:24:24.658   [on bus] Set-value commands:      0
+16:24:24.658   [on bus] Measurement commands:    0  (none)
+16:24:24.658   [on bus] Other, addressed to us:  6
+16:24:24.658   Partner: addr=0xF7 valid=Y  reconnect attempts=0
+16:24:24.658   TC choice: any TC  bound: TC 1 manufacturer 97
+16:24:24.658   Tramline setpoint (DDI 506): (not connected)
+16:24:24.658   [on bus] Requests for DDI 506: 0  DDI 515: 0
+16:24:24.665   Track control state (DDI 515): never commanded  we answer=0  [SPIKE #316: echo ON]
+16:24:24.665   Guidance track (DDI 507-511): (not connected)
+16:24:24.665 === ISOBUS DEBUG MENU ===
+16:24:24.665 1. Full status dump
+16:24:24.665 2. Periodic summary line (ON - press to toggle)
+16:24:24.665 3. Reset message counters
+16:24:24.665 4. Dump DDOP as hex (open in AgIsoDDOPGenerator)
+16:24:24.665 t. Task Controller choice (SPIKE #316), now: any TC
+16:24:24.665 5. Dump VT object pool as hex
+16:24:24.665 q. Exit
+16:24:24.665 Exiting.
+16:24:25.546 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(83308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=17580 vtgAge=17580 xteAge=17580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/17688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:26.524 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=2475 aiso=61(84308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=18580 vtgAge=18580 xteAge=18580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/18688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:27.564 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(85308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=19580 vtgAge=19580 xteAge=19580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/19688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:28.532 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=2475 aiso=61(86308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=20580 vtgAge=20580 xteAge=20580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/20688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:28.844 I] [VT]: Resetting Failed VT Connection
+16:24:28.968 TC: disconnected 15s after having been connected -- forcing restart 1 (partner addr=0xF7 valid=Y)
+16:24:29.528 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=2475 aiso=61(87308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=21580 vtgAge=21580 xteAge=21580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/21688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:30.542 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(88308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=22580 vtgAge=22580 xteAge=22580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/22688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:30.853 VT: disconnected 20s after having been connected -- forcing reconnect attempt 2 (partner addr=0x26 valid=Y)
+16:24:30.853 I] [VT]: VT Client connection has been terminated.
+16:24:31.548 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=2475 aiso=61(89308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=23580 vtgAge=23580 xteAge=23580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/23688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:32.572 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(90308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=24580 vtgAge=24580 xteAge=24580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/24688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:32.886 VT: partner 0x26 silent -- requesting address claims to find another VT
+16:24:33.546 [ISOBUS] addr=0x81 claimed=Y load=0.2% msgs=2475 aiso=61(91308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=25580 vtgAge=25580 xteAge=25580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(1/22) vtstat=122/25688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:33.871 E] [VT]: Timed out waiting for the VT Status message.
+16:24:34.137 I] [NM]: Control function with address 38 and NAME 000000000000000lx is now offline on channel 197275905.
+16:24:34.139 I] [NM]: Control function with address 43 and NAME 000000000000000lx is now offline on channel 203452081.
+16:24:34.140 I] [NM]: Control function with address 128 and NAME 000000000000000lx is now offline on channel 203452081.
+16:24:34.140 I] [NM]: Control function with address 172 and NAME 000000000000000lx is now offline on channel 197275905.
+16:24:34.140 I] [NM]: Control function with address 205 and NAME 000000000000000lx is now offline on channel 198344577.
+16:24:34.140 I] [NM]: Control function with address 233 and NAME 000000000000000lx is now offline on channel 203452081.
+16:24:34.140 I] [NM]: Control function with address 240 and NAME 000000000000000lx is now offline on channel 197783967.
+16:24:34.140 I] [NM]: Control function with address 245 and NAME 000000000000000lx is now offline on channel 203452081.
+16:24:34.140 I] [NM]: Control function with address 247 and NAME 000000000000000lx is now offline on channel 203452081.
+16:24:34.523 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=2475 aiso=61(92308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=26580 vtgAge=26580 xteAge=26580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/26688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:35.559 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(93308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=27580 vtgAge=27580 xteAge=27580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/27688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:36.564 [ISOBUS] addr=0x81 claimed=Y load=0.0% msgs=2475 aiso=61(94308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=28580 vtgAge=28580 xteAge=28580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/28688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:37.560 [ISOBUS] addr=0x81 claimed=Y load=0.1% msgs=2475 aiso=61(95308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=29580 vtgAge=29580 xteAge=29580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/29688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:38.576 [ISOBUS] addr=0x81 claimed=Y load=0.3% msgs=2475 aiso=61(96308ms) xte=-0.24m spd=0.00m/s q=4 ggaAge=30580 vtgAge=30580 xteAge=30580 xteraw=80:510302FF0B060AFF x129283=CD:0:- lb=24R-p3L:180004002C019104 vt=N(22/22) vtstat=122/30688ms tc=N drp=0mm tcq=0 stk=1144 hp=48620
+16:24:38.886 I] [VT]: Resetting Failed VT Connection
+=== 16:24:46.051 logger stopped
+=== 2026-11-14 16:28:54 logger start on COM4
+=== 16:29:44.569 logger stopped
