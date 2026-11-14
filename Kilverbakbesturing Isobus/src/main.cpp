@@ -139,6 +139,13 @@ void setup() {
     gLcd->WriteBuffer(L_AUTHOR, 3);
     gLcd->WriteScreen(-1);
 
+    // The splash screen's two seconds here, before the ISOBUS stack, the CAN
+    // bus or the receiver port start, and not at the end of setup(): once
+    // they run, loop() has to service them. Waiting after the stack had
+    // started left the CAN receive queue to overflow at every boot on a
+    // tractor's bus (Ploegbesturing Isobus, session 28).
+    delay(2000);
+
     // gGuidance, gTractor and gImplement have no CAN dependency, so they are
     // built first: the ISOBUS guidance channel feeds gGuidance from its PGN
     // callbacks and stops gImplement on AISO.
@@ -176,7 +183,6 @@ void setup() {
 #else
     gGuidanceChannel = new triton::SerialGuidanceChannel(gSerialDebug, gSerialGps, gGuidance);
     gCanChannel = new triton::CanFrameGuidanceChannel(gGuidance);
-    GCanSetup();
 
     // Blocking receiver baudrate autodetect on the LCD, as in
     // Kilverbakbesturing. The scraper reads position and speed only, so a
@@ -192,10 +198,11 @@ void setup() {
             gCalibration->CommitGuidanceCalibration();
         }
     }
-#endif
 
-    // Delay for splashscreen
-    delay(2000);
+    // The CAN bus last, right before loop() starts to read it: nothing
+    // services its receive buffer during setup().
+    GCanSetup();
+#endif
 
     // Write initial interface to screen
     gInterface->UpdateScreen(1);

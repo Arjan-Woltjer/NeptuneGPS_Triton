@@ -72,11 +72,21 @@ void setup() {
     // Setup serial ports
     gSerialDebug->begin(SERIALDATARATE);  // Serial for computer native usb
 
-    GCanSetup();
-
     // Initialise objects and interfaces
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
     gLcd->Begin();
+
+    // The splash screen and its two seconds first, before the receiver
+    // port and the CAN bus are opened: once those run, loop() has to read
+    // them, and a wait after them left their buffers to overflow.
+    // Messages in LanguagePlough.hpp
+    gLcd->WriteBuffer(L_MEIJWORKS, 0);
+    gLcd->WriteBuffer(L_DEVICE, 1);
+    gLcd->WriteBuffer(L_COPYRIGHT, 2);
+    gLcd->WriteBuffer(L_AUTHOR, 3);
+
+    gLcd->WriteScreen(-1);
+    delay(2000);
 
     gTractor = new triton::VehicleSensors(gSerialDebug);
     gGuidance = new triton::GuidanceSource();
@@ -115,17 +125,9 @@ void setup() {
     gCalibration->PrintCalibrationData();
     gImplement->PrintCalibrationData();
 
-    // Write message to screen
-    // Messages in LanguagePlough.hpp
-    gLcd->WriteBuffer(L_MEIJWORKS, 0);
-    gLcd->WriteBuffer(L_DEVICE, 1);
-    gLcd->WriteBuffer(L_COPYRIGHT, 2);
-    gLcd->WriteBuffer(L_AUTHOR, 3);
-
-    gLcd->WriteScreen(-1);
-
-    // Delay for splashscreen
-    delay(2000);
+    // The CAN bus last, right before loop() starts to read it: nothing
+    // services its receive buffer during setup().
+    GCanSetup();
 
     // Write initial interface to screen
     gInterface->UpdateScreen(1);
