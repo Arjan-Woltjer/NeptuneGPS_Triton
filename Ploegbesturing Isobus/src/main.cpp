@@ -222,6 +222,14 @@ void setup() {
 
     gLcd->WriteScreen(-1);
 
+    // The splash screen's two seconds here, before the ISOBUS stack, the CAN
+    // bus or the receiver port start, and not at the end of setup(): once
+    // they run, loop() has to service them. Waiting after the stack had
+    // started left its CAN receive queue (64 frames) to overflow, 328 to 452
+    // frames at every boot on a tractor's bus (session 28), and kept the
+    // stack silent for those two seconds.
+    delay(2000);
+
     // gGuidance, gTractor and gImplement have no CAN/AgIsoStack dependency, so they're
     // constructed first -- gGuidanceChannel needs both already built (the
     // ISOBUS one feeds gGuidance from its PGN callbacks and calls
@@ -350,9 +358,6 @@ void setup() {
     GCanSetup();
 #endif
 #endif
-
-    // Delay for splashscreen
-    delay(2000);
 
     // Write initial interface to screen
     gInterface->UpdateScreen(1);
