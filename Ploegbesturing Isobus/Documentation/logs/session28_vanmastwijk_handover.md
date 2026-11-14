@@ -94,3 +94,58 @@ The serial log has two XTE gaps while the 1200 was up (laptop clock):
 So the 1200 stops sending XTE while its task is stopped, with position and RTK quality still arriving. The bits of
 PGN 0xFFB6 from 0xF5 that change at 09:53:22 and 09:56:14 therefore mark the task or the line, not necessarily the
 autosteer engage; V13 has to separate the two (nothing else touched on the 1200 during its runs).
+
+## The #347 spike seen from the bus (added in the evening, workstation)
+
+CANedge session 130 (11 pieces, 15:33:03 - 16:24:59) covers the afternoon up to the flash back to a160ce6. The
+piece with the crossed Teensy 3.2 (from about 16:25) is still on the card. Times below are the CANedge clock,
+about 3 s behind the laptop's.
+
+**The spike's result holds.** Between the TC connect at 16:14:41.9 and the flash at 16:23:04 the 1200's TC (0xF7)
+sent the plough exactly six process-data frames (plus the transport flow control for the upload), all of them the
+connect handshake: version response, version request,
+structure label response, transfer permission, transfer response, activation response. No value request, no
+set-value, no measurement command, no acknowledgement.
+
+| Time | Direction | Frame | Meaning |
+|---|---|---|---|
+| 16:14:41.874 | F7 -> 81 | `10 03 28 14 00 01 90 01` | the 1200's version response, as always |
+| 16:14:41.878 | 81 -> F7 | `10 04 ff 14 00 01 01 01` | ours on the spike: section control + TC-GEO with position, 1 boom, 1 section, 1 channel (a160ce6 sends `10 04 ff 04 00 00 00 01`) |
+| 16:14:41.884 | F7 -> 81 | `11 ff ff ff ff ff ff ff` | structure label response: **no label stored** |
+| 16:14:41.886 | 81 -> F7 | `41 8b 03 00 00` | request to transfer 907 bytes (a160ce6: 716) |
+| 16:14:42.000 | F7 -> 81 | `71 00 8b 03 00 00` | transfer accepted |
+| 16:14:42.005 | F7 -> 81 | `91 00 ff ff ff ff 00 ff` | activated without error |
+
+Three things the bus adds to the serial log:
+
+1. **The 1200 keeps no DDOP.** It answered the structure label request with all 0xFF at each of the three connects
+   of the afternoon (15:37:07 TC08, 16:14:41 TC09, 16:23:13 TC08 again), and the plough uploaded the whole DDOP every
+   time. So "TC08 was still stored" at 16:23 is not what happened: it was a fresh upload, as on every boot (the
+   2026-11-10 field-day document already counts one DDOP transfer per boot). The label only matters on a TC that
+   stores, such as the John Deere's.
+2. **The two Wider presses fell in a stopped task.** The TC status shows the task inactive at 16:16:18 - 16:16:22,
+   16:17:06 - 16:20:11 and 16:21:34 - 16:22:05. The plough sent DDI 67 = 1810, 1820, 1830 for elements 2 and 3 at
+   16:21:46 - 16:21:47, inside the last gap. Of the 502 s on the spike the task was active for about 282 s. The
+   three dumps (16:15:10, 16:20:44, 16:22:47) were all taken with the task active, as they say.
+3. **The hitch move did not reach the plough.** The plough sent no DDI 141 and no DDI 161 value in the whole of
+   session 130, and every dump of the afternoon says `1 working (hitch down)`. This morning the same board sent
+   DDI 141 = 0 / 1 / 0 with the hitch (10:05:40, 10:06:21, 10:07:11). So the section state never changed on the
+   bus during the spike.
+
+What that means: "one section alone does not make the 1200 subscribe" stands, because a TC that wanted the section
+would have set up its measurements or written DDI 160 / 290 after the activation, and the task was active for
+almost five minutes. What the spike did not show is how the 1200 reacts to a width or a work-state change with a
+section present and the task running. For the try on the John Deere: press the width keys and move the hitch
+while the task is active, and check on the dump that the work state really went 1 / 0 / 1.
+
+The XTE stopped at 16:17:07 with the task (`xteAge` counts up from there in the spike's serial log), which agrees
+with the morning's finding that the 1200 sends no XTE while its task is stopped.
+
+## Answer to an open question of the field days (owner, 2026-11-14)
+
+The capture document of the 2026-11-09 / 11-10 field days (`2026-11-10_fielddays_vanmastwijk_capture.md`, on
+`test/session25`) asks why the plough stopped coming down in AUTO on 2026-11-09, 11:16:58 - 11:35:36 (session 112),
+with the XTE staying high. The farmer has confirmed to the owner that the pressure hose of the load-sensing
+hydraulics came out of its socket a few times. That is cause 1 of that document's list (hydraulics), not the valve
+output, the sensor or the firmware. The farmer gave no times, so which stretches it explains is not confirmed one
+by one; session 112 fits, and the frozen position on 2026-10-19 (session 72, 18:26 - 18:36) may be the same.
