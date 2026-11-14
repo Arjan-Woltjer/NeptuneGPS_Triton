@@ -204,6 +204,16 @@ the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on
 **End of part V:** preferred VT 2, VT numbers as the farmer uses them (1200 = VT 1), a final dump. Leave the board on
 a160ce6 if V passed, otherwise on the highest ladder step that passed.
 
+### Left for the next visit here (added 2026-11-14)
+
+Part V ran on 2026-11-14 (handover and timeline in `logs/`). Only the CNH VT can settle what is left of #327; everything
+else that is still open has moved to the John Deere, section 5.
+
+| Step | Do | Expect |
+|---|---|---|
+| V5B | **AUX-N without the padding**, on the CNH as VT 1. Flash `spike327_auxn/teensy41_isobus_spike327_auxn_nopad_6228e84.hex` (boot print `SPIKE #327: AUX-N no padding`). Wait for `Discovered auxiliary input device` in the log: without it nothing is sent. Assign BREDER and SMALLER, press each, unplug the plough's ISOBUS 20 s, replug; then power-cycle the plough. | **Pass:** the buttons work after the replug and after the power cycle without assigning again; no `VT rejected the preferred assignment command`. Still rejected: note the time, keep the log and the CANedge (then it is the timing, not the padding). Then back to a160ce6. |
+| V5C | The rest of V5: for one restart make the CNH **not** VT 1, and try to assign on it. Then the VT numbers as the farmer wants them. | **Refused** (upstream's rule: AUX-N on VT 1 only). Note how the numbers were left. |
+
 ## 5. Part J -- Van Os, John Deere
 
 The rig 4.1 on `a160ce6`, on Van Os's JD with its TC. It replaces the client's last steps (owner, 2026-11-13): they only
@@ -217,6 +227,23 @@ need a JD with a TC and #162, and this build has both and everything after it. C
 | J3 | (his V7) The plough's ISOBUS plug out 20 s, back in. | Back without a popup; XTE unchanged. |
 | J4 | #345 on the JD: each turn position, the soil side vs the LCD letter vs the picture. | All three agree. |
 | J5 | End: "Ploegt naar" back as before; `:list` equals J0's. | |
+
+### The remainder of session 28, on the John Deere (added 2026-11-14)
+
+What van Mastwijk left open and a John Deere can settle, about an hour more. J0 to J5 stay on a160ce6; each step below
+names its own hex and ends back on a160ce6. A John Deere TC stores a DDOP under its label, so TC09 stays stored on it.
+
+| Step | PR / issue | Do | Expect |
+|---|---|---|---|
+| J6 | #331 | Debug `1` a few times during J1 to J3. | `PGN 129029 GNSS position:` count rising, `RTK quality` as before. Moved here from V7: the van Mastwijk bus never carries 129029. |
+| S1 | #347 | **The one-section spike.** Flash `spike347/teensy41_isobus_spike347_tc09_27e8e16.hex`, logger open before the boot. | Boot print `SPIKE #347: 1 section, 160 = 0`. The JD's TC takes the DDOP under **TC09**: `DDOP Activated without error`. An error on the upload: flash `..._tc10_ownwidth_27e8e16.hex` and note it. Photo of what the JD now lists. |
+| S2 | #347 | Start a task on the JD. Debug `1`. | Note `Requests for our values`, `Measurement commands`, `Set-value commands`, `TC wrote 160`, `TC wrote 290`. On the InCommand 1200 all stayed 0 / never. |
+| S3 | #347 | **With the task running** (check it on the JD first): 3x BREDER, 3x SMALLER; then hitch up 20 m and down again. Debug `1`. | `reported` rises with the presses; `Work state (DDI 141)` went 1 / 0 / 1. At van Mastwijk the presses fell in a stopped task and the hitch move never reached the plough. Note what the JD shows and records. If `TC wrote 290` shows the section off: **the plough must carry on exactly as before.** |
+| S4 | #347 | Only if the JD writes DDI 160 and then does nothing more: flash `..._tc09_echo_27e8e16.hex`, repeat S2 and S3. | Note what changes. |
+| S5 | #347 | Flash back `session28/teensy41_isobus_a160ce6.hex`. | No `SPIKE #347` line; `DDOP Activated without error` under TC08; a final dump. |
+| P1 | #350 (#268) | **The splash fix.** Flash `session28/teensy41_isobus_38b226b.hex`, logger open, boot with the tractor's bus live. Debug `1` after a minute and again after ten. | The splash shows for 2 s, then VT and TC connect as before. **`CAN receive queue: dropped 0`** at both dumps (a160ce6 dropped 328 to 452 per boot at van Mastwijk; 515 on a John Deere at Mookhoek). Then back to a160ce6. |
+| T1 | #341, #342 | **The Teensy 3.2 on the JD's bus** (V12, not run at van Mastwijk: this board's CAN high and low were crossed). First on the bench: the wiring fixed, and the board receives frames from the Saturn. Then as V12. | As V12. Then the rig 4.1 back on the ISOBUS. |
+| A1 | #327 | Only if this JD has an AUX-N input (the log shows `Discovered auxiliary input device`): flash the `spike327_auxn` hex, assign BREDER and SMALLER, press each, unplug the plough's ISOBUS 20 s, replug. Then back to a160ce6. | The buttons work without assigning again. This only shows that a second VT accepts the unpadded message; the CNH's own answer is V5B. |
 
 **The client's run on 2026-11-09**, on `48063a4` (main + #162, no spike), his sheet
 https://claude.ai/artifact/NxPiQkmkEr181VicnffDci:
@@ -282,6 +309,19 @@ PART J -- VAN OS (JOHN DEERE)
 - [ ] J3 back without popup Y/N; XTE unchanged Y/N
 - [ ] J4 soil side = LCD letter = picture, both turn positions Y/N
 - [ ] J5 "Ploegt naar" back Y/N; `:list` == J0 Y/N
+- [ ] J6 129029 rising Y/N; RTK quality ______
+- [ ] S1 TC09 accepted Y/N (TC10 needed Y/N); the JD lists ______
+- [ ] S2 requests __ measurement __ set-value __; TC wrote 160 ______ 290 ______
+- [ ] S3 task running Y/N; reported __; work state 1/0/1 Y/N; the JD shows ______ records ______
+- [ ] S4 echo hex flashed Y/N; what changed ______
+- [ ] S5 back on a160ce6 Y/N; TC08 activated Y/N
+- [ ] P1 (38b226b) splash 2 s Y/N; dropped __ after 1 min, __ after 10 min; back on a160ce6 Y/N
+- [ ] T1 (3.2) wiring checked on the bench Y/N; from __:__ to __:__; MW18 upload __ s; tc=Y Y/N; heap peak ______; never used ______; RX queue high water __ dropped __
+- [ ] A1 AUX-N input on this JD Y/N; buttons after the replug Y/N
+
+LEFT FOR VAN MASTWIJK
+- [ ] V5B (no padding, CNH) input device discovered Y/N; after the replug Y/N; after the power cycle Y/N; rejected at __:__:__
+- [ ] V5C refused on the CNH when it is not VT 1 Y/N; numbers left as ______
 
 ## 7. If something differs
 
