@@ -195,6 +195,11 @@ the field days (CNH = VT 1): that suits V5; put them back after it.** CANedge on
 | V10 | End of the day: debug `1`. | Stack peak and never used; any `CrashReport:` at any boot of the day. | 26 / 28 |
 | V11 | **#345 (#330), the side labels:** with the plough in each turn position, note which way the soil is thrown, the cab LCD's side letter (row 3, col 15), the calibration's side (LCD `L`/`R`, VT `LINKS`/`RECHTS`) and the VT picture. | All four name the side the soil goes to (`L` = soil to the left). Photo of each. | 27 and below have the old labels |
 
+| V12 | **The Teensy 3.2 on the tractor's bus** (owner, 2026-11-14), about 15 minutes, after V11. Unplug the rig 4.1 from the ISOBUS first. The 3.2 (7515900, `teensy32_isobus_4c96780.hex`, already on it) on the ISOBUS only, **not on the plough's valves**: its stored calibration is unknown (B3). Logger on its USB before it gets power, the 1 Hz line on (debug `2`). Debug `1` once the VT shows the screen, once `tc=Y`, and at the end. | Claims 0x81 and **uploads MW18 in full** (the VTs don't know its NAME; 2.6 s on the quiet bench bus): note the time. Screen and soft keys on the VT. The first TC connect ever on a 3.2: the DDOP under TC08. From each dump: `Heap: peak` (bench 51 380 of 58 868, without a TC), `Stack: ... never used` (bench 6 296; under 4 000 = #341 doesn't merge), `CAN receive queue` high water and dropped (bench 2 of 64, 0). A hang or a reset: this build has no crash report, so note the time and the LCD, keep the log and the CANedge, unplug. | none: it decides #341, not session 28 |
+
+**After V12:** the rig 4.1 back on the ISOBUS. Both VTs and the 1200's TC now hold a pool and a DDOP for the 3.2's NAME
+(identity 751590); harmless, delete them on the terminals if the farmer wants them gone.
+
 **End of part V:** preferred VT 2, VT numbers as the farmer uses them (1200 = VT 1), a final dump. Leave the board on
 a160ce6 if V passed, otherwise on the highest ladder step that passed.
 
@@ -265,6 +270,7 @@ PART V -- VAN MASTWIJK
 - [ ] V9 reconnect: XTE unchanged Y/N; popup Y/N
 - [ ] V10 stack peak ______ never used ______; CrashReport at any boot Y/N
 - [ ] V11 (#345) turn pos 1: soil to ______, letter __, cal __, picture ______; turn pos 2: soil to ______, letter __, cal __, picture ______
+- [ ] V12 (3.2) from __:__ to __:__; MW18 upload __ s on VT ______; screen + soft keys Y/N; tc=Y Y/N; heap peak ______ of ______; never used ______; RX queue high water __ dropped __; hang or reset Y/N at __:__:__
 - [ ] left on: a160ce6 / ladder step ______
 
 PART J -- VAN OS (JOHN DEERE)
