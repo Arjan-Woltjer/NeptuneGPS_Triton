@@ -194,6 +194,7 @@ void setup() {
     gSerialDebug->println("   Triton PB-ISO version 0.28   ");
 #ifdef ISOBUS
     gSerialDebug->println("  SPIKE #316: DDI 515 echo ON   ");
+    gSerialDebug->println("  SPIKE #327: AUX-N no padding  ");
 #endif
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
