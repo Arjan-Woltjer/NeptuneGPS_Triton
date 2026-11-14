@@ -194,6 +194,9 @@ void setup() {
     gSerialDebug->println("   Triton PB-ISO version 0.28   ");
 #ifdef ISOBUS
     gSerialDebug->println("  SPIKE #316: DDI 515 echo ON   ");
+#if defined(__IMXRT1062__)
+    gSerialDebug->println("  28B: new CAN plugin, queue 64 ");
+#endif
 #endif
     gSerialDebug->println("(c) 2011 - 2026 by J.A. Woltjer ");
     gSerialDebug->println("--------------------------------");
