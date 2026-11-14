@@ -44,7 +44,7 @@ function Get-PjrcBoards {
     @(Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -match '^USB\\VID_16C0&PID_[0-9A-F]{4}\\[^\\]+$' })
 }
 
-$boards = Get-PjrcBoards
+$boards = @(Get-PjrcBoards)   # Windows PowerShell 5.1: a single CIM object has no .Count
 if ($boards.Count -ne 1) {
     throw "ABORT: expected exactly one PJRC board on USB, found $($boards.Count): $($boards.InstanceId -join ', ')"
 }
@@ -73,6 +73,7 @@ Write-Host "Flashing $Serial ($Mcu) on $(if ($port) { $port } else { 'HalfKay' }
 $out = Join-Path $env:TEMP "flash_teensy_$Serial.log"
 $proc = Start-Process -FilePath $LoaderCli -ArgumentList @("--mcu=$Mcu", "-w", "-v", "`"$Hex`"") `
     -NoNewWindow -PassThru -RedirectStandardOutput $out -RedirectStandardError "$out.err"
+$null = $proc.Handle   # Windows PowerShell 5.1: without this, ExitCode stays empty after the process ends
 Start-Sleep -Milliseconds 500
 if ($port) {
     $sp = New-Object System.IO.Ports.SerialPort $port, 134
