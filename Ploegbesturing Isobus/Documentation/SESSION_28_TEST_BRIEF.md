@@ -180,8 +180,8 @@ K7-K9 (draft timeout, debug menu, copying to a second board) are in `SESSION_25_
 
 **The VT numbers on this tractor (owner, 2026-11-14): CNH = VT 1, InCommand 1200 = VT 2, and the plough's preferred VT
 is 1, the CNH. That is the intended state, not a leftover.** Both terminals used to be VT 1. The owner first made the
-1200 VT 1 and the CNH VT 2 for the farmer; AUX-N did not work that way either (upstream's rule: AUX-N on VT 1 only,
-and the armrest belongs to the CNH), so he turned them round. The text below was written before that: where it says
+1200 VT 1 and the CNH VT 2 for the farmer; AUX-N did not work that way either (AgIsoStack only does AUX-N on VT 1),
+so he turned them round. The text below was written before that: where it says
 "still swapped" or "put them back", nothing has to be put back.
 
 The rig 4.1 on `a160ce6`, preferred VT 2 (the 1200 = VT 1, the CNH = VT 2). **The VT numbers are still swapped from
