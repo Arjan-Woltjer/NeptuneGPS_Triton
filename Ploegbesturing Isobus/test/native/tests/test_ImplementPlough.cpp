@@ -330,6 +330,86 @@ test(ImplementPlough, adjust_manualMode_endShutoff_slowMoveNeverLatches) {
     }
 }
 
+// #329 (field day 2026-11-09, session 112): a latched direction stayed latched
+// in AUTO until a restart, because only driving the other way cleared it, and
+// the headland's HAND and back did not. Every mode change now clears it.
+// latchNarrowerInAuto() holds the position at -92 (as the auto test above) and
+// keeps AUTO narrowing until the narrower direction latches at 3001 ms.
+static void latchNarrowerInAuto(ImplementPlough& impl) {
+    analogReadValue(POSITION_SENS_PIN_2, 0);
+    impl.SetPositionCalibrationData(0);
+    analogReadValue(POSITION_SENS_PIN_2, 100);
+    impl.SetPositionCalibrationData(1);
+    analogReadValue(POSITION_SENS_PIN_2, 200);
+    impl.SetPositionCalibrationData(2);
+    analogReadValue(POSITION_SENS_PIN_2, -1000);
+    impl.Update(0, 0);
+    impl.Update(0, 0);
+    millisValue(0);
+    impl.Adjust(0, 0);
+    millisValue(3001);
+    impl.Adjust(0, 0);                                   // latches after driving
+    millisValue(3002);
+    impl.Adjust(0, 0);
+}
+
+test(ImplementPlough, adjust_endShutoff_autoToManualAndBack_releasesTheLatch) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    latchNarrowerInAuto(impl);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);      // latched: valve cut
+    millisValue(4000);
+    impl.Adjust(2, 0);                                   // headland: HAND, no button
+    millisValue(5000);
+    impl.Adjust(0, 0);                                   // AUTO again
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);     // drives again
+}
+
+test(ImplementPlough, adjust_endShutoff_autoToHoldAndBack_releasesTheLatch) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    latchNarrowerInAuto(impl);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    millisValue(4000);
+    impl.Adjust(1, 0);                                   // HOLD (speed or GPS gate)
+    millisValue(5000);
+    impl.Adjust(0, 0);                                   // AUTO again
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+}
+
+// At a real end stop the latch comes back after the shutoff time in the new
+// mode, so the hydraulics stay protected.
+test(ImplementPlough, adjust_endShutoff_afterModeChange_realEndStopLatchesAgain) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    latchNarrowerInAuto(impl);
+    millisValue(4000);
+    impl.Adjust(2, 0);
+    millisValue(5000);
+    impl.Adjust(0, 0);                                   // drives again from 5000
+    millisValue(8001);
+    impl.Adjust(0, 0);                                   // still not moving: latches after this drive
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    millisValue(8002);
+    impl.Adjust(0, 0);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+}
+
+// Staying in one mode keeps the latch: only a change of mode clears it.
+test(ImplementPlough, adjust_endShutoff_sameModeKeepsTheLatch) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    latchNarrowerInAuto(impl);
+    // Stays under 10 s of mocked millis(): AUnit's TestRunner times the whole
+    // run on the same clock, and every test after a longer one "times out".
+    for (unsigned long t = 4000; t <= 9000; t += 500) {
+        millisValue(t);
+        impl.Adjust(0, 0);
+        assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // SetOffset (private, exercised through Update()) -- EEPROM-backed offset,
 // which is the plough's total working width in cm. Default offset=160
