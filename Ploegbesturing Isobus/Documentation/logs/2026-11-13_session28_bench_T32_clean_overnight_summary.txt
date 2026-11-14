@@ -1,0 +1,72 @@
+Session 28 bench, Teensy 3.2 overnight soak: summary
+====================================================
+
+Board      Teensy 3.2, serial 7515900 (identity 751590), COM18
+Firmware   teensy32_isobus_4c96780.hex (clean build of feat/teensy32-isobus), not rebooted since 23:17
+Bus        Saturn + AgISOVirtualTerminal 1.7.0 on the bench PC, 250 kbit/s, no Task Controller, no GPS
+Log        2026-11-13_session28_bench_T32_clean_overnight.log, 6.9 MB, 32 764 lines.
+           Not in the repository because of its size; kept in
+           OneDrive "MeijWorks Projects/Firmware builds/session28/logs/".
+Period     2026-11-13 23:26:36 to 2026-11-14 08:29:43 = 9 h 03 min, one status line per second
+
+
+Result: PASS
+------------
+
+1 Hz status lines            32 582
+Heap (hp)                    51 380 B on every line
+Stack in use (stk)           1 192 B on every line
+Address                      0x81, claimed, on every line
+VT                           connected (state 21/22) on every line
+VT status messages           32 139 received; longest time between two: 1 019 ms (the PC VT sends one about every 1 014 ms)
+Reboots                      0 (the board's own millisecond counter never went backwards; the port was never lost)
+Error or warning lines       0
+Send queue (q), TC queue     0 on every line
+Bus load                     1.1 % (29 320 lines), 1.4 % (3 258), 1.5 to 1.7 % (4, during the key presses)
+
+Full status dump at 08:26:53, after 9 hours:
+  CAN receive queue: high water 2 of 64, dropped 0
+  Stack: peak 1192 of 7488 bytes since boot, 6296 never used
+  Heap: peak 51380 of 58868 bytes, shared with the stack
+  VT: Connected, state 21/22, VT version 5, 32 500 status messages
+  Partner 0x26: reconnect attempts=4, rejoins=2 (both from the two bus drops of test B6 on 2026-11-13, unchanged since)
+
+Heap and stack are the same figures as at the end of the B tests on 2026-11-13 23:22:50.
+
+Soft keys after 9 hours: the owner pressed "Narrower" three times on the VT at 08:24:27 to 08:24:31;
+each press and release was logged, heap and stack did not move.
+
+
+Lines that are not 1 Hz lines
+-----------------------------
+
+23:26:36  logger start
+08:24:27 to 08:24:31  VT: Narrower pressed / released, three times
+08:26:51, 08:29:13  two status dumps asked for through the logger (the 1 Hz line pauses while the menu is open)
+08:29:43  logger stop
+
+
+One figure that moved, and why: the longest loop pass
+-----------------------------------------------------
+
+  2026-11-13 23:22:50   Loop pass: longest 18152 us since boot
+  2026-11-14 08:26:53   Loop pass: longest 121897 us since boot
+
+Cause: the logger hand-over at 23:26:36, not the firmware under test. The L1 logger was stopped and the
+overnight logger started a few seconds later, with the 1 Hz line on. While no program on the PC has the
+port open, a print on a Teensy 3 waits for the PC until the core's transmit timeout (TX_TIMEOUT_MSEC 70 in
+cores/teensy3/usb_serial.c; it is a calibrated loop count, measured here as 122 ms) and then drops the
+text. The log shows it: the first lines after 23:26:36 are cut off in the middle and three lines are
+missing.
+
+Reproduced on 2026-11-14:
+  08:29:15  dump: longest 2706 us since the last dump (the normal case, 2 minutes with two menu prints)
+  08:29:43  logger stopped, port closed for 6 s, new logger started at 08:29:50
+  08:29:58  dump: longest 121903 us since the last dump
+
+So: one stall of about 122 ms each time a PC is connected over USB with the port closed and the firmware
+prints. After that one timeout the core drops prints at once until the PC reads again. With no PC on the
+USB port (the tractor) a print returns at once. The PC-side pause at 02:12:19 (one line arrived a second
+late, nothing lost) left no trace on the board.
+
+The soak continues in 2026-11-14_session28_bench_T32_clean_morning.log (same boot).
