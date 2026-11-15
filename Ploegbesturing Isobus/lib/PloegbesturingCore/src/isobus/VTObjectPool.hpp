@@ -182,6 +182,10 @@ enum PloughVtObjectId : uint16_t {
     Str_StateHoldGps           = 175,
     Str_StateHand              = 176,
     Str_StateCal               = 177,
+    // The state strings' own 8x12 font: 9 characters in the 74 units beside
+    // the picture, where the 12x16 data font holds 6. Data mask only, like
+    // Font_White_Unit, so AgIsoStack scales it with the mask.
+    Font_White_State           = 178,
 };
 
 // Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
