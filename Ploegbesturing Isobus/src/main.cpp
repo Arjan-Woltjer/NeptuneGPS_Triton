@@ -173,7 +173,7 @@ void setup() {
     // UART1 to the RS232 transceiver sits on GPIO-matrix pins, not the core
     // defaults; the I2C pins go in through the LCD constructor below.
     EEPROM.begin(256);
-    Serial1.setPins(42, 41);
+    Serial1.setPins(GPS_UART_RX_PIN, GPS_UART_TX_PIN);
 #endif
 
     // Setup serial ports
@@ -194,7 +194,7 @@ void setup() {
 
     // Setup I2C LCD
 #if defined(ESP32S3)
-    gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4, 1, 2);   // SDA GPIO 1, SCL GPIO 2
+    gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4, I2C_SDA_PIN, I2C_SCL_PIN);   // ConfigPlough.hpp, per board
 #else
     gLcd = new triton::InterfaceI2CLCD(gLcdWire, 0x27, 20, 4);
 #endif

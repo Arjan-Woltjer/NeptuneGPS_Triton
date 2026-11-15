@@ -126,11 +126,16 @@ jobs:
             env: teensy32_can
           - project: 'Ploegbesturing Isobus'
             env: micro_serial
-          # Triton01 (ESP32-S3): the only envs that link AgIsoStack's TWAI plugin.
+          # Triton01 and the AgOpenShop ESP32 rate board (ESP32-S3): the only
+          # envs that link AgIsoStack's TWAI plugin.
           - project: 'Ploegbesturing Isobus'
             env: esp32s3_isobus
           - project: 'Ploegbesturing Isobus'
             env: esp32s3_serial
+          - project: 'Ploegbesturing Isobus'
+            env: esp32rc_isobus
+          - project: 'Ploegbesturing Isobus'
+            env: esp32rc_serial
           - project: 'Pootmachinebesturing'
             env: teensy41
           - project: 'Kilverbakbesturing'

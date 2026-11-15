@@ -39,8 +39,10 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     triton::ConfigureDigitalInput(PLOUGHSIDE_PIN_2, false);
 #endif
 
-    // Outputs
-#if defined(ESP32S3)
+    // Outputs. Keyed on the pin table rather than the board: Triton01 has
+    // PH/EN bridges (OUTPUT_VALVE_PH_2), every other board -- the ESP32 rate
+    // board included -- one output per solenoid.
+#if defined(OUTPUT_VALVE_PH_2)
     // Triton01: DRV8701 H-bridges, PH = direction, EN = PWM. Both EN lines
     // start low (valves off) before the shared nSLEEP wakes the bridges.
     pinMode(OUTPUT_VALVE_PH_2, OUTPUT);
@@ -59,7 +61,15 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     pinMode(OUTPUT_WIDE_2, OUTPUT);
     pinMode(OUTPUT_NARROW_2, OUTPUT);
     pinMode(OUTPUT_BYPASS_2, OUTPUT);
+#ifdef OUTPUT_BYPASS_IN2_2
+    // The rate board's bypass is one input of an H-bridge: the other input
+    // stays low so the duty on OUTPUT_BYPASS_2 drives the output one way.
+    pinMode(OUTPUT_BYPASS_IN2_2, OUTPUT);
+    digitalWrite(OUTPUT_BYPASS_IN2_2, LOW);
+#endif
+#ifdef OUTPUT_LED_2
     pinMode(OUTPUT_LED_2, OUTPUT);
+#endif
 #endif
 
     // Analog IO
@@ -72,11 +82,11 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
 #if defined(DEFAULT) && !defined(ARDUINO_ARCH_ESP32)
     analogReference(DEFAULT);
 #endif
-    pinMode(POSITION_SENS_PIN_2, INPUT);
-    digitalWrite(POSITION_SENS_PIN_2, LOW);
+    // Through TritonIo: an MCU ADC pin on most boards, an ADS1115 channel on
+    // the ESP32 rate board.
+    triton::ConfigureAnalogInput(POSITION_SENS_PIN_2);
 #ifdef ROTATION
-    pinMode(ROTATION_SENS_PIN_2, INPUT);
-    digitalWrite(ROTATION_SENS_PIN_2, LOW);
+    triton::ConfigureAnalogInput(ROTATION_SENS_PIN_2);
 #endif
 
     // Calibration points for position and xte
@@ -282,7 +292,7 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
 // Method for moving implement narrower
 // ------------------------------------
 void ImplementPlough::Narrower(byte pwm) {
-#if defined(ESP32S3)
+#if defined(OUTPUT_VALVE_PH_2)
     digitalWrite(OUTPUT_VALVE_PH_2, OUTPUT_NARROW_PH_LEVEL);
     analogWrite(OUTPUT_VALVE_EN_2, pwm);
 #else
@@ -302,7 +312,7 @@ void ImplementPlough::Narrower(byte pwm) {
 // Method for moving implement wider
 // ---------------------------------
 void ImplementPlough::Wider(byte pwm) {
-#if defined(ESP32S3)
+#if defined(OUTPUT_VALVE_PH_2)
     digitalWrite(OUTPUT_VALVE_PH_2, (OUTPUT_NARROW_PH_LEVEL == LOW) ? HIGH : LOW);
     analogWrite(OUTPUT_VALVE_EN_2, pwm);
 #else
@@ -319,7 +329,7 @@ void ImplementPlough::Wider(byte pwm) {
 // Method for stopping implement
 // ------------------------------
 void ImplementPlough::Stop() {
-#if defined(ESP32S3)
+#if defined(OUTPUT_VALVE_PH_2)
     analogWrite(OUTPUT_VALVE_EN_2, 0);
 #else
     digitalWrite(OUTPUT_WIDE_2, LOW);
@@ -337,7 +347,7 @@ void ImplementPlough::Stop() {
 // drives it through its own H-bridge, PH fixed, EN carrying the duty.
 // ----------------------------------------------------------------------
 void ImplementPlough::driveBypass(byte pwm) {
-#if defined(ESP32S3)
+#if defined(OUTPUT_VALVE_PH_2)
     digitalWrite(OUTPUT_BYPASS_PH_2, LOW);
     analogWrite(OUTPUT_BYPASS_EN_2, pwm);
 #else
@@ -350,7 +360,7 @@ void ImplementPlough::driveBypass(byte pwm) {
 // --------------------------------------------
 short int ImplementPlough::getActualPosition() {
     // Read analog input
-    short int readRaw = analogRead(POSITION_SENS_PIN_2);
+    short int readRaw = triton::ReadAnalog(POSITION_SENS_PIN_2);
     float actualPosition;
     const int i = Interpolation::SegmentAroundMiddle(positionCalibrationData, readRaw);
     actualPosition = Interpolation::Evaluate(positionCalibrationData, positionCalibrationPoints, i, readRaw);
@@ -364,7 +374,7 @@ short int ImplementPlough::getActualPosition() {
 //------------------------------------------
 short int ImplementPlough::getActualRotation() {
     // Read analog input
-    short int readRaw = analogRead(ROTATION_SENS_PIN_2);
+    short int readRaw = triton::ReadAnalog(ROTATION_SENS_PIN_2);
     short int actualRotation;
     const int i = Interpolation::SegmentAroundMiddle(rotationCalibrationData, readRaw);
     actualRotation = Interpolation::Evaluate(rotationCalibrationData, rotationCalibrationPoints, i, readRaw);

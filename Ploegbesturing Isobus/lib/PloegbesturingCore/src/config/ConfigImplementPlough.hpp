@@ -87,7 +87,51 @@ _7 are defines for sower
 
 #else
 
-#ifdef ESP32S3
+#if defined(ESP32RC)
+// AgOpenShop ESP32 rate board "ESP32S3 RCv1.7" (ESP32-S3-WROOM-1U, schematic
+// Rate_control_ESPRC_01_V1.4; pinout in the "AgOpenShop ESP32 Rate board:
+// pinout for ISOBUS" doc). Built with -D ESP32S3 -D ESP32RC: everything the
+// two ESP32-S3 boards share (TWAI, flash EEPROM, opto input polarity) follows
+// ESP32S3, the pins below are this board's own.
+//
+// The inputs are opto-couplers with a jumper-selected pull-up, LOW when
+// energised, like Triton01's, so TritonIo's inversion applies unchanged.
+#include "TritonIo.hpp"
+
+// Plough-side sensor on GPIO 42: the terminal printed BIN2 on the RCv1.7
+// board, although the schematic names this net BIN1 (confirmed on the bench,
+// 2026-11-15: the sensor on the BIN2 terminal switches the side with 42).
+// The other bin terminal is GPIO 41: -D PLOUGHSIDE_PIN_2=41 to use it.
+#ifndef PLOUGHSIDE_PIN_2
+#define PLOUGHSIDE_PIN_2      42    // terminal "BIN2" (schematic net BIN1)
+#endif
+
+// Main valve on the F1 / MOT9 output: TB67H451 driver U38, IN1 = GPIO 4,
+// IN2 = GPIO 5. One input high drives the output one way, the other the
+// other way, so narrow and wide are the generic one-output-per-solenoid
+// model of the Teensy boards. Swap the two numbers (or the two leads) if the
+// plough moves the wrong way.
+#define OUTPUT_NARROW_2       4     // U38 IN1 (PWM_1_ESP)
+#define OUTPUT_WIDE_2         5     // U38 IN2 (PWM_2_ESP)
+// The valve block's own solenoid, energised whenever the main valve moves:
+// the firmware's bypass output (set BYPASS to JA). ZONE1 output, driver U1:
+// IN1 = GPIO 7 carries the duty, IN2 = GPIO 15 is held low.
+#define OUTPUT_BYPASS_2       7     // U1 IN1 (EN_ESP)
+#define OUTPUT_BYPASS_IN2_2   15    // U1 IN2 (PH_ESP), held low
+// No status LED on this board: OUTPUT_LED_2 is deliberately not defined.
+
+// Angle sensor on the ADS1115 (0x48). Which AIN it is on is still to be
+// checked on the unit: override with -D POSITION_ADS_CHANNEL=n (0-3).
+#ifndef POSITION_ADS_CHANNEL
+#define POSITION_ADS_CHANNEL  0
+#endif
+#ifndef ROTATION_ADS_CHANNEL
+#define ROTATION_ADS_CHANNEL  1
+#endif
+#define POSITION_SENS_PIN_2   ADS1115_PIN(POSITION_ADS_CHANNEL)
+#define ROTATION_SENS_PIN_2   ADS1115_PIN(ROTATION_ADS_CHANNEL)
+
+#elif defined(ESP32S3)
 // Triton01 (ESP32-S3-WROOM-2). Numbers are ESP32 GPIO numbers; inputs behind
 // the MCP23008 I2C expander use EXPANDER_PIN(gp) from TritonIo.hpp and are
 // read through triton::ReadDigital(). Every digital input on this board is an
