@@ -31,9 +31,18 @@
 #include "IsobusVtCalibration.hpp"
 #include "AuxInputs.hpp"
 #include "HeldKey.hpp"
+#include "AuxAssignmentStore.hpp"
 
 namespace triton
 {
+
+// The operator's preferred AUX-N assignments (Breder / Smaller on a joystick):
+// EEPROM 190-255, past every product block in use (the plough's 40-69, the
+// planter's from 70, the scraper's 130-169), and inside the 256 bytes the
+// ESP32 boards emulate.
+constexpr uint16_t kEepromAuxAssignments = 190;
+static_assert(kEepromAuxAssignments + AuxAssignmentStore::kSize <= 256,
+              "AUX-N assignments run past the ESP32's 256-byte EEPROM");
 
 // The plough's VtWorkingSet (NeptuneGPS_Triton#287): its object pool
 // (VTObjectPool.cpp), the working screen's values, the soft keys, the AUX-N
@@ -109,6 +118,7 @@ public:
     void OnNumericValue(const isobus::VirtualTerminalClient::VTChangeNumericValueEvent& event) override;
     void OnAuxFunction(const isobus::VirtualTerminalClient::AuxiliaryFunctionEvent& event) override;
     void OnAuxInputStatus(uint8_t operatingState) override;
+    AuxAssignmentStore* GetAuxAssignmentStore() override { return &auxAssignments; }
 
     // VtCalibrationOutput, over the current VT client.
     bool ChangeActiveMask(uint16_t dataMask) override;
@@ -125,6 +135,7 @@ private:
 
     std::shared_ptr<isobus::VirtualTerminalClient> client;
     IsobusVtCalibration*                           calibration = nullptr;
+    AuxAssignmentStore                             auxAssignments{kEepromAuxAssignments};
 
     // On-change gating for UpdateValues() -- added 2026-08-10 (van
     // Mastwijk) after Session 4 found intermittent post-Connect drops

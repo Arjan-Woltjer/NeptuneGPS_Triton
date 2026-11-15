@@ -31,6 +31,7 @@ $sources = @(
     'lib\PloegbesturingCore\src\isobus\IsobusTcInterface.cpp',
     '..\MeijWorks Libs\IsobusImplement\IsobusGuidanceChannel.cpp',
     '..\MeijWorks Libs\IsobusImplement\IsobusVtInterface.cpp',
+    '..\MeijWorks Libs\IsobusImplement\AuxAssignmentStore.cpp',
     'lib\PloegbesturingCore\src\isobus\PloughVtWorkingSet.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusVtCalibration.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusLightbarChannel.cpp',

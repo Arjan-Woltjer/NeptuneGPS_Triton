@@ -39,6 +39,8 @@
 namespace triton
 {
 
+class AuxAssignmentStore;
+
 // The machine's half of the VT (NeptuneGPS_Triton#287). IsobusVtInterface
 // owns the connection: the client, the partner, VT failover, the reconnect
 // watchdog, the preferred VT and the diagnostics. Everything a terminal shows
@@ -86,6 +88,11 @@ public:
     // The operating-state byte of any Auxiliary Input Type 2 Status, assigned
     // to us or not: bit 0 is learn mode.
     virtual void OnAuxInputStatus(uint8_t operatingState) = 0;
+
+    // Where the operator's preferred AUX-N assignments are kept between
+    // power-ups (ISO 11783-6 J.7), or nullptr to keep them in RAM only.
+    // IsobusVtInterface registers it with every client it creates.
+    virtual AuxAssignmentStore* GetAuxAssignmentStore() { return nullptr; }
 };
 
 }  // namespace triton
