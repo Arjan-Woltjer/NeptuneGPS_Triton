@@ -23,6 +23,22 @@
 
 #include <string.h>
 
+// The pool's texts in the language the build selects: Dutch unless the env
+// passes -D ENGLISH or -D HUNGARIAN, as for the LCD texts (LanguagePlough.hpp).
+// A plain preprocessor pick, so each result is still a string literal: the
+// label arrays and the static_asserts on their widths below need one.
+//
+// The fonts are Latin-1 (appendFontAttributes), one byte per character, so
+// the Hungarian accents are \xNN escapes and the width checks count them
+// right. Latin-1 has no o/u with double acute: those words use other ones.
+#if defined(ENGLISH)
+#define VT_TEXT(nl, en, hu) en
+#elif defined(HUNGARIAN)
+#define VT_TEXT(nl, en, hu) hu
+#else
+#define VT_TEXT(nl, en, hu) nl
+#endif
+
 // Reference-pool test -- 2026-08-10, van Mastwijk. Every WorkingSet-attribute
 // variant (0-4: selectable, language count/code, background colour), a fresh
 // version label, VT3-vs-VT4 negotiation, and a corrected manufacturer code
@@ -369,19 +385,27 @@ static const uint8_t kIconPloughData[32] = {
 // ISO 11783-6 FontAttributes font size codes. Two shapes: 8x12, 16x24 ... are
 // 2:3 (tall and thin), 8x8, 16x16 ... square, and 12x16 sits between at 3:4.
 constexpr uint8_t kFont8x8   = 1;
+constexpr uint8_t kFont8x12  = 2;
 constexpr uint8_t kFont12x16 = 3;
 // Not 32x32: the John Deere 4640 has every font but that one (Mookhoek).
 constexpr uint8_t kFont24x32 = 6;
 
+// The control's state (#318), at most 9 characters each in the 8x12 font.
+constexpr char kTextStateAuto[]      = "AUTO";
+constexpr char kTextStateHoldGps[]   = VT_TEXT("GPS FOUT", "GPS ERR", "GPS HIBA");
+constexpr char kTextStateHoldSpeed[] = VT_TEXT("TE TRAAG", "SPEED ERR", "SEB. HIBA");
+constexpr char kTextStateHand[]      = VT_TEXT("HAND", "MANUAL", "K\xC9ZI");
+constexpr char kTextStateCal[]       = VT_TEXT("CALIB.", "CALIB.", "KALIB.");
+
 // The data-mask texts, as constants so the layout below can check at compile
 // time that each one fits its column.
-constexpr char kTextPosition[] = "POSITIE";
-constexpr char kTextSetpoint[] = "SETPUNT";
+constexpr char kTextPosition[] = VT_TEXT("POSITIE", "POSITION", "POZ\xCD" "CI\xD3");
+constexpr char kTextSetpoint[] = VT_TEXT("SETPUNT", "SETPOINT", "ALAPJEL");
 constexpr char kTextXte[]      = "XTE";
 // ImplementPlough's "offset" is the plough's total working width in cm (the
 // owner's confirmation, 2026-09-25), so the screen says so; it was labelled
 // AFWIJKING until 2026-10-01.
-constexpr char kTextWorkingWidth[] = "WERKBREEDTE";
+constexpr char kTextWorkingWidth[] = VT_TEXT("WERKBREEDTE", "WORK WIDTH", "MUNKASZ\xC9L.");
 
 // Type 23: FontAttributes
 static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
@@ -447,11 +471,11 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // ----------------------------------------------------------------
 // Labels, at most 10 characters at 12x16 (120 px of the 124 px column).
 static constexpr const char* kCalLabels[PloughSettings::kCount] = {
-    "SCHAREN", "PLOEGZIJDE", "HEF INVERT", "BYPASS", "DODE BAND", "CORR/SCH.",
+    VT_TEXT("SCHAREN", "SHARES", "EKEFEJEK"), VT_TEXT("PLOEGZIJDE", "PLOUGHSIDE", "EKEOLDAL"), VT_TEXT("HEF INVERT", "HITCH INV.", "MUNKAK.INV"), "BYPASS", VT_TEXT("DODE BAND", "DEADBAND", "HOLTJ\xC1T\xC9K"), VT_TEXT("CORR/SCH.", "CORR/SHARE", "KORR/FEJ"),
 #ifdef ISOBUS
-    "VOORK. VT", "AG LEADER",
+    VT_TEXT("VOORK. VT", "PREF. VT", "PREF. VT"), "AG LEADER",
 #endif
-    "RTK IDENT",
+    VT_TEXT("RTK IDENT", "RTK IDENT", "RTK AZON."),
 };
 
 static constexpr size_t calLabelLength(const char* s) { return *s ? 1 + calLabelLength(s + 1) : 0; }
@@ -521,9 +545,9 @@ FLASHMEM static void appendCalibrationPage() {
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
     appendKey(Key_CalWidth, kBlack, KeyCode_CalWidth, Label_CalWidth);
-    appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "OPSLAAN");
-    appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "ANNUL.");
-    appendOutputString(Label_CalWidth, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "BREEDTE");
+    appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSLAAN", "SAVE", "MENT\xC9S"));
+    appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL.", "CANCEL", "M\xC9GSE"));
+    appendOutputString(Label_CalWidth, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("BREEDTE", "WIDTH", "SZ\xC9LES."));
 
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         const PloughSettingLine& line = PloughSettings::Line(PloughSetting(i));
@@ -550,15 +574,15 @@ FLASHMEM static void appendCalibrationPage() {
 
     // Opaque: the VTs draw an open list's entries on their own light popup,
     // where white on transparent was invisible (CNH VT) or faint (1200).
-    appendOutputString(Str_CalNo, VAL_W, ROW_H, Font_White_Medium, 0, "NEE", kOpaque);
-    appendOutputString(Str_CalYes, VAL_W, ROW_H, Font_White_Medium, 0, "JA", kOpaque);
-    appendOutputString(Str_CalRight, VAL_W, ROW_H, Font_White_Medium, 0, "RECHTS", kOpaque);
-    appendOutputString(Str_CalLeft, VAL_W, ROW_H, Font_White_Medium, 0, "LINKS", kOpaque);
+    appendOutputString(Str_CalNo, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("NEE", "NO", "NEM"), kOpaque);
+    appendOutputString(Str_CalYes, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("JA", "YES", "IGEN"), kOpaque);
+    appendOutputString(Str_CalRight, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("RECHTS", "RIGHT", "JOBB"), kOpaque);
+    appendOutputString(Str_CalLeft, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("LINKS", "LEFT", "BAL"), kOpaque);
     appendOutputString(Str_CalDgps, VAL_W, ROW_H, Font_White_Medium, 0, "DGPS", kOpaque);
     appendOutputString(Str_CalRtk, VAL_W, ROW_H, Font_White_Medium, 0, "RTK", kOpaque);
     appendOutputString(Str_CalAuto, VAL_W, ROW_H, Font_White_Medium, 0, "AUTO", kOpaque);
-    appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, "AAN", kOpaque);
-    appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, "UIT", kOpaque);
+    appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("AAN", "ON", "BE"), kOpaque);
+    appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("UIT", "OFF", "KI"), kOpaque);
     appendOutputString(Str_CalCm, kUnitW, kUnitH, Font_White_Medium, 0, "cm");
     appendOutputString(Str_CalMm, kUnitW, kUnitH, Font_White_Medium, 0, "mm");
 }
@@ -605,14 +629,14 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendKey(Key_CalWidthBack, kBlack, KeyCode_CalWidthBack, Label_CalWidthBack);
     appendOutputString(Label_CalNarrower, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
     appendOutputString(Label_CalWider, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
-    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "OPSLAAN");
-    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "ANNUL.");
+    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSLAAN", "SAVE", "MENT\xC9S"));
+    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL.", "CANCEL", "M\xC9GSE"));
 
-    appendOutputString(Label_CalWidthTitle, 196, ROW_H, Font_White_Medium, 0, "BREEDTE");
-    appendOutputString(Label_CalWidthPoint, LBL_W, ROW_H, Font_White_Medium, 0, "PUNT");
-    appendOutputString(Label_CalWidthOf, 72, ROW_H, Font_White_Medium, 0, "VAN 3");
-    appendOutputString(Label_CalWidthTarget, LBL_W, ROW_H, Font_White_Medium, 0, "NAAR");
-    appendOutputString(Label_CalWidthSensor, LBL_W, ROW_H, Font_White_Medium, 0, "SENSOR");
+    appendOutputString(Label_CalWidthTitle, 196, ROW_H, Font_White_Medium, 0, VT_TEXT("BREEDTE", "WIDTH", "SZ\xC9LESS\xC9G"));
+    appendOutputString(Label_CalWidthPoint, LBL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("PUNT", "POINT", "PONT"));
+    appendOutputString(Label_CalWidthOf, 72, ROW_H, Font_White_Medium, 0, VT_TEXT("VAN 3", "OF 3", "/ 3"));
+    appendOutputString(Label_CalWidthTarget, LBL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("NAAR", "TARGET", "C\xC9L"));
+    appendOutputString(Label_CalWidthSensor, LBL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("SENSOR", "SENSOR", "SZENZOR"));
     appendNumberVariable(Var_CalWidthPoint, 1);
     appendNumberVariable(Var_CalWidthTarget, 1000);
     appendNumberVariable(Var_CalWidthSensor, 0);
@@ -622,7 +646,7 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendOutputNumber(Out_CalWidthSensor, VAL_W, ROW_H, Font_White_Medium, Var_CalWidthSensor, 0, 1.0f, 0, 2);
     appendObjectPointer(Ptr_CalWidthStatus, Str_CalBlank);
     appendOutputString(Str_CalBlank, 196, ROW_H, Font_White_Medium, 0, " ");
-    appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, "ONGELDIG");
+    appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, VT_TEXT("ONGELDIG", "INVALID", "\xC9RV\xC9NYTELEN"));
 }
 
 FLASHMEM void BuildObjectPool() {
@@ -678,11 +702,18 @@ FLASHMEM void BuildObjectPool() {
     const uint16_t IMG_X = 2, IMG_Y = 2;
     const uint16_t STAT_X = IMG_X + kPloughImageWidth + 4;      // 126: "GPS", speed, "km/h", state
     const uint16_t ICON_X = 200 - kStatusIconSize - 6;          // indicators, right edge
-    const uint16_t GPS_Y = 4, SPEED_Y = 26, UNIT_Y = 48, STATE_Y = 62;
+    const uint16_t GPS_Y = 4, SPEED_Y = 26, UNIT_Y = 48, STATE_Y = 64;
     const uint16_t ROW_TOP = IMG_Y + kPloughImageHeight + 4;
-    // 4 characters at 12x16 ("AUTO", "H S!"), opaque so a shorter string
-    // covers a longer one. The pool test checks it ends above ROW_TOP.
-    constexpr uint16_t STATE_W = 4 * kMediumCharW, STATE_H = 16;
+    // 9 characters at 8x12 ("GPS HIBA", "SEBESSÉG"), the whole width from the
+    // status column to the mask's edge at 200 (the soft keys); opaque so a
+    // shorter string covers a longer one. The pool test checks it ends above
+    // ROW_TOP.
+    constexpr uint16_t kStateCharW = 8, kStateMaxChars = 9;
+    constexpr uint16_t STATE_W = kStateMaxChars * kStateCharW, STATE_H = 12;
+    static_assert(126 + STATE_W <= 200, "state runs past the mask");
+    static_assert(sizeof(kTextStateAuto) - 1 <= kStateMaxChars && sizeof(kTextStateHoldGps) - 1 <= kStateMaxChars &&
+                  sizeof(kTextStateHoldSpeed) - 1 <= kStateMaxChars && sizeof(kTextStateHand) - 1 <= kStateMaxChars &&
+                  sizeof(kTextStateCal) - 1 <= kStateMaxChars, "state text longer than 9 characters");
     const uint16_t ROW_Y[4] = { ROW_TOP, uint16_t(ROW_TOP + 29), uint16_t(ROW_TOP + 58), uint16_t(ROW_TOP + 87) };
     static_assert((sizeof(kTextPosition) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextSetpoint) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
@@ -731,7 +762,7 @@ FLASHMEM void BuildObjectPool() {
     appendWorkingSet(Plough_WorkingSet, kBlack, Plough_DataMask, /*selectable=*/true,
                       /*numLanguages=*/1, /*numChildren=*/1);
     appendObjRef(Icon_Plough, 0, -4);
-    appendLanguageCode("nl");
+    appendLanguageCode(VT_TEXT("nl", "en", "hu"));
 #endif
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
@@ -748,8 +779,8 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Out_Speed, STAT_X, SPEED_Y);
     appendObjRef(Ptr_SpeedStatus, ICON_X, SPEED_Y + 3);
     appendObjRef(Label_SpeedUnit, STAT_X, UNIT_Y);
-    // The control's state (#318), what the LCD shows: AUTO, H S!, H G!,
-    // HAND, or CAL while a calibration holds the control.
+    // The control's state (#318): AUTO, a hold with its reason (GPS FOUT /
+    // TE TRAAG), HAND, or CALIB. while a calibration holds the control.
     appendObjRef(Ptr_State, STAT_X, STATE_Y);
     // Working width first (owner's request, 2026-10-01): it is the value the
     // operator sets with Wider/Narrower.
@@ -791,6 +822,7 @@ FLASHMEM void BuildObjectPool() {
     appendFontAttributes(Font_White_Small, kWhite, kFont8x8);
     appendFontAttributes(Font_White_Unit, kWhite, kFont8x8);
     appendFontAttributes(Font_White_Large, kWhite, kFont24x32);
+    appendFontAttributes(Font_White_State, kWhite, kFont8x12);
 
     // ---- Static data labels ----
     appendOutputString(Label_Position, LBL_W, ROW_H, Font_White_Medium, 0, kTextPosition);
@@ -807,7 +839,7 @@ FLASHMEM void BuildObjectPool() {
     // already say "Breedte calibratie"/"Rotatie calibratie", so this matches
     // what the operator reads on the cab display. 6 chars at 8x8 = 48 px,
     // inside the 60 px key label box.
-    appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "CALIBR");
+    appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("CALIBR", "CALIBR", "KALIBR"));
 
     // ---- Plough pictures and the pointer that shows one of them ----
     appendPictureGraphicRle8(Img_PloughLeft, kPloughImageWidth, kPloughImageHeight, kPloughLeftImage,
@@ -830,11 +862,11 @@ FLASHMEM void BuildObjectPool() {
     // HAND until PloughVtWorkingSet reports otherwise: InterfacePlough starts
     // in manual.
     appendObjectPointer(Ptr_State, Str_StateHand);
-    appendOutputString(Str_StateAuto, STATE_W, STATE_H, Font_White_Medium, 0, "AUTO", kOpaque);
-    appendOutputString(Str_StateHoldSpeed, STATE_W, STATE_H, Font_White_Medium, 0, "H S!", kOpaque);
-    appendOutputString(Str_StateHoldGps, STATE_W, STATE_H, Font_White_Medium, 0, "H G!", kOpaque);
-    appendOutputString(Str_StateHand, STATE_W, STATE_H, Font_White_Medium, 0, "HAND", kOpaque);
-    appendOutputString(Str_StateCal, STATE_W, STATE_H, Font_White_Medium, 0, "CAL", kOpaque);
+    appendOutputString(Str_StateAuto, STATE_W, STATE_H, Font_White_State, 0, kTextStateAuto, kOpaque);
+    appendOutputString(Str_StateHoldSpeed, STATE_W, STATE_H, Font_White_State, 0, kTextStateHoldSpeed, kOpaque);
+    appendOutputString(Str_StateHoldGps, STATE_W, STATE_H, Font_White_State, 0, kTextStateHoldGps, kOpaque);
+    appendOutputString(Str_StateHand, STATE_W, STATE_H, Font_White_State, 0, kTextStateHand, kOpaque);
+    appendOutputString(Str_StateCal, STATE_W, STATE_H, Font_White_State, 0, kTextStateCal, kOpaque);
 
     // ---- NumberVariables (initial values) ----
     appendNumberVariable(Var_Position, 0);

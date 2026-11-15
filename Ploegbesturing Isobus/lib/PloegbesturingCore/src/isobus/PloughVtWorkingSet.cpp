@@ -94,7 +94,17 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // MW16 -> MW17, 2026-11-07: the control's state on the main screen
     // (#318), and both ANNUL. keys on row 5 for the 1200's 2 x 5 keys
     // (session 23).
-    return "MW17";
+    // MW17 -> MW18, 2026-11-15: the state in an 8x12 font, 9 characters
+    // wide (GPS FOUT / TE TRAAG instead of H G! / H S!).
+    // The English and Hungarian pools are different pools, so each has its
+    // own label: a terminal that has cached one must not show it for another.
+#if defined(ENGLISH)
+    return "MW18E";
+#elif defined(HUNGARIAN)
+    return "MW18H";
+#else
+    return "MW18";
+#endif
 }
 
 uint16_t PloughVtWorkingSet::StateString(uint8_t mode, bool calibrating, HoldReason hold) {
