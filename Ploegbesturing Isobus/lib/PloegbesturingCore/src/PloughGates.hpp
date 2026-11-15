@@ -34,12 +34,26 @@ static const unsigned long kGuidanceFixMaxAgeMs = 2000;
 // Position, speed and cross-track all fresh, and RTK fixed quality, stated
 // within the same window (#261): a quality whose source went quiet counts as
 // none, even while another source keeps the fixes fresh.
+//
+// -D AOG_TC_GUIDANCE (the AgOpenGPS TC as the guidance source): that TC sends
+// speed (129026) and XTE (129283) but no position and no fix quality on the
+// bus, so fresh speed and XTE are enough -- AgOpenGPS only steers a line on
+// a fix it already accepted. A fix quality that does arrive (129029, the
+// Ag Leader status) still has to be RTK while it is fresh.
 inline bool GpsReadyToSteer(GuidanceSource& guidance, unsigned long nowMs) {
+#ifdef AOG_TC_GUIDANCE
+    const unsigned long qualityAt = guidance.GetQualityTimestamp();
+    const bool qualityFresh = qualityAt != 0 && nowMs - qualityAt <= kGuidanceFixMaxAgeMs;
+    return guidance.GetVtgTimestamp() != 0 && nowMs - guidance.GetVtgTimestamp() <= kGuidanceFixMaxAgeMs &&
+           guidance.GetXteTimestamp() != 0 && nowMs - guidance.GetXteTimestamp() <= kGuidanceFixMaxAgeMs &&
+           (!qualityFresh || guidance.IsRtkQuality());
+#else
     return nowMs - guidance.GetGgaTimestamp() <= kGuidanceFixMaxAgeMs &&
            nowMs - guidance.GetVtgTimestamp() <= kGuidanceFixMaxAgeMs &&
            nowMs - guidance.GetXteTimestamp() <= kGuidanceFixMaxAgeMs &&
            nowMs - guidance.GetQualityTimestamp() <= kGuidanceFixMaxAgeMs &&
            guidance.IsRtkQuality();
+#endif
 }
 
 // At or above GuidanceSource's MINSPEED.
