@@ -54,7 +54,17 @@ _7 are defines for sower
 
 #else
 
-#ifdef ESP32S3
+#if defined(ESP32RC)
+// AgOpenShop ESP32 rate board: no operator inputs of its own. The VT is the
+// operator interface (its Wider/Narrower/Calibrate buttons), MODE is
+// permanently on so the work switch alone decides between manual and
+// automatic, and the cab buttons read idle. No JOY_ pins.
+#include "TritonIo.hpp"
+#define MODE_PIN_2          PIN_ALWAYS_ON
+#define LEFT_BUTTON_2       PIN_ALWAYS_OFF
+#define RIGHT_BUTTON_2      PIN_ALWAYS_OFF
+
+#elif defined(ESP32S3)
 // Triton01: all operator inputs sit behind the MCP23008 (see TritonIo.hpp).
 // GP0-GP5 are DIN1-DIN6, the six expander-side opto inputs on the board;
 // GP6 and GP7 have no input stage on Triton01 and read idle through the

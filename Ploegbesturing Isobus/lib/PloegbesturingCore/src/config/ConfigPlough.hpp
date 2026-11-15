@@ -34,6 +34,7 @@
 //#define TEENSY40    // Teensy 4.0 board: CAN on FLEXCAN1 (22/23), see ConfigImplementPlough.hpp
 //#define TEENSY32    // Teensy 3.2 board: CAN on CAN0 (3/4) through ACAN, see ConfigImplementPlough.hpp
 //#define ESP32S3     // Triton01: ESP32-S3-WROOM-2, DRV8701 bridges, MCP23008 inputs (esp32s3_serial env)
+//#define ESP32RC     // with ESP32S3: AgOpenShop ESP32 rate board RCv1.7 (esp32rc_serial env)
 //#define TEENSYPROTO // Teensy 3.5 or 3.6 on protoboard
 //#define MICRO       // Arduino Micro: serial guidance only, no CAN controller
 //#define VOORSERIE   // Arduino Uno pre-series board
@@ -50,9 +51,23 @@
 // Triton01 puts ISOBUS on the ESP32-S3's TWAI controller (classic CAN, which
 // is all ISO 11783 asks for), through AgIsoStack-plus-plus's TWAIPlugin; the
 // FlexCAN channel above does not apply there. See main.cpp.
-#ifdef ESP32S3
+// The AgOpenShop rate board (-D ESP32RC) has its MCP2562 transceiver on
+// GPIO 17 (TXD) / 16 (RXD). The I2C bus and the receiver UART differ per
+// ESP32-S3 board too, so they live here beside the CAN pins.
+#if defined(ESP32RC)
+#define ISOBUS_CAN_TX_PIN   17
+#define ISOBUS_CAN_RX_PIN   16
+#define I2C_SDA_PIN         8     // through the PCA9306 to the 5 V bus (header J3)
+#define I2C_SCL_PIN         18
+#define GPS_UART_RX_PIN     44    // RXD0: RS232 / TTL headers via jumper JP1
+#define GPS_UART_TX_PIN     43    // TXD0
+#elif defined(ESP32S3)
 #define ISOBUS_CAN_TX_PIN   3
 #define ISOBUS_CAN_RX_PIN   4
+#define I2C_SDA_PIN         1
+#define I2C_SCL_PIN         2
+#define GPS_UART_RX_PIN     42
+#define GPS_UART_TX_PIN     41
 #endif
 
 //#define ROTATION

@@ -247,12 +247,12 @@ public:
     // Setters
     // -------
     inline void SetPositionCalibrationData(short int i) {
-        positionCalibrationData[i] = analogRead(POSITION_SENS_PIN_2);
+        positionCalibrationData[i] = triton::ReadAnalog(POSITION_SENS_PIN_2);
     }
 
     // The width sensor now, for the width procedure to capture.
     inline short int ReadPositionSensor() {
-        return analogRead(POSITION_SENS_PIN_2);
+        return triton::ReadAnalog(POSITION_SENS_PIN_2);
     }
 
     // A reading taken earlier, for a draft applied on Save (PloughSettings).
@@ -262,7 +262,7 @@ public:
 
 #ifdef ROTATION
     inline void SetRotationCalibrationData(short int i) {
-        rotationCalibrationData[i] = analogRead(ROTATION_SENS_PIN_2);
+        rotationCalibrationData[i] = triton::ReadAnalog(ROTATION_SENS_PIN_2);
     }
 #endif
 

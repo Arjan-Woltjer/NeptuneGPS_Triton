@@ -28,6 +28,7 @@
 //#define TEENSY40    // Teensy 4.0 board
 //#define TEENSY32    // Teensy 3.2 board
 //#define ESP32S3     // Triton01: ESP32-S3, inputs on the MCP23008
+//#define ESP32RC     // with ESP32S3: AgOpenShop ESP32 rate board
 //#define TEENSYPROTO // Teensy 3.5 or 3.6 on protoboard
 //#define MICRO       // Arduino Micro
 //#define VOORSERIE   // Arduino Uno pre-series board
@@ -52,7 +53,15 @@
 
 #else
 
-#ifdef ESP32S3
+#if defined(ESP32RC)
+// AgOpenShop ESP32 rate board (built with ESP32S3 as well): the work switch
+// on the WORK terminal (opto U2) is the hitch input; the wheel-speed pulse,
+// if one is fitted, on the FLOW1 terminal (opto U23). Both direct GPIO.
+#include "TritonIo.hpp"
+#define WHEEL_SPEED_PIN_1     21    // FLOW1_A
+#define HITCH_PIN_1           40    // WORK1
+
+#elif defined(ESP32S3)
 // Triton01: the wheel-speed pulse on a direct GPIO (DIN8), the hitch behind
 // the MCP23008 (DIN5); EXPANDER_PIN() and the reads come from TritonIo.hpp.
 #include "TritonIo.hpp"
