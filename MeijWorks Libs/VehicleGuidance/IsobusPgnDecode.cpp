@@ -151,7 +151,14 @@ XteResult DecodeXteNmea2000(const uint8_t* data, uint8_t length) {
     // Navigation Terminated (bit 6): the source has stopped navigating this
     // route/leg, so any XTE value in this frame is stale/meaningless --
     // gate on it rather than feeding a leftover number to GuidanceSource.
+    //
+    // -D AOG_TC_GUIDANCE leaves this gate out: AgOpenGPS's TC sends its XTE
+    // with byte 1 = 0x71, this bit set on every frame, whether or not a line
+    // is being followed, so the bit says nothing on that bus.
     bool navigationTerminated = (data[1] >> 6) & 0x01;
+#ifdef AOG_TC_GUIDANCE
+    navigationTerminated = false;
+#endif
     if (navigationTerminated) {
         result.rejectReason = kXteRejectNavigationTerminated;
         return result;
