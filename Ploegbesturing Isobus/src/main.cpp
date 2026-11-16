@@ -54,6 +54,7 @@
 #include "IsobusVtInterface.hpp"
 #include "isobus/PloughVtWorkingSet.hpp"
 #include "isobus/IsobusTcInterface.hpp"
+#include "planner/WidthPlanning.hpp"
 #else
 #include "InterfaceGuidance.hpp"
 #include "SerialGuidanceChannel.hpp"
@@ -130,6 +131,7 @@ triton::PloughVtWorkingSet*    gVtWorkingSet;
 triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusVtCalibration*   gVtCalibration;
 triton::IsobusTcInterface*     gTcInterface;
+triton::WidthPlanning*         gWidthPlanning;  // fan-out / straightening
 triton::PloughDebugMenuSections* gDebugSections;
 triton::IsobusDebugMenu*       gDebugMenu;
 #if !defined(ESP32S3)
@@ -303,6 +305,8 @@ void setup() {
     gTcInterface = new triton::IsobusTcInterface(gSerialDebug, gImplement, gGuidance, gGuidanceChannel->GetControlFunction(),
                                                   gVtInterface->GetPartner());
     gTcInterface->Begin();
+    gWidthPlanning = new triton::WidthPlanning(gImplement, gTractor, gGuidance, gTcInterface);
+    gWidthPlanning->Begin();
 
     // The shared menu, with the plough's own sections (TC, DDOP, lightbar,
     // AUX-N) at their usual places (#287).
@@ -383,6 +387,9 @@ void loop() {
     // up (it forces MANUAL), the invert setting already applied.
     gTcInterface->SetWorking(!gTractor->GetHitch());
     gTcInterface->Update();
+    // Before gInterface->Update(): the planned width is in place for the
+    // setpoint that the same XTE fix sets.
+    gWidthPlanning->Update();
     gDebugMenu->Update();
 #endif
 

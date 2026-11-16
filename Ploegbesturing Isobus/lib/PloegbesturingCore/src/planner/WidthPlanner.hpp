@@ -142,6 +142,7 @@ private:
     // side (or the first time after NewField). Lifting and lowering on the
     // same side mid-pass is the same pass.
     bool     wasWorking       = false;
+    bool     lastSide         = false;   // the side at the last Update()
 
     // Smoothing (Brown's double exponential over distance travelled).
     bool     haveSmoothed     = false;

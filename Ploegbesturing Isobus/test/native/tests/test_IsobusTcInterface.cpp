@@ -48,6 +48,8 @@
 #include "FakeCanPlugin.hpp"
 #include "TestBus.hpp"
 #include "isobus/IsobusTcInterface.hpp"
+#include "planner/WidthPlanning.hpp"
+#include "VehicleSensors.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -551,6 +553,87 @@ test(IsobusTcInterface, watchdog_restartsAreOnePerFifteenSecondsNotOnePerLoop) {
     // The outage starts at 2000; restarts land at 17000, 32000 ... 92000.
     assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)6);
     millisValue(0);
+}
+
+
+// ---------------------------------------------------------------------------
+// WidthPlanning: the TC's track data and an XTE fix in, the plough's planned
+// width out, the plan in EEPROM 176-185.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+unsigned long gPlanClock = 0;
+
+// One XTE fix (PGN 129283's path into GuidanceSource), the TC's track data
+// for track 81 / left 80 at 1.6 m spacing in field 3, then a planner step.
+void PlanStep(triton::WidthPlanning& planning, int xteCm = 0) {
+    if (gPlanClock < millis()) gPlanClock = millis();
+    gPlanClock += 1000;
+    millisValue(gPlanClock);
+    Command(isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID, (3 << 16) | 1);
+    Command(isobus::DataDescriptionIndex::ActualGuidanceTrackNumber, 81);
+    Command(isobus::DataDescriptionIndex::GuidanceTrackNumberToTheLeft, 80);
+    Command(isobus::DataDescriptionIndex::GuidanceLineSwathWidth, 1600);
+    tcGuidance.SetSpeedKnots(4.0f);
+    tcGuidance.SetXte(xteCm);
+    planning.Update();
+}
+
+}  // namespace
+
+test(WidthPlanning, xteMode_leavesTheXteControl) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetMode(triton::WidthMode::Xte);
+    PlanStep(planning);
+    assertTrue(planning.HasTrackSupport());
+    assertFalse(tcImplement->HasPlannedWidth());
+    gPlanClock = 0;
+    millisValue(0);
+}
+
+// Fan-out after NEW FIELD: the first pass at the set width, and the plan in
+// EEPROM, read back by the next power-up.
+test(WidthPlanning, newField_firstPassAtTheSetWidth_andTheStoredPlan) {
+    VehicleSensors tractor;   // hitch down: working
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetMode(triton::WidthMode::FanOut);
+    PlanStep(planning);
+    planning.NewField();
+    PlanStep(planning);
+    assertEqual((int)planning.GetPlanner().GetReason(), (int)triton::PlanReason::Planned);
+    assertTrue(tcImplement->HasPlannedWidth());
+    assertEqual((int)planning.GetPlanner().GetSetpointCm(), (int)tcImplement->GetOffset());
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::FirstPass);
+    assertEqual((int)EEPROM.read(triton::kEepromPlan), 0x5A);
+
+    triton::WidthPlanning afterPowerUp(tcImplement, &tractor, &tcGuidance, &Fixture());
+    afterPowerUp.Begin();
+    assertEqual((int)afterPowerUp.GetMode(), (int)triton::WidthMode::FanOut);
+    assertEqual((int)afterPowerUp.GetPlanner().GetState(), (int)triton::PlanState::FirstPass);
+    assertTrue(afterPowerUp.GetPlanner().GetStored().passStarted);
+
+    planning.SetMode(triton::WidthMode::Xte);   // leave the shared EEPROM as found
+    PlanStep(planning);
+    assertFalse(tcImplement->HasPlannedWidth());
+    gPlanClock = 0;
+    millisValue(0);
+}
+
+// Without the TC's spacing there is no track support, and no planned width.
+test(WidthPlanning, rangeSettings_validatedLikeTheBootLoad) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetWidthRangePerShare(36, 48);
+    planning.SetWidthRangePerShare(50, 40);   // min above max: refused
+    planning.SetWidthRangePerShare(10, 48);   // below 20 cm per share: refused
+    assertEqual((int)planning.GetWminPerShare(), 36);
+    assertEqual((int)planning.GetWmaxPerShare(), 48);
+    assertEqual((int)planning.GetConfig().wminCm, 36 * (int)tcImplement->GetShares());
 }
 
 #endif  // ISOBUS

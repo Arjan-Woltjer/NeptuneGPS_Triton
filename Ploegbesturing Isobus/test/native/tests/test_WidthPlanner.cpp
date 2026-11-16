@@ -148,6 +148,20 @@ test(WidthPlanner, firstPass_atTheNominalWidth) {
     assertEqual((int)r.planner.GetSetpointCm(), 200);
 }
 
+// NEW FIELD pressed with the plough already in the ground: that pass is
+// pass 1, and turning over starts pass 2.
+test(WidthPlanner, newFieldWhileWorking_thisPassIsPassOne) {
+    Rig r(Config(WidthMode::FanOut));
+    r.LowerAt(160);
+    r.planner.NewField(kField);
+    assertTrue(r.planner.GetStored().passStarted);
+    r.Walk(160, 140);
+    r.Step(At(140), false);
+    r.LowerAt(158);
+    assertEqual((int)r.planner.GetState(), (int)PlanState::Planned);
+    assertEqual((int)r.planner.GetM(), 75);
+}
+
 // The simulator's trapezoid, 80 passes at one end and 70 at the other: the
 // first furrow is 158 / 138 m from the reference, and M is 75, as there.
 test(WidthPlanner, trapezoid_plansTheSimulatorsM) {

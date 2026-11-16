@@ -46,6 +46,12 @@ void WidthPlanner::NewField(uint16_t fieldIndex) {
     plan = StoredPlan();
     plan.state      = PlanState::FirstPass;
     plan.fieldIndex = fieldIndex;
+    // Pressed with the plough already in the ground (the first pass under
+    // way): that pass is pass 1, on the side it is on.
+    if (wasWorking) {
+        plan.passStarted = true;
+        plan.lastSide    = lastSide;
+    }
     firstSeen       = false;
     feasible        = true;
     resetSmoothing();
@@ -180,6 +186,7 @@ void WidthPlanner::Update(const WidthPlannerConfig& config, const TrackSample& s
 
     if (working && !wasWorking) onLowered(config, swathM, side);
     wasWorking = working;
+    lastSide   = side;
 
     const bool usable = sample.valid && sample.swathMm > 0 &&
                         (sample.trackLeft == sample.track + 1 || sample.trackLeft == sample.track - 1);

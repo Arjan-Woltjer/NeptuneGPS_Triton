@@ -47,6 +47,7 @@ $sources = @(
     'lib\PloegbesturingCore\src\isobus\VTObjectPool.cpp',
     'lib\PloegbesturingCore\src\isobus\VTImages.generated.cpp',
     'lib\PloegbesturingCore\src\planner\WidthPlanner.cpp',
+    'lib\PloegbesturingCore\src\planner\WidthPlanning.cpp',
     '..\MeijWorks Libs\VehicleGuidance\NmeaParser.cpp',
     '..\MeijWorks Libs\VehicleGuidance\TrimbleParser.cpp',
     '..\MeijWorks Libs\VehicleGuidance\CanSerialParser.cpp',
