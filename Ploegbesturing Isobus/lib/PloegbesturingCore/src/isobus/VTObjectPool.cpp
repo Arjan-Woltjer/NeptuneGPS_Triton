@@ -75,14 +75,16 @@ namespace triton
 {
 
 // ----------------------------------------------------------------
-// Pool storage. The two plough pictures (VTImages.hpp) are ~5.4 KB each, so
-// the pool is ~11.5 KB; 16 KB leaves room. DMAMEM puts it in the Teensy 4.1's
-// RAM2 (512 KB, mostly free) instead of RAM1, whose free space is the stack.
+// Pool storage. The two plough pictures (VTImages.hpp) are ~5.4 KB each; with
+// the width planner's two pages the pool is ~15.5 KB (2026-11-16), so the
+// buffer went from 16 KB to kVtPoolCapacity. DMAMEM puts it in the Teensy
+// 4.1's RAM2 (512 KB, mostly free) instead of RAM1, whose free space is the
+// stack.
 // ----------------------------------------------------------------
 #ifndef DMAMEM
 #define DMAMEM
 #endif
-DMAMEM static uint8_t poolBuffer[16384];
+DMAMEM static uint8_t poolBuffer[kVtPoolCapacity];
 static uint32_t poolPos = 0;
 
 const uint8_t* VT3PoolData = nullptr;

@@ -45,7 +45,7 @@ test(VTObjectPool, build_fitsTheBuffer_andStartsWithTheWorkingSet) {
     BuildObjectPool();
     assertTrue(VT3PoolData != nullptr);
     assertTrue(VT3PoolSize > 200u);
-    assertTrue(VT3PoolSize <= 16384u);  // poolBuffer's capacity (VTObjectPool.cpp)
+    assertTrue(VT3PoolSize <= kVtPoolCapacity);  // poolBuffer's capacity (VTObjectPool.cpp)
     // First object header: id Plough_WorkingSet (0), type 0 = WorkingSet.
     assertEqual((int)VT3PoolData[0], 0);
     assertEqual((int)VT3PoolData[1], 0);

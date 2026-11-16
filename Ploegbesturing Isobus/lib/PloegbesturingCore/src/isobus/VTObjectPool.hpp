@@ -345,6 +345,9 @@ enum PloughKeyCode : uint8_t {
 constexpr uint16_t kRangeBarMinMm = 200;
 constexpr uint16_t kRangeBarMaxMm = 600;
 
+// The pool buffer's size; the pool test checks the pool fits it.
+constexpr uint32_t kVtPoolCapacity = 20480;
+
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().
 extern const uint8_t* VT3PoolData;
 extern uint32_t       VT3PoolSize;
