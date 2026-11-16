@@ -101,12 +101,14 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // own label: a terminal that has cached one must not show it for another.
     // MW18 -> MW19, 2026-11-16: the width planner -- the PLAN key and word on
     // the main screen, the planner page and the width range page.
+    // MW19 -> MW20, same day: the range bar on the main screen, LIMIT there
+    // too, the width now 3 lines wide, rows 23 apart.
 #if defined(ENGLISH)
-    return "MW19E";
+    return "MW20E";
 #elif defined(HUNGARIAN)
-    return "MW19H";
+    return "MW20H";
 #else
-    return "MW19";
+    return "MW20";
 #endif
 }
 

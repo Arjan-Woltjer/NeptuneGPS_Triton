@@ -860,6 +860,35 @@ test(IsobusVtPlanner, rangePage_stepsTheSelectedEnd_andStoresOnSave) {
     planning.SetWidthRangePerShare(34, 50);   // leave the shared EEPROM as found
 }
 
+// The main screen's bar shows the stored range and the width now with no
+// page open; LIMIT there opens the range page and goes back to the main
+// screen, the bar following the draft meanwhile.
+test(IsobusVtPlanner, limitFromTheMainScreen_andTheBarThere) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetWidthRangePerShare(34, 50);
+    triton::IsobusVtPlanner page(&tcDebug, &planning);
+    PlanVtOutput out;
+    page.Update(out);
+    assertEqual(out.last(triton::Var_BarMin), 340L);
+    assertEqual(out.last(triton::Var_BarMax), 500L);
+    assertTrue(out.last(triton::Var_BarNow) >= (long)triton::kRangeBarMinMm);
+    assertEqual(out.last(triton::Var_RangeMin), -1L);   // the page's numbers wait for the page
+
+    assertTrue(page.OnSoftKey(triton::Key_PlanRange, 100));
+    assertTrue(page.IsRangeOpen());
+    page.OnSoftKey(triton::Key_RangeUp, 100);
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_RangeMask);
+    assertEqual(out.last(triton::Var_BarMin), 350L);
+    page.OnSoftKey(triton::Key_RangeCancel, 100);
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_DataMask);
+    assertEqual(out.last(triton::Var_BarMin), 340L);     // the stored range again
+    assertEqual((int)planning.GetWminPerShare(), 34);
+}
+
 // A new VT shows nothing of the old one's pages: every value goes again.
 test(IsobusVtPlanner, connectionLost_closesThePages_andResendsTheWord) {
     VehicleSensors tractor;

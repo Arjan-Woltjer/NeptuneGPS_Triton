@@ -715,7 +715,7 @@ constexpr char kTextPlanNoPlan[]   = VT_TEXT("GEEN PLAN", "NO PLAN", "TERV \xDCR
 constexpr char kTextPlanNoTrack[]  = VT_TEXT("GEEN LIJN", "NO TRACK", "NINCS S\xC1V");
 constexpr char kTextPlanField[]    = VT_TEXT("VELD?", "FIELD?", "T\xC1" "BLA?");
 constexpr char kTextPlanPass1[]    = VT_TEXT("GANG 1", "PASS 1", "1. MENET");
-constexpr char kTextPlanRange[]    = VT_TEXT("BEREIK!", "RANGE!", "HAT\xC1R!");
+constexpr char kTextPlanRange[]    = VT_TEXT("LIMIET!", "LIMIT!", "LIMIT!");
 constexpr char kTextPlanStraight[] = VT_TEXT("RECHT", "STR.", "EGYEN.");
 constexpr char kTextPlanFan[]      = VT_TEXT("WAAIER", "FAN", "LEGY.");
 constexpr char kTextPlanParallel[] = VT_TEXT("PARALLEL", "PARALLEL", "P\xC1RHUZ.");
@@ -836,7 +836,7 @@ FLASHMEM static void appendPlannerPage() {
     appendOutputString(Label_PlanDownB, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "-1");
     appendOutputString(Label_PlanNewA, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("NIEUW", "NEW", "\xDAJ"));
     appendOutputString(Label_PlanNewB, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("VELD", "FIELD", "T\xC1" "BLA"));
-    appendOutputString(Label_PlanRange, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("BEREIK", "RANGE", "HAT\xC1R"));
+    appendOutputString(Label_PlanRange, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("LIMIET", "LIMIT", "LIMIT"));
     appendOutputString(Label_PlanBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZA"));
 
     appendOutputString(Label_PlanMode, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelMode);
@@ -890,6 +890,7 @@ FLASHMEM static void appendPlannerPage() {
 // plough's whole range: green from Wmin to Wmax, grey below Wmin, a white
 // line at the main width (NOM), a yellow one at the width now.
 constexpr char kTextRangeNow[] = VT_TEXT("NU", "NOW", "MOST");
+static void appendRangeBarRefs(uint16_t x, uint16_t y);   // also on the main screen
 
 FLASHMEM static void appendRangePage() {
     constexpr uint16_t kCharW = 12;
@@ -904,7 +905,7 @@ FLASHMEM static void appendRangePage() {
     static_assert(76 + ROW_H <= BAR_Y && SCALE_Y + 16 <= 200, "rows overlap the bar or leave the mask");
     static_assert(sizeof(kTextRangeNow) - 1 <= 4, "NU label too wide");
 
-    appendDataMask(Plough_RangeMask, kBlack, Plough_RangeSoftKeyMask, 21);
+    appendDataMask(Plough_RangeMask, kBlack, Plough_RangeSoftKeyMask, 23);
     appendObjRef(Ptr_RangeMinMark, MARK_X, ROW_Y[0]);
     appendObjRef(Label_RangeMin, LBL_X, ROW_Y[0]);
     appendObjRef(Out_RangeMin, VAL_X, ROW_Y[0]);
@@ -921,9 +922,7 @@ FLASHMEM static void appendRangePage() {
     appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
     // Drawn in this order: the green bar to Wmax, the grey one to Wmin over
     // it (with NOM's line), the line at the width now on top.
-    appendObjRef(Bar_RangeMax, BAR_X, BAR_Y);
-    appendObjRef(Bar_RangeMin, BAR_X, BAR_Y);
-    appendObjRef(Bar_RangeNow, BAR_X, BAR_Y);
+    appendRangeBarRefs(BAR_X, BAR_Y);
     appendObjRef(Out_RangeLo, BAR_X, SCALE_Y);
     appendObjRef(Str_CalCm, BAR_X + SCALE_W + 2, SCALE_Y);
     appendObjRef(Out_RangeHi, 200 - kUnitW - 2 - SCALE_W, SCALE_Y);
@@ -981,8 +980,25 @@ FLASHMEM static void appendRangePage() {
                          Var_BarMax, 0xFFFF);
     appendLinearBarGraph(Bar_RangeMin, BAR_W, BAR_H, kGrey, kWhite, kBarTargetLine, kRangeBarMinMm, kRangeBarMaxMm,
                          Var_BarMin, Var_BarNom);
+    // The width now, 3 lines wide (the owner, 2026-11-16: one VT line is too
+    // thin to see from the seat): the same variable on three bars whose
+    // ranges are shifted by one line each way.
+    constexpr uint16_t kNowShiftMm = 6;   // ~3 px of 196 over 400 mm
     appendLinearBarGraph(Bar_RangeNow, BAR_W, BAR_H, kYellow, kYellow, kBarLine, kRangeBarMinMm, kRangeBarMaxMm,
                          Var_BarNow, 0xFFFF);
+    appendLinearBarGraph(Bar_RangeNowL, BAR_W, BAR_H, kYellow, kYellow, kBarLine, kRangeBarMinMm + kNowShiftMm,
+                         kRangeBarMaxMm + kNowShiftMm, Var_BarNow, 0xFFFF);
+    appendLinearBarGraph(Bar_RangeNowR, BAR_W, BAR_H, kYellow, kYellow, kBarLine, kRangeBarMinMm - kNowShiftMm,
+                         kRangeBarMaxMm - kNowShiftMm, Var_BarNow, 0xFFFF);
+}
+
+// The range bar's five layers, at one place on a mask.
+static void appendRangeBarRefs(uint16_t x, uint16_t y) {
+    appendObjRef(Bar_RangeMax, x, y);
+    appendObjRef(Bar_RangeMin, x, y);
+    appendObjRef(Bar_RangeNow, x, y);
+    appendObjRef(Bar_RangeNowL, x, y);
+    appendObjRef(Bar_RangeNowR, x, y);
 }
 
 FLASHMEM void BuildObjectPool() {
@@ -1055,7 +1071,10 @@ FLASHMEM void BuildObjectPool() {
     // The pool test checks the word ends above ROW_TOP (the picture's height
     // is not a compile-time constant).
     static_assert(STATE_Y + STATE_H < PLAN_Y, "the plan word overlaps the state");
-    const uint16_t ROW_Y[4] = { ROW_TOP, uint16_t(ROW_TOP + 29), uint16_t(ROW_TOP + 58), uint16_t(ROW_TOP + 87) };
+    // 23 apart (29 until the width planner): the range bar goes under them,
+    // at kMainBarY, below the last row's 16-unit text.
+    const uint16_t ROW_Y[4] = { ROW_TOP, uint16_t(ROW_TOP + 23), uint16_t(ROW_TOP + 46), uint16_t(ROW_TOP + 69) };
+    static_assert(kMainBarY + 24 <= 200, "the range bar leaves the mask");
     static_assert((sizeof(kTextPosition) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextSetpoint) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
     static_assert((sizeof(kTextXte) - 1) * kMediumCharW <= LBL_W, "label too wide for its column");
@@ -1108,7 +1127,7 @@ FLASHMEM void BuildObjectPool() {
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
-    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 21);
+    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 26);
     // The tractor-and-plough picture, through a pointer that IsobusVtInterface
     // switches to the side the plough is ploughing (left until it says so).
     appendObjRef(Ptr_PloughImage, IMG_X, IMG_Y);
@@ -1141,6 +1160,9 @@ FLASHMEM void BuildObjectPool() {
     appendObjRef(Label_XTE, LBL_X, ROW_Y[3]);
     appendObjRef(Out_XTE, XTE_X, ROW_Y[3]);
     appendObjRef(Str_CalCm, UNIT_X, ROW_Y[3]);
+    // The width planner's range bar (the owner, 2026-11-16): Wmin..Wmax,
+    // the main width and the width now, as on the LIMIT page.
+    appendRangeBarRefs(2, kMainBarY);
 
     // Soft keys by position (#282): + above -, as the cab buttons, then
     // CALIBR on row 3, PLAN (the width planner) on row 4. All in the first
@@ -1152,6 +1174,7 @@ FLASHMEM void BuildObjectPool() {
         keys[SoftKeySlot(2, 2)] = Key_Narrower;
         keys[SoftKeySlot(3, 2)] = Key_Calibrate;
         keys[SoftKeySlot(4, 2)] = Key_Plan;
+        keys[SoftKeySlot(5, 2)] = Key_PlanRange;   // LIMIT, straight to the range page
         appendSoftKeys(Plough_SoftKeyMask, kBlack, keys);
     }
 

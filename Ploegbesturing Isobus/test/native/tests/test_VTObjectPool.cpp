@@ -566,7 +566,8 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
     const auto objects = walkPool();
     assertFalse(objects.empty());
     assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
-                           { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate }, { 3, Key_Plan } }, 4));
+                           { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate }, { 3, Key_Plan },
+                             { 4, Key_PlanRange } }, 5));
     assertTrue(softKeysAre(objects, Plough_PlanSoftKeyMask,
                            { { 0, Key_PlanMleftUp }, { 1, Key_PlanMleftDown }, { 2, Key_PlanNewField },
                              { 3, Key_PlanRange }, { 4, Key_PlanBack } }, 5));
@@ -637,7 +638,7 @@ test(VTObjectPool, everyPlannerId_appearsInThePool) {
     assertFalse(objects.empty());
     for (uint16_t id = Key_Plan; id <= Str_PlanWordWidth; id++) assertTrue(exists(objects, id));
     for (uint16_t id = Plough_PlanMask; id <= Str_PlanDash; id++) assertTrue(exists(objects, id));
-    for (uint16_t id = Plough_RangeMask; id <= Var_RangeHi; id++) assertTrue(exists(objects, id));
+    for (uint16_t id = Plough_RangeMask; id <= Bar_RangeNowR; id++) assertTrue(exists(objects, id));
 }
 
 // The plan word under the state on the main screen, clear of the first row,
@@ -703,31 +704,41 @@ test(VTObjectPool, plannerPage_inputsWithWidthPlanningsBounds) {
         assertEqual((int)VT3PoolData[objects.at(key).at + 5], 2);
 }
 
-// The range bar: three horizontal bars over 200-600 mm per share at one
-// place, green to Wmax framed, grey to Wmin with NOM's line, a line now.
-test(VTObjectPool, rangePage_barsOverThePloughsRange) {
+// The range bar: horizontal bars over 200-600 mm per share at one place,
+// on the range page and under the main screen's rows, drawn in order: green
+// to Wmax framed, grey to Wmin with NOM's line, then the width now as three
+// lines on one variable, the outer two over ranges shifted 6 mm each way.
+test(VTObjectPool, rangeBar_onTheRangePageAndTheMainScreen) {
     BuildObjectPool();
     const auto objects = walkPool();
     assertFalse(objects.empty());
-    const auto place = placeOf(objects, Plough_RangeMask, Bar_RangeMax);
-    const struct { uint16_t id; uint16_t var; uint16_t target; uint8_t options; } bars[] = {
-        { Bar_RangeMax, Var_BarMax, 0xFFFF, 0x31 },
-        { Bar_RangeMin, Var_BarMin, Var_BarNom, 0x32 },
-        { Bar_RangeNow, Var_BarNow, 0xFFFF, 0x38 },
+    const struct { uint16_t id; uint16_t var; uint16_t target; uint8_t options; int shift; } bars[] = {
+        { Bar_RangeMax, Var_BarMax, 0xFFFF, 0x31, 0 },
+        { Bar_RangeMin, Var_BarMin, Var_BarNom, 0x32, 0 },
+        { Bar_RangeNow, Var_BarNow, 0xFFFF, 0x38, 0 },
+        { Bar_RangeNowL, Var_BarNow, 0xFFFF, 0x38, 6 },
+        { Bar_RangeNowR, Var_BarNow, 0xFFFF, 0x38, -6 },
     };
-    for (const auto& bar : bars) {
-        assertTrue(isType(objects, bar.id, 18));
-        const uint32_t at = objects.at(bar.id).at;
-        assertEqual((int)VT3PoolData[at + 9], (int)bar.options);
-        assertEqual((int)poolU16(at + 11), (int)kRangeBarMinMm);
-        assertEqual((int)poolU16(at + 13), (int)kRangeBarMaxMm);
-        assertEqual((int)poolU16(at + 15), (int)bar.var);
-        assertEqual((int)poolU16(at + 19), (int)bar.target);
-        const auto p = placeOf(objects, Plough_RangeMask, bar.id);
-        assertEqual(p.first, place.first);
-        assertEqual(p.second, place.second);
-        assertTrue(p.first + poolU16(at + 3) <= 200);
+    for (uint16_t mask : { (uint16_t)Plough_RangeMask, (uint16_t)Plough_DataMask }) {
+        const auto place = placeOf(objects, mask, Bar_RangeMax);
+        assertTrue(place.first >= 0);
+        for (const auto& bar : bars) {
+            assertTrue(isType(objects, bar.id, 18));
+            const uint32_t at = objects.at(bar.id).at;
+            assertEqual((int)VT3PoolData[at + 9], (int)bar.options);
+            assertEqual((int)poolU16(at + 11), (int)kRangeBarMinMm + bar.shift);
+            assertEqual((int)poolU16(at + 13), (int)kRangeBarMaxMm + bar.shift);
+            assertEqual((int)poolU16(at + 15), (int)bar.var);
+            assertEqual((int)poolU16(at + 19), (int)bar.target);
+            const auto p = placeOf(objects, mask, bar.id);
+            assertEqual(p.first, place.first);
+            assertEqual(p.second, place.second);
+            assertTrue(p.first + poolU16(at + 3) <= 200);
+            assertTrue(p.second + poolU16(at + 5) <= 200);
+        }
     }
+    // On the main screen under the XTE row's text.
+    assertTrue(placeOf(objects, Plough_DataMask, Bar_RangeMax).second >= placeOf(objects, Plough_DataMask, Label_XTE).second + 16);
     assertEqual((int)poolU16(objects.at(Ptr_RangeMinMark).at + 3), (int)Str_RangeMark);
     assertEqual((int)poolU16(objects.at(Ptr_RangeMaxMark).at + 3), (int)Str_RangeNoMark);
 }

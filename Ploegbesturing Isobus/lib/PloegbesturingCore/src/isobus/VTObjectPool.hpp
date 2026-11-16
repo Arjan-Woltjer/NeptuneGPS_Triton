@@ -299,7 +299,13 @@ enum PloughVtObjectId : uint16_t {
     Out_RangeHi                = 306,
     Var_RangeLo                = 307,
     Var_RangeHi                = 308,
+    // The width now as 3 lines (Bar_RangeNow in the middle), on Var_BarNow.
+    Bar_RangeNowL              = 309,
+    Bar_RangeNowR              = 310,
 };
+
+// The range bar's place on the main screen, under the four rows.
+constexpr uint16_t kMainBarY = 174;
 
 // Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
 // (#282). The bench VT (AgISOVirtualTerminal) fills column 2 top to bottom,

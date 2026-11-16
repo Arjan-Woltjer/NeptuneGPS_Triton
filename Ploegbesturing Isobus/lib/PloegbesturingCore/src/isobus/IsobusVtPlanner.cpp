@@ -99,7 +99,9 @@ FLASHMEM bool IsobusVtPlanner::OnSoftKey(uint16_t keyObjectId, unsigned long hel
             }
             return true;
         case Key_PlanRange:
-            if (open) openRange();
+            // LIMIT, from the planner page or the main screen; back to the
+            // one it came from.
+            openRange();
             return true;
         case Key_PlanBack:
             // Also from a page a reconnect left on the VT.
@@ -191,28 +193,34 @@ FLASHMEM void IsobusVtPlanner::Update(VtCalibrationOutput& out) {
         send(out, WidthPtr, Ptr_PlanWidth, width ? uint32_t(Out_PlanWidth) : uint32_t(Str_PlanDash));
     }
 
+    // The range bar, on the main screen and the range page: the draft while
+    // the page is open, the stored range otherwise.
+    const int32_t shares = planning->GetShares() > 0 ? planning->GetShares() : 1;
+    const int32_t nominal = planning->GetMainWidthCm();
+    const uint8_t lo = rangeOpen ? draftMin : planning->GetWminPerShare();
+    const uint8_t hi = rangeOpen ? draftMax : planning->GetWmaxPerShare();
+    send(out, BarMin, Var_BarMin, uint32_t(lo) * 10);
+    send(out, BarMax, Var_BarMax, uint32_t(hi) * 10);
+    send(out, BarNom, Var_BarNom, ClampBar(nominal * 10 / shares));
+    // The width now moves with the sensor's noise: at most every 200 ms.
+    const unsigned long now = millis();
+    const int32_t widthNow = planning->GetWidthNowCm() > 0 ? planning->GetWidthNowCm() : 0;
+    const bool nowDue = shown[BarNow] == kNotSent || now - lastNowSendMs >= kNowSendMs;
+    if (nowDue) {
+        const uint32_t before = shown[BarNow];
+        send(out, BarNow, Var_BarNow, ClampBar(widthNow * 10 / shares));
+        if (shown[BarNow] != before) lastNowSendMs = now;
+    }
+
     if (rangeOpen) {
-        const int32_t shares = planning->GetShares() > 0 ? planning->GetShares() : 1;
-        const int32_t nominal = planning->GetMainWidthCm();
         send(out, RangeMin, Var_RangeMin, uint32_t(draftMin * shares));
         send(out, RangeMax, Var_RangeMax, uint32_t(draftMax * shares));
         send(out, RangeNom, Var_RangeNom, uint32_t(nominal));
         send(out, Lo, Var_RangeLo, uint32_t(kPerShareLowest * shares));
         send(out, Hi, Var_RangeHi, uint32_t(kPerShareHighest * shares));
-        send(out, BarMin, Var_BarMin, uint32_t(draftMin) * 10);
-        send(out, BarMax, Var_BarMax, uint32_t(draftMax) * 10);
-        send(out, BarNom, Var_BarNom, ClampBar(nominal * 10 / shares));
         send(out, MinMark, Ptr_RangeMinMark, maxSelected ? uint32_t(Str_RangeNoMark) : uint32_t(Str_RangeMark));
         send(out, MaxMark, Ptr_RangeMaxMark, maxSelected ? uint32_t(Str_RangeMark) : uint32_t(Str_RangeNoMark));
-        // The width now moves with the sensor's noise: at most every 200 ms.
-        const unsigned long now = millis();
-        const int32_t widthNow = planning->GetWidthNowCm() > 0 ? planning->GetWidthNowCm() : 0;
-        if (shown[RangeNow] == kNotSent || now - lastNowSendMs >= kNowSendMs) {
-            const uint32_t before = shown[RangeNow];
-            send(out, RangeNow, Var_RangeNow, uint32_t(widthNow));
-            send(out, BarNow, Var_BarNow, ClampBar(widthNow * 10 / shares));
-            if (shown[RangeNow] != before) lastNowSendMs = now;
-        }
+        if (nowDue) send(out, RangeNow, Var_RangeNow, uint32_t(widthNow));
     }
 
     if (wantedMask != 0 && out.ChangeActiveMask(wantedMask)) wantedMask = 0;
