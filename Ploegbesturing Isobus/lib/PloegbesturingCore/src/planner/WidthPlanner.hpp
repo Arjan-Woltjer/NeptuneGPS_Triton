@@ -74,8 +74,8 @@ struct StoredPlan {
     PlanState state       = PlanState::NoPlan;
     bool      passStarted = false;   // the current pass has been lowered once
     bool      lastSide    = false;   // the side the current pass started on
-    uint8_t   mleft       = 0;       // passes left, the current one included
-    uint8_t   m           = 0;       // passes planned in all
+    uint16_t  mleft       = 0;       // passes left, the current one included
+    uint16_t  m           = 0;       // passes planned in all
     uint16_t  fieldIndex  = 0;
     uint16_t  firstMaxDm  = 0;       // first furrow to the reference, max (dm)
     uint16_t  firstMinDm  = 0;       // and min
@@ -115,8 +115,8 @@ public:
     PlanReason GetReason() const  { return reason; }
 
     PlanState GetState() const { return plan.state; }
-    uint8_t   GetM() const     { return plan.m; }
-    uint8_t   GetMleft() const { return plan.mleft; }
+    uint16_t  GetM() const     { return plan.m; }
+    uint16_t  GetMleft() const { return plan.mleft; }
     // The plan cannot be ploughed inside Wmin..Wmax: the passes left need a
     // width outside them somewhere (the simulator's "no solution").
     bool      IsFeasible() const { return feasible; }

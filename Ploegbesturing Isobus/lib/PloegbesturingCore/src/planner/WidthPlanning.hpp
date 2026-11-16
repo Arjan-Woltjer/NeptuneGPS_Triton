@@ -34,7 +34,7 @@
 namespace triton
 {
 
-// EEPROM 170-185: the planner's settings (170-175) and the plan (176-185).
+// EEPROM 170-187: the planner's settings (170-175) and the plan (176-187).
 // Free between the scraper's 130-169 and the AUX-N assignments from 190;
 // still to be checked against the EEPROM memory map.
 constexpr uint16_t kEepromPlannerMode       = 170;  // WidthMode, 0-2
@@ -43,8 +43,8 @@ constexpr uint16_t kEepromPlannerParallel   = 172;  // R, 0-20
 constexpr uint16_t kEepromPlannerSmoothing  = 173;  // m, 1-50
 constexpr uint16_t kEepromPlannerWminShare  = 174;  // cm per share, 20-60
 constexpr uint16_t kEepromPlannerWmaxShare  = 175;  // cm per share, 20-60
-constexpr uint16_t kEepromPlan              = 176;  // the plan, 10 bytes
-constexpr uint16_t kEepromPlanEnd           = 186;
+constexpr uint16_t kEepromPlan              = 176;  // the plan, 12 bytes
+constexpr uint16_t kEepromPlanEnd           = 188;
 
 // Defaults: a straight plough until the operator picks a mode; the width
 // range the width sensor is calibrated over (34-50 cm per share).

@@ -218,6 +218,17 @@ test(WidthPlanner, parallelStrip_leftForTheLastPasses) {
     assertEqual((int)r.planner.GetReason(), (int)PlanReason::ParallelStrip);
 }
 
+// A wide field: more passes than a byte holds.
+test(WidthPlanner, wideField_moreThan255Passes) {
+    Rig r(Config(WidthMode::FanOut));
+    r.planner.NewField(kField);
+    r.Pass(620, 600, 200);
+    r.LowerAt(618);
+    assertEqual((int)r.planner.GetMleft(), 304);   // (618 + 598) / 2 / 2 m
+    assertEqual((int)r.planner.GetM(), 305);
+    assertEqual((int)r.planner.GetSetpointCm(), 203);   // 618 / 304 = 2.033 m
+}
+
 // A range that can't hold the field: no N fits, and the plan says so.
 test(WidthPlanner, narrowRange_isInfeasible) {
     WidthPlannerConfig c = Config(WidthMode::FanOut);

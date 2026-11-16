@@ -62,9 +62,9 @@ void WidthPlanner::AdjustMleft(int delta) {
     if (plan.state != PlanState::Planned) return;
     int value = int(plan.mleft) + delta;
     if (value < 0) value = 0;
-    if (value > 255) value = 255;
+    if (value > 65534) value = 65534;
     if (value != plan.mleft) {
-        plan.mleft = static_cast<uint8_t>(value);
+        plan.mleft = static_cast<uint16_t>(value);
         dirty = true;
     }
 }
@@ -127,10 +127,10 @@ void WidthPlanner::planFromFirstPass(const WidthPlannerConfig& config, float swa
         if (n < 1) n = 1;
     }
     long total = n + config.parallelPasses;   // the pass starting now included
-    if (total > 254) total = 254;
+    if (total > 65534) total = 65534;
     plan.state      = PlanState::Planned;
-    plan.mleft      = static_cast<uint8_t>(total);
-    plan.m          = static_cast<uint8_t>(total + 1);
+    plan.mleft      = static_cast<uint16_t>(total);
+    plan.m          = static_cast<uint16_t>(total + 1);
     plan.firstMaxDm = ToDm(firstMaxM);
     plan.firstMinDm = ToDm(firstMinM);
 }

@@ -32,12 +32,13 @@ namespace
 constexpr uint8_t kPlanMagic = 0x5A;
 constexpr uint16_t kPlanMagicAt  = kEepromPlan + 0;
 constexpr uint16_t kPlanFlagsAt  = kEepromPlan + 1;  // bits 0-1 state, 2 pass started, 3 side
-constexpr uint16_t kPlanMAt      = kEepromPlan + 2;
-constexpr uint16_t kPlanMleftAt  = kEepromPlan + 3;
-constexpr uint16_t kPlanFieldAt  = kEepromPlan + 4;  // uint16 LE
-constexpr uint16_t kPlanMaxAt    = kEepromPlan + 6;  // uint16 LE, dm
-constexpr uint16_t kPlanMinAt    = kEepromPlan + 8;  // uint16 LE, dm
-static_assert(kEepromPlan + 10 == kEepromPlanEnd, "the plan is 10 bytes");
+constexpr uint16_t kPlanMAt      = kEepromPlan + 2;   // uint16 LE
+constexpr uint16_t kPlanMleftAt  = kEepromPlan + 4;   // uint16 LE
+constexpr uint16_t kPlanFieldAt  = kEepromPlan + 6;   // uint16 LE
+constexpr uint16_t kPlanMaxAt    = kEepromPlan + 8;   // uint16 LE, dm
+constexpr uint16_t kPlanMinAt    = kEepromPlan + 10;  // uint16 LE, dm
+static_assert(kEepromPlan + 12 == kEepromPlanEnd, "the plan is 12 bytes");
+static_assert(kEepromPlanEnd <= 190, "the plan runs into the AUX-N assignments");
 
 // Only a byte that changes is written: the plan changes once per pass.
 void Put(uint16_t addr, uint8_t value) {
@@ -89,8 +90,8 @@ void WidthPlanning::readPlan() {
     stored.state       = PlanState(flags & 0x03);
     stored.passStarted = (flags & 0x04) != 0;
     stored.lastSide    = (flags & 0x08) != 0;
-    stored.m           = EEPROM.read(kPlanMAt);
-    stored.mleft       = EEPROM.read(kPlanMleftAt);
+    stored.m           = Get16(kPlanMAt);
+    stored.mleft       = Get16(kPlanMleftAt);
     stored.fieldIndex  = Get16(kPlanFieldAt);
     stored.firstMaxDm  = Get16(kPlanMaxAt);
     stored.firstMinDm  = Get16(kPlanMinAt);
@@ -102,8 +103,8 @@ void WidthPlanning::writePlan() {
     const uint8_t flags = uint8_t(p.state) | (p.passStarted ? 0x04 : 0) | (p.lastSide ? 0x08 : 0);
     // The magic goes last, once the rest is in place.
     Put(kPlanFlagsAt, flags);
-    Put(kPlanMAt, p.m);
-    Put(kPlanMleftAt, p.mleft);
+    Put16(kPlanMAt, p.m);
+    Put16(kPlanMleftAt, p.mleft);
     Put16(kPlanFieldAt, p.fieldIndex);
     Put16(kPlanMaxAt, p.firstMaxDm);
     Put16(kPlanMinAt, p.firstMinDm);
