@@ -38,6 +38,7 @@
 #undef max
 #include <isobus/hardware_integration/can_hardware_interface.hpp>
 #include <isobus/isobus/can_network_manager.hpp>
+#include <isobus/isobus/isobus_device_descriptor_object_pool_helpers.hpp>
 #include <isobus/isobus/isobus_device_descriptor_object_pool.hpp>
 #include <isobus/isobus/isobus_standard_data_description_indices.hpp>
 #include <isobus/isobus/isobus_task_controller_client_objects.hpp>
@@ -280,6 +281,70 @@ test(IsobusTcInterface, ddop_hasExactlyOneRootDeviceElement) {
     assertEqual(rootElements, 1);
 }
 
+// TC11: the AgOpenGPS TC sends guidance data (507-513, 514) only to a client
+// with at least one section, which it counts with AgIsoStack's geometry
+// reader. So the pool must read back as one boom with one section, 1.5 m
+// behind the hitch on the centre line, with the boot width as its width.
+test(IsobusTcInterface, ddop_readsBackAsOneBoomWithOneSection) {
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+
+    auto implement = isobus::DeviceDescriptorObjectPoolHelper::get_implement_geometry(parsed);
+    int sections = 0;
+    for (const auto& boom : implement.booms) {
+        sections += (int)boom.sections.size();
+        for (const auto& subBoom : boom.subBooms) sections += (int)subBoom.sections.size();
+    }
+    assertEqual((int)implement.booms.size(), 1);
+    assertEqual(sections, 1);
+
+    const auto& section = implement.booms[0].sections[0];
+    assertTrue(section.xOffset_mm.exists());
+    assertEqual((long)section.xOffset_mm.get(), -1500L);
+    assertEqual((long)section.yOffset_mm.get(), 0L);
+    assertEqual((long)section.width_mm.get(), (long)(tcImplement->GetOffset() * 10));
+}
+
+// No section control: the TC gets nothing to switch. DDI 161 is there, but
+// ours to report (TC12): not settable.
+test(IsobusTcInterface, ddop_declaresNoSectionControlDdis) {
+    const auto ddis = DdisInUploadedPool();
+    assertFalse(PoolHas(ddis, isobus::DataDescriptionIndex::SectionControlState));             // 160
+    assertFalse(PoolHas(ddis, isobus::DataDescriptionIndex::SetpointCondensedWorkState1_16));  // 290
+
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+    bool found = false;
+    for (std::uint16_t index = 0; index < parsed.size(); index++) {
+        auto object = parsed.get_object_by_index(index);
+        if (object == nullptr || object->get_object_type() != isobus::task_controller_object::ObjectTypes::DeviceProcessData) continue;
+        auto pd = std::static_pointer_cast<isobus::task_controller_object::DeviceProcessDataObject>(object);
+        if (pd->get_ddi() != static_cast<std::uint16_t>(isobus::DataDescriptionIndex::ActualCondensedWorkState1_16)) continue;
+        found = true;
+        assertEqual((int)pd->get_properties_bitfield(), 0x01);  // default set, not settable
+    }
+    assertTrue(found);
+}
+
+// The section's state is the hitch: 01 working, 00 not; the other fifteen 11.
+test(IsobusTcInterface, valueRequest_condensedWorkStateFollowsSetWorking) {
+    Fixture().SetWorking(true);
+    assertEqual((long)IsobusTcInterfaceTestAccess::Request(Fixture(), 161), (long)(std::int32_t)0xFFFFFFFDu);
+    Fixture().SetWorking(false);
+    assertEqual((long)IsobusTcInterfaceTestAccess::Request(Fixture(), 161), (long)(std::int32_t)0xFFFFFFFCu);
+}
+
+test(IsobusTcInterface, ddop_declaresTheSwathWidthAndTheWorkingWidth) {
+    const auto ddis = DdisInUploadedPool();
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::GuidanceLineSwathWidth));  // 512
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::ActualWorkingWidth));      // 67
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::DefaultWorkingWidth));     // 68
+}
+
 // ---------------------------------------------------------------------------
 // What the TC writes to us, and what we answer when it asks
 //
@@ -345,6 +410,19 @@ test(IsobusTcInterface, valueCommand_guidanceTrackFieldsAreStored) {
     Command(isobus::DataDescriptionIndex::TrackControlState, 1);
     assertTrue(Fixture().HasTrackControlState());
     assertEqual((int)Fixture().GetCommandedTrackControlState(), 1);
+}
+
+test(IsobusTcInterface, valueCommand_swathWidthIsStoredAndEchoed) {
+    Command(isobus::DataDescriptionIndex::GuidanceLineSwathWidth, 1680);
+    assertTrue(Fixture().HasSwathWidth());
+    assertEqual((int)Fixture().GetSwathWidthMm(), 1680);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::GuidanceLineSwathWidth), 1680);
+}
+
+// DDI 67 is the measured width, in mm; ImplementPlough keeps cm.
+test(IsobusTcInterface, valueRequest_actualWorkingWidthIsTheMeasuredWidthInMm) {
+    assertEqual((int)Request(isobus::DataDescriptionIndex::ActualWorkingWidth),
+                (int)(tcImplement->GetPosition() * 10));
 }
 
 test(IsobusTcInterface, valueRequest_echoesWhatTheTcWroteToUs) {
