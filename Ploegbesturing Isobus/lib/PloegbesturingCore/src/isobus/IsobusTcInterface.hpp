@@ -76,6 +76,9 @@ namespace triton
 // controls plough *offset*, not width (ImplementPlough has no working-width
 // concept at all), and declaring DDIs with no real backing value would mean
 // inventing data (TC06 / #162 revisits it).
+// TC11 declares the width after all, on the one Section element the AgOpenGPS
+// TC needs before it sends any guidance data: `offset` is the plough's working
+// width in cm, and DDI 67 reports the measured one (GetPosition()).
 //
 // DDI 141 (Actual Work State) IS declared since #305: its backing value is
 // the tractor's hitch input, already read (with the invert setting) to force
@@ -111,6 +114,12 @@ public:
     // (the on-change trigger), and the TC can request it at any time.
     void SetWorking(bool isWorking);
     inline bool IsWorking() const { return working; }
+
+    // DDI 161 for the plough's one section (TC12): bits 0-1 = 01 working or
+    // 00 not, every other section 11 = not installed.
+    static constexpr std::int32_t CondensedWorkState(bool isWorking) {
+        return static_cast<std::int32_t>(0xFFFFFFFCu | (isWorking ? 0x1u : 0x0u));
+    }
 
     // Diagnostics for IsobusDebugMenu.
     inline bool          IsConnected() const        { return tcClient && tcClient->get_is_connected(); }
@@ -203,6 +212,14 @@ public:
     inline std::int32_t  GetActualTrackNumber() const { return actualTrackNumber; }
     inline std::int32_t  GetTrackNumberRight() const  { return trackNumberRight; }
     inline std::int32_t  GetTrackNumberLeft() const   { return trackNumberLeft; }
+    // DDI 512, the distance between two adjacent guidance tracks, in mm. The
+    // AgOpenGPS TC only sends it when AgOpenGPS reports one, so `...Seen`
+    // tells "never arrived" from a real value.
+    inline bool          HasSwathWidth() const        { return swathWidthSeen; }
+    inline std::int32_t  GetSwathWidthMm() const      { return swathWidthMm; }
+    inline unsigned long GetSwathWidthAgeMs() const {
+        return swathWidthSeen ? (millis() - lastSwathWidthMs) : 0;
+    }
     inline unsigned long GetGuidanceTrackAgeMs() const {
         return guidanceTrackSeen ? (millis() - lastGuidanceTrackMs) : 0;
     }
@@ -323,6 +340,11 @@ private:
     std::int32_t    trackNumberRight   = 0;
     std::int32_t    trackNumberLeft    = 0;
     unsigned long   lastGuidanceTrackMs = 0;
+
+    // DDI 512, written to us by the TC.
+    bool            swathWidthSeen   = false;
+    std::int32_t    swathWidthMm     = 0;
+    unsigned long   lastSwathWidthMs = 0;
 
     // DDI 507, written to us by the TC. Starts at 1 and increments per
     // sequence, so 0 remains a usable "never seen" marker.
