@@ -506,18 +506,21 @@ test(VTObjectPool, mainScreen_showsTheControlsState) {
     assertEqual((int)poolU16(objects.at(Ptr_State).at + 3), (int)Str_StateHand);
 
     const struct { uint16_t id; const char* text; } strings[] = {
-        { Str_StateAuto, "AUTO" }, { Str_StateHoldSpeed, "H S!" }, { Str_StateHoldGps, "H G!" },
-        { Str_StateHand, "HAND" }, { Str_StateCal, "CAL" },
+        { Str_StateAuto, "AUTO" }, { Str_StateHoldSpeed, "TE TRAAG" }, { Str_StateHoldGps, "GPS FOUT" },
+        { Str_StateHand, "HAND" }, { Str_StateCal, "CALIB." },
     };
+    // Their own 8x12 font: 9 characters across the 72 units to the mask edge.
+    assertTrue(isType(objects, Font_White_State, 23));
+    assertEqual((int)VT3PoolData[objects.at(Font_White_State).at + 4], 2);   // font size 8x12
     for (const auto& s : strings) {
         assertTrue(isType(objects, s.id, 11));
         const uint32_t at = objects.at(s.id).at;
         const uint16_t w = poolU16(at + 3), h = poolU16(at + 5);
-        assertEqual((int)w, 48);
+        assertEqual((int)w, 72);
         assertTrue(stateX + int16_t(w) <= 200);
         assertTrue(stateY + int16_t(h) <= rowTop);                // clear of the first row
         assertEqual((int)VT3PoolData[at + 10], 0x00);             // opaque: covers the longer one
-        assertEqual((int)poolU16(at + 8), (int)Font_White_Medium);
+        assertEqual((int)poolU16(at + 8), (int)Font_White_State);
         assertEqual((int)poolU16(at + 14), (int)strlen(s.text));
         assertEqual(memcmp(VT3PoolData + at + 16, s.text, strlen(s.text)), 0);
     }

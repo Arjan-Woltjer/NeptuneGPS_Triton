@@ -27,7 +27,13 @@
 #define S_TIMES         "Times started: "
 #define S_DIVIDE        "-------------------------------"
 
+// Dutch unless the env passes -D ENGLISH or -D HUNGARIAN (the esp32rc envs
+// pass HUNGARIAN); the VT pool (VTObjectPool.cpp) follows the same flag.
+// Every LCD line is exactly 20 plain ASCII characters: the HD44780 has no
+// accented letters, so the Hungarian texts are written without them.
+#if !defined(ENGLISH) && !defined(NEDERLANDS) && !defined(HUNGARIAN)
 #define NEDERLANDS
+#endif
 
 #include "TritonText.hpp"
 
@@ -103,7 +109,7 @@
 #define L_CAL_ROTATION_AD "Adjust to        deg"
 
 #define L_CAL_SHARES    "Adjust am. of shares"
-#define L_CAL_SHARES_AD "Amount of shares:   "
+#define L_CAL_SHARES_AD "Shares:             "   // the count goes in columns 15-16
 
 #define L_CAL_DEADBAND    "Adjust deadband     "
 #define L_CAL_DEADBAND_AD "Deadband :        cm"
@@ -132,5 +138,43 @@
 #define L_CAL_ON_VT_2   "Save or cancel there"
 #define L_CAL_ON_USB    "Calibrating via USB "
 #define L_CAL_ON_USB_2  "Save or cancel there"
+
+// ------------------------
+// Nyelv MAGYAR (Hungarian)
+// ------------------------
+#elif defined HUNGARIAN
+
+#define L_DEVICE          "Triton PB-ISO  v0.24"
+#define L_POS             "Szelesseg:          "
+#define L_ROTATION        "Forgat.:            "
+#define L_CAL_YES         "                igen"
+#define L_CAL_NO          "                 nem"
+#define L_CAL_POS         "Szelesseg kalibracio"
+#define L_CAL_POS_AD      "Allitsa:         cm "
+#define L_CAL_ROTATION    "Forgatas kalibracio "
+#define L_CAL_ROTATION_AD "Allitsa:         deg"
+#define L_CAL_SHARES      "Ekefejek szam modos."
+#define L_CAL_SHARES_AD   "Ekefejszam:         "
+#define L_CAL_DEADBAND    "Holtjatek beallitas "
+#define L_CAL_DEADBAND_AD "Holtjatek:        cm"
+#define L_CAL_MAXCOR      "Max korr./ekefej    "
+#define L_CAL_MAXCOR_AD   "Korr./fej:        mm"
+#define L_CAL_SWAP        "Ekeoldal csere      "
+#define L_CAL_SWAP_AD     "Oldal:              "
+#define L_CAL_BYPASS      "Bypass szelep       "
+#define L_CAL_VT          "Preferalt VT szama  "
+#define L_CAL_VT_AD       "VT(0=nincs):        "
+#define L_CAL_LIGHTBAR    "Ag Leader fenysor   "
+#define L_CAL_LB_AUTO     "                auto"
+#define L_CAL_LB_ON       "                  be"
+#define L_CAL_LB_OFF      "                  ki"
+#define L_CAL_INVERSION   "Munkakapcs. invertal"
+#define L_CAL_INVERSION_AD "Invertalas:         "
+#define L_CAL_SPEED_AD    "Gyorsitson 10km/h-ra"
+#define L_CAL_COMPLETE    "Kalibracio befejezes"
+#define L_CAL_ON_VT       "Kalibralas a VT-n   "
+#define L_CAL_ON_VT_2     "Mentes/elvetes ott  "
+#define L_CAL_ON_USB      "Kalibracio USB-n at "
+#define L_CAL_ON_USB_2    "Mentes/elvetes ott  "
 
 #endif
