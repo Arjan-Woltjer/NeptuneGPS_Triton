@@ -33,6 +33,7 @@ $sources = @(
     '..\MeijWorks Libs\IsobusImplement\IsobusVtInterface.cpp',
     'lib\PloegbesturingCore\src\isobus\PloughVtWorkingSet.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusVtCalibration.cpp',
+    'lib\PloegbesturingCore\src\isobus\IsobusVtPlanner.cpp',
     'lib\PloegbesturingCore\src\isobus\IsobusLightbarChannel.cpp',
     'lib\PloegbesturingCore\src\isobus\AgLeaderLightbarEmulation.cpp',
     '..\MeijWorks Libs\IsobusImplement\VtFailoverPolicy.cpp',

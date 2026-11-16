@@ -24,6 +24,7 @@
 #ifdef ISOBUS
 
 #include "VTObjectPool.hpp"
+#include "IsobusVtPlanner.hpp"
 #include "../PloughGates.hpp"
 
 using namespace isobus;
@@ -98,12 +99,14 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // wide (GPS FOUT / TE TRAAG instead of H G! / H S!).
     // The English and Hungarian pools are different pools, so each has its
     // own label: a terminal that has cached one must not show it for another.
+    // MW18 -> MW19, 2026-11-16: the width planner -- the PLAN key and word on
+    // the main screen, the planner page and the width range page.
 #if defined(ENGLISH)
-    return "MW18E";
+    return "MW19E";
 #elif defined(HUNGARIAN)
-    return "MW18H";
+    return "MW19H";
 #else
-    return "MW18";
+    return "MW19";
 #endif
 }
 
@@ -124,11 +127,13 @@ void PloughVtWorkingSet::OnClientCreated(std::shared_ptr<VirtualTerminalClient> 
     // A new VT means a fresh handshake: send every value again once it
     // connects.
     sentInitialVtVariables = false;
+    if (planner != nullptr) planner->OnConnectionLost();
 }
 
 void PloughVtWorkingSet::OnConnectionLost() {
     // An open calibration page belongs to the VT being left (#240).
     if (calibration != nullptr) calibration->OnConnectionLost();
+    if (planner != nullptr) planner->OnConnectionLost();
     DropKeys();
 }
 
@@ -147,6 +152,11 @@ void PloughVtWorkingSet::Update(bool connected) {
         // The page lives on this VT only: a lost connection drops its draft.
         if (connected) calibration->Update(*this);
         else if (calibration->IsOpen()) calibration->OnConnectionLost();
+    }
+    if (planner != nullptr) {
+        // The planner's word and pages; a new VT gets every value again.
+        if (connected) planner->Update(*this);
+        else planner->OnConnectionLost();
     }
 }
 
@@ -255,6 +265,7 @@ bool PloughVtWorkingSet::IsNarrowerHeld() const {
 
 void PloughVtWorkingSet::OnNumericValue(const VirtualTerminalClient::VTChangeNumericValueEvent& event) {
     if (calibration != nullptr) calibration->OnNumericValue(event.objectID, event.value);
+    if (planner != nullptr) planner->OnNumericValue(event.objectID, event.value);
 }
 
 void PloughVtWorkingSet::OnAuxInputStatus(uint8_t operatingState) {
@@ -337,6 +348,7 @@ bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& eve
     // nothing.
     if (event.keyEvent == Code::ButtonPressedOrLatched) {
         pressedTapKey = event.objectID;
+        pressedTapKeyAt = millis();
         return false;
     }
     if (event.keyEvent == Code::ButtonPressAborted) {
@@ -369,6 +381,8 @@ bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& eve
             // A saved page may have changed the preferred VT (#255).
             return calibration != nullptr && calibration->OnSoftKey(event.objectID);
         default:
+            // PLAN and the planner's pages (IsobusVtPlanner).
+            if (planner != nullptr) planner->OnSoftKey(event.objectID, millis() - pressedTapKeyAt);
             break;
     }
     return false;

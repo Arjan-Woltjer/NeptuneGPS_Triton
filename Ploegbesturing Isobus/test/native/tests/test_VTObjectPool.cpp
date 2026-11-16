@@ -241,6 +241,7 @@ uint32_t objectLength(uint32_t at) {
     switch (b[2]) {
         case 0:  return 10 + b[7] * 6 + b[8] * 2 + b[9] * 2;   // WorkingSet
         case 1:  return 8 + b[6] * 6 + b[7] * 2;               // DataMask
+        case 3:  return 10 + b[8] * 6 + b[9] * 2;              // Container
         case 4:  return 6 + b[4] * 2 + b[5] * 2;               // SoftKeyMask
         case 5:  return 7 + b[5] * 6 + b[6] * 2;               // Key
         case 9:  return 38 + b[37] * 2;                        // InputNumber
@@ -250,6 +251,7 @@ uint32_t objectLength(uint32_t at) {
             return 17 + n + b[16 + n] * 2;
         }
         case 12: return 29 + b[28] * 2;                        // OutputNumber
+        case 18: return 24 + b[23] * 2;                        // OutputLinearBarGraph
         case 20: {                                             // PictureGraphic
             const uint32_t raw = uint32_t(b[12]) | (uint32_t(b[13]) << 8) | (uint32_t(b[14]) << 16) |
                                  (uint32_t(b[15]) << 24);
@@ -311,6 +313,18 @@ test(VTObjectPool, everyReference_namesAnObjectOfTheRightType) {
                     assertTrue(exists(objects, child));
                     assertFalse(isType(objects, child, 21) || isType(objects, child, 23) || isType(objects, child, 5));
                 }
+                break;
+            case 3:  // Container: what a data mask holds
+                for (uint8_t c = 0; c < b[8]; c++) {
+                    const uint16_t child = poolU16(at + 10 + c * 6);
+                    assertTrue(exists(objects, child));
+                    assertFalse(isType(objects, child, 21) || isType(objects, child, 23) || isType(objects, child, 5));
+                }
+                break;
+            case 18:  // OutputLinearBarGraph: value and target, no variable or a NumberVariable
+                assertTrue(poolU16(at + 15) == 0xFFFF || isType(objects, poolU16(at + 15), 21));
+                assertTrue(poolU16(at + 19) == 0xFFFF || isType(objects, poolU16(at + 19), 21));
+                assertTrue(poolU16(at + 11) < poolU16(at + 13));   // min below max
                 break;
             case 4:  // SoftKeyMask: keys, and NULL object pointers for blank positions
                 for (uint8_t c = 0; c < b[4]; c++) {
@@ -552,7 +566,13 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
     const auto objects = walkPool();
     assertFalse(objects.empty());
     assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
-                           { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate } }, 3));
+                           { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate }, { 3, Key_Plan } }, 4));
+    assertTrue(softKeysAre(objects, Plough_PlanSoftKeyMask,
+                           { { 0, Key_PlanMleftUp }, { 1, Key_PlanMleftDown }, { 2, Key_PlanNewField },
+                             { 3, Key_PlanRange }, { 4, Key_PlanBack } }, 5));
+    assertTrue(softKeysAre(objects, Plough_RangeSoftKeyMask,
+                           { { 0, Key_RangeUp }, { 1, Key_RangeDown }, { 2, Key_RangeSelect },
+                             { 3, Key_RangeSave }, { 4, Key_RangeCancel } }, 5));
     assertTrue(softKeysAre(objects, Plough_CalSoftKeyMask,
                            { { 2, Key_CalWidth }, { 3, Key_CalSave }, { 4, Key_CalCancel } }, 5));
     assertTrue(softKeysAre(objects, Plough_CalWidthSoftKeyMask,
@@ -560,7 +580,8 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
                              { 4, Key_CalWidthBack } }, 5));
     // Nothing on row 6 or in column 1 of any mask: a 2 x 5 VT shows all.
     for (uint16_t mask : { (uint16_t)Plough_SoftKeyMask, (uint16_t)Plough_CalSoftKeyMask,
-                           (uint16_t)Plough_CalWidthSoftKeyMask }) {
+                           (uint16_t)Plough_CalWidthSoftKeyMask, (uint16_t)Plough_PlanSoftKeyMask,
+                           (uint16_t)Plough_RangeSoftKeyMask }) {
         assertTrue((int)VT3PoolData[objects.at(mask).at + 4] <= 5);
     }
     // The blanks are NULL pointers, and - and + are one large character each.
@@ -568,9 +589,9 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
         assertTrue(isType(objects, Ptr_KeyBlank0 + i, 27));
         assertEqual((int)poolU16(objects.at(Ptr_KeyBlank0 + i).at + 3), 0xFFFF);
     }
-    const uint16_t minus[2] = { Label_Narrower, Label_CalNarrower };
-    const uint16_t plus[2]  = { Label_Wider, Label_CalWider };
-    for (int i = 0; i < 2; i++) {
+    const uint16_t minus[3] = { Label_Narrower, Label_CalNarrower, Label_RangeDown };
+    const uint16_t plus[3]  = { Label_Wider, Label_CalWider, Label_RangeUp };
+    for (int i = 0; i < 3; i++) {
         assertEqual((int)VT3PoolData[objects.at(minus[i]).at + 16], (int)'-');
         assertEqual((int)VT3PoolData[objects.at(plus[i]).at + 16], (int)'+');
     }
@@ -582,9 +603,131 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
 test(VTObjectPool, keyCodes_ofAllSoftKeys_areDistinct) {
     const uint8_t codes[] = { KeyCode_Wider, KeyCode_Narrower, KeyCode_Calibrate, KeyCode_CalSave,
                               KeyCode_CalCancel, KeyCode_CalWidth, KeyCode_CalNarrower, KeyCode_CalWider,
-                              KeyCode_CalCapture, KeyCode_CalWidthBack };
+                              KeyCode_CalCapture, KeyCode_CalWidthBack, KeyCode_Plan, KeyCode_PlanMleftUp,
+                              KeyCode_PlanMleftDown, KeyCode_PlanNewField, KeyCode_PlanRange, KeyCode_PlanBack,
+                              KeyCode_RangeUp, KeyCode_RangeDown, KeyCode_RangeSelect, KeyCode_RangeSave,
+                              KeyCode_RangeCancel };
     for (size_t i = 0; i < sizeof(codes); i++) {
         assertNotEqual((int)codes[i], 0);
         for (size_t j = i + 1; j < sizeof(codes); j++) assertNotEqual((int)codes[i], (int)codes[j]);
     }
+}
+
+// ---------------------------------------------------------------------------
+// The width planner (IsobusVtPlanner)
+// ---------------------------------------------------------------------------
+namespace {
+// Where a mask (or container) places a child, or {-1, -1}.
+std::pair<int, int> placeOf(const std::map<uint16_t, PoolObject>& objects, uint16_t parent, uint16_t child) {
+    const uint32_t at = objects.at(parent).at;
+    const bool container = VT3PoolData[at + 2] == 3;
+    const uint8_t n = VT3PoolData[at + (container ? 8 : 6)];
+    const uint32_t first = at + (container ? 10 : 8);
+    for (uint8_t c = 0; c < n; c++) {
+        const uint32_t ref = first + c * 6;
+        if (poolU16(ref) == child) return { int(int16_t(poolU16(ref + 2))), int(int16_t(poolU16(ref + 4))) };
+    }
+    return { -1, -1 };
+}
+}  // namespace
+
+test(VTObjectPool, everyPlannerId_appearsInThePool) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    for (uint16_t id = Key_Plan; id <= Str_PlanWordWidth; id++) assertTrue(exists(objects, id));
+    for (uint16_t id = Plough_PlanMask; id <= Str_PlanDash; id++) assertTrue(exists(objects, id));
+    for (uint16_t id = Plough_RangeMask; id <= Var_RangeHi; id++) assertTrue(exists(objects, id));
+}
+
+// The plan word under the state on the main screen, clear of the first row,
+// the count after the word's sixth character; both start blank-safe: XTE,
+// and no count.
+test(VTObjectPool, mainScreen_planWordUnderTheState) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    const auto state = placeOf(objects, Plough_DataMask, Ptr_State);
+    const auto word  = placeOf(objects, Plough_DataMask, Ptr_PlanWord);
+    const auto count = placeOf(objects, Plough_DataMask, Ptr_PlanCount);
+    const auto row   = placeOf(objects, Plough_DataMask, Label_Offset);
+    assertEqual(word.first, state.first);
+    assertTrue(word.second >= state.second + 12);
+    assertTrue(word.second + 12 <= row.second);
+    assertEqual(count.first, word.first + 48);
+    assertEqual(count.second, word.second);
+    assertEqual((int)poolU16(objects.at(Ptr_PlanWord).at + 3), (int)Str_PlanWordXte);
+    assertEqual((int)poolU16(objects.at(Ptr_PlanCount).at + 3), 0xFFFF);
+    for (uint16_t id = Str_PlanWordXte; id <= Str_PlanWordWidth; id++) {
+        const uint32_t at = objects.at(id).at;
+        assertEqual((int)poolU16(at + 3), 72);
+        assertEqual((int)poolU16(at + 8), (int)Font_White_State);
+        assertEqual((int)VT3PoolData[at + 10], 0x00);             // opaque
+        assertTrue(poolU16(at + 14) <= 9);
+    }
+    for (uint16_t id : { (uint16_t)Str_PlanWordStraight, (uint16_t)Str_PlanWordFan })
+        assertTrue(poolU16(objects.at(id).at + 14) <= 6);         // room for 3 digits
+    assertEqual((int)poolU16(objects.at(Out_PlanCount).at + 11), (int)Var_PlanMleft);
+}
+
+// The planner page: mode list over the three modes, the tuning rows in a
+// container, with WidthPlanning's bounds; both pointers start at "no track".
+test(VTObjectPool, plannerPage_inputsWithWidthPlanningsBounds) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    assertTrue(isType(objects, Plough_PlanMask, 1));
+    assertEqual((int)poolU16(objects.at(Plough_PlanMask).at + 4), (int)Plough_PlanSoftKeyMask);
+    assertEqual((int)poolU16(objects.at(Ptr_PlanMode).at + 3), (int)Str_PlanModeXte);
+    assertEqual((int)poolU16(objects.at(Ptr_PlanTuning).at + 3), 0xFFFF);
+    const uint32_t list = objects.at(Input_PlanMode).at;
+    assertEqual((int)VT3PoolData[list + 10], 3);
+    assertEqual((int)poolU16(list + 13), (int)Str_PlanModeXte);
+    assertEqual((int)poolU16(list + 15), (int)Str_PlanModeStraight);
+    assertEqual((int)poolU16(list + 17), (int)Str_PlanModeFan);
+    assertTrue(isType(objects, Cont_PlanTuning, 3));
+    const struct { uint16_t id; int lo; int hi; } inputs[] = {
+        { Input_PlanK, 1, 30 }, { Input_PlanR, 0, 20 }, { Input_PlanSmooth, 1, 50 },
+    };
+    for (const auto& in : inputs) {
+        assertTrue(placeOf(objects, Cont_PlanTuning, in.id).first >= 0);
+        const uint32_t at = objects.at(in.id).at;
+        assertEqual((int)poolI32(at + 17), in.lo);
+        assertEqual((int)poolI32(at + 21), in.hi);
+    }
+    // The main screen's word and count, shared with the page.
+    assertTrue(placeOf(objects, Plough_PlanMask, Ptr_PlanWord).first >= 0);
+    assertTrue(placeOf(objects, Plough_PlanMask, Ptr_PlanCount).first >= 0);
+    // Two-line keys: two labels each.
+    for (uint16_t key : { (uint16_t)Key_PlanMleftUp, (uint16_t)Key_PlanMleftDown, (uint16_t)Key_PlanNewField })
+        assertEqual((int)VT3PoolData[objects.at(key).at + 5], 2);
+}
+
+// The range bar: three horizontal bars over 200-600 mm per share at one
+// place, green to Wmax framed, grey to Wmin with NOM's line, a line now.
+test(VTObjectPool, rangePage_barsOverThePloughsRange) {
+    BuildObjectPool();
+    const auto objects = walkPool();
+    assertFalse(objects.empty());
+    const auto place = placeOf(objects, Plough_RangeMask, Bar_RangeMax);
+    const struct { uint16_t id; uint16_t var; uint16_t target; uint8_t options; } bars[] = {
+        { Bar_RangeMax, Var_BarMax, 0xFFFF, 0x31 },
+        { Bar_RangeMin, Var_BarMin, Var_BarNom, 0x32 },
+        { Bar_RangeNow, Var_BarNow, 0xFFFF, 0x38 },
+    };
+    for (const auto& bar : bars) {
+        assertTrue(isType(objects, bar.id, 18));
+        const uint32_t at = objects.at(bar.id).at;
+        assertEqual((int)VT3PoolData[at + 9], (int)bar.options);
+        assertEqual((int)poolU16(at + 11), (int)kRangeBarMinMm);
+        assertEqual((int)poolU16(at + 13), (int)kRangeBarMaxMm);
+        assertEqual((int)poolU16(at + 15), (int)bar.var);
+        assertEqual((int)poolU16(at + 19), (int)bar.target);
+        const auto p = placeOf(objects, Plough_RangeMask, bar.id);
+        assertEqual(p.first, place.first);
+        assertEqual(p.second, place.second);
+        assertTrue(p.first + poolU16(at + 3) <= 200);
+    }
+    assertEqual((int)poolU16(objects.at(Ptr_RangeMinMark).at + 3), (int)Str_RangeMark);
+    assertEqual((int)poolU16(objects.at(Ptr_RangeMaxMark).at + 3), (int)Str_RangeNoMark);
 }

@@ -186,6 +186,119 @@ enum PloughVtObjectId : uint16_t {
     // the picture, where the 12x16 data font holds 6. Data mask only, like
     // Font_White_Unit, so AgIsoStack scales it with the mask.
     Font_White_State           = 178,
+
+    // ---- The width planner (fan-out / straightening) ----
+    // Main screen: the PLAN key, and the plan's word under the state line,
+    // in the state's 8x12 font, through a pointer; the passes left after it
+    // through a second pointer (NULL when the word has no count).
+    Key_Plan                   = 200,
+    Label_Plan                 = 201,
+    Ptr_PlanWord               = 202,
+    Ptr_PlanCount              = 203,
+    Out_PlanCount              = 204,
+    Var_PlanMleft              = 205,   // passes left; also on the planner page
+    Str_PlanWordXte            = 206,
+    Str_PlanWordNoPlan         = 207,
+    Str_PlanWordNoTrack        = 208,
+    Str_PlanWordField          = 209,   // the plan is another field's
+    Str_PlanWordPass1          = 210,
+    Str_PlanWordRange          = 211,   // the plan does not fit Wmin..Wmax
+    Str_PlanWordStraight       = 212,   // + the count
+    Str_PlanWordFan            = 213,   // + the count
+    Str_PlanWordParallel       = 214,
+    Str_PlanWordDone           = 215,
+    Str_PlanWordWidth          = 216,   // the main width is not the track spacing
+
+    // The planner page: the settings as inputs, stored at once, and the
+    // plan's state. Without track data the mode shows XTE and the tuning
+    // rows (a container behind a pointer) are left out.
+    Plough_PlanMask            = 220,
+    Plough_PlanSoftKeyMask     = 221,
+    Key_PlanMleftUp            = 222,
+    Key_PlanMleftDown          = 223,
+    Key_PlanNewField           = 224,
+    Key_PlanRange              = 225,
+    Key_PlanBack               = 226,
+    Label_PlanUpA              = 227,   // two-line key labels: A on top, B under it
+    Label_PlanUpB              = 228,
+    Label_PlanDownA            = 229,
+    Label_PlanDownB            = 230,
+    Label_PlanNewA             = 231,
+    Label_PlanNewB             = 232,
+    Label_PlanRange            = 233,
+    Label_PlanBack             = 234,
+    Label_PlanMode             = 235,
+    Label_PlanK                = 236,
+    Label_PlanR                = 237,
+    Label_PlanSmooth           = 238,
+    Label_PlanTrack            = 239,
+    Label_PlanState            = 240,
+    Label_PlanMleft            = 241,
+    Label_PlanM                = 242,
+    Label_PlanWidth            = 243,
+    Ptr_PlanMode               = 244,   // Input_PlanMode, or Str_PlanModeXte alone
+    Input_PlanMode             = 245,   // index = WidthMode
+    Str_PlanModeXte            = 246,
+    Str_PlanModeStraight       = 247,
+    Str_PlanModeFan            = 248,
+    Ptr_PlanTuning             = 249,   // Cont_PlanTuning, or NULL
+    Cont_PlanTuning            = 250,
+    Input_PlanK                = 251,
+    Input_PlanR                = 252,
+    Input_PlanSmooth           = 253,
+    Str_PlanMeter              = 254,
+    Out_PlanTrack              = 255,
+    Var_PlanTrack              = 256,   // track spacing, cm
+    Out_PlanMleft              = 257,
+    Out_PlanM                  = 258,
+    Var_PlanM                  = 259,
+    Ptr_PlanWidth              = 260,   // Out_PlanWidth, or Str_PlanDash
+    Out_PlanWidth              = 261,
+    Var_PlanWidth              = 262,   // the planned width, cm
+    Str_PlanDash               = 263,
+
+    // The width range page: Wmin and Wmax (MIN / MAX, stepped with + and -),
+    // the main width (NOM) and the plough's width now (NU), in cm, over a
+    // bar of the plough's whole range, 20 to 60 cm per share.
+    Plough_RangeMask           = 270,
+    Plough_RangeSoftKeyMask    = 271,
+    Key_RangeUp                = 272,
+    Key_RangeDown              = 273,
+    Key_RangeSelect            = 274,
+    Key_RangeSave              = 275,
+    Key_RangeCancel            = 276,
+    Label_RangeUp              = 277,
+    Label_RangeDown            = 278,
+    Label_RangeSelect          = 279,
+    Label_RangeSave            = 280,
+    Label_RangeCancel          = 281,
+    Label_RangeMin             = 282,
+    Label_RangeMax             = 283,
+    Label_RangeNom             = 284,
+    Label_RangeNow             = 285,
+    Ptr_RangeMinMark           = 286,   // Str_RangeMark on the value + and - step
+    Ptr_RangeMaxMark           = 287,
+    Str_RangeMark              = 288,
+    Str_RangeNoMark            = 289,
+    Out_RangeMin               = 290,
+    Out_RangeMax               = 291,
+    Out_RangeNom               = 292,
+    Out_RangeNow               = 293,
+    Var_RangeMin               = 294,   // cm, the whole plough
+    Var_RangeMax               = 295,
+    Var_RangeNom               = 296,
+    Var_RangeNow               = 297,
+    Bar_RangeMax               = 298,   // filled to Wmax, framed: the whole range
+    Bar_RangeMin               = 299,   // filled to Wmin over it, grey; NOM's line
+    Bar_RangeNow               = 300,   // a line at the width now
+    Var_BarMin                 = 301,   // mm per share, 200-600
+    Var_BarMax                 = 302,
+    Var_BarNom                 = 303,
+    Var_BarNow                 = 304,
+    Out_RangeLo                = 305,   // the bar's ends, cm: 20 and 60 per share
+    Out_RangeHi                = 306,
+    Var_RangeLo                = 307,
+    Var_RangeHi                = 308,
 };
 
 // Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
@@ -214,7 +327,23 @@ enum PloughKeyCode : uint8_t {
     KeyCode_CalWider     = 9,
     KeyCode_CalCapture   = 10,
     KeyCode_CalWidthBack = 11,
+    KeyCode_Plan         = 12,
+    KeyCode_PlanMleftUp  = 13,
+    KeyCode_PlanMleftDown = 14,
+    KeyCode_PlanNewField = 15,
+    KeyCode_PlanRange    = 16,
+    KeyCode_PlanBack     = 17,
+    KeyCode_RangeUp      = 18,
+    KeyCode_RangeDown    = 19,
+    KeyCode_RangeSelect  = 20,
+    KeyCode_RangeSave    = 21,
+    KeyCode_RangeCancel  = 22,
 };
+
+// The bar on the width range page spans the plough's whole range, in mm per
+// share (ImplementPlough clamps the setpoint to 20-60 cm per share).
+constexpr uint16_t kRangeBarMinMm = 200;
+constexpr uint16_t kRangeBarMaxMm = 600;
 
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().
 extern const uint8_t* VT3PoolData;

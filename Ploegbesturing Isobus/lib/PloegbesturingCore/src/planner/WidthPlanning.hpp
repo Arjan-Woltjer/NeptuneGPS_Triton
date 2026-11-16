@@ -91,6 +91,12 @@ public:
     // Track support: a fresh track number and spacing from the TC. Without
     // it only Xte makes sense, and the settings show only that.
     bool HasTrackSupport() const;
+    // The track spacing the TC sent (DDI 512), mm; 0 without track support.
+    int32_t GetTrackSpacingMm() const { return HasTrackSupport() ? tc->GetSwathWidthMm() : 0; }
+    // The plough's main width (ImplementPlough's offset) and share count.
+    int16_t GetMainWidthCm() const { return implement->GetOffset(); }
+    uint8_t GetShares() const { return implement->GetShares(); }
+    int16_t GetWidthNowCm() const { return implement->GetPosition(); }
 
     const WidthPlanner& GetPlanner() const { return planner; }
     WidthPlannerConfig  GetConfig() const;

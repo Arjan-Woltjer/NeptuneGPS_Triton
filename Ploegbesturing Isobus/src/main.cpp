@@ -55,6 +55,7 @@
 #include "isobus/PloughVtWorkingSet.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 #include "planner/WidthPlanning.hpp"
+#include "isobus/IsobusVtPlanner.hpp"
 #else
 #include "InterfaceGuidance.hpp"
 #include "SerialGuidanceChannel.hpp"
@@ -132,6 +133,7 @@ triton::IsobusVtInterface*     gVtInterface;
 triton::IsobusVtCalibration*   gVtCalibration;
 triton::IsobusTcInterface*     gTcInterface;
 triton::WidthPlanning*         gWidthPlanning;  // fan-out / straightening
+triton::IsobusVtPlanner*       gVtPlanner;      // its VT pages
 triton::PloughDebugMenuSections* gDebugSections;
 triton::IsobusDebugMenu*       gDebugMenu;
 #if !defined(ESP32S3)
@@ -308,6 +310,9 @@ void setup() {
     gWidthPlanning = new triton::WidthPlanning(gImplement, gTractor, gGuidance, gTcInterface);
     gWidthPlanning->Begin();
     gConsole->AttachPlanning(gWidthPlanning);   // ":plan" on the serial console
+    // The planner on the VT: PLAN's pages and the word on the main screen.
+    gVtPlanner = new triton::IsobusVtPlanner(gSerialDebug, gWidthPlanning);
+    gVtWorkingSet->AttachPlanner(gVtPlanner);
 
     // The shared menu, with the plough's own sections (TC, DDOP, lightbar,
     // AUX-N) at their usual places (#287).
