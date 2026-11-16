@@ -95,6 +95,8 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
 
     // Setpoint of adjust loop
     setpoint = 0;
+    plannedWidthSet = false;
+    plannedWidth    = 0;
 
     // End shutoff timers
     endShutoff.Begin(SHUTOFF_2, millis());
@@ -202,6 +204,20 @@ void ImplementPlough::Update(byte mode, short int buttons) {
 // Method for setting setpoint
 // ---------------------------
 void ImplementPlough::setSetpoint() {
+    // Fan-out / straightening (WidthPlanning): the planned width is the
+    // setpoint, without an XTE correction on top. The plan already follows
+    // the previous furrow, and the simulator showed a correction on top
+    // makes the furrows worse. Kept within the same limits as offset.
+    if (plannedWidthSet) {
+        const int lowest  = shares * 20;
+        const int highest = shares * 60;
+        int wanted = plannedWidth;
+        if (wanted > highest) wanted = highest;
+        if (wanted < lowest)  wanted = lowest;
+        setpoint = static_cast<short int>(wanted);
+        return;
+    }
+
     // bang-bang control: the correction is the cross-track error itself
     int pe = xte;
 

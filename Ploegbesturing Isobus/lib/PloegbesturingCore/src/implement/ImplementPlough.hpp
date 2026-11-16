@@ -99,6 +99,11 @@ private:
 
     short int offset;
 
+    // A width from WidthPlanning (fan-out / straightening), in cm. While
+    // set, it is the setpoint instead of offset plus the XTE correction.
+    boolean   plannedWidthSet;
+    short int plannedWidth;
+
     // Variables for adjusting ploughside and amount of shares
     boolean swap;
     byte    shares;
@@ -292,6 +297,16 @@ public:
 
     inline void SetBypass(boolean value) {
         bypass = value;
+    }
+
+    // WidthPlanning, every loop() pass: the planned width in cm, or none
+    // (set = false) for the XTE control.
+    inline void SetPlannedWidth(boolean set, short int widthCm) {
+        plannedWidthSet = set;
+        plannedWidth    = widthCm;
+    }
+    inline boolean HasPlannedWidth() {
+        return plannedWidthSet;
     }
 };
 
