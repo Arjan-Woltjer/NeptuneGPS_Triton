@@ -26,6 +26,9 @@
 #include <string.h>
 
 #include "../FlashMem.hpp"
+#ifdef ISOBUS
+#include "../planner/WidthPlanning.hpp"
+#endif
 
 namespace triton
 {
@@ -131,10 +134,120 @@ FLASHMEM void SettingsConsole::HandleLine(char* text, unsigned long nowMs) {
         save();
     } else if (strcmp(command, "cancel") == 0) {
         cancel();
+#ifdef ISOBUS
+    } else if (strcmp(command, "plan") == 0) {
+        plan(rest);
+#endif
     } else {
         out->println("ERR:unknown");
     }
 }
+
+#ifdef ISOBUS
+namespace {
+
+const char* GModeName(WidthMode mode) {
+    switch (mode) {
+        case WidthMode::Straight: return "straight";
+        case WidthMode::FanOut:   return "fan";
+        default:                  return "xte";
+    }
+}
+
+const char* GStateName(PlanState state) {
+    switch (state) {
+        case PlanState::FirstPass: return "pass1";
+        case PlanState::Planned:   return "planned";
+        default:                   return "none";
+    }
+}
+
+const char* GReasonName(PlanReason reason) {
+    switch (reason) {
+        case PlanReason::Planned:       return "planned";
+        case PlanReason::ModeXte:       return "mode-xte";
+        case PlanReason::NoPlan:        return "no-plan";
+        case PlanReason::NoTrack:       return "no-track";
+        case PlanReason::OtherField:    return "other-field";
+        case PlanReason::ParallelStrip: return "parallel-strip";
+        case PlanReason::Done:          return "done";
+    }
+    return "?";
+}
+
+}  // namespace
+
+FLASHMEM void SettingsConsole::printPlan() {
+    const WidthPlanner& p = planning->GetPlanner();
+    out->print("P:mode=");    out->print(GModeName(planning->GetMode()));
+    out->print(" k=");        out->print(planning->GetK());
+    out->print(" r=");        out->print(planning->GetParallel());
+    out->print(" smooth=");   out->print(planning->GetSmoothingM());
+    out->print(" range=");    out->print(planning->GetWminPerShare());
+    out->print('-');          out->print(planning->GetWmaxPerShare());
+    out->print(" track=");    out->print(planning->HasTrackSupport() ? "yes" : "no");
+    out->print(" state=");    out->print(GStateName(p.GetState()));
+    out->print(" m=");        out->print(p.GetM());
+    out->print(" mleft=");    out->print(p.GetMleft());
+    out->print(" reason=");   out->print(GReasonName(p.GetReason()));
+    if (p.HasSetpoint()) {
+        out->print(" width=");
+        out->print(p.GetSetpointCm());
+    }
+    if (p.HasDistance()) {
+        out->print(" dist=");
+        out->print(p.GetDistanceM(), 2);
+    }
+    out->print(" feasible="); out->println(p.IsFeasible() ? "yes" : "no");
+}
+
+FLASHMEM void SettingsConsole::plan(char* rest) {
+    if (planning == nullptr) {
+        out->println("ERR:noplanner");
+        return;
+    }
+    char* what = GNextWord(rest);
+    if (what == nullptr) {
+        printPlan();
+        out->println("OK");
+        return;
+    }
+    char* a = GNextWord(rest);
+    char* b = GNextWord(rest);
+    int16_t n = 0, m = 0;
+    if (strcmp(what, "newfield") == 0 && a == nullptr) {
+        planning->NewField();
+    } else if (strcmp(what, "mode") == 0 && a != nullptr && b == nullptr) {
+        if (strcmp(a, "xte") == 0)           planning->SetMode(WidthMode::Xte);
+        else if (strcmp(a, "straight") == 0) planning->SetMode(WidthMode::Straight);
+        else if (strcmp(a, "fan") == 0)      planning->SetMode(WidthMode::FanOut);
+        else { out->println("ERR:value"); return; }
+    } else if (strcmp(what, "mleft") == 0 && GParseNumber(a, n) && b == nullptr) {
+        planning->AdjustMleft(n);
+    } else if (strcmp(what, "k") == 0 && GParseNumber(a, n) && b == nullptr) {
+        if (!WidthPlanning::IsValidK(n)) { out->println("ERR:range"); return; }
+        planning->SetK(uint8_t(n));
+    } else if (strcmp(what, "r") == 0 && GParseNumber(a, n) && b == nullptr) {
+        if (!WidthPlanning::IsValidParallel(n)) { out->println("ERR:range"); return; }
+        planning->SetParallel(uint8_t(n));
+    } else if (strcmp(what, "smooth") == 0 && GParseNumber(a, n) && b == nullptr) {
+        if (!WidthPlanning::IsValidSmoothing(n)) { out->println("ERR:range"); return; }
+        planning->SetSmoothingM(uint8_t(n));
+    } else if (strcmp(what, "range") == 0 && GParseNumber(a, n) && GParseNumber(b, m) &&
+               GNextWord(rest) == nullptr) {
+        if (!WidthPlanning::IsValidPerShare(n) || !WidthPlanning::IsValidPerShare(m) || n >= m) {
+            out->println("ERR:range");
+            return;
+        }
+        planning->SetWidthRangePerShare(uint8_t(n), uint8_t(m));
+    } else {
+        out->println("ERR:args");
+        return;
+    }
+    printPlan();
+    out->println("OK");
+}
+#endif  // ISOBUS
 
 FLASHMEM void SettingsConsole::help() {
     out->println("I:plough settings console -- lines start with ':'");
@@ -144,6 +257,11 @@ FLASHMEM void SettingsConsole::help() {
     out->println("I: :set width <a> <b> <c>  stage the width sensor readings at the 34, 42 and 50 cm points");
     out->println("I: :save                   apply and store the staged values");
     out->println("I: :cancel                 drop the staged values");
+#ifdef ISOBUS
+    out->println("I: :plan                   the fan-out / straightening planner; stored at once:");
+    out->println("I:   mode xte|straight|fan, k 1..30, r 0..20, smooth 1..50 (m),");
+    out->println("I:   range <min> <max> (cm per share, 20..60), newfield, mleft <+n|-n>");
+#endif
     out->println("I:keys:");
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         const PloughSettingLine& setting = PloughSettings::Line(PloughSetting(i));

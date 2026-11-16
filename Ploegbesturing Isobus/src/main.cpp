@@ -307,6 +307,7 @@ void setup() {
     gTcInterface->Begin();
     gWidthPlanning = new triton::WidthPlanning(gImplement, gTractor, gGuidance, gTcInterface);
     gWidthPlanning->Begin();
+    gConsole->AttachPlanning(gWidthPlanning);   // ":plan" on the serial console
 
     // The shared menu, with the plough's own sections (TC, DDOP, lightbar,
     // AUX-N) at their usual places (#287).

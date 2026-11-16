@@ -49,6 +49,7 @@
 #include "TestBus.hpp"
 #include "isobus/IsobusTcInterface.hpp"
 #include "planner/WidthPlanning.hpp"
+#include "calibration/SettingsConsole.hpp"
 #include "VehicleSensors.hpp"
 
 using namespace aunit;
@@ -634,6 +635,39 @@ test(WidthPlanning, rangeSettings_validatedLikeTheBootLoad) {
     assertEqual((int)planning.GetWminPerShare(), 36);
     assertEqual((int)planning.GetWmaxPerShare(), 48);
     assertEqual((int)planning.GetConfig().wminCm, 36 * (int)tcImplement->GetShares());
+}
+
+
+// ":plan" on the serial console: settings stored at once, out-of-range
+// values refused, and the state printed after every command.
+test(WidthPlanning, consolePlan_setsAndRefuses) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    triton::PloughSettings settings(tcImplement, &tractor, &tcGuidance, nullptr);
+    triton::SettingsConsole console(&tcDebug, &settings);
+    console.AttachPlanning(&planning);
+
+    char mode[] = "plan mode fan";
+    tcDebug.Clear();
+    console.HandleLine(mode, 0);
+    assertEqual((int)planning.GetMode(), (int)triton::WidthMode::FanOut);
+    assertTrue(tcDebug.Contains("P:mode=fan"));
+    assertTrue(tcDebug.Contains("OK"));
+
+    char range[] = "plan range 50 40";
+    tcDebug.Clear();
+    console.HandleLine(range, 0);
+    assertTrue(tcDebug.Contains("ERR:range"));
+
+    char k[] = "plan k 12";
+    console.HandleLine(k, 0);
+    assertEqual((int)planning.GetK(), 12);
+
+    char back[] = "plan mode xte";   // leave the shared EEPROM as found
+    console.HandleLine(back, 0);
+    char kback[] = "plan k 10";
+    console.HandleLine(kback, 0);
 }
 
 #endif  // ISOBUS

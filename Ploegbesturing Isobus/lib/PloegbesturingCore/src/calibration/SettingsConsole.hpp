@@ -28,6 +28,10 @@
 namespace triton
 {
 
+#ifdef ISOBUS
+class WidthPlanning;
+#endif
+
 // A third front end on PloughSettings, next to the cab wizard and the VT page.
 // Its job is copying a plough's settings: ":list" prints them as ":set" lines,
 // and pasting those lines into another board, then ":save", loads them there.
@@ -76,7 +80,26 @@ public:
     // Edited in place: lower-cased and split at spaces.
     void HandleLine(char* line, unsigned long nowMs);
 
+#ifdef ISOBUS
+    // The fan-out / straightening planner (WidthPlanning), for ":plan". Not
+    // part of the settings draft: each ":plan" change is stored at once.
+    //   :plan                      the planner's settings and state
+    //   :plan mode xte|straight|fan
+    //   :plan k <1-30>             straightening: passes to correct over
+    //   :plan r <0-20>             passes kept parallel at the reference
+    //   :plan smooth <1-50>        smoothing distance, m
+    //   :plan range <min> <max>    Wmin and Wmax, cm per share, 20-60
+    //   :plan newfield             start a plan: this or the next pass is pass 1
+    //   :plan mleft <+n|-n>        a pass the counter missed or counted twice
+    void AttachPlanning(WidthPlanning* value) { planning = value; }
+#endif
+
 private:
+#ifdef ISOBUS
+    WidthPlanning* planning = nullptr;
+    void plan(char* rest);
+    void printPlan();
+#endif
     Stream*         out;
     PloughSettings* settings;
 
