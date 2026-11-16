@@ -89,7 +89,8 @@ public:
     //   :plan r <0-20>             passes kept parallel at the reference
     //   :plan smooth <1-50>        smoothing distance, m
     //   :plan range <min> <max>    Wmin and Wmax, cm per share, 20-60
-    //   :plan newfield             start a plan: this or the next pass is pass 1
+    //   :plan end1                 record the field's first end: a new plan
+    //   :plan end2                 record the other end: the passes are planned
     //   :plan mleft <+n|-n>        a pass the counter missed or counted twice
     void AttachPlanning(WidthPlanning* value) { planning = value; }
 #endif

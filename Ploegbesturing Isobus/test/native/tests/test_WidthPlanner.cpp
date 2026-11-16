@@ -88,6 +88,20 @@ struct Rig {
         side = !side;
         for (int i = 0; i < 3; i++) Step(At(distanceM), true);
     }
+    // Lifted and held at one distance (the headland, or the end of a pass).
+    void Lifted(float distanceM) {
+        for (int i = 0; i < 3; i++) Step(At(distanceM), false);
+    }
+    // END 1 or END 2 pressed here.
+    EndResult End(uint8_t end, uint16_t field = kField) { return planner.RecordEnd(end, config, field); }
+    // The simulator's trapezoid in one pass: END 1 at 158 m of land left,
+    // the pass along to 138 m, END 2 there with the plough in the ground.
+    void TrapezoidPlan() {
+        LowerAt(158);
+        End(1);
+        Walk(158, 138);
+        End(2);
+    }
 };
 
 }  // namespace
@@ -116,13 +130,14 @@ test(WidthPlanner, distance_continuousThroughATrackChange) {
 
 test(WidthPlanner, xteMode_plansNothing) {
     Rig r(Config(WidthMode::Xte));
-    r.planner.NewField(kField);
     r.LowerAt(150);
+    r.End(1);
+    r.Step(At(150), true);
     assertFalse(r.planner.HasSetpoint());
     assertEqual((int)r.planner.GetReason(), (int)PlanReason::ModeXte);
 }
 
-test(WidthPlanner, noReset_noPlan) {
+test(WidthPlanner, noEnds_noPlan) {
     Rig r(Config(WidthMode::FanOut));
     r.LowerAt(150);
     assertEqual((int)r.planner.GetReason(), (int)PlanReason::NoPlan);
@@ -130,70 +145,113 @@ test(WidthPlanner, noReset_noPlan) {
 
 test(WidthPlanner, noTrackData_noWidth) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
+    r.LowerAt(150);
+    r.End(1);
     TrackSample none;
     r.Step(none, true);
     assertEqual((int)r.planner.GetReason(), (int)PlanReason::NoTrack);
 }
 
-// --- The plan ---------------------------------------------------------------
+// --- The ends ----------------------------------------------------------------
 
-// Pass 1 follows the field edge at the nominal width.
-test(WidthPlanner, firstPass_atTheNominalWidth) {
+// An end records where the plough is, so it needs fresh track data.
+test(WidthPlanner, end_needsTrackData) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
+    assertEqual((int)r.End(1), (int)EndResult::NoDistance);
+    r.LowerAt(150);
+    TrackSample none;
+    r.Step(none, true);
+    assertEqual((int)r.End(1), (int)EndResult::NoDistance);
+    assertEqual((int)r.planner.GetState(), (int)PlanState::NoPlan);
+}
+
+test(WidthPlanner, end2_needsEnd1InTheSameField) {
+    Rig r(Config(WidthMode::FanOut));
+    r.LowerAt(158);
+    assertEqual((int)r.End(2), (int)EndResult::NoEnd1);
+    assertEqual((int)r.End(1), (int)EndResult::Recorded);
+    r.Walk(158, 138);
+    assertEqual((int)r.End(2, kField + 1), (int)EndResult::OtherField);
+    assertEqual((int)r.planner.GetState(), (int)PlanState::OneEnd);
+}
+
+// Between the ends the plough works at the nominal width.
+test(WidthPlanner, oneEnd_atTheNominalWidth) {
+    Rig r(Config(WidthMode::FanOut));
     r.LowerAt(160);
-    assertEqual((int)r.planner.GetState(), (int)PlanState::FirstPass);
+    assertEqual((int)r.End(1), (int)EndResult::Recorded);
+    r.Step(At(160), true);
+    assertEqual((int)r.planner.GetState(), (int)PlanState::OneEnd);
     assertTrue(r.planner.HasSetpoint());
     assertEqual((int)r.planner.GetSetpointCm(), 200);
+    assertNear(r.planner.GetEndM(1), 160.0f, 0.05f);
 }
 
-// NEW FIELD pressed with the plough already in the ground: that pass is
-// pass 1, and turning over starts pass 2.
-test(WidthPlanner, newFieldWhileWorking_thisPassIsPassOne) {
+// END 2 again does nothing; END 1 over a plan starts a new one.
+test(WidthPlanner, end1OverAPlan_startsAgain) {
     Rig r(Config(WidthMode::FanOut));
-    r.LowerAt(160);
-    r.planner.NewField(kField);
-    assertTrue(r.planner.GetStored().passStarted);
-    r.Walk(160, 140);
-    r.Step(At(140), false);
-    r.LowerAt(158);
+    r.TrapezoidPlan();
+    assertEqual((int)r.End(2), (int)EndResult::AlreadyPlanned);
     assertEqual((int)r.planner.GetState(), (int)PlanState::Planned);
-    assertEqual((int)r.planner.GetM(), 75);
+    assertEqual((int)r.End(1), (int)EndResult::Recorded);
+    assertEqual((int)r.planner.GetState(), (int)PlanState::OneEnd);
+    assertEqual((int)r.planner.GetM(), 0);
 }
 
-// The simulator's trapezoid, 80 passes at one end and 70 at the other: the
-// first furrow is 158 / 138 m from the reference, and M is 75, as there.
+// --- The plan ---------------------------------------------------------------
+
+// The simulator's trapezoid, 158 m of land at one end and 138 m at the
+// other: M = 74, with END 2's pass the plan's first.
 test(WidthPlanner, trapezoid_plansTheSimulatorsM) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
+    r.TrapezoidPlan();
     assertEqual((int)r.planner.GetState(), (int)PlanState::Planned);
-    assertEqual((int)r.planner.GetM(), 75);
+    assertEqual((int)r.planner.GetM(), 74);
     assertEqual((int)r.planner.GetMleft(), 74);
+    assertTrue(r.planner.GetStored().passStarted);
     assertTrue(r.planner.IsFeasible());
+    assertEqual((int)r.planner.GetStored().endADm, 1580);
+    assertEqual((int)r.planner.GetStored().endBDm, 1380);
+}
+
+// Both ends recorded with the plough up, along the headland: the next
+// lowering starts the plan's first pass, and the turn after it the second.
+test(WidthPlanner, endsWithThePloughUp_theNextLoweringIsThePlansFirst) {
+    Rig r(Config(WidthMode::FanOut));
+    r.Lifted(158);
+    r.End(1);
+    for (int i = 1; i <= 100; i++) r.Step(At(158 - 20.0f * i / 100), false);
+    r.Lifted(138);
+    assertEqual((int)r.End(2), (int)EndResult::Planned);
+    assertFalse(r.planner.GetStored().passStarted);
+    assertEqual((int)r.planner.GetMleft(), 74);
+    r.LowerAt(138);
+    assertTrue(r.planner.GetStored().passStarted);
+    assertEqual((int)r.planner.GetMleft(), 74);
+    r.Lifted(158);
+    r.LowerAt(156);
+    assertEqual((int)r.planner.GetMleft(), 73);
 }
 
 // Fan-out: what is left, spread evenly over the passes left.
 test(WidthPlanner, fanOut_spreadsWhatIsLeft) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
-    assertEqual((int)r.planner.GetSetpointCm(), 214);   // 158 / 74 = 2.135 m
-    r.Walk(158, 138);
+    r.TrapezoidPlan();
+    r.Step(At(138), true);
     assertEqual((int)r.planner.GetSetpointCm(), 186);   // 138 / 74 = 1.865 m
+    r.Lifted(138);
+    r.LowerAt(156);                                      // the next pass: Mleft 73
+    assertEqual((int)r.planner.GetSetpointCm(), 214);   // 156 / 73 = 2.137 m
 }
 
 // Straightening: the error over K = 10 passes, limited to the range.
 test(WidthPlanner, straight_correctsOverKPasses) {
     Rig r(Config(WidthMode::Straight));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
-    assertEqual((int)r.planner.GetSetpointCm(), 230);   // 10 m / 10 = 1 m, limited to +30 cm
-    r.Walk(158, 148.5f);
+    r.TrapezoidPlan();
+    r.Step(At(138), true);
+    assertEqual((int)r.planner.GetSetpointCm(), 170);   // -10 m / 10 = -1 m, limited to -30 cm
+    r.Lifted(138);
+    r.LowerAt(146.5f);                                   // Mleft 73: 0.5 m over 73 x 2 m
     assertEqual((int)r.planner.GetSetpointCm(), 205);   // 0.5 m / 10 = 5 cm
 }
 
@@ -201,18 +259,17 @@ test(WidthPlanner, straight_correctsOverKPasses) {
 // those passes go back to plain XTE control.
 test(WidthPlanner, parallelStrip_leftForTheLastPasses) {
     Rig r(Config(WidthMode::FanOut, 2));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
+    r.TrapezoidPlan();
     assertEqual((int)r.planner.GetMleft(), 74);          // 72 planned + 2 parallel
-    assertEqual((int)r.planner.GetSetpointCm(), 214);   // (158 - 4) / 72 = 2.139 m
+    r.Step(At(138), true);
+    assertEqual((int)r.planner.GetSetpointCm(), 186);   // (138 - 4) / 72 = 1.861 m
 
     r.planner.AdjustMleft(-70);                          // skip ahead: Mleft 4
-    r.Step(At(150), false);
+    r.Lifted(150);
     r.LowerAt(6.2f);                                     // turned over: Mleft 3, the last planned pass
     assertEqual((int)r.planner.GetMleft(), 3);
-    assertEqual((int)r.planner.GetSetpointCm(), 220);   // takes what's left: 6.2 - 4 = 2.2 m
-    r.Step(At(6.2f), false);
+    assertEqual((int)r.planner.GetSetpointCm(), 220);   // takes what is left: 6.2 - 4 = 2.2 m
+    r.Lifted(6.2f);
     r.LowerAt(4.0f);                                     // Mleft 2: the parallel strip
     assertFalse(r.planner.HasSetpoint());
     assertEqual((int)r.planner.GetReason(), (int)PlanReason::ParallelStrip);
@@ -221,23 +278,23 @@ test(WidthPlanner, parallelStrip_leftForTheLastPasses) {
 // A wide field: more passes than a byte holds.
 test(WidthPlanner, wideField_moreThan255Passes) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(620, 600, 200);
     r.LowerAt(618);
-    assertEqual((int)r.planner.GetMleft(), 304);   // (618 + 598) / 2 / 2 m
-    assertEqual((int)r.planner.GetM(), 305);
-    assertEqual((int)r.planner.GetSetpointCm(), 203);   // 618 / 304 = 2.033 m
+    r.End(1);
+    r.Walk(618, 598, 200);
+    r.End(2);
+    assertEqual((int)r.planner.GetM(), 304);            // (618 + 598) / 2 / 2 m
+    assertEqual((int)r.planner.GetMleft(), 304);
+    r.Step(At(598), true);
+    assertEqual((int)r.planner.GetSetpointCm(), 197);   // 598 / 304 = 1.967 m
 }
 
-// A range that can't hold the field: no N fits, and the plan says so.
+// A range that cannot hold the field: no N fits, and the plan says so.
 test(WidthPlanner, narrowRange_isInfeasible) {
     WidthPlannerConfig c = Config(WidthMode::FanOut);
     c.wminCm = 190;
     c.wmaxCm = 210;
     Rig r(c);
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
+    r.TrapezoidPlan();
     assertFalse(r.planner.IsFeasible());
 }
 
@@ -246,22 +303,18 @@ test(WidthPlanner, narrowRange_isInfeasible) {
 // Lifted and lowered on the same side mid-pass: the same pass.
 test(WidthPlanner, relowerOnTheSameSide_isTheSamePass) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
-    r.Step(At(150), false);
-    for (int i = 0; i < 3; i++) r.Step(At(150), true);   // same side
+    r.TrapezoidPlan();
+    r.Step(At(138), false);
+    for (int i = 0; i < 3; i++) r.Step(At(138), true);   // same side
     assertEqual((int)r.planner.GetMleft(), 74);
-    r.Step(At(140), false);
+    r.Lifted(138);
     r.LowerAt(156);                                      // turned over
     assertEqual((int)r.planner.GetMleft(), 73);
 }
 
 test(WidthPlanner, adjustMleft_staysInRange) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
+    r.TrapezoidPlan();
     r.planner.AdjustMleft(+2);
     assertEqual((int)r.planner.GetMleft(), 76);
     r.planner.AdjustMleft(-200);
@@ -274,29 +327,25 @@ test(WidthPlanner, adjustMleft_staysInRange) {
 
 test(WidthPlanner, otherField_usesNoPlan) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
-    r.Step(At(158, kField + 1), true);
+    r.TrapezoidPlan();
+    r.Step(At(138, kField + 1), true);
     assertEqual((int)r.planner.GetReason(), (int)PlanReason::OtherField);
 }
 
 test(WidthPlanner, restore_carriesOnWithThePlan) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
-    r.LowerAt(158);
+    r.TrapezoidPlan();
     assertTrue(r.planner.IsDirty());
     const StoredPlan stored = r.planner.GetStored();
 
     Rig after(Config(WidthMode::FanOut));
     after.planner.Restore(stored);
     after.side = r.side;
-    for (int i = 0; i < 3; i++) after.Step(At(158), true);   // lowered on the same side
+    for (int i = 0; i < 3; i++) after.Step(At(138), true);   // lowered on the same side
     assertEqual((int)after.planner.GetMleft(), 74);
-    assertEqual((int)after.planner.GetSetpointCm(), 214);
-    assertEqual((int)after.planner.GetStored().firstMaxDm, 1580);
-    assertEqual((int)after.planner.GetStored().firstMinDm, 1380);
+    assertEqual((int)after.planner.GetSetpointCm(), 186);
+    assertEqual((int)after.planner.GetStored().endADm, 1580);
+    assertEqual((int)after.planner.GetStored().endBDm, 1380);
 }
 
 // --- The track change race ---------------------------------------------------
@@ -305,9 +354,8 @@ test(WidthPlanner, restore_carriesOnWithThePlan) {
 // distance stays continuous instead of jumping one spacing.
 test(WidthPlanner, trackAheadOfXte_staysContinuous) {
     Rig r(Config(WidthMode::FanOut));
-    r.planner.NewField(kField);
-    r.Pass(160, 140);
     r.LowerAt(150.9f);
+    r.End(1);
     TrackSample s = At(150.9f);   // track 76, xte +0.9
     s.track += 1;                 // the TC is already on 77
     s.trackLeft += 1;

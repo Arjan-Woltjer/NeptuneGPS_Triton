@@ -35,8 +35,8 @@ constexpr uint16_t kPlanFlagsAt  = kEepromPlan + 1;  // bits 0-1 state, 2 pass s
 constexpr uint16_t kPlanMAt      = kEepromPlan + 2;   // uint16 LE
 constexpr uint16_t kPlanMleftAt  = kEepromPlan + 4;   // uint16 LE
 constexpr uint16_t kPlanFieldAt  = kEepromPlan + 6;   // uint16 LE
-constexpr uint16_t kPlanMaxAt    = kEepromPlan + 8;   // uint16 LE, dm
-constexpr uint16_t kPlanMinAt    = kEepromPlan + 10;  // uint16 LE, dm
+constexpr uint16_t kPlanEndAAt   = kEepromPlan + 8;   // uint16 LE, dm: END 1
+constexpr uint16_t kPlanEndBAt   = kEepromPlan + 10;  // uint16 LE, dm: END 2
 static_assert(kEepromPlan + 12 == kEepromPlanEnd, "the plan is 12 bytes");
 static_assert(kEepromPlanEnd <= 190, "the plan runs into the AUX-N assignments");
 
@@ -93,8 +93,8 @@ void WidthPlanning::readPlan() {
     stored.m           = Get16(kPlanMAt);
     stored.mleft       = Get16(kPlanMleftAt);
     stored.fieldIndex  = Get16(kPlanFieldAt);
-    stored.firstMaxDm  = Get16(kPlanMaxAt);
-    stored.firstMinDm  = Get16(kPlanMinAt);
+    stored.endADm      = Get16(kPlanEndAAt);
+    stored.endBDm      = Get16(kPlanEndBAt);
     planner.Restore(stored);
 }
 
@@ -106,8 +106,8 @@ void WidthPlanning::writePlan() {
     Put16(kPlanMAt, p.m);
     Put16(kPlanMleftAt, p.mleft);
     Put16(kPlanFieldAt, p.fieldIndex);
-    Put16(kPlanMaxAt, p.firstMaxDm);
-    Put16(kPlanMinAt, p.firstMinDm);
+    Put16(kPlanEndAAt, p.endADm);
+    Put16(kPlanEndBAt, p.endBDm);
     Put(kPlanMagicAt, kPlanMagic);
     planner.ClearDirty();
 }
@@ -154,9 +154,28 @@ void WidthPlanning::Update() {
     implement->SetPlannedWidth(planner.HasSetpoint(), planner.GetSetpointCm());
 }
 
-void WidthPlanning::NewField() {
-    planner.NewField(sample().fieldIndex);
-    writePlan();
+EndResult WidthPlanning::RecordEnd(uint8_t end) {
+    const EndResult result = planner.RecordEnd(end, GetConfig(), sample().fieldIndex);
+    if (planner.IsDirty()) writePlan();
+    return result;
+}
+
+int32_t WidthPlanning::PassesTenths(float landM) const {
+    const int32_t spacingMm = GetTrackSpacingMm();
+    if (spacingMm <= 0) return -1;
+    return int32_t(landM * 10000.0f / float(spacingMm) + 0.5f);
+}
+
+int32_t WidthPlanning::GetPassNowTenths() const {
+    if (!planner.CanRecordEnd()) return -1;
+    const float d = planner.GetDistanceM();
+    return PassesTenths(d < 0.0f ? -d : d);
+}
+
+int32_t WidthPlanning::GetPassAtEndTenths(uint8_t end) const {
+    const PlanState state = planner.GetState();
+    if (state == PlanState::NoPlan || (end == 2 && state == PlanState::OneEnd)) return -1;
+    return PassesTenths(planner.GetEndM(end));
 }
 
 void WidthPlanning::AdjustMleft(int delta) {

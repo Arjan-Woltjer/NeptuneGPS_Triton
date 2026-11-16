@@ -71,9 +71,15 @@ public:
     // the planner steps, and ImplementPlough gets the planned width (or none).
     void Update();
 
-    // The operator's controls.
-    void NewField();
+    // The operator's controls: the field's ends (WidthPlanner::RecordEnd()),
+    // and a pass the counter missed or counted twice.
+    EndResult RecordEnd(uint8_t end);
     void AdjustMleft(int delta);
+
+    // Where the plough is, and the ends, as passes to the reference at the
+    // TC's track spacing, in tenths (374 = 37.4 passes); -1 when unknown.
+    int32_t GetPassNowTenths() const;
+    int32_t GetPassAtEndTenths(uint8_t end) const;
 
     // The settings (step 3 puts them in PloughSettings).
     WidthMode GetMode() const       { return mode; }
@@ -124,6 +130,7 @@ private:
     unsigned long lastXteFix   = 0;
 
     TrackSample sample() const;
+    int32_t PassesTenths(float landM) const;
     void readSettings();
     void readPlan();
     void writePlan();

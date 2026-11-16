@@ -569,8 +569,8 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
                            { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate }, { 3, Key_Plan },
                              { 4, Key_PlanRange } }, 5));
     assertTrue(softKeysAre(objects, Plough_PlanSoftKeyMask,
-                           { { 0, Key_PlanMleftUp }, { 1, Key_PlanMleftDown }, { 2, Key_PlanNewField },
-                             { 3, Key_PlanRange }, { 4, Key_PlanBack } }, 5));
+                           { { 0, Key_PlanMleftUp }, { 1, Key_PlanMleftDown }, { 2, Key_PlanEnd1 },
+                             { 3, Key_PlanEnd2 }, { 4, Key_PlanBack } }, 5));
     assertTrue(softKeysAre(objects, Plough_RangeSoftKeyMask,
                            { { 0, Key_RangeUp }, { 1, Key_RangeDown }, { 2, Key_RangeSelect },
                              { 3, Key_RangeSave }, { 4, Key_RangeCancel } }, 5));
@@ -605,7 +605,7 @@ test(VTObjectPool, keyCodes_ofAllSoftKeys_areDistinct) {
     const uint8_t codes[] = { KeyCode_Wider, KeyCode_Narrower, KeyCode_Calibrate, KeyCode_CalSave,
                               KeyCode_CalCancel, KeyCode_CalWidth, KeyCode_CalNarrower, KeyCode_CalWider,
                               KeyCode_CalCapture, KeyCode_CalWidthBack, KeyCode_Plan, KeyCode_PlanMleftUp,
-                              KeyCode_PlanMleftDown, KeyCode_PlanNewField, KeyCode_PlanRange, KeyCode_PlanBack,
+                              KeyCode_PlanMleftDown, KeyCode_PlanEnd1, KeyCode_PlanEnd2, KeyCode_PlanRange, KeyCode_PlanBack,
                               KeyCode_RangeUp, KeyCode_RangeDown, KeyCode_RangeSelect, KeyCode_RangeSave,
                               KeyCode_RangeCancel };
     for (size_t i = 0; i < sizeof(codes); i++) {
@@ -700,7 +700,8 @@ test(VTObjectPool, plannerPage_inputsWithWidthPlanningsBounds) {
     assertTrue(placeOf(objects, Plough_PlanMask, Ptr_PlanWord).first >= 0);
     assertTrue(placeOf(objects, Plough_PlanMask, Ptr_PlanCount).first >= 0);
     // Two-line keys: two labels each.
-    for (uint16_t key : { (uint16_t)Key_PlanMleftUp, (uint16_t)Key_PlanMleftDown, (uint16_t)Key_PlanNewField })
+    for (uint16_t key : { (uint16_t)Key_PlanMleftUp, (uint16_t)Key_PlanMleftDown, (uint16_t)Key_PlanEnd1,
+                          (uint16_t)Key_PlanEnd2 })
         assertEqual((int)VT3PoolData[objects.at(key).at + 5], 2);
 }
 

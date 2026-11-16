@@ -43,22 +43,23 @@ struct PlanWordInputs {
 
 // The width planner (WidthPlanning) on the VT:
 //   - its word under the state on the main screen, always: XTE, GEEN PLAN,
-//     GEEN LIJN, VELD?, BREEDTE?, GANG 1, KLAAR, PARALLEL, BEREIK!, or RECHT /
-//     WAAIER with the passes left;
+//     GEEN LIJN, VELD?, BREEDTE?, EIND 2?, KLAAR, PARALLEL, LIMIET!, or
+//     RECHT / WAAIER with the passes left; and the range bar there;
 //   - the planner page PLAN opens: the mode, K, R and the smoothing as inputs
-//     (stored at once, like ":plan"; without track data only XTE shows), the
-//     track spacing, the word, Mleft, M and the planned width. GANG +1 / -1
-//     correct the pass counter, NIEUW VELD (held kNewFieldHoldMs) starts a
-//     plan, BEREIK opens the range page, TERUG goes back;
-//   - the width range page: Wmin and Wmax in cm over a bar of the plough's
-//     range, + / - step the one MIN/MAX selects by 1 cm per share, OPSLAAN
-//     stores, ANNUL. leaves them.
+//     (stored at once, like ":plan"; without track data only XTE shows),
+//     where the plough is and the two ends as passes to the reference, the
+//     word, Mleft and M. GANG +1 / -1 correct the pass counter, EIND 1
+//     starts a plan (held kEnd1HoldMs over an existing one), EIND 2
+//     completes it, TERUG goes back;
+//   - the width range page LIMIET opens (on the main screen): Wmin and Wmax
+//     in cm over a bar of the plough's range, + / - step the one MIN/MAX
+//     selects by 1 cm per share, OPSLAAN stores, ANNUL. leaves them.
 // Nothing here holds the control: the plough keeps working on the main mask's
 // rules while a page is open.
 class IsobusVtPlanner {
 public:
-    // NIEUW VELD throws the plan away: a tap on a bumping tractor must not.
-    static constexpr unsigned long kNewFieldHoldMs = 1000;
+    // END 1 over a plan throws it away: a tap on a bumping tractor must not.
+    static constexpr unsigned long kEnd1HoldMs = 1000;
     // The main width and the TC's track spacing differ by more than this:
     // the plan's arithmetic (one pass = one track) does not hold.
     static constexpr int32_t kWidthMismatchMm = 20;
@@ -103,7 +104,7 @@ private:
     // The values the VT shows, by what they are.
     enum Shown : uint8_t {
         Word, CountPtr, Mleft,
-        ModePtr, Mode, TuningPtr, K, R, Smooth, Track, M, WidthPtr, Width,
+        ModePtr, Mode, TuningPtr, K, R, Smooth, M, PassNow, PassNowPtr, End1, End1Ptr, End2, End2Ptr,
         RangeMin, RangeMax, RangeNom, RangeNow, BarMin, BarMax, BarNom, BarNow, Lo, Hi, MinMark, MaxMark,
         kShownCount
     };
@@ -119,6 +120,7 @@ private:
     bool     maxSelected = false;
     uint32_t shown[kShownCount];
     unsigned long lastNowSendMs = 0;
+    unsigned long lastPassSendMs = 0;
 
     void forgetShown();
     void forgetPage();

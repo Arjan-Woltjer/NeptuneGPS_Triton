@@ -103,12 +103,14 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // the main screen, the planner page and the width range page.
     // MW19 -> MW20, same day: the range bar on the main screen, LIMIT there
     // too, the width now 3 lines wide, rows 23 apart.
+    // MW20 -> MW21, same day: the planner page's END 1 / END 2 keys and the
+    // passes now and at each end, in place of NIEUW VELD, SPOOR and BREEDTE.
 #if defined(ENGLISH)
-    return "MW20E";
+    return "MW21E";
 #elif defined(HUNGARIAN)
-    return "MW20H";
+    return "MW21H";
 #else
-    return "MW20";
+    return "MW21";
 #endif
 }
 

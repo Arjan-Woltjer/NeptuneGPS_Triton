@@ -45,7 +45,7 @@ FLASHMEM uint16_t IsobusVtPlanner::WordFor(const PlanWordInputs& in) {
     if (!in.trackSupport || in.reason == PlanReason::NoTrack) return Str_PlanWordNoTrack;
     if (in.reason == PlanReason::OtherField) return Str_PlanWordField;
     if (in.widthMismatch) return Str_PlanWordWidth;
-    if (in.state == PlanState::FirstPass) return Str_PlanWordPass1;
+    if (in.state == PlanState::OneEnd) return Str_PlanWordEnd2;
     if (in.reason == PlanReason::Done) return Str_PlanWordDone;
     if (in.reason == PlanReason::ParallelStrip) return Str_PlanWordParallel;
     if (!in.feasible) return Str_PlanWordRange;
@@ -89,15 +89,25 @@ FLASHMEM bool IsobusVtPlanner::OnSoftKey(uint16_t keyObjectId, unsigned long hel
                 serialDebug->println(planning->GetPlanner().GetMleft());
             }
             return true;
-        case Key_PlanNewField:
+        case Key_PlanEnd1:
+        case Key_PlanEnd2: {
             if (!open) return true;
-            if (heldMs >= kNewFieldHoldMs) {
-                planning->NewField();
-                serialDebug->println("VT: new field, the plan starts again");
-            } else {
-                serialDebug->println("VT: new field needs the key held 1 s -- ignored");
+            const uint8_t end = keyObjectId == Key_PlanEnd1 ? 1 : 2;
+            // END 1 over a plan throws it away: not on a tap.
+            if (end == 1 && planning->GetPlanner().GetState() == PlanState::Planned && heldMs < kEnd1HoldMs) {
+                serialDebug->println("VT: END 1 over a plan needs the key held 1 s -- ignored");
+                return true;
+            }
+            switch (planning->RecordEnd(end)) {
+                case EndResult::Recorded:       serialDebug->println("VT: END 1 recorded, END 2 to go"); break;
+                case EndResult::Planned:        serialDebug->println("VT: END 2 recorded, the passes are planned"); break;
+                case EndResult::NoDistance:     serialDebug->println("VT: no track data -- end not recorded"); break;
+                case EndResult::NoEnd1:         serialDebug->println("VT: END 1 first"); break;
+                case EndResult::OtherField:     serialDebug->println("VT: END 2 in another field -- END 1 again"); break;
+                case EndResult::AlreadyPlanned: serialDebug->println("VT: planned already -- END 1 starts again"); break;
             }
             return true;
+        }
         case Key_PlanRange:
             // LIMIT, from the planner page or the main screen; back to the
             // one it came from.
@@ -186,11 +196,22 @@ FLASHMEM void IsobusVtPlanner::Update(VtCalibrationOutput& out) {
         send(out, K, Input_PlanK, planning->GetK());
         send(out, R, Input_PlanR, planning->GetParallel());
         send(out, Smooth, Input_PlanSmooth, planning->GetSmoothingM());
-        send(out, Track, Var_PlanTrack, uint32_t((planning->GetTrackSpacingMm() + 5) / 10));
         send(out, M, Var_PlanM, planner.GetM());
-        const bool width = planner.HasSetpoint();
-        if (width) send(out, Width, Var_PlanWidth, uint32_t(planner.GetSetpointCm()));
-        send(out, WidthPtr, Ptr_PlanWidth, width ? uint32_t(Out_PlanWidth) : uint32_t(Str_PlanDash));
+        // Where the plough is, and the ends, in passes; a dash when unknown.
+        // NU follows the plough: at most every kNowSendMs, as the bar.
+        const unsigned long nowMs = millis();
+        const int32_t passNow = planning->GetPassNowTenths();
+        if (shown[PassNow] == kNotSent || nowMs - lastPassSendMs >= kNowSendMs) {
+            const uint32_t before = shown[PassNow];
+            if (passNow >= 0) send(out, PassNow, Var_PlanNow, uint32_t(passNow));
+            if (shown[PassNow] != before) lastPassSendMs = nowMs;
+        }
+        send(out, PassNowPtr, Ptr_PlanNow, passNow >= 0 ? uint32_t(Out_PlanNow) : uint32_t(Str_PlanDash));
+        const int32_t end1 = planning->GetPassAtEndTenths(1), end2 = planning->GetPassAtEndTenths(2);
+        if (end1 >= 0) send(out, End1, Var_PlanEnd1, uint32_t(end1));
+        send(out, End1Ptr, Ptr_PlanEnd1, end1 >= 0 ? uint32_t(Out_PlanEnd1) : uint32_t(Str_PlanDash));
+        if (end2 >= 0) send(out, End2, Var_PlanEnd2, uint32_t(end2));
+        send(out, End2Ptr, Ptr_PlanEnd2, end2 >= 0 ? uint32_t(Out_PlanEnd2) : uint32_t(Str_PlanDash));
     }
 
     // The range bar, on the main screen and the range page: the draft while
@@ -259,7 +280,7 @@ FLASHMEM void IsobusVtPlanner::forgetShown() {
 // The page's values, sent again when it opens: another page may have shown
 // other values in the shared objects, or the operator left an entry.
 FLASHMEM void IsobusVtPlanner::forgetPage() {
-    for (uint8_t i = ModePtr; i <= Width; i++) shown[i] = kNotSent;
+    for (uint8_t i = ModePtr; i <= End2Ptr; i++) shown[i] = kNotSent;
 }
 
 FLASHMEM void IsobusVtPlanner::forgetRange() {

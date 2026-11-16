@@ -156,7 +156,7 @@ const char* GModeName(WidthMode mode) {
 
 const char* GStateName(PlanState state) {
     switch (state) {
-        case PlanState::FirstPass: return "pass1";
+        case PlanState::OneEnd:    return "end1";
         case PlanState::Planned:   return "planned";
         default:                   return "none";
     }
@@ -198,6 +198,12 @@ FLASHMEM void SettingsConsole::printPlan() {
         out->print(" dist=");
         out->print(p.GetDistanceM(), 2);
     }
+    // The passes to the reference: now, and at the ends recorded.
+    const int32_t now = planning->GetPassNowTenths();
+    const int32_t endA = planning->GetPassAtEndTenths(1), endB = planning->GetPassAtEndTenths(2);
+    if (now >= 0)  { out->print(" pass="); out->print(now / 10.0f, 1); }
+    if (endA >= 0) { out->print(" end1="); out->print(endA / 10.0f, 1); }
+    if (endB >= 0) { out->print(" end2="); out->print(endB / 10.0f, 1); }
     out->print(" feasible="); out->println(p.IsFeasible() ? "yes" : "no");
 }
 
@@ -215,8 +221,14 @@ FLASHMEM void SettingsConsole::plan(char* rest) {
     char* a = GNextWord(rest);
     char* b = GNextWord(rest);
     int16_t n = 0, m = 0;
-    if (strcmp(what, "newfield") == 0 && a == nullptr) {
-        planning->NewField();
+    if ((strcmp(what, "end1") == 0 || strcmp(what, "end2") == 0) && a == nullptr) {
+        switch (planning->RecordEnd(what[3] == '1' ? 1 : 2)) {
+            case EndResult::NoDistance:     out->println("ERR:notrack"); return;
+            case EndResult::NoEnd1:         out->println("ERR:end1first"); return;
+            case EndResult::OtherField:     out->println("ERR:otherfield"); return;
+            case EndResult::AlreadyPlanned: out->println("ERR:planned"); return;
+            default: break;
+        }
     } else if (strcmp(what, "mode") == 0 && a != nullptr && b == nullptr) {
         if (strcmp(a, "xte") == 0)           planning->SetMode(WidthMode::Xte);
         else if (strcmp(a, "straight") == 0) planning->SetMode(WidthMode::Straight);
@@ -260,7 +272,7 @@ FLASHMEM void SettingsConsole::help() {
 #ifdef ISOBUS
     out->println("I: :plan                   the fan-out / straightening planner; stored at once:");
     out->println("I:   mode xte|straight|fan, k 1..30, r 0..20, smooth 1..50 (m),");
-    out->println("I:   range <min> <max> (cm per share, 20..60), newfield, mleft <+n|-n>");
+    out->println("I:   range <min> <max> (cm per share, 20..60), end1, end2 (the field's ends), mleft <+n|-n>");
 #endif
     out->println("I:keys:");
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {

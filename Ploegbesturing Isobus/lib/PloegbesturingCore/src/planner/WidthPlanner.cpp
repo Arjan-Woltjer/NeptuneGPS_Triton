@@ -42,20 +42,29 @@ float WidthPlanner::Distance(int32_t track, int32_t trackLeft, float swathM, flo
     return static_cast<float>(track - kReferenceTrack) * swathM + sign * xteM;
 }
 
-void WidthPlanner::NewField(uint16_t fieldIndex) {
-    plan = StoredPlan();
-    plan.state      = PlanState::FirstPass;
-    plan.fieldIndex = fieldIndex;
-    // Pressed with the plough already in the ground (the first pass under
-    // way): that pass is pass 1, on the side it is on.
-    if (wasWorking) {
-        plan.passStarted = true;
-        plan.lastSide    = lastSide;
+EndResult WidthPlanner::RecordEnd(uint8_t end, const WidthPlannerConfig& config, uint16_t fieldIndex) {
+    if (!CanRecordEnd()) return EndResult::NoDistance;
+    const uint16_t landDm = ToDm(fabsf(smoothedM));
+    if (end == 1) {
+        plan = StoredPlan();
+        plan.state      = PlanState::OneEnd;
+        plan.fieldIndex = fieldIndex;
+        plan.endADm     = landDm;
+        feasible        = true;
+        dirty = true;
+        return EndResult::Recorded;
     }
-    firstSeen       = false;
-    feasible        = true;
-    resetSmoothing();
+    if (plan.state == PlanState::NoPlan) return EndResult::NoEnd1;
+    if (plan.state == PlanState::Planned) return EndResult::AlreadyPlanned;
+    if (fieldIndex != plan.fieldIndex) return EndResult::OtherField;
+    plan.endBDm = landDm;
+    // In the ground now: this pass is the plan's first, on this side. Up:
+    // the next lowering starts it.
+    plan.passStarted = wasWorking;
+    plan.lastSide    = lastSide;
+    planFromEnds(config);
     dirty = true;
+    return EndResult::Planned;
 }
 
 void WidthPlanner::AdjustMleft(int delta) {
@@ -71,7 +80,6 @@ void WidthPlanner::AdjustMleft(int delta) {
 
 void WidthPlanner::Restore(const StoredPlan& stored) {
     plan = stored;
-    firstSeen = false;   // a first pass cut short by a power cut records on
     resetSmoothing();
     dirty = false;
 }
@@ -101,16 +109,17 @@ void WidthPlanner::smooth(float rawM, float speedMs, uint32_t nowMs, float smoot
     smoothedM = 2.0f * s1 - s2;
 }
 
-void WidthPlanner::planFromFirstPass(const WidthPlannerConfig& config, float swathM) {
+void WidthPlanner::planFromEnds(const WidthPlannerConfig& config) {
     // The simulator's M: every station gets the same number of passes, so
-    // pick N with N * Wmin <= distance <= N * Wmax everywhere, nearest the
-    // middle of the extremes. R passes at the reference are not part of it.
+    // pick N with N * Wmin <= distance <= N * Wmax at both ends, nearest the
+    // middle of the two. R passes at the reference are not part of it.
     const float wnom  = config.wnomCm / 100.0f;
     const float wmin  = config.wminCm / 100.0f;
     const float wmax  = config.wmaxCm / 100.0f;
-    const float strip = config.parallelPasses * swathM;
-    const float fmax  = firstMaxM - strip;
-    const float fmin  = firstMinM - strip;
+    const float strip = config.parallelPasses * lastSwathM;
+    const float endA  = plan.endADm / 10.0f, endB = plan.endBDm / 10.0f;
+    const float fmax  = (endA > endB ? endA : endB) - strip;
+    const float fmin  = (endA > endB ? endB : endA) - strip;
 
     long n = 0;
     feasible = true;
@@ -126,19 +135,21 @@ void WidthPlanner::planFromFirstPass(const WidthPlannerConfig& config, float swa
         }
         if (n < 1) n = 1;
     }
-    long total = n + config.parallelPasses;   // the pass starting now included
+    long total = n + config.parallelPasses;   // the plan's first pass included
     if (total > 65534) total = 65534;
-    plan.state      = PlanState::Planned;
-    plan.mleft      = static_cast<uint16_t>(total);
-    plan.m          = static_cast<uint16_t>(total + 1);
-    plan.firstMaxDm = ToDm(firstMaxM);
-    plan.firstMinDm = ToDm(firstMinM);
+    plan.state = PlanState::Planned;
+    plan.mleft = static_cast<uint16_t>(total);
+    plan.m     = static_cast<uint16_t>(total);
 }
 
-void WidthPlanner::onLowered(const WidthPlannerConfig& config, float swathM, bool side) {
-    if (plan.state == PlanState::NoPlan) return;
+void WidthPlanner::onLowered(bool side) {
+    if (plan.state != PlanState::Planned) {
+        // No plan to count for yet: keep the side, so END 2 knows the pass.
+        return;
+    }
     if (!plan.passStarted) {
-        // The first lowering after a reset: pass 1 begins.
+        // The first lowering after END 2 (recorded with the plough up): the
+        // plan's first pass begins.
         plan.passStarted = true;
         plan.lastSide    = side;
         dirty = true;
@@ -148,12 +159,7 @@ void WidthPlanner::onLowered(const WidthPlannerConfig& config, float swathM, boo
 
     // Turned over and lowered: the next pass.
     plan.lastSide = side;
-    if (plan.state == PlanState::FirstPass) {
-        // Nothing recorded (no track data all pass): this pass is pass 1 again.
-        if (firstSeen) planFromFirstPass(config, swathM);
-    } else if (plan.mleft > 0) {
-        plan.mleft--;
-    }
+    if (plan.mleft > 0) plan.mleft--;
     resetSmoothing();
     dirty = true;
 }
@@ -184,13 +190,16 @@ void WidthPlanner::Update(const WidthPlannerConfig& config, const TrackSample& s
                           bool working, bool side, float speedMs, uint32_t nowMs) {
     const float swathM = sample.swathMm / 1000.0f;
 
-    if (working && !wasWorking) onLowered(config, swathM, side);
+    if (working && !wasWorking) onLowered(side);
     wasWorking = working;
     lastSide   = side;
 
     const bool usable = sample.valid && sample.swathMm > 0 &&
                         (sample.trackLeft == sample.track + 1 || sample.trackLeft == sample.track - 1);
-    if (usable && working) {
+    lastUsable = usable;
+    if (usable) lastSwathM = swathM;
+    // Lifted too: an end can be recorded along the headland, before ploughing.
+    if (usable) {
         float raw = Distance(sample.track, sample.trackLeft, swathM, sample.xteM);
         // The track number (from the TC) and the XTE (PGN 129283) come by
         // different paths, so at a track change one can be a step ahead of
@@ -202,17 +211,6 @@ void WidthPlanner::Update(const WidthPlannerConfig& config, const TrackSample& s
             if (fabsf(down - lastRawM) < fabsf(raw - lastRawM)) raw = down;
         }
         smooth(raw, speedMs, nowMs, config.smoothingM);
-
-        if (plan.state == PlanState::FirstPass && plan.passStarted) {
-            const float furrow = fabsf(smoothedM) - config.wnomCm / 100.0f;
-            if (!firstSeen) {
-                firstMaxM = firstMinM = furrow;
-                firstSeen = true;
-            } else {
-                if (furrow > firstMaxM) firstMaxM = furrow;
-                if (furrow < firstMinM) firstMinM = furrow;
-            }
-        }
     }
 
     // What the width is now.
@@ -220,8 +218,8 @@ void WidthPlanner::Update(const WidthPlannerConfig& config, const TrackSample& s
     if (plan.state == PlanState::NoPlan)          { reason = PlanReason::NoPlan; return; }
     if (!usable)                                  { reason = PlanReason::NoTrack; return; }
     if (sample.fieldIndex != plan.fieldIndex)     { reason = PlanReason::OtherField; return; }
-    if (plan.state == PlanState::FirstPass) {
-        setpointCm = config.wnomCm;               // the first pass at the nominal width
+    if (plan.state == PlanState::OneEnd) {
+        setpointCm = config.wnomCm;               // until END 2: the nominal width
         reason = PlanReason::Planned;
         return;
     }

@@ -201,7 +201,7 @@ enum PloughVtObjectId : uint16_t {
     Str_PlanWordNoPlan         = 207,
     Str_PlanWordNoTrack        = 208,
     Str_PlanWordField          = 209,   // the plan is another field's
-    Str_PlanWordPass1          = 210,
+    Str_PlanWordEnd2           = 210,   // END 1 recorded, END 2 to go
     Str_PlanWordRange          = 211,   // the plan does not fit Wmin..Wmax
     Str_PlanWordStraight       = 212,   // + the count
     Str_PlanWordFan            = 213,   // + the count
@@ -209,33 +209,34 @@ enum PloughVtObjectId : uint16_t {
     Str_PlanWordDone           = 215,
     Str_PlanWordWidth          = 216,   // the main width is not the track spacing
 
-    // The planner page: the settings as inputs, stored at once, and the
-    // plan's state. Without track data the mode shows XTE and the tuning
-    // rows (a container behind a pointer) are left out.
+    // The planner page: the settings as inputs, stored at once, where the
+    // plough is and the ends recorded, and the plan's state. Without track
+    // data the mode shows XTE and the tuning rows (a container behind a
+    // pointer) are left out.
     Plough_PlanMask            = 220,
     Plough_PlanSoftKeyMask     = 221,
     Key_PlanMleftUp            = 222,
     Key_PlanMleftDown          = 223,
-    Key_PlanNewField           = 224,
+    Key_PlanEnd1               = 224,
     Key_PlanRange              = 225,
     Key_PlanBack               = 226,
     Label_PlanUpA              = 227,   // two-line key labels: A on top, B under it
     Label_PlanUpB              = 228,
     Label_PlanDownA            = 229,
     Label_PlanDownB            = 230,
-    Label_PlanNewA             = 231,
-    Label_PlanNewB             = 232,
+    Label_PlanEnd1A            = 231,
+    Label_PlanEnd1B            = 232,
     Label_PlanRange            = 233,
     Label_PlanBack             = 234,
     Label_PlanMode             = 235,
     Label_PlanK                = 236,
     Label_PlanR                = 237,
     Label_PlanSmooth           = 238,
-    Label_PlanTrack            = 239,
+    Label_PlanNow              = 239,
     Label_PlanState            = 240,
     Label_PlanMleft            = 241,
     Label_PlanM                = 242,
-    Label_PlanWidth            = 243,
+    Label_PlanEnd1             = 243,
     Ptr_PlanMode               = 244,   // Input_PlanMode, or Str_PlanModeXte alone
     Input_PlanMode             = 245,   // index = WidthMode
     Str_PlanModeXte            = 246,
@@ -247,14 +248,14 @@ enum PloughVtObjectId : uint16_t {
     Input_PlanR                = 252,
     Input_PlanSmooth           = 253,
     Str_PlanMeter              = 254,
-    Out_PlanTrack              = 255,
-    Var_PlanTrack              = 256,   // track spacing, cm
+    Out_PlanNow                = 255,
+    Var_PlanNow                = 256,   // passes to the reference now, tenths
     Out_PlanMleft              = 257,
     Out_PlanM                  = 258,
     Var_PlanM                  = 259,
-    Ptr_PlanWidth              = 260,   // Out_PlanWidth, or Str_PlanDash
-    Out_PlanWidth              = 261,
-    Var_PlanWidth              = 262,   // the planned width, cm
+    Ptr_PlanEnd1               = 260,   // Out_PlanEnd1, or Str_PlanDash
+    Out_PlanEnd1               = 261,
+    Var_PlanEnd1               = 262,   // passes to the reference at END 1, tenths
     Str_PlanDash               = 263,
 
     // The width range page: Wmin and Wmax (MIN / MAX, stepped with + and -),
@@ -302,6 +303,18 @@ enum PloughVtObjectId : uint16_t {
     // The width now as 3 lines (Bar_RangeNow in the middle), on Var_BarNow.
     Bar_RangeNowL              = 309,
     Bar_RangeNowR              = 310,
+
+    // The planner page's ends (2026-11-16, in place of NIEUW VELD): where the
+    // plough is now and at each end, as passes to the reference, each through
+    // a pointer that shows Str_PlanDash while it is unknown.
+    Ptr_PlanNow                = 311,
+    Label_PlanEnd2             = 312,
+    Ptr_PlanEnd2               = 313,
+    Out_PlanEnd2               = 314,
+    Var_PlanEnd2               = 315,
+    Key_PlanEnd2               = 316,
+    Label_PlanEnd2A            = 317,
+    Label_PlanEnd2B            = 318,
 };
 
 // The range bar's place on the main screen, under the four rows.
@@ -336,7 +349,7 @@ enum PloughKeyCode : uint8_t {
     KeyCode_Plan         = 12,
     KeyCode_PlanMleftUp  = 13,
     KeyCode_PlanMleftDown = 14,
-    KeyCode_PlanNewField = 15,
+    KeyCode_PlanEnd1     = 15,
     KeyCode_PlanRange    = 16,
     KeyCode_PlanBack     = 17,
     KeyCode_RangeUp      = 18,
@@ -344,6 +357,7 @@ enum PloughKeyCode : uint8_t {
     KeyCode_RangeSelect  = 20,
     KeyCode_RangeSave    = 21,
     KeyCode_RangeCancel  = 22,
+    KeyCode_PlanEnd2     = 23,
 };
 
 // The bar on the width range page spans the plough's whole range, in mm per

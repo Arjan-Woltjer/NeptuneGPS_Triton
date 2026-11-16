@@ -714,7 +714,7 @@ constexpr char kTextPlanXte[]      = "XTE";
 constexpr char kTextPlanNoPlan[]   = VT_TEXT("GEEN PLAN", "NO PLAN", "TERV \xDCRES");
 constexpr char kTextPlanNoTrack[]  = VT_TEXT("GEEN LIJN", "NO TRACK", "NINCS S\xC1V");
 constexpr char kTextPlanField[]    = VT_TEXT("VELD?", "FIELD?", "T\xC1" "BLA?");
-constexpr char kTextPlanPass1[]    = VT_TEXT("GANG 1", "PASS 1", "1. MENET");
+constexpr char kTextPlanEnd2[]     = VT_TEXT("EIND 2?", "END 2?", "2. V\xC9G?");
 constexpr char kTextPlanRange[]    = VT_TEXT("LIMIET!", "LIMIT!", "LIMIT!");
 constexpr char kTextPlanStraight[] = VT_TEXT("RECHT", "STR.", "EGYEN.");
 constexpr char kTextPlanFan[]      = VT_TEXT("WAAIER", "FAN", "LEGY.");
@@ -722,7 +722,7 @@ constexpr char kTextPlanParallel[] = VT_TEXT("PARALLEL", "PARALLEL", "P\xC1RHUZ.
 constexpr char kTextPlanDone[]     = VT_TEXT("KLAAR", "DONE", "K\xC9SZ");
 constexpr char kTextPlanWidth[]    = VT_TEXT("BREEDTE?", "WIDTH?", "SZ\xC9LES.?");
 static_assert(sizeof(kTextPlanNoPlan) - 1 <= kPlanWordChars && sizeof(kTextPlanNoTrack) - 1 <= kPlanWordChars &&
-              sizeof(kTextPlanField) - 1 <= kPlanWordChars && sizeof(kTextPlanPass1) - 1 <= kPlanWordChars &&
+              sizeof(kTextPlanField) - 1 <= kPlanWordChars && sizeof(kTextPlanEnd2) - 1 <= kPlanWordChars &&
               sizeof(kTextPlanRange) - 1 <= kPlanWordChars && sizeof(kTextPlanParallel) - 1 <= kPlanWordChars &&
               sizeof(kTextPlanDone) - 1 <= kPlanWordChars && sizeof(kTextPlanWidth) - 1 <= kPlanWordChars,
               "plan word longer than 9 characters");
@@ -738,7 +738,7 @@ FLASHMEM static void appendPlanWord() {
     appendOutputString(Str_PlanWordNoPlan, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanNoPlan, kOpaque);
     appendOutputString(Str_PlanWordNoTrack, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanNoTrack, kOpaque);
     appendOutputString(Str_PlanWordField, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanField, kOpaque);
-    appendOutputString(Str_PlanWordPass1, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanPass1, kOpaque);
+    appendOutputString(Str_PlanWordEnd2, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanEnd2, kOpaque);
     appendOutputString(Str_PlanWordRange, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanRange, kOpaque);
     appendOutputString(Str_PlanWordStraight, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanStraight, kOpaque);
     appendOutputString(Str_PlanWordFan, kPlanWordW, kPlanWordH, Font_White_State, 0, kTextPlanFan, kOpaque);
@@ -750,26 +750,30 @@ FLASHMEM static void appendPlanWord() {
                        1.0f, 0, 2);
 }
 
-// The planner page: nine rows of 22 units as on the calibration page.
+// The planner page: ten rows of 20 units.
 //   MODUS     XTE / RECHT / WAAIER   (XTE alone without track data)
 //   RECHT IN  K          \
 //   PARALLEL  R           > a container, left out without track data
 //   DEMPING   smoothing m/
-//   SPOOR     track spacing cm (DDI 512)
+//   NU        passes to the reference now (37.4), or -
+//   EIND 1    passes at END 1, or -
+//   EIND 2    passes at END 2, or -
 //   PLAN      the word of the main screen
 //   TE GAAN   Mleft
 //   TOTAAL    M
-//   BREEDTE   the planned width cm, or - without one
-// The inputs are stored at once (no draft, no OPSLAAN), like ":plan".
+// The inputs are stored at once (no draft, no OPSLAAN), like ":plan". The
+// planned width is the main screen's SETPUNT; a main width off the track
+// spacing shows as BREEDTE? in the word.
 constexpr char kTextPlanLabelMode[]   = VT_TEXT("MODUS", "MODE", "M\xD3" "D");
 constexpr char kTextPlanLabelK[]      = VT_TEXT("RECHT IN", "STRAIGHTEN", "EGYENES\xCDT");
 constexpr char kTextPlanLabelR[]      = VT_TEXT("PARALLEL", "PARALLEL", "P\xC1RHUZAMOS");
 constexpr char kTextPlanLabelSmooth[] = VT_TEXT("DEMPING", "SMOOTHING", "SIM\xCDT\xC1S");
-constexpr char kTextPlanLabelTrack[]  = VT_TEXT("SPOOR", "TRACK W.", "S\xC1VSZ\xC9LES.");
+constexpr char kTextPlanLabelNow[]    = VT_TEXT("NU", "NOW", "MOST");
+constexpr char kTextPlanLabelEnd1[]   = VT_TEXT("EIND 1", "END 1", "1. V\xC9G");
+constexpr char kTextPlanLabelEnd2[]   = VT_TEXT("EIND 2", "END 2", "2. V\xC9G");
 constexpr char kTextPlanLabelState[]  = VT_TEXT("PLAN", "PLAN", "TERV");
 constexpr char kTextPlanLabelMleft[]  = VT_TEXT("TE GAAN", "PASS LEFT", "MARAD\xC9K");
 constexpr char kTextPlanLabelM[]      = VT_TEXT("TOTAAL", "TOTAL", "\xD6SSZES");
-constexpr char kTextPlanLabelWidth[]  = VT_TEXT("BREEDTE", "WIDTH", "SZ\xC9LESS\xC9G");
 constexpr char kTextPlanModeStraight[] = VT_TEXT("RECHT", "STRAIGHTEN", "EGYENES\xCDT\xC9S");
 constexpr char kTextPlanModeFan[]      = VT_TEXT("WAAIER", "FAN OUT", "LEGYEZ\xC9S");
 
@@ -778,64 +782,69 @@ FLASHMEM static void appendPlannerPage() {
     constexpr uint16_t LBL_X = 2, LBL_W = 124;
     constexpr uint16_t VAL_X = 128, VAL_W = 72, NUM_W = 40;
     constexpr uint16_t UNIT_X = VAL_X + NUM_W + 4;
-    constexpr uint16_t ROW_TOP = 1, ROW_H = 22;
+    constexpr uint16_t ROW_TOP = 0, ROW_H = 20, ROWS = 10;
     // The mode's names are longer than the value column: the list starts
     // after MODUS, the shortest label, and runs to the mask's edge.
     constexpr uint16_t MODE_X = 64, MODE_W = 200 - MODE_X;
-    uint16_t rowY[9];
-    for (uint8_t row = 0; row < 9; row++) rowY[row] = uint16_t(ROW_TOP + row * ROW_H);
+    uint16_t rowY[ROWS];
+    for (uint8_t row = 0; row < ROWS; row++) rowY[row] = uint16_t(ROW_TOP + row * ROW_H);
     static_assert(LBL_X + (sizeof(kTextPlanLabelMode) - 1) * kCharW <= MODE_X, "MODUS runs into the mode");
     static_assert((sizeof(kTextPlanModeStraight) - 1) * kCharW <= MODE_W &&
                   (sizeof(kTextPlanModeFan) - 1) * kCharW <= MODE_W, "a mode's name is wider than its list");
     static_assert((sizeof(kTextPlanLabelK) - 1) * kCharW <= LBL_W && (sizeof(kTextPlanLabelR) - 1) * kCharW <= LBL_W &&
                   (sizeof(kTextPlanLabelSmooth) - 1) * kCharW <= LBL_W &&
-                  (sizeof(kTextPlanLabelTrack) - 1) * kCharW <= LBL_W &&
+                  (sizeof(kTextPlanLabelNow) - 1) * kCharW <= LBL_W &&
+                  (sizeof(kTextPlanLabelEnd1) - 1) * kCharW <= LBL_W &&
+                  (sizeof(kTextPlanLabelEnd2) - 1) * kCharW <= LBL_W &&
                   (sizeof(kTextPlanLabelState) - 1) * kCharW <= LBL_W &&
                   (sizeof(kTextPlanLabelMleft) - 1) * kCharW <= LBL_W &&
-                  (sizeof(kTextPlanLabelM) - 1) * kCharW <= LBL_W &&
-                  (sizeof(kTextPlanLabelWidth) - 1) * kCharW <= LBL_W, "planner label too wide for its column");
-    static_assert(VAL_X + kPlanWordW <= 200, "the plan word leaves the mask");
-    static_assert(ROW_TOP + 9 * ROW_H <= 200, "rows leave the mask");
+                  (sizeof(kTextPlanLabelM) - 1) * kCharW <= LBL_W, "planner label too wide for its column");
+    static_assert(VAL_X + kPlanWordW <= 200 && VAL_X + VAL_W <= 200, "a value leaves the mask");
+    static_assert(ROW_TOP + ROWS * ROW_H <= 200 && ROW_H >= 16, "rows leave the mask or are lower than the font");
 
     appendDataMask(Plough_PlanMask, kBlack, Plough_PlanSoftKeyMask, 16);
     appendObjRef(Label_PlanMode, LBL_X, rowY[0]);
     appendObjRef(Ptr_PlanMode, MODE_X, rowY[0]);
     appendObjRef(Ptr_PlanTuning, 0, rowY[1]);
-    appendObjRef(Label_PlanTrack, LBL_X, rowY[4]);
-    appendObjRef(Out_PlanTrack, VAL_X, rowY[4]);
-    appendObjRef(Str_CalCm, UNIT_X, rowY[4]);
-    appendObjRef(Label_PlanState, LBL_X, rowY[5]);
-    appendObjRef(Ptr_PlanWord, VAL_X, rowY[5] + 2);
-    appendObjRef(Ptr_PlanCount, VAL_X + kPlanCountX, rowY[5] + 2);
-    appendObjRef(Label_PlanMleft, LBL_X, rowY[6]);
-    appendObjRef(Out_PlanMleft, VAL_X, rowY[6]);
-    appendObjRef(Label_PlanM, LBL_X, rowY[7]);
-    appendObjRef(Out_PlanM, VAL_X, rowY[7]);
-    appendObjRef(Label_PlanWidth, LBL_X, rowY[8]);
-    appendObjRef(Ptr_PlanWidth, VAL_X, rowY[8]);
-    appendObjRef(Str_CalCm, UNIT_X, rowY[8]);
+    appendObjRef(Label_PlanNow, LBL_X, rowY[4]);
+    appendObjRef(Ptr_PlanNow, VAL_X, rowY[4]);
+    appendObjRef(Label_PlanEnd1, LBL_X, rowY[5]);
+    appendObjRef(Ptr_PlanEnd1, VAL_X, rowY[5]);
+    appendObjRef(Label_PlanEnd2, LBL_X, rowY[6]);
+    appendObjRef(Ptr_PlanEnd2, VAL_X, rowY[6]);
+    appendObjRef(Label_PlanState, LBL_X, rowY[7]);
+    appendObjRef(Ptr_PlanWord, VAL_X, rowY[7] + 2);
+    appendObjRef(Ptr_PlanCount, VAL_X + kPlanCountX, rowY[7] + 2);
+    appendObjRef(Label_PlanMleft, LBL_X, rowY[8]);
+    appendObjRef(Out_PlanMleft, VAL_X, rowY[8]);
+    appendObjRef(Label_PlanM, LBL_X, rowY[9]);
+    appendObjRef(Out_PlanM, VAL_X, rowY[9]);
 
     // Column 2: the pass counter's +1 / -1 where + and - are on the main
-    // screen, NIEUW VELD, BEREIK, and TERUG on row 5 like ANNUL.
+    // screen, EIND 1 and EIND 2 under them, TERUG on row 5 like ANNUL.
+    // LIMIET is on the main screen.
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
     keys[SoftKeySlot(1, 2)] = Key_PlanMleftUp;
     keys[SoftKeySlot(2, 2)] = Key_PlanMleftDown;
-    keys[SoftKeySlot(3, 2)] = Key_PlanNewField;
-    keys[SoftKeySlot(4, 2)] = Key_PlanRange;
+    keys[SoftKeySlot(3, 2)] = Key_PlanEnd1;
+    keys[SoftKeySlot(4, 2)] = Key_PlanEnd2;
     keys[SoftKeySlot(5, 2)] = Key_PlanBack;
     appendSoftKeys(Plough_PlanSoftKeyMask, kBlack, keys);
     appendKey2(Key_PlanMleftUp, KeyCode_PlanMleftUp, Label_PlanUpA, Label_PlanUpB);
     appendKey2(Key_PlanMleftDown, KeyCode_PlanMleftDown, Label_PlanDownA, Label_PlanDownB);
-    appendKey2(Key_PlanNewField, KeyCode_PlanNewField, Label_PlanNewA, Label_PlanNewB);
-    appendKey(Key_PlanRange, kBlack, KeyCode_PlanRange, Label_PlanRange);
+    appendKey2(Key_PlanEnd1, KeyCode_PlanEnd1, Label_PlanEnd1A, Label_PlanEnd1B);
+    appendKey2(Key_PlanEnd2, KeyCode_PlanEnd2, Label_PlanEnd2A, Label_PlanEnd2B);
+    appendKey(Key_PlanRange, kBlack, KeyCode_PlanRange, Label_PlanRange);   // on the main screen
     appendKey(Key_PlanBack, kBlack, KeyCode_PlanBack, Label_PlanBack);
     appendOutputString(Label_PlanUpA, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("GANG", "PASS", "MENET"));
     appendOutputString(Label_PlanUpB, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "+1");
     appendOutputString(Label_PlanDownA, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("GANG", "PASS", "MENET"));
     appendOutputString(Label_PlanDownB, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "-1");
-    appendOutputString(Label_PlanNewA, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("NIEUW", "NEW", "\xDAJ"));
-    appendOutputString(Label_PlanNewB, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("VELD", "FIELD", "T\xC1" "BLA"));
+    appendOutputString(Label_PlanEnd1A, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("EIND", "END", "V\xC9G"));
+    appendOutputString(Label_PlanEnd1B, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "1");
+    appendOutputString(Label_PlanEnd2A, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("EIND", "END", "V\xC9G"));
+    appendOutputString(Label_PlanEnd2B, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "2");
     appendOutputString(Label_PlanRange, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("LIMIET", "LIMIT", "LIMIT"));
     appendOutputString(Label_PlanBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZA"));
 
@@ -843,11 +852,12 @@ FLASHMEM static void appendPlannerPage() {
     appendOutputString(Label_PlanK, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelK);
     appendOutputString(Label_PlanR, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelR);
     appendOutputString(Label_PlanSmooth, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelSmooth);
-    appendOutputString(Label_PlanTrack, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelTrack);
+    appendOutputString(Label_PlanNow, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelNow);
+    appendOutputString(Label_PlanEnd1, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelEnd1);
+    appendOutputString(Label_PlanEnd2, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelEnd2);
     appendOutputString(Label_PlanState, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelState);
     appendOutputString(Label_PlanMleft, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelMleft);
     appendOutputString(Label_PlanM, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelM);
-    appendOutputString(Label_PlanWidth, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelWidth);
 
     // The mode: the list, or XTE alone (its first entry) without track data.
     static const uint16_t kModeItems[3] = { Str_PlanModeXte, Str_PlanModeStraight, Str_PlanModeFan };
@@ -873,15 +883,21 @@ FLASHMEM static void appendPlannerPage() {
     appendInputNumber(Input_PlanSmooth, NUM_W, ROW_H, Font_White_Medium, 3, 1, 50);
     appendOutputString(Str_PlanMeter, kUnitW, kUnitH, Font_White_Medium, 0, "m");
 
-    appendNumberVariable(Var_PlanTrack, 0);
+    // Passes in tenths, shown with one decimal: 374 -> 37.4. A dash until
+    // known (no track data, an end not recorded).
+    appendNumberVariable(Var_PlanNow, 0);
+    appendNumberVariable(Var_PlanEnd1, 0);
+    appendNumberVariable(Var_PlanEnd2, 0);
     appendNumberVariable(Var_PlanM, 0);
-    appendNumberVariable(Var_PlanWidth, 0);
-    appendOutputNumber(Out_PlanTrack, NUM_W, ROW_H, Font_White_Medium, Var_PlanTrack, 0, 1.0f, 0, 2);
+    appendObjectPointer(Ptr_PlanNow, Str_PlanDash);
+    appendObjectPointer(Ptr_PlanEnd1, Str_PlanDash);
+    appendObjectPointer(Ptr_PlanEnd2, Str_PlanDash);
+    appendOutputNumber(Out_PlanNow, VAL_W, ROW_H, Font_White_Medium, Var_PlanNow, 0, 0.1f, 1, 2);
+    appendOutputNumber(Out_PlanEnd1, VAL_W, ROW_H, Font_White_Medium, Var_PlanEnd1, 0, 0.1f, 1, 2);
+    appendOutputNumber(Out_PlanEnd2, VAL_W, ROW_H, Font_White_Medium, Var_PlanEnd2, 0, 0.1f, 1, 2);
     appendOutputNumber(Out_PlanMleft, NUM_W, ROW_H, Font_White_Medium, Var_PlanMleft, 0, 1.0f, 0, 2);
     appendOutputNumber(Out_PlanM, NUM_W, ROW_H, Font_White_Medium, Var_PlanM, 0, 1.0f, 0, 2);
-    appendObjectPointer(Ptr_PlanWidth, Str_PlanDash);
-    appendOutputNumber(Out_PlanWidth, NUM_W, ROW_H, Font_White_Medium, Var_PlanWidth, 0, 1.0f, 0, 2);
-    appendOutputString(Str_PlanDash, NUM_W, ROW_H, Font_White_Medium, 2, "-", kOpaque);
+    appendOutputString(Str_PlanDash, VAL_W, ROW_H, Font_White_Medium, 2, "-", kOpaque);
 }
 
 // The width range page: Wmin and Wmax for the plan, in cm for the whole

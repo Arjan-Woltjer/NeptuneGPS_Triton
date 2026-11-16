@@ -597,27 +597,32 @@ test(WidthPlanning, xteMode_leavesTheXteControl) {
     millisValue(0);
 }
 
-// Fan-out after NEW FIELD: the first pass at the set width, and the plan in
-// EEPROM, read back by the next power-up.
-test(WidthPlanning, newField_firstPassAtTheSetWidth_andTheStoredPlan) {
+// Fan-out after END 1: the set width until END 2, where the plough is in
+// passes (track 81 at 1.6 m: 128 m, 80.0 passes), and the plan in EEPROM,
+// read back by the next power-up.
+test(WidthPlanning, end1_theSetWidthUntilEnd2_andTheStoredPlan) {
     VehicleSensors tractor;   // hitch down: working
     triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
     planning.Begin();
     planning.SetMode(triton::WidthMode::FanOut);
     PlanStep(planning);
-    planning.NewField();
+    assertEqual((int)planning.GetPassAtEndTenths(1), -1);
+    assertEqual((int)planning.RecordEnd(1), (int)triton::EndResult::Recorded);
     PlanStep(planning);
+    assertEqual((int)planning.GetPassNowTenths(), 800);
+    assertEqual((int)planning.GetPassAtEndTenths(1), 800);
+    assertEqual((int)planning.GetPassAtEndTenths(2), -1);
     assertEqual((int)planning.GetPlanner().GetReason(), (int)triton::PlanReason::Planned);
     assertTrue(tcImplement->HasPlannedWidth());
     assertEqual((int)planning.GetPlanner().GetSetpointCm(), (int)tcImplement->GetOffset());
-    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::FirstPass);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
     assertEqual((int)EEPROM.read(triton::kEepromPlan), 0x5A);
 
     triton::WidthPlanning afterPowerUp(tcImplement, &tractor, &tcGuidance, &Fixture());
     afterPowerUp.Begin();
     assertEqual((int)afterPowerUp.GetMode(), (int)triton::WidthMode::FanOut);
-    assertEqual((int)afterPowerUp.GetPlanner().GetState(), (int)triton::PlanState::FirstPass);
-    assertTrue(afterPowerUp.GetPlanner().GetStored().passStarted);
+    assertEqual((int)afterPowerUp.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
+    assertEqual((int)afterPowerUp.GetPlanner().GetStored().endADm, 1280);
 
     planning.SetMode(triton::WidthMode::Xte);   // leave the shared EEPROM as found
     PlanStep(planning);
@@ -699,14 +704,14 @@ struct PlanVtOutput : public triton::VtCalibrationOutput {
 
 }  // namespace
 
-// The word's order: mode, then plan, track, field, width, pass 1 and the
+// The word's order: mode, then plan, track, field, width, END 2? and the
 // rest; only RECHT and WAAIER carry the count.
 test(IsobusVtPlanner, wordFor_followsThePlansState) {
     triton::PlanWordInputs in;
     assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordXte);
     in.mode = triton::WidthMode::FanOut;
     assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordNoPlan);
-    in.state = triton::PlanState::FirstPass;
+    in.state = triton::PlanState::OneEnd;
     assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordNoTrack);
     in.trackSupport = true;
     in.reason = triton::PlanReason::OtherField;
@@ -715,7 +720,7 @@ test(IsobusVtPlanner, wordFor_followsThePlansState) {
     in.widthMismatch = true;
     assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordWidth);
     in.widthMismatch = false;
-    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordPass1);
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordEnd2);
     in.state = triton::PlanState::Planned;
     assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordFan);
     in.mode = triton::WidthMode::Straight;
@@ -728,7 +733,7 @@ test(IsobusVtPlanner, wordFor_followsThePlansState) {
     assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordDone);
     assertTrue(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordFan));
     assertTrue(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordStraight));
-    assertFalse(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordPass1));
+    assertFalse(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordEnd2));
 }
 
 // PLAN opens the page; with the TC's track data the mode is the list and the
@@ -753,9 +758,11 @@ test(IsobusVtPlanner, planKey_opensThePage_andTheModeIsStoredAtOnce) {
     assertEqual((int)out.masks.back(), (int)triton::Plough_PlanMask);
     assertEqual(out.last(triton::Ptr_PlanMode), (long)triton::Input_PlanMode);
     assertEqual(out.last(triton::Ptr_PlanTuning), (long)triton::Cont_PlanTuning);
-    assertEqual(out.last(triton::Var_PlanTrack), 160L);
+    assertEqual(out.last(triton::Ptr_PlanNow), (long)triton::Out_PlanNow);
+    assertEqual(out.last(triton::Var_PlanNow), 800L);
     assertEqual(out.last(triton::Input_PlanK), (long)planning.GetK());
-    assertEqual(out.last(triton::Ptr_PlanWidth), (long)triton::Str_PlanDash);
+    assertEqual(out.last(triton::Ptr_PlanEnd1), (long)triton::Str_PlanDash);
+    assertEqual(out.last(triton::Ptr_PlanEnd2), (long)triton::Str_PlanDash);
 
     page.OnNumericValue(triton::Input_PlanMode, 2);
     assertEqual((int)planning.GetMode(), (int)triton::WidthMode::FanOut);
@@ -775,9 +782,9 @@ test(IsobusVtPlanner, planKey_opensThePage_andTheModeIsStoredAtOnce) {
     millisValue(0);
 }
 
-// NIEUW VELD throws the plan away, so a tap does nothing: it starts a plan
-// only when held a second. GANG +1 / -1 then move the counter.
-test(IsobusVtPlanner, newField_onlyWhenHeld_thenThePassKeysCount) {
+// END 1 starts a plan and END 2 completes it; over a plan END 1 throws it
+// away, so there a tap does nothing: only when held a second.
+test(IsobusVtPlanner, ends_planOnTheVt_end1OverAPlanOnlyWhenHeld) {
     EEPROM.eepromReset();     // no plan stored
     VehicleSensors tractor;   // hitch down: working
     triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
@@ -789,17 +796,30 @@ test(IsobusVtPlanner, newField_onlyWhenHeld_thenThePassKeysCount) {
     page.OnSoftKey(triton::Key_Plan, 100);
 
     tcDebug.Clear();
-    page.OnSoftKey(triton::Key_PlanNewField, 300);
-    assertTrue(tcDebug.Contains("held 1 s"));
-    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::NoPlan);
-
-    page.OnSoftKey(triton::Key_PlanNewField, triton::IsobusVtPlanner::kNewFieldHoldMs);
+    page.OnSoftKey(triton::Key_PlanEnd2, 100);
+    assertTrue(tcDebug.Contains("END 1 first"));
+    page.OnSoftKey(triton::Key_PlanEnd1, 100);   // no plan yet: a tap is enough
     PlanStep(planning);
-    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::FirstPass);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
     page.Update(out);
-    assertEqual(out.last(triton::Ptr_PlanWord), (long)triton::Str_PlanWordPass1);
-    assertEqual(out.last(triton::Ptr_PlanWidth), (long)triton::Out_PlanWidth);
-    assertEqual(out.last(triton::Var_PlanWidth), (long)tcImplement->GetOffset());
+    assertEqual(out.last(triton::Ptr_PlanWord), (long)triton::Str_PlanWordEnd2);
+    assertEqual(out.last(triton::Ptr_PlanEnd1), (long)triton::Out_PlanEnd1);
+    assertEqual(out.last(triton::Var_PlanEnd1), 800L);
+    assertEqual(out.last(triton::Ptr_PlanEnd2), (long)triton::Str_PlanDash);
+
+    page.OnSoftKey(triton::Key_PlanEnd2, 100);
+    PlanStep(planning);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::Planned);
+    page.Update(out);
+    assertEqual(out.last(triton::Ptr_PlanEnd2), (long)triton::Out_PlanEnd2);
+    assertEqual(out.last(triton::Var_PlanEnd2), 800L);
+
+    tcDebug.Clear();
+    page.OnSoftKey(triton::Key_PlanEnd1, 300);
+    assertTrue(tcDebug.Contains("held 1 s"));
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::Planned);
+    page.OnSoftKey(triton::Key_PlanEnd1, triton::IsobusVtPlanner::kEnd1HoldMs);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
 
     planning.SetMode(triton::WidthMode::Xte);
     PlanStep(planning);

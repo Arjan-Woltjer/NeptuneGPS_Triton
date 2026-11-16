@@ -32,17 +32,28 @@ namespace triton
 enum class WidthMode : uint8_t { Xte = 0, Straight = 1, FanOut = 2 };
 
 // Where the plan is.
-//   NoPlan    - never started, or the operator has not reset for this field
-//   FirstPass - reset: the first pass follows the field edge at the nominal
-//               width and records how far its furrow is from the reference
+//   NoPlan    - never started: no end recorded for this field
+//   OneEnd    - END 1 recorded, END 2 not yet; the plough works at the
+//               nominal width meanwhile (EEPROM value 1, the first pass's
+//               state before the ends, 2026-11-16)
 //   Planned   - the number of passes is known, Mleft counts down per pass
-enum class PlanState : uint8_t { NoPlan = 0, FirstPass = 1, Planned = 2 };
+enum class PlanState : uint8_t { NoPlan = 0, OneEnd = 1, Planned = 2 };
+
+// What RecordEnd() did.
+enum class EndResult : uint8_t {
+    Recorded,        // END 1: the plan starts, END 2 to go
+    Planned,         // END 2: the passes are planned
+    NoDistance,      // no fresh track data: nothing recorded
+    NoEnd1,          // END 2 before END 1
+    OtherField,      // END 2 in another field than END 1
+    AlreadyPlanned,  // END 2 again: END 1 starts a new plan
+};
 
 // Why there is no planned width (GetReason()).
 enum class PlanReason : uint8_t {
     Planned = 0,    // a width is planned
     ModeXte,        // the mode is Xte
-    NoPlan,         // no plan: reset for a new field first
+    NoPlan,         // no plan: record the field's ends first
     NoTrack,        // no fresh track number, XTE or track spacing
     OtherField,     // the plan belongs to another field (DDI 508)
     ParallelStrip,  // the last passes at the reference: plain XTE control
@@ -77,8 +88,8 @@ struct StoredPlan {
     uint16_t  mleft       = 0;       // passes left, the current one included
     uint16_t  m           = 0;       // passes planned in all
     uint16_t  fieldIndex  = 0;
-    uint16_t  firstMaxDm  = 0;       // first furrow to the reference, max (dm)
-    uint16_t  firstMinDm  = 0;       // and min
+    uint16_t  endADm      = 0;       // END 1: land left to the reference (dm)
+    uint16_t  endBDm      = 0;       // END 2
 };
 
 // The plough-local planner of plow_width_control_sim (8): from the track
@@ -124,10 +135,23 @@ public:
     float     GetDistanceM() const         { return smoothedM; }
     bool      HasDistance() const          { return haveSmoothed; }
 
-    // The operator's controls: a new field (starts the first pass), and a
-    // pass the counter missed or counted twice.
-    void NewField(uint16_t fieldIndex);
+    // The operator's controls: the field's two ends, and a pass the counter
+    // missed or counted twice.
+    //
+    // At each end of the field the operator records where the plough is,
+    // as the land left to the reference (the current pass included): END 1
+    // starts a new plan (whatever plan there was goes), END 2 then plans
+    // the passes from the two. Both on the same pass, or with the plough up
+    // (along the headland, before ploughing). With the plough in the ground
+    // at END 2 that pass is the plan's first; with it up, the next lowering is.
+    EndResult RecordEnd(uint8_t end, const WidthPlannerConfig& config, uint16_t fieldIndex);
     void AdjustMleft(int delta);
+
+    // The ends recorded, metres of land left (0 = not recorded).
+    float GetEndM(uint8_t end) const { return (end == 1 ? plan.endADm : plan.endBDm) / 10.0f; }
+    // Whether the distance is known now (fresh track data since the last
+    // pass change): what an end records.
+    bool  CanRecordEnd() const { return haveSmoothed && lastUsable; }
 
     const StoredPlan& GetStored() const { return plan; }
     void Restore(const StoredPlan& stored);
@@ -139,7 +163,7 @@ private:
     bool       dirty = false;
 
     // Pass detection: a pass starts when the plough is lowered on the other
-    // side (or the first time after NewField). Lifting and lowering on the
+    // side (or the first lowering after END 2 with the plough up). Lifting and lowering on the
     // same side mid-pass is the same pass.
     bool     wasWorking       = false;
     bool     lastSide         = false;   // the side at the last Update()
@@ -151,17 +175,16 @@ private:
     float    lastRawM         = 0.0f;
     uint32_t lastUpdateMs     = 0;
 
-    // The first pass's furrow, live (metres; stored in dm at the pass end).
-    float    firstMaxM        = 0.0f;
-    float    firstMinM        = 0.0f;
-    bool     firstSeen        = false;
+    // The last Update()'s track data, for RecordEnd().
+    bool     lastUsable       = false;
+    float    lastSwathM       = 0.0f;
 
     int16_t    setpointCm = 0;
     PlanReason reason     = PlanReason::NoPlan;
     bool       feasible   = true;
 
-    void onLowered(const WidthPlannerConfig& config, float swathM, bool side);
-    void planFromFirstPass(const WidthPlannerConfig& config, float swathM);
+    void onLowered(bool side);
+    void planFromEnds(const WidthPlannerConfig& config);
     void smooth(float rawM, float speedMs, uint32_t nowMs, float smoothingM);
     void resetSmoothing();
     int16_t widthFor(const WidthPlannerConfig& config, float swathM);
