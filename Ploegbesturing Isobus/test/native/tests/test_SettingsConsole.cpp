@@ -58,6 +58,7 @@ VehicleSensors  scTractor;
 InterfaceI2CLCD scLcd;
 
 void resetAll() {
+    gMinSpeedTenthsKmh = kDefaultMinSpeedTenthsKmh;   // a global (PloughGates.hpp)
     millisValue(0);
     EEPROM.eepromReset();
     scGuidance = GuidanceSource();
@@ -135,7 +136,7 @@ test(SettingsConsole, list_printsEverySettingAsASetLine_widthLast) {
 // gives the second unit the first one's settings and width calibration, in the
 // plough and in EEPROM.
 test(SettingsConsole, export_pastedIntoAnotherUnit_copiesEverySettingAndTheWidth) {
-    static const int16_t kSource[PloughSettings::kCount] = { 6, 1, 1, 1, 5, 75, 2, 2, 2 };
+    static const int16_t kSource[PloughSettings::kCount] = { 6, 1, 1, 25, 5, 75, 2, 2, 2 };
     static const short int kSourceWidth[3] = { 120, 430, 880 };
 
     resetAll();

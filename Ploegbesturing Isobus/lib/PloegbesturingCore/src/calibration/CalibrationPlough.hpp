@@ -25,6 +25,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+#include "../PloughGates.hpp"
 #include "../implement/ImplementPlough.hpp"
 #include "InterfaceI2CLCD.hpp"
 #include "../InterfacePlough.hpp"
@@ -103,6 +104,14 @@ public:
     byte GetGpsBaudIndex() const   { return gpsBaudIndex; }
     void SetGpsBaudIndex(byte idx) { gpsBaudIndex = idx % 8; }
     void CommitGuidanceCalibration();
+
+    // MIN km/h (0.1 km/h, PloughGates.hpp): applied at once, stored by
+    // CommitGuidanceCalibration(). Out of range: the default.
+    byte GetMinSpeed() const { return gMinSpeedTenthsKmh; }
+    void SetMinSpeed(byte value) {
+        gMinSpeedTenthsKmh = (value >= kLowestMinSpeedTenthsKmh && value <= kHighestMinSpeedTenthsKmh)
+                                 ? value : kDefaultMinSpeedTenthsKmh;
+    }
 
     void PrintCalibrationData();
 

@@ -41,7 +41,10 @@ enum class PloughSetting : uint8_t {
     Shares,
     Swap,
     HitchInversion,
-    Bypass,
+#ifndef ISOBUS
+    Hydraulics,        // HydraulicType; on the VT's HIDR. page with ISOBUS
+#endif
+    MinSpeed,          // MIN km/h, in 0.1 km/h (PloughGates.hpp)
     Deadband,
     MaxCorrectionPerShare,
 #ifdef ISOBUS
@@ -54,13 +57,16 @@ enum class PloughSetting : uint8_t {
 
 // How a value is shown and stepped. RtkQuality has two values only, 4 (RTK
 // fixed) and 2 (DGPS, the old Autofarm A5 units). LightbarMode is one of
-// Auto (0), On (1), Off (2), stepped like a number.
+// Auto (0), On (1), Off (2), stepped like a number; Hydraulics likewise
+// one of Normal (0), Bypass (1), Danfoss (2).
 enum class SettingKind : uint8_t {
     Number,
     YesNo,
     PloughSide,
     RtkQuality,
     LightbarMode,
+    Hydraulics,
+    Tenths,            // a number in 0.1 units, shown with one decimal
 };
 
 struct PloughSettingLine {

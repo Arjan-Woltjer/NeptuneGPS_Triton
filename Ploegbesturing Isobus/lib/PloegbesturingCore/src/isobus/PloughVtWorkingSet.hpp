@@ -35,6 +35,8 @@
 namespace triton
 {
 
+class IsobusVtPlanner;   // IsobusVtPlanner.hpp
+
 // The plough's VtWorkingSet (NeptuneGPS_Triton#287): its object pool
 // (VTObjectPool.cpp), the working screen's values, the soft keys, the AUX-N
 // functions Breder and Smaller, and the calibration page. IsobusVtInterface
@@ -73,6 +75,11 @@ public:
     bool IsWiderHeld() const;
     bool IsNarrowerHeld() const;
 
+    // AUTO / KEZI (2026-11-17): true while the operator has chosen KEZI on
+    // the main screen; main.cpp hands it to InterfacePlough. Starts on AUTO
+    // at boot and is kept over a lost VT connection.
+    bool IsManualRequested() const { return manualRequested; }
+
     // AUX-N events for the dump: assigned-input statuses per function.
     unsigned int GetAuxWiderEvents() const { return auxWiderEvents; }
     unsigned int GetAuxNarrowerEvents() const { return auxNarrowerEvents; }
@@ -82,6 +89,10 @@ public:
     // Annuleren and the page's inputs go to. Without one the key is only
     // logged. main.cpp attaches it after IsobusVtInterface::Begin().
     void AttachCalibration(IsobusVtCalibration* page) { calibration = page; }
+
+    // The width planner's pages and main screen word, PLAN's key. Without
+    // one the key does nothing. main.cpp attaches it after WidthPlanning.
+    void AttachPlanner(IsobusVtPlanner* pages) { planner = pages; }
 
     // The control's state for the main screen (#318): InterfacePlough's mode
     // (0 AUTO, 1 HOLD, 2 MANUAL) and whether a calibration holds the control
@@ -125,6 +136,7 @@ private:
 
     std::shared_ptr<isobus::VirtualTerminalClient> client;
     IsobusVtCalibration*                           calibration = nullptr;
+    IsobusVtPlanner*                               planner = nullptr;
 
     // On-change gating for UpdateValues() -- added 2026-08-10 (van
     // Mastwijk) after Session 4 found intermittent post-Connect drops
@@ -155,6 +167,8 @@ private:
     uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
     int32_t       lastSentSpeed       = 0;  // 0.1 km/h
     uint16_t      lastSentState       = 0;  // the object Ptr_State points at
+    bool          manualRequested     = false;
+    bool          lastSentManual      = false;  // the AUTO / KEZI label shown
 
     uint8_t       controlMode        = 2;   // InterfacePlough starts in manual
     bool          controlCalibrating = false;
@@ -167,6 +181,7 @@ private:
     // its release acts, any other release does not (#320). 0xFFFF = none.
     static constexpr uint16_t kNoTapKey = 0xFFFF;
     uint16_t      pressedTapKey = kNoTapKey;
+    unsigned long pressedTapKeyAt = 0;   // when it went down: NIEUW VELD is held
 
     AuxInputs     aux;
     unsigned int  auxWiderEvents    = 0;

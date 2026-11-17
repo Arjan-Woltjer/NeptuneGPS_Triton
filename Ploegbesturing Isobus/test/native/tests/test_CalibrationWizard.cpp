@@ -46,6 +46,7 @@ static void buttons(bool minus, bool plus) {
 }
 
 static void resetAll() {
+    gMinSpeedTenthsKmh = kDefaultMinSpeedTenthsKmh;   // a global (PloughGates.hpp)
     at(0);
     EEPROM.eepromReset();
     wzGuidance = GuidanceSource();
@@ -140,7 +141,7 @@ testF(CalibrationWizard, screens_inTheOwnersOrder_declineAll_savesNothing) {
     Wizard w;
     assertTrue(w.cal.Start());
     static const char* const order[] = {
-        L_CAL_POS, L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_BYPASS,
+        L_CAL_POS, L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_MINSPEED,
         L_CAL_DEADBAND, L_CAL_MAXCOR, L_CAL_VT, L_CAL_LIGHTBAR, L_CAL_QUAL,
     };
     for (const char* title : order) {
@@ -245,18 +246,20 @@ testF(CalibrationWizard, yesNoScreens_showJaNee_andAreSaved) {
     step(w, true);
     assertEqual(row(3).c_str(), L_CAL_YES);
     finish(w);
-    assertTitle(L_CAL_BYPASS);
+    // MIN km/h (in the hydraulics' place, which moved to the VT's HIDR.
+    // page): x.x km/h, 0.5 km/h a press.
+    assertTitle(L_CAL_MINSPEED);
     accept(w);
-    assertEqual(row(3).c_str(), L_CAL_NO);
+    assertEqual(row(3).substr(12, 3).c_str(), "1.8");
     step(w, true);
-    assertEqual(row(3).c_str(), L_CAL_YES);
+    assertEqual(row(3).substr(12, 3).c_str(), "2.3");
     finish(w);
     skipTo(w, L_CAL_COMPLETE);
     accept(w);
     assertTrue(wzTractor.GetInversion());
-    assertTrue(w.impl.GetBypass());
+    assertEqual((int)gMinSpeedTenthsKmh, 23);
     assertEqual((int)EEPROM.read(28), 1);
-    assertEqual((int)EEPROM.read(68), 1);
+    assertEqual((int)EEPROM.read(kEepromMinSpeed), 23);
 }
 
 // A long + press that accepts a yes/no screen does not also set "ja": the
@@ -265,7 +268,7 @@ testF(CalibrationWizard, yesNoScreen_longAcceptPress_doesNotSetYes) {
     resetAll();
     Wizard w;
     assertTrue(w.cal.Start());
-    skipTo(w, L_CAL_BYPASS);
+    skipTo(w, L_CAL_INVERSION);
     buttons(false, false); w.pass();
     buttons(false, true);  w.pass();   // accept
     for (int i = 0; i < 60; i++) {     // held on for 600 ms, as loop() passes
