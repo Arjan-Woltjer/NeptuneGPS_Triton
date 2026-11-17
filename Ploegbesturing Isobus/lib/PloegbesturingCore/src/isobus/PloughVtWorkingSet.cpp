@@ -105,12 +105,14 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // too, the width now 3 lines wide, rows 23 apart.
     // MW20 -> MW21, same day: the planner page's END 1 / END 2 keys and the
     // passes now and at each end, in place of NIEUW VELD, SPOOR and BREEDTE.
+    // MW21 -> MW22, 2026-11-17: HYDRAULIEK (normaal / bypass / Danfoss) in
+    // place of the BYPASS yes/no on the calibration page.
 #if defined(ENGLISH)
-    return "MW21E";
+    return "MW22E";
 #elif defined(HUNGARIAN)
-    return "MW21H";
+    return "MW22H";
 #else
-    return "MW21";
+    return "MW22";
 #endif
 }
 

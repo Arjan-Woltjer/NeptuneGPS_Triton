@@ -166,6 +166,10 @@ enum PloughVtObjectId : uint16_t {
     Str_CalAuto                = 164,
     Str_CalOn                  = 165,
     Str_CalOff                 = 166,
+    // The hydraulics setting's list entries.
+    Str_CalNormal              = 167,
+    Str_CalBypass              = 168,
+    Str_CalDanfoss             = 169,
 
     // AUX-N (#254): Breder and Smaller as Auxiliary Function Type 2 objects,
     // assignable to joystick or armrest inputs on the VT. Their designators

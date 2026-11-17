@@ -390,6 +390,15 @@ test(VTObjectPool, calibrationPage_hasARowPerSetting_withTheTablesBounds) {
             assertEqual((int)poolU16(at + 15), (int)Str_CalOn);
             assertEqual((int)poolU16(at + 17), (int)Str_CalOff);
         }
+        else if (line.kind == SettingKind::Hydraulics) {
+            // NORMAAL, BYPASS, DANFOSS, the list index being the HydraulicType value.
+            assertTrue(isType(objects, Input_Cal0 + i, 10));
+            const uint32_t at = objects.at(Input_Cal0 + i).at;
+            assertEqual((int)VT3PoolData[at + 10], 3);
+            assertEqual((int)poolU16(at + 13), (int)Str_CalNormal);
+            assertEqual((int)poolU16(at + 15), (int)Str_CalBypass);
+            assertEqual((int)poolU16(at + 17), (int)Str_CalDanfoss);
+        }
         else {
             assertTrue(isType(objects, Input_Cal0 + i, 10));
             assertEqual((int)VT3PoolData[objects.at(Input_Cal0 + i).at + 10], 2);
@@ -406,7 +415,7 @@ test(VTObjectPool, calibrationIds_startAt100_clearOfTheMainScreen) {
     assertTrue((int)Plough_CalDataMask > (int)Font_White_Unit);
     for (uint16_t id = Plough_CalDataMask; id <= Label_CalCancel; id++) assertTrue(poolContainsId(id));
     for (uint16_t id = Str_CalNo; id <= Str_CalMm; id++) assertTrue(poolContainsId(id));
-    for (uint16_t id = Str_CalAuto; id <= Str_CalOff; id++) assertTrue(poolContainsId(id));
+    for (uint16_t id = Str_CalAuto; id <= Str_CalDanfoss; id++) assertTrue(poolContainsId(id));
     assertTrue(Label_Cal0 + PloughSettings::kCount <= Input_Cal0);
     assertTrue(Input_Cal0 + PloughSettings::kCount <= Str_CalNo);
 }

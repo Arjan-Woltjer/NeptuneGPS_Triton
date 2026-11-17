@@ -92,9 +92,10 @@ FLASHMEM void CalibrationPlough::PrintCalibrationData() {
 // procedure captures three points, COMPLETE saves or drops the draft.
 
 // Title and row-3 text per settings line, in table order. nullptr: row 3
-// carries only the value (yes/no, RTK quality, the lightbar mode).
+// carries only the value (yes/no, RTK quality, the lightbar mode, the
+// hydraulics).
 static const char* const kTitles[PloughSettings::kCount] = {
-    L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_BYPASS, L_CAL_DEADBAND, L_CAL_MAXCOR,
+    L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_HYDRAULICS, L_CAL_DEADBAND, L_CAL_MAXCOR,
 #ifdef ISOBUS
     L_CAL_VT, L_CAL_LIGHTBAR,
 #endif
@@ -320,8 +321,12 @@ FLASHMEM void CalibrationPlough::drawValue() {
             break;
         }
         case PloughSetting::HitchInversion:
-        case PloughSetting::Bypass:
             lcd->WriteBuffer(value ? L_CAL_YES : L_CAL_NO, 3);
+            break;
+        case PloughSetting::Hydraulics:
+            lcd->WriteBuffer(value == int(HydraulicType::Danfoss) ? L_CAL_HYD_DANFOSS
+                           : value == int(HydraulicType::Bypass)  ? L_CAL_HYD_BYPASS
+                                                                  : L_CAL_HYD_NORMAL, 3);
             break;
 #ifdef ISOBUS
         case PloughSetting::Lightbar:

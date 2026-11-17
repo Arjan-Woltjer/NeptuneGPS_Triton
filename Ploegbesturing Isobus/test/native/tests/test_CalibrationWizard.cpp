@@ -140,7 +140,7 @@ testF(CalibrationWizard, screens_inTheOwnersOrder_declineAll_savesNothing) {
     Wizard w;
     assertTrue(w.cal.Start());
     static const char* const order[] = {
-        L_CAL_POS, L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_BYPASS,
+        L_CAL_POS, L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_HYDRAULICS,
         L_CAL_DEADBAND, L_CAL_MAXCOR, L_CAL_VT, L_CAL_LIGHTBAR, L_CAL_QUAL,
     };
     for (const char* title : order) {
@@ -245,16 +245,22 @@ testF(CalibrationWizard, yesNoScreens_showJaNee_andAreSaved) {
     step(w, true);
     assertEqual(row(3).c_str(), L_CAL_YES);
     finish(w);
-    assertTitle(L_CAL_BYPASS);
+    assertTitle(L_CAL_HYDRAULICS);
     accept(w);
-    assertEqual(row(3).c_str(), L_CAL_NO);
+    assertEqual(row(3).c_str(), L_CAL_HYD_NORMAL);
     step(w, true);
-    assertEqual(row(3).c_str(), L_CAL_YES);
+    assertEqual(row(3).c_str(), L_CAL_HYD_BYPASS);
+    step(w, true);
+    assertEqual(row(3).c_str(), L_CAL_HYD_DANFOSS);
+    step(w, true);
+    assertEqual(row(3).c_str(), L_CAL_HYD_DANFOSS);   // the last one stays
+    step(w, false);
+    assertEqual(row(3).c_str(), L_CAL_HYD_BYPASS);
     finish(w);
     skipTo(w, L_CAL_COMPLETE);
     accept(w);
     assertTrue(wzTractor.GetInversion());
-    assertTrue(w.impl.GetBypass());
+    assertEqual((int)w.impl.GetHydraulics(), (int)HydraulicType::Bypass);
     assertEqual((int)EEPROM.read(28), 1);
     assertEqual((int)EEPROM.read(68), 1);
 }
@@ -265,7 +271,7 @@ testF(CalibrationWizard, yesNoScreen_longAcceptPress_doesNotSetYes) {
     resetAll();
     Wizard w;
     assertTrue(w.cal.Start());
-    skipTo(w, L_CAL_BYPASS);
+    skipTo(w, L_CAL_INVERSION);
     buttons(false, false); w.pass();
     buttons(false, true);  w.pass();   // accept
     for (int i = 0; i < 60; i++) {     // held on for 600 ms, as loop() passes

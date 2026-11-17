@@ -473,7 +473,7 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // ----------------------------------------------------------------
 // Labels, at most 10 characters at 12x16 (120 px of the 124 px column).
 static constexpr const char* kCalLabels[PloughSettings::kCount] = {
-    VT_TEXT("SCHAREN", "SHARES", "EKEFEJEK"), VT_TEXT("PLOEGZIJDE", "PLOUGHSIDE", "EKEOLDAL"), VT_TEXT("HEF INVERT", "HITCH INV.", "MUNKAK.INV"), "BYPASS", VT_TEXT("DODE BAND", "DEADBAND", "HOLTJ\xC1T\xC9K"), VT_TEXT("CORR/SCH.", "CORR/SHARE", "KORR/FEJ"),
+    VT_TEXT("SCHAREN", "SHARES", "EKEFEJEK"), VT_TEXT("PLOEGZIJDE", "PLOUGHSIDE", "EKEOLDAL"), VT_TEXT("HEF INVERT", "HITCH INV.", "MUNKAK.INV"), VT_TEXT("HYDRAULIEK", "HYDRAULICS", "HIDRAULIKA"), VT_TEXT("DODE BAND", "DEADBAND", "HOLTJ\xC1T\xC9K"), VT_TEXT("CORR/SCH.", "CORR/SHARE", "KORR/FEJ"),
 #ifdef ISOBUS
     VT_TEXT("VOORK. VT", "PREF. VT", "PREF. VT"), "AG LEADER",
 #endif
@@ -490,11 +490,13 @@ static constexpr bool calLabelsFit(size_t maxChars, size_t i = 0) {
 // index is the value, the side list's is the side the plough gives (R = 0,
 // L = 1, as the cab wizard's L/R), the RTK list's is 0 for DGPS (2) and 1
 // for RTK (4). IsobusVtCalibration maps them. The lightbar list's index is
-// the LightbarMode value: Auto, On, Off.
+// the LightbarMode value: Auto, On, Off; the hydraulics list's the
+// HydraulicType value: Normal, Bypass, Danfoss.
 static const uint16_t kCalYesNoItems[2] = { Str_CalNo, Str_CalYes };
 static const uint16_t kCalSideItems[2]  = { Str_CalRight, Str_CalLeft };
 static const uint16_t kCalRtkItems[2]   = { Str_CalDgps, Str_CalRtk };
 static const uint16_t kCalLightbarItems[3] = { Str_CalAuto, Str_CalOn, Str_CalOff };
+static const uint16_t kCalHydraulicsItems[3] = { Str_CalNormal, Str_CalBypass, Str_CalDanfoss };
 
 // The unit texts `cm` and `mm`: two characters in the 12x16 font of the
 // values they follow (#282), top-aligned with them. Str_CalCm also follows
@@ -571,6 +573,9 @@ FLASHMEM static void appendCalibrationPage() {
             case SettingKind::LightbarMode:
                 appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalLightbarItems, 3);
                 break;
+            case SettingKind::Hydraulics:
+                appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalHydraulicsItems, 3);
+                break;
         }
     }
 
@@ -585,6 +590,12 @@ FLASHMEM static void appendCalibrationPage() {
     appendOutputString(Str_CalAuto, VAL_W, ROW_H, Font_White_Medium, 0, "AUTO", kOpaque);
     appendOutputString(Str_CalOn, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("AAN", "ON", "BE"), kOpaque);
     appendOutputString(Str_CalOff, VAL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("UIT", "OFF", "KI"), kOpaque);
+    // NORMAAL and DANFOSS are 7 characters, one more than the 12x16 column
+    // holds: the hydraulics entries take the state's 8x12 font.
+    static_assert(7 * 8 <= VAL_W, "value column narrower than DANFOSS at 8x12");
+    appendOutputString(Str_CalNormal, VAL_W, ROW_H, Font_White_State, 0, VT_TEXT("NORMAAL", "NORMAL", "NORMÁL"), kOpaque);
+    appendOutputString(Str_CalBypass, VAL_W, ROW_H, Font_White_State, 0, "BYPASS", kOpaque);
+    appendOutputString(Str_CalDanfoss, VAL_W, ROW_H, Font_White_State, 0, "DANFOSS", kOpaque);
     appendOutputString(Str_CalCm, kUnitW, kUnitH, Font_White_Medium, 0, "cm");
     appendOutputString(Str_CalMm, kUnitW, kUnitH, Font_White_Medium, 0, "mm");
 }
