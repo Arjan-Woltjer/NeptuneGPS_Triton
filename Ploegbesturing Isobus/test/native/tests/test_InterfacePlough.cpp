@@ -20,6 +20,7 @@
 */
 #include <AUnit.h>
 #include "InterfacePlough.hpp"
+#include "PloughGates.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -36,6 +37,7 @@ static VehicleSensors   mockTractor;
 static InterfaceI2CLCD  mockLcd;
 
 static void resetAll() {
+    gMinSpeedTenthsKmh = kDefaultMinSpeedTenthsKmh;   // a global (PloughGates.hpp)
     millisValue(0);
     EEPROM.eepromReset();
 

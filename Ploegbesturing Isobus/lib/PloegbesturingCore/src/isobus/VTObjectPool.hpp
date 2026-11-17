@@ -166,6 +166,10 @@ enum PloughVtObjectId : uint16_t {
     Str_CalAuto                = 164,
     Str_CalOn                  = 165,
     Str_CalOff                 = 166,
+    // The hydraulics setting's list entries.
+    Str_CalNormal              = 167,
+    Str_CalBypass              = 168,
+    Str_CalDanfoss             = 169,
 
     // AUX-N (#254): Breder and Smaller as Auxiliary Function Type 2 objects,
     // assignable to joystick or armrest inputs on the VT. Their designators
@@ -182,7 +186,193 @@ enum PloughVtObjectId : uint16_t {
     Str_StateHoldGps           = 175,
     Str_StateHand              = 176,
     Str_StateCal               = 177,
+    // The state strings' own 8x12 font: 9 characters in the 74 units beside
+    // the picture, where the 12x16 data font holds 6. Data mask only, like
+    // Font_White_Unit, so AgIsoStack scales it with the mask.
+    Font_White_State           = 178,
+
+    // ---- The width planner (fan-out / straightening) ----
+    // Main screen: the PLAN key, and the plan's word under the state line,
+    // in the state's 8x12 font, through a pointer; the passes left after it
+    // through a second pointer (NULL when the word has no count).
+    Key_Plan                   = 200,
+    Label_Plan                 = 201,
+    Ptr_PlanWord               = 202,
+    Ptr_PlanCount              = 203,
+    Out_PlanCount              = 204,
+    Var_PlanMleft              = 205,   // passes left; also on the planner page
+    Str_PlanWordXte            = 206,
+    Str_PlanWordNoPlan         = 207,
+    Str_PlanWordNoTrack        = 208,
+    Str_PlanWordField          = 209,   // the plan is another field's
+    Str_PlanWordEnd2           = 210,   // END 1 recorded, END 2 to go
+    Str_PlanWordRange          = 211,   // the plan does not fit Wmin..Wmax
+    Str_PlanWordStraight       = 212,   // + the count
+    Str_PlanWordFan            = 213,   // + the count
+    Str_PlanWordParallel       = 214,
+    Str_PlanWordDone           = 215,
+    Str_PlanWordWidth          = 216,   // the main width is not the track spacing
+
+    // The planner page: the settings as inputs, stored at once, where the
+    // plough is and the ends recorded, and the plan's state. Without track
+    // data the mode shows XTE and the tuning rows (a container behind a
+    // pointer) are left out.
+    Plough_PlanMask            = 220,
+    Plough_PlanSoftKeyMask     = 221,
+    Key_PlanMleftUp            = 222,
+    Key_PlanMleftDown          = 223,
+    Key_PlanEnd1               = 224,
+    Key_PlanRange              = 225,
+    Key_PlanBack               = 226,
+    Label_PlanUpA              = 227,   // two-line key labels: A on top, B under it
+    Label_PlanUpB              = 228,
+    Label_PlanDownA            = 229,
+    Label_PlanDownB            = 230,
+    Label_PlanEnd1A            = 231,
+    Label_PlanEnd1B            = 232,
+    Label_PlanRange            = 233,
+    Label_PlanBack             = 234,
+    Label_PlanMode             = 235,
+    Label_PlanK                = 236,
+    Label_PlanR                = 237,
+    Label_PlanSmooth           = 238,
+    Label_PlanNow              = 239,
+    Label_PlanState            = 240,
+    Label_PlanMleft            = 241,
+    Label_PlanM                = 242,
+    Label_PlanEnd1             = 243,
+    Ptr_PlanMode               = 244,   // Input_PlanMode, or Str_PlanModeXte alone
+    Input_PlanMode             = 245,   // index = WidthMode
+    Str_PlanModeXte            = 246,
+    Str_PlanModeStraight       = 247,
+    Str_PlanModeFan            = 248,
+    Ptr_PlanTuning             = 249,   // Cont_PlanTuning, or NULL
+    Cont_PlanTuning            = 250,
+    Input_PlanK                = 251,
+    Input_PlanR                = 252,
+    Input_PlanSmooth           = 253,
+    Str_PlanMeter              = 254,
+    Out_PlanNow                = 255,
+    Var_PlanNow                = 256,   // passes to the reference now, tenths
+    Out_PlanMleft              = 257,
+    Out_PlanM                  = 258,
+    Var_PlanM                  = 259,
+    Ptr_PlanEnd1               = 260,   // Out_PlanEnd1, or Str_PlanDash
+    Out_PlanEnd1               = 261,
+    Var_PlanEnd1               = 262,   // passes to the reference at END 1, tenths
+    Str_PlanDash               = 263,
+
+    // The width range page: Wmin and Wmax (MIN / MAX, stepped with + and -),
+    // the main width (NOM) and the plough's width now (NU), in cm, over a
+    // bar of the plough's whole range, 20 to 60 cm per share.
+    Plough_RangeMask           = 270,
+    Plough_RangeSoftKeyMask    = 271,
+    Key_RangeUp                = 272,
+    Key_RangeDown              = 273,
+    Key_RangeSelect            = 274,
+    Key_RangeSave              = 275,
+    Key_RangeCancel            = 276,
+    Label_RangeUp              = 277,
+    Label_RangeDown            = 278,
+    Label_RangeSelect          = 279,
+    Label_RangeSave            = 280,
+    Label_RangeCancel          = 281,
+    Label_RangeMin             = 282,
+    Label_RangeMax             = 283,
+    Label_RangeNom             = 284,
+    Label_RangeNow             = 285,
+    Ptr_RangeMinMark           = 286,   // Str_RangeMark on the value + and - step
+    Ptr_RangeMaxMark           = 287,
+    Str_RangeMark              = 288,
+    Str_RangeNoMark            = 289,
+    Out_RangeMin               = 290,
+    Out_RangeMax               = 291,
+    Out_RangeNom               = 292,
+    Out_RangeNow               = 293,
+    Var_RangeMin               = 294,   // cm, the whole plough
+    Var_RangeMax               = 295,
+    Var_RangeNom               = 296,
+    Var_RangeNow               = 297,
+    Bar_RangeMax               = 298,   // filled to Wmax, framed: the whole range
+    Bar_RangeMin               = 299,   // filled to Wmin over it, grey; NOM's line
+    Bar_RangeNow               = 300,   // a line at the width now
+    Var_BarMin                 = 301,   // mm per share, 200-600
+    Var_BarMax                 = 302,
+    Var_BarNom                 = 303,
+    Var_BarNow                 = 304,
+    Out_RangeLo                = 305,   // the bar's ends, cm: 20 and 60 per share
+    Out_RangeHi                = 306,
+    Var_RangeLo                = 307,
+    Var_RangeHi                = 308,
+    // The width now as 3 lines (Bar_RangeNow in the middle), on Var_BarNow.
+    Bar_RangeNowL              = 309,
+    Bar_RangeNowR              = 310,
+
+    // The planner page's ends (2026-11-16, in place of NIEUW VELD): where the
+    // plough is now and at each end, as passes to the reference, each through
+    // a pointer that shows Str_PlanDash while it is unknown.
+    Ptr_PlanNow                = 311,
+    Label_PlanEnd2             = 312,
+    Ptr_PlanEnd2               = 313,
+    Out_PlanEnd2               = 314,
+    Var_PlanEnd2               = 315,
+    Key_PlanEnd2               = 316,
+    Label_PlanEnd2A            = 317,
+    Label_PlanEnd2B            = 318,
+
+    // AUTO / KEZI on the main screen (2026-11-17), where LIMIT was: a tap
+    // toggles the operator's manual request; the label, rewritten with
+    // Change String Value, shows the choice held (kTextKeyAuto /
+    // kTextKeyManual). Not the old AUTO key's ids (5, 14, code 3, #282).
+    Key_AutoMan                = 320,
+    Label_AutoMan              = 321,
+    // HIDR. on the calibration page opens the hydraulics page.
+    Key_CalHyd                 = 324,
+    Label_CalHyd               = 325,
+
+    // The hydraulics page: the Danfoss tuning (DanfossParam) as inputs,
+    // stored at once, the signal on F1 now, and + / - to try it.
+    Plough_HydMask             = 330,
+    Plough_HydSoftKeyMask      = 331,
+    Key_HydBack                = 332,
+    Label_HydBack              = 333,
+    Label_HydTitle             = 334,
+    Label_Hyd0                 = 335,   // .. 339, one per page row (kHydRows)
+    Input_Hyd0                 = 340,   // .. 344
+    Label_HydSignal            = 345,
+    Out_HydSignal              = 346,
+    Var_HydSignal              = 347,   // the signal on F1, 0.1 %
+
+    // The range bar's correction limits (2026-11-17): red lines at the main
+    // width -/+ the max correction (KORR/FEJ), two lines each.
+    Bar_CorrLo                 = 348,
+    Bar_CorrLo2                = 349,
+    Bar_CorrHi                 = 350,
+    Bar_CorrHi2                = 351,
+    Var_BarCorrLo              = 352,   // mm per share, 200-600
+    Var_BarCorrHi              = 353,
+    // The width now 7 lines wide (3 until 2026-11-17): the 4 inner lines.
+    Bar_RangeNowL2             = 354,
+    Bar_RangeNowR2             = 355,
+    Bar_RangeNowL3             = 356,
+    Bar_RangeNowR3             = 357,
+
+    // The hydraulics page's first row (2026-11-17): the hydraulics type,
+    // moved from the calibration page (MIN km/h took its row there).
+    Label_HydType              = 358,
+    Input_HydType              = 359,
+    // KOZEP % only for Danfoss: its label and input in a container, behind
+    // a pointer that is NULL for the other types.
+    Cont_HydCenter             = 360,
+    Ptr_HydCenter              = 361,
 };
+
+// The AUTO / KEZI key's two labels, the same length (the label object's).
+extern const char* const kTextKeyAuto;
+extern const char* const kTextKeyManual;
+
+// The range bar's place on the main screen, under the four rows.
+constexpr uint16_t kMainBarY = 174;
 
 // Soft key positions per mask, for the owner's layout on a 2 x 6 key VT
 // (#282). The bench VT (AgISOVirtualTerminal) fills column 2 top to bottom,
@@ -210,7 +400,30 @@ enum PloughKeyCode : uint8_t {
     KeyCode_CalWider     = 9,
     KeyCode_CalCapture   = 10,
     KeyCode_CalWidthBack = 11,
+    KeyCode_Plan         = 12,
+    KeyCode_PlanMleftUp  = 13,
+    KeyCode_PlanMleftDown = 14,
+    KeyCode_PlanEnd1     = 15,
+    KeyCode_PlanRange    = 16,
+    KeyCode_PlanBack     = 17,
+    KeyCode_RangeUp      = 18,
+    KeyCode_RangeDown    = 19,
+    KeyCode_RangeSelect  = 20,
+    KeyCode_RangeSave    = 21,
+    KeyCode_RangeCancel  = 22,
+    KeyCode_PlanEnd2     = 23,
+    KeyCode_AutoMan      = 24,
+    KeyCode_CalHyd       = 25,
+    KeyCode_HydBack      = 26,
 };
+
+// The bar on the width range page spans the plough's whole range, in mm per
+// share (ImplementPlough clamps the setpoint to 20-60 cm per share).
+constexpr uint16_t kRangeBarMinMm = 200;
+constexpr uint16_t kRangeBarMaxMm = 600;
+
+// The pool buffer's size; the pool test checks the pool fits it.
+constexpr uint32_t kVtPoolCapacity = 20480;
 
 // Populated by BuildObjectPool(); passed to VirtualTerminalClient::set_object_pool().
 extern const uint8_t* VT3PoolData;

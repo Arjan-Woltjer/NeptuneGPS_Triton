@@ -2,6 +2,10 @@
 
 ## What is here
 
+- **`HASZNALATI_UTMUTATO.md`** -- the operator's manual, in Hungarian: where
+  everything is on the VT, setting the plough up after fitting, the width
+  calibration, the physical limits (LIMIT), and how to start ploughing. The
+  screenshots are in `images/vt-hu/`.
 - **`HardwareTestNotes.md`** -- the per-session record of this firmware's
   behaviour on real rigs, session by session. Stays with the project on
   purpose: it is tied to this repo's issue numbers and source files.
