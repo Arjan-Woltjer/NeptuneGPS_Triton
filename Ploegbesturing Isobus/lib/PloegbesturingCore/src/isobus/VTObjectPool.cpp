@@ -593,7 +593,7 @@ FLASHMEM static void appendCalibrationPage() {
     // NORMAAL and DANFOSS are 7 characters, one more than the 12x16 column
     // holds: the hydraulics entries take the state's 8x12 font.
     static_assert(7 * 8 <= VAL_W, "value column narrower than DANFOSS at 8x12");
-    appendOutputString(Str_CalNormal, VAL_W, ROW_H, Font_White_State, 0, VT_TEXT("NORMAAL", "NORMAL", "NORMÁL"), kOpaque);
+    appendOutputString(Str_CalNormal, VAL_W, ROW_H, Font_White_State, 0, VT_TEXT("NORMAAL", "NORMAL", "NORM\xC1L"), kOpaque);
     appendOutputString(Str_CalBypass, VAL_W, ROW_H, Font_White_State, 0, "BYPASS", kOpaque);
     appendOutputString(Str_CalDanfoss, VAL_W, ROW_H, Font_White_State, 0, "DANFOSS", kOpaque);
     appendOutputString(Str_CalCm, kUnitW, kUnitH, Font_White_Medium, 0, "cm");
