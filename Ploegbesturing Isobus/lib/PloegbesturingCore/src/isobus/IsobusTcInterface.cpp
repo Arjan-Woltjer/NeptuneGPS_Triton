@@ -53,6 +53,7 @@ namespace {
 constexpr std::uint16_t kElementDevice    = 0;
 constexpr std::uint16_t kElementConnector = 1;
 constexpr std::uint16_t kElementFunction  = 2;
+constexpr std::uint16_t kElementSection   = 3;  // TC11, see buildDdop()
 
 constexpr std::uint16_t kObjDevice       = 0;
 constexpr std::uint16_t kObjPloughDevice = 1;  // root DeviceElement, Type::Device -- see buildDdop()
@@ -73,6 +74,15 @@ constexpr std::uint16_t kObjTrackRight            = 13;  // DDI 510
 constexpr std::uint16_t kObjTrackLeft             = 14;  // DDI 511
 constexpr std::uint16_t kObjTramlineState         = 15;  // DDI 515
 constexpr std::uint16_t kObjWorkState             = 16;  // DDI 141 (#305)
+
+// TC11: the plough as one section, and the track spacing.
+constexpr std::uint16_t kObjSwathWidth     = 17;  // DDI 512, written by the TC
+constexpr std::uint16_t kObjSection        = 18;  // DeviceElement, Type::Section, under Ploughbody
+constexpr std::uint16_t kObjSectionOffsetX = 19;  // DDI 134, property
+constexpr std::uint16_t kObjSectionOffsetY = 20;  // DDI 135, property
+constexpr std::uint16_t kObjActualWidth    = 21;  // DDI 67, reported by us
+constexpr std::uint16_t kObjDefaultWidth   = 22;  // DDI 68, property
+constexpr std::uint16_t kObjCondensedActual = 23; // DDI 161, reported by us (TC12)
 
 // DDI 505 value: bitfield of Tramline Control Levels we support.
 //   bit 0 = Level 1, bit 1 = Level 2, bit 2 = Level 3
@@ -162,6 +172,13 @@ constexpr std::int32_t kTramlineControlLevelsSupported = 1;
 constexpr std::int32_t kHitchOffsetXMm = 0;
 constexpr std::int32_t kHitchOffsetYMm = 0;
 
+// Where the plough's one section sits (TC11): on the tractor's centre line,
+// 1.5 m behind the hitch. ISO 11783-10 counts X positive in the direction of
+// travel, so behind is negative. The owner's usual geometry (2026-11-16), not
+// a measurement of a particular plough.
+constexpr std::int32_t kSectionOffsetXMm = -1500;
+constexpr std::int32_t kSectionOffsetYMm = 0;
+
 }  // namespace
 
 // ------------------------------------------------------------------
@@ -190,7 +207,7 @@ void IsobusTcInterface::buildDdop() {
     ddop->add_device("MeijWorks Ploegbesturing",
                       "0.1.0",
                       "001",
-                      "TC07",  // Structure label -- bumped from TC01 for the
+                      "TC12",  // Structure label -- bumped from TC01 for the
                                // tree-shape fix (root Device element +
                                // child-object references added, see below),
                                // then TC02 -> TC03 for the Tramline Control
@@ -212,6 +229,14 @@ void IsobusTcInterface::buildDdop() {
                                // width + NAME) carries it on its own branch and
                                // may have been uploaded under it, so it is
                                // treated as burned like TC04.
+                               // TC08 (#162), TC09 and TC10 (the #347
+                               // one-section spikes) are burned the same way.
+                               // TC11 adds one Section element under
+                               // Ploughbody (offsets, DDIs 67 and 68) and
+                               // DDI 512: the AgOpenGPS TC only sends guidance
+                               // data to a client with at least one section.
+                               // TC12 adds DDI 161 on Ploughbody, so that TC
+                               // paints the section from the hitch.
                                // Bump this on every DDOP tree change
                                // (added/removed/renumbered objects), see
                                // design doc sec 4.5. Terminals cache pools by
@@ -384,6 +409,12 @@ void IsobusTcInterface::buildDdop() {
                                    static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheLeft),
                                    NULL_OBJECT_ID,
                                    kSettable, kTriggers, kObjTrackLeft);
+    // DDI 512, the spacing between two guidance tracks (AgOpenGPS's tool width
+    // minus overlap). Written to us, like 508-511.
+    ddop->add_device_process_data("Guidance Line Swath Width",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceLineSwathWidth),
+                                   NULL_OBJECT_ID,
+                                   kSettable, kTriggers, kObjSwathWidth);
 
     // Same attachment requirement as the Connector's Offset X/Y above.
     auto functionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjFunction));
@@ -398,6 +429,57 @@ void IsobusTcInterface::buildDdop() {
     functionElement->add_reference_to_child_object(kObjActualTrack);
     functionElement->add_reference_to_child_object(kObjTrackRight);
     functionElement->add_reference_to_child_object(kObjTrackLeft);
+    functionElement->add_reference_to_child_object(kObjSwathWidth);
+
+    // --- One section (TC11) -------------------------------------------------
+    // The AgOpenGPS TC maps a client's guidance DDIs (507-513), its track
+    // control DDIs and DDI 514 only for a client with at least one section
+    // (task_controller.cpp, get_number_of_sections() > 0); with none it sends
+    // us nothing but the global PGNs (bench 2026-11-16). AgIsoStack's geometry
+    // reader, which that TC uses, counts a Section element whose parent is a
+    // Function element as one section of one boom, so the plough body gets one
+    // section of its own width.
+    //
+    // No section control: no DDI 160, 161 or 290, so the TC has nothing to
+    // switch, and the plough does nothing a TC asks of a section. The width is
+    // the plough's measured width (67) and, as a fixed value for a TC that
+    // reads the geometry once, the width set at boot (68).
+    ddop->add_device_element("Section 1", kElementSection, kObjFunction,
+                              task_controller_object::DeviceElementObject::Type::Section, kObjSection);
+    ddop->add_device_property("Offset X", kSectionOffsetXMm,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::DeviceElementOffsetX),
+                               NULL_OBJECT_ID, kObjSectionOffsetX);
+    ddop->add_device_property("Offset Y", kSectionOffsetYMm,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::DeviceElementOffsetY),
+                               NULL_OBJECT_ID, kObjSectionOffsetY);
+    // Not settable: the TC can't set the width this way.
+    ddop->add_device_process_data("Actual Working Width",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth),
+                                   NULL_OBJECT_ID,
+                                   kDefaultSet, kTriggers, kObjActualWidth);
+    // offset is the plough's working width in cm (ImplementPlough::setOffset).
+    const std::int32_t defaultWidthMm = (implement != nullptr) ? implement->GetOffset() * 10 : 0;
+    ddop->add_device_property("Default Working Width", defaultWidthMm,
+                               static_cast<std::uint16_t>(DataDescriptionIndex::DefaultWorkingWidth),
+                               NULL_OBJECT_ID, kObjDefaultWidth);
+    // DDI 161 on the section's parent, per its definition: the section's
+    // actual state, from the hitch like 141 (TC12). The AgOpenGPS TC copies
+    // it straight into its section states and paints with them; from 141
+    // alone only builds with its "dedicated parent function" feedback
+    // (AOG-TaskController PR #76) do, and the installed one (v246966d, bench
+    // 2026-11-16) painted nothing. Not settable: the TC can't switch it, and
+    // it stays the hitch whatever the TC wants.
+    ddop->add_device_process_data("Actual Condensed Work State",
+                                   static_cast<std::uint16_t>(DataDescriptionIndex::ActualCondensedWorkState1_16),
+                                   NULL_OBJECT_ID,
+                                   kDefaultSet, kTriggers, kObjCondensedActual);
+    functionElement->add_reference_to_child_object(kObjCondensedActual);
+
+    auto sectionElement = std::static_pointer_cast<task_controller_object::DeviceElementObject>(ddop->get_object_by_id(kObjSection));
+    sectionElement->add_reference_to_child_object(kObjSectionOffsetX);
+    sectionElement->add_reference_to_child_object(kObjSectionOffsetY);
+    sectionElement->add_reference_to_child_object(kObjActualWidth);
+    sectionElement->add_reference_to_child_object(kObjDefaultWidth);
 }
 
 // ------------------------------------------------------------------
@@ -433,8 +515,8 @@ void IsobusTcInterface::Begin() {
     tcClient = std::make_shared<TaskControllerClient>(partner, controlFunction, primaryVtPartner);
 
     tcClient->configure(ddop,
-                        0,      // maxNumberBoomsSupported -- plough has no booms
-                        0,      // maxNumberSectionsSupported -- no section control
+                        1,      // maxNumberBoomsSupported -- the plough body (TC11)
+                        1,      // maxNumberSectionsSupported -- one section, no section control
                         1,      // maxNumberChannelsSupportedForPositionBasedControl
                         false,  // reportToTCSupportsDocumentation
                         false,  // ...TCGEOWithoutPositionBasedControl
@@ -470,6 +552,8 @@ void IsobusTcInterface::SetWorking(bool isWorking) {
     // that connects later reads the current value by request or trigger.
     if (IsConnected()) {
         tcClient->on_value_changed_trigger(kElementFunction, static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkState));
+        // The section's state is the same hitch (TC12).
+        tcClient->on_value_changed_trigger(kElementFunction, static_cast<std::uint16_t>(DataDescriptionIndex::ActualCondensedWorkState1_16));
     }
 }
 
@@ -683,6 +767,12 @@ bool IsobusTcInterface::OnValueCommand(std::uint16_t elementNumber,
             self->lastGuidanceTrackMs = millis();
             break;
 
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceLineSwathWidth):  // 512, mm
+            self->swathWidthMm     = processVariableValue;
+            self->swathWidthSeen   = true;
+            self->lastSwathWidthMs = millis();
+            break;
+
         default:
             break;
     }
@@ -727,6 +817,12 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
             processVariableValue = self->working ? 1 : 0;
             break;
 
+        // One section in bits 0-1 (01 = on, 00 = off); the other fifteen read
+        // 11 = not installed, as the DDI 161 definition asks.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualCondensedWorkState1_16):  // 161
+            processVariableValue = CondensedWorkState(self->working);
+            break;
+
         case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackSequenceNumber):  // 507
             processVariableValue = self->tramlineSequenceNumber;
             break;
@@ -759,6 +855,15 @@ bool IsobusTcInterface::OnValueRequest(std::uint16_t elementNumber,
 
         case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceTrackNumberToTheLeft):
             processVariableValue = self->trackNumberLeft;
+            break;
+
+        case static_cast<std::uint16_t>(DataDescriptionIndex::GuidanceLineSwathWidth):  // 512
+            processVariableValue = self->swathWidthMm;
+            break;
+
+        // The plough's measured working width in mm; ImplementPlough keeps cm.
+        case static_cast<std::uint16_t>(DataDescriptionIndex::ActualWorkingWidth):  // 67
+            processVariableValue = (self->implement != nullptr) ? self->implement->GetPosition() * 10 : 0;
             break;
 
         default:

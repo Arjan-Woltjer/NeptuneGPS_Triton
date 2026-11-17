@@ -786,37 +786,43 @@ test(ImplementPlough, deadband_loadAcceptsTwoToTen) {
 }
 
 // ---------------------------------------------------------------------------
-// Bypass valve (EEPROM 68, 1 = fitted). Fitted: driven with the narrower and
-// wider valve, closed at Stop. Not fitted, the default: the output stays off.
+// Hydraulics (EEPROM 68: 0 normal, 1 bypass valve -- the old yes/no -- and
+// 2 Danfoss). Bypass: the bypass output driven with the narrower and wider
+// valve, closed at Stop. Normal, the default: the output stays off. Danfoss:
+// the signal on the narrow output, 50 % at rest, 12.5 % narrower, 87.5 % wider,
+// the wide output low, and the PVE's supply on the bypass output throughout.
 // ---------------------------------------------------------------------------
 
-static bool loadedBypass(byte stored) {
+static int loadedHydraulics(byte stored) {
     resetAll();
     EEPROM.write(68, stored);
-    return ImplementPlough(nullptr, &mockGuidance).GetBypass();
+    return int(ImplementPlough(nullptr, &mockGuidance).GetHydraulics());
 }
 
-test(ImplementPlough, bypass_storedAsOneOrZero) {
-    assertTrue(loadedBypass(1));
-    assertFalse(loadedBypass(0));
-    assertFalse(loadedBypass(7));    // not 0/1: no
+test(ImplementPlough, hydraulics_storedAsZeroOneOrTwo) {
+    assertEqual(loadedHydraulics(0), (int)HydraulicType::Normal);
+    assertEqual(loadedHydraulics(1), (int)HydraulicType::Bypass);
+    assertEqual(loadedHydraulics(2), (int)HydraulicType::Danfoss);
+    assertEqual(loadedHydraulics(7), (int)HydraulicType::Normal);   // out of range
     resetAll();
-    assertFalse(ImplementPlough(nullptr, &mockGuidance).GetBypass());   // erased: no
+    assertEqual((int)ImplementPlough(nullptr, &mockGuidance).GetHydraulics(),
+                (int)HydraulicType::Normal);                         // erased
 }
 
-test(ImplementPlough, bypass_survivesCommitAndBoot) {
+test(ImplementPlough, hydraulics_surviveCommitAndBoot) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
-    impl.SetBypass(true);
+    impl.SetHydraulics(HydraulicType::Danfoss);
     impl.CommitCalibration();
-    assertEqual((int)EEPROM.read(68), 1);
-    assertTrue(ImplementPlough(nullptr, &mockGuidance).GetBypass());
+    assertEqual((int)EEPROM.read(68), 2);
+    assertEqual((int)ImplementPlough(nullptr, &mockGuidance).GetHydraulics(),
+                (int)HydraulicType::Danfoss);
 }
 
 test(ImplementPlough, bypass_fitted_drivenWithTheValvesAndClosedAtStop) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
-    impl.SetBypass(true);
+    impl.SetHydraulics(HydraulicType::Bypass);
     impl.Adjust(2, 1);                                   // narrower
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
     impl.Adjust(2, 0);                                   // within the deadband: stop
@@ -827,12 +833,88 @@ test(ImplementPlough, bypass_fitted_drivenWithTheValvesAndClosedAtStop) {
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
 }
 
-test(ImplementPlough, bypass_notFitted_outputStaysOff) {
+test(ImplementPlough, normal_bypassOutputStaysOff) {
     resetAll();
     ImplementPlough impl(nullptr, &mockGuidance);
     impl.Adjust(2, 1);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
     impl.Adjust(2, -1);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
+}
+
+// F2 powers the valve only once the signal has sat at neutral for
+// kDanfossPowerDelayMs; until then F1 stays neutral whatever is asked.
+test(ImplementPlough, danfoss_powersUpOnNeutralOnly) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetHydraulics(HydraulicType::Danfoss);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNeutralPwm);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
+    impl.Narrower(255);                                  // too early: neutral, unpowered
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNeutralPwm);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
+    millisValue(kDanfossPowerDelayMs);
+    impl.Narrower(255);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNarrowerPwm);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+}
+
+test(ImplementPlough, danfoss_signalOnF1_supplyOnF2AllTheTime) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetHydraulics(HydraulicType::Danfoss);
+    millisValue(kDanfossPowerDelayMs);
+    impl.Stop();
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNeutralPwm);   // idle at 50 %
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+    impl.Narrower(255);                                  // full deflection
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNarrowerPwm);  // 12.5 %
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+    impl.Wider(255);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossWiderPwm);     // 87.5 %
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+    impl.Stop();
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNeutralPwm);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+}
+
+// The buttons drive at kDanfossManualPwm: 35 % / 65 %, not full deflection.
+test(ImplementPlough, danfoss_manual_drivesAtTheManualDeflection) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetHydraulics(HydraulicType::Danfoss);
+    millisValue(kDanfossPowerDelayMs);
+    impl.Adjust(2, 1);                                   // narrower
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2),
+                kDanfossNeutralPwm - (kDanfossNeutralPwm - kDanfossNarrowerPwm) * kDanfossManualPwm / 255);
+    impl.Adjust(2, 0);                                   // within the deadband: stop
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNeutralPwm);
+    impl.Adjust(2, -1);                                  // wider
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2),
+                kDanfossNeutralPwm + (kDanfossWiderPwm - kDanfossNeutralPwm) * kDanfossManualPwm / 255);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+}
+
+test(ImplementPlough, danfoss_idlesAtFiftyPercentFromBoot) {
+    resetAll();
+    EEPROM.write(68, 2);
+    ImplementPlough impl(nullptr, &mockGuidance);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)kDanfossNeutralPwm);
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);   // powered after the delay
+    millisValue(kDanfossPowerDelayMs);
+    impl.Stop();
+    assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 255);
+}
+
+test(ImplementPlough, danfoss_backToNormal_solenoidsSwitchAgain) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    impl.SetHydraulics(HydraulicType::Danfoss);
+    impl.SetHydraulics(HydraulicType::Normal);
+    impl.Adjust(2, 1);
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
 }

@@ -59,7 +59,7 @@ static int16_t storedByte(PloughSetting id) {
 static const int16_t kEdited[PloughSettings::kCount] = { 6, 1, 1, 1, 5, 75, 2, 2, 2 };
 
 test(PloughSettings, table_followsTheWizardOrder_withUniqueKeys) {
-    static const char* const expected[] = { "shares", "side", "hitchinv", "bypass", "deadband", "maxcorr", "vt", "lightbar", "rtkq" };
+    static const char* const expected[] = { "shares", "side", "hitchinv", "hydraulics", "deadband", "maxcorr", "vt", "lightbar", "rtkq" };
     assertEqual((int)PloughSettings::kCount, 9);
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         const PloughSettingLine& line = PloughSettings::Line(PloughSetting(i));
@@ -111,7 +111,7 @@ test(PloughSettings, set_isStagedOnly_nothingReachesThePloughOrEepromBeforeSave)
     assertEqual((int)r.impl.GetShares(), (int)kDefaultShares);
     assertFalse(r.impl.GetSwap());
     assertFalse(psTractor.GetInversion());
-    assertFalse(r.impl.GetBypass());
+    assertEqual((int)r.impl.GetHydraulics(), (int)HydraulicType::Normal);
     assertEqual((int)r.impl.GetDeadband(), (int)kDefaultDeadband);
     assertEqual((int)r.impl.GetMaxCorrectionPerShare(), (int)kDefaultMaxCorrectionPerShareMm);
     assertEqual((int)r.cal.GetPreferredVt(), 0);
@@ -135,7 +135,7 @@ test(PloughSettings, save_appliesTheDraft_andWritesEachValueAtItsTableAddress) {
     assertEqual((int)r.impl.GetShares(), 6);
     assertTrue(r.impl.GetSwap());
     assertTrue(psTractor.GetInversion());
-    assertTrue(r.impl.GetBypass());
+    assertEqual((int)r.impl.GetHydraulics(), (int)HydraulicType::Bypass);
     assertEqual((int)r.impl.GetDeadband(), 5);
     assertEqual((int)r.impl.GetMaxCorrectionPerShare(), 75);
     assertEqual((int)r.cal.GetPreferredVt(), 2);
@@ -241,8 +241,12 @@ test(PloughSettings, step_staysInsideTheBounds_andJumpsForTwoValueSettings) {
     assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 2, -1), (int16_t)1);
     assertEqual(PloughSettings::Step(PloughSetting::Lightbar, 0, -1), (int16_t)0);
     // The wizard's screens: + is yes / swap / RTK fixed, - is no / no swap / DGPS.
-    assertEqual(PloughSettings::Step(PloughSetting::Bypass, 0, 1), (int16_t)1);
-    assertEqual(PloughSettings::Step(PloughSetting::Bypass, 1, 1), (int16_t)1);
+    // The hydraulics have three values too: normal, bypass, Danfoss.
+    assertEqual(PloughSettings::Step(PloughSetting::Hydraulics, 0, 1), (int16_t)1);
+    assertEqual(PloughSettings::Step(PloughSetting::Hydraulics, 1, 1), (int16_t)2);
+    assertEqual(PloughSettings::Step(PloughSetting::Hydraulics, 2, 1), (int16_t)2);
+    assertEqual(PloughSettings::Step(PloughSetting::Hydraulics, 2, -1), (int16_t)1);
+    assertFalse(PloughSettings::IsValid(PloughSetting::Hydraulics, 3));
     assertEqual(PloughSettings::Step(PloughSetting::Swap, 1, -1), (int16_t)0);
     assertEqual(PloughSettings::Step(PloughSetting::RtkQuality, 2, 1), (int16_t)4);
     assertEqual(PloughSettings::Step(PloughSetting::RtkQuality, 4, -1), (int16_t)2);

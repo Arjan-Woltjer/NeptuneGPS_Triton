@@ -35,6 +35,8 @@
 namespace triton
 {
 
+class IsobusVtPlanner;   // IsobusVtPlanner.hpp
+
 // The plough's VtWorkingSet (NeptuneGPS_Triton#287): its object pool
 // (VTObjectPool.cpp), the working screen's values, the soft keys, the AUX-N
 // functions Breder and Smaller, and the calibration page. IsobusVtInterface
@@ -83,6 +85,10 @@ public:
     // logged. main.cpp attaches it after IsobusVtInterface::Begin().
     void AttachCalibration(IsobusVtCalibration* page) { calibration = page; }
 
+    // The width planner's pages and main screen word, PLAN's key. Without
+    // one the key does nothing. main.cpp attaches it after WidthPlanning.
+    void AttachPlanner(IsobusVtPlanner* pages) { planner = pages; }
+
     // The control's state for the main screen (#318): InterfacePlough's mode
     // (0 AUTO, 1 HOLD, 2 MANUAL) and whether a calibration holds the control
     // (CalibrationPlough::HoldsTheControl()). main.cpp sets both every
@@ -125,6 +131,7 @@ private:
 
     std::shared_ptr<isobus::VirtualTerminalClient> client;
     IsobusVtCalibration*                           calibration = nullptr;
+    IsobusVtPlanner*                               planner = nullptr;
 
     // On-change gating for UpdateValues() -- added 2026-08-10 (van
     // Mastwijk) after Session 4 found intermittent post-Connect drops
@@ -167,6 +174,7 @@ private:
     // its release acts, any other release does not (#320). 0xFFFF = none.
     static constexpr uint16_t kNoTapKey = 0xFFFF;
     uint16_t      pressedTapKey = kNoTapKey;
+    unsigned long pressedTapKeyAt = 0;   // when it went down: NIEUW VELD is held
 
     AuxInputs     aux;
     unsigned int  auxWiderEvents    = 0;
