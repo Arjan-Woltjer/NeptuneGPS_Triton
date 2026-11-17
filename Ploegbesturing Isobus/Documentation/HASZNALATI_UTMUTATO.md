@@ -134,7 +134,8 @@ Az automata kitérése a holtsáv szélén AUTO MIN, és onnan egyenletesen nő 
 
 **Gombok:**
 - **MENET +1 / −1:** javítja a menetszámlálót.
-- **VÉG 1 / VÉG 2:** a tábla két végének rögzítése.
+- **VÉG 1:** **új tervet indít**: rögzíti a kiinduló pontot, a tábla egyik végét. A régi terv ezzel elvész. Ha már van terv, a gombot **1 másodpercig nyomva kell tartani**, hogy egy véletlen érintés ne dobja el; terv nélkül elég megnyomni.
+- **VÉG 2:** a tábla másik végének rögzítése. Ebből a kettőből számolja ki a tervező a meneteket.
 - **VISSZ:** vissza a főképernyőre.
 
 A MÓD, EGYENESÍT, PÁRHUZAMOS és SIMÍTÁS azonnal tárolódik.
