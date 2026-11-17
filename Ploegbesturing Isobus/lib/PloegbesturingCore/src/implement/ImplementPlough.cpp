@@ -220,8 +220,8 @@ void ImplementPlough::setSetpoint() {
     // the previous furrow, and the simulator showed a correction on top
     // makes the furrows worse. Kept within the same limits as offset.
     if (plannedWidthSet) {
-        const int lowest  = shares * 20;
-        const int highest = shares * 60;
+        const int lowest  = GetWidthLowest();
+        const int highest = GetWidthHighest();
         int wanted = plannedWidth;
         if (wanted > highest) wanted = highest;
         if (wanted < lowest)  wanted = lowest;
@@ -243,14 +243,19 @@ void ImplementPlough::setSetpoint() {
         pe = maxCorrectionCm;
     }
 
-    // calculate setpoint
-    setpoint = offset + ((GetSide() * 2) - 1) * pe;
+    // calculate setpoint, inside LIMIT: the correction never asks for more
+    // than the plough can do (2026-11-17: 204 cm asked on a 192 cm limit
+    // drove it against the stop).
+    int wanted = offset + ((GetSide() * 2) - 1) * pe;
+    if (wanted > GetWidthHighest()) wanted = GetWidthHighest();
+    if (wanted < GetWidthLowest())  wanted = GetWidthLowest();
+    setpoint = static_cast<short int>(wanted);
 }
 
 // ------------------------------
 // Method for adjusting implement
 // ------------------------------
-void ImplementPlough::Adjust(byte mode, short int direction) {
+void ImplementPlough::Adjust(byte mode, short int direction, bool limited) {
     short int actualPosition = 0;
     byte pwm = 0;
 
@@ -269,6 +274,14 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
             // watches the measured position, as in auto (#244).
             actualPosition = setpoint - (direction * (deadband + 1));
             pwm = kValvePwm;
+            // Not past LIMIT on the buttons, once one is set (WidthPlanning;
+            // the builds without it keep the buttons as they were). +1 moves
+            // the width up, as auto's Narrower() does, -1 down.
+            if (limited && widthHighestCm > 0 &&
+                ((direction > 0 && position >= GetWidthHighest()) ||
+                 (direction < 0 && position <= GetWidthLowest()))) {
+                actualPosition = setpoint;
+            }
     }
 
     // A proportional valve in auto: the deflection follows the error, so it

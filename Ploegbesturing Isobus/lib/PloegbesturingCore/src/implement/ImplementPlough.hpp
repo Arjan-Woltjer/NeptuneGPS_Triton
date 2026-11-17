@@ -143,6 +143,10 @@ private:
     boolean   plannedWidthSet;
     short int plannedWidth;
 
+    // LIMIT, cm (SetWidthLimits()); 0 = none set.
+    short int widthLowestCm  = 0;
+    short int widthHighestCm = 0;
+
     // Variables for adjusting ploughside and amount of shares
     boolean swap;
     byte    shares;
@@ -193,7 +197,9 @@ public:
     void Stop();
     void Narrower(byte pwm);
     void Wider(byte pwm);
-    void Adjust(byte mode, short int direction);
+    // `limited` false: the width procedure, which must reach its points
+    // whatever LIMIT says. Otherwise the buttons stop at the width limits.
+    void Adjust(byte mode, short int direction, bool limited = true);
     void PrintCalibrationData();
 
     // ----------------------------------------------------------------
@@ -348,6 +354,21 @@ public:
     }
     inline boolean HasPlannedWidth() {
         return plannedWidthSet;
+    }
+
+    // LIMIT (the planner's Wmin..Wmax, the plough's physical range), in cm,
+    // every loop() pass from WidthPlanning: the setpoint stays inside it in
+    // every mode, and the buttons do not drive past it. 0 / 0: none set, the
+    // 20..60 cm per share the offset keeps to.
+    inline void SetWidthLimits(short int lowestCm, short int highestCm) {
+        widthLowestCm  = lowestCm;
+        widthHighestCm = highestCm;
+    }
+    inline short int GetWidthLowest() const {
+        return widthLowestCm > 0 ? widthLowestCm : short(shares * 20);
+    }
+    inline short int GetWidthHighest() const {
+        return widthHighestCm > 0 ? widthHighestCm : short(shares * 60);
     }
 };
 

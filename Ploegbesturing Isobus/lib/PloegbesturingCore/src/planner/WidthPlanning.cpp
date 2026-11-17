@@ -152,6 +152,9 @@ void WidthPlanning::Update() {
         if (planner.IsDirty()) writePlan();
     }
     implement->SetPlannedWidth(planner.HasSetpoint(), planner.GetSetpointCm());
+    // LIMIT is the plough's physical range, in every mode.
+    implement->SetWidthLimits(short(wminPerShare * implement->GetShares()),
+                              short(wmaxPerShare * implement->GetShares()));
 }
 
 EndResult WidthPlanning::RecordEnd(uint8_t end) {

@@ -918,3 +918,38 @@ test(ImplementPlough, danfoss_backToNormal_solenoidsSwitchAgain) {
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
     assertEqual(analogWriteValue(OUTPUT_BYPASS_2), 0);
 }
+
+// ---------------------------------------------------------------------------
+// LIMIT (SetWidthLimits, the plough's physical range): the setpoint stays
+// inside it, and the buttons stop at it -- but not in the width procedure.
+// ---------------------------------------------------------------------------
+test(ImplementPlough, limits_clampTheXteSetpoint) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);   // 4 shares, offset 160
+    impl.SetWidthLimits(140, 170);
+    millisValue(10);
+    mockGuidance.SetXte(15);                         // 160 + 15, past 170
+    impl.Update(0, 0);
+    assertTrue(impl.GetSetpoint() <= 170);
+    assertTrue(impl.GetSetpoint() >= 140);
+    millisValue(20);
+    mockGuidance.SetXte(-40);                        // 160 - 20 (max correction), 140
+    impl.Update(0, 0);
+    assertTrue(impl.GetSetpoint() >= 140);
+}
+
+test(ImplementPlough, limits_buttonsStopAtThem_theWidthProcedureDoesNot) {
+    resetAll();
+    ImplementPlough impl(nullptr, &mockGuidance);
+    // The width read is 0 before any Update(): at or below the lowest. +1
+    // moves the width up (Narrower(), as auto uses it), -1 down (Wider()).
+    impl.SetWidthLimits(80, 240);
+    impl.Adjust(2, -1);                              // down: refused
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), LOW);
+    impl.Adjust(2, 1);                               // up: fine
+    assertEqual(digitalWriteValue(OUTPUT_NARROW_2), HIGH);
+    impl.Stop();
+    impl.Adjust(2, -1, false);                       // the width procedure: not limited
+    assertEqual(digitalWriteValue(OUTPUT_WIDE_2), HIGH);
+}
