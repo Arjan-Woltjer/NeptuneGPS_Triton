@@ -27,6 +27,15 @@
 #include "../config/ConfigImplementPlough.hpp"
 #include "TritonIo.hpp"
 
+// The ESP32 rate board's narrow and wide outputs are the two inputs of one
+// TB67H451 bridge (F1 / MOT9). For a proportional valve's signal this
+// matters: IN1 = IN2 = low leaves the output floating (a meter read 9 V for
+// 50 % on 12 V), so the signal holds IN1 high and puts the inverted duty on
+// IN2 -- high/low drives F1 high, high/high brakes it low.
+#if defined(ESP32RC) && !defined(OUTPUT_VALVE_BRIDGE_2)
+#define OUTPUT_VALVE_BRIDGE_2
+#endif
+
 namespace triton
 {
 
@@ -66,6 +75,36 @@ static constexpr byte kValvePwm = 255;
 // this in well under the shutoff time.
 static constexpr short int kShutoffMoveCm = 2;
 
+// The plough's hydraulics (EEPROM 68, which held the old bypass yes/no, so
+// 0 and 1 keep their meaning):
+//   Normal  -- narrower / wider solenoids only.
+//   Bypass  -- plus the bypass output, on while either solenoid is.
+//   Danfoss -- a proportional valve (Danfoss PVE): the signal on the narrow
+//              output (F1), 50 % neutral, 12.5 % one way, 87.5 % the other; the
+//              wide output stays low. The bypass output (F2) is the PVE's
+//              supply, on all the time: it wants power, then the signal.
+enum class HydraulicType : byte {
+    Normal  = 0,
+    Bypass  = 1,
+    Danfoss = 2,
+};
+static constexpr byte kHighestHydraulicType = byte(HydraulicType::Danfoss);
+
+// The Danfoss signal duties on F1, of 255.
+static constexpr byte kDanfossNeutralPwm  = 128;   // 50 %
+static constexpr byte kDanfossNarrowerPwm = 32;    // 12.5 %, as the original controller (1.75 V of 14)
+static constexpr byte kDanfossWiderPwm    = 223;   // 87.5 %, as the original controller (12.25 V of 14)
+// In auto the deflection follows the error past the deadband: the least
+// that still moves the spool (of 255, 35 %) just outside it, full from
+// kDanfossFullErrorCm on. Narrower / Wider take it as their pwm.
+static constexpr int kDanfossMinPwm      = 90;
+static constexpr int kDanfossFullErrorCm = 10;
+// Manual (the buttons): 40 % of the deflection, 35 % / 65 % on F1.
+static constexpr byte kDanfossManualPwm  = 102;
+// F2 (the valve's power, through a relay) comes on this long after the signal
+// was set to neutral at boot or on a change of hydraulics.
+static constexpr unsigned long kDanfossPowerDelayMs = 500;
+
 class ImplementPlough {
 private:
     //-------------
@@ -99,12 +138,23 @@ private:
 
     short int offset;
 
+    // A width from WidthPlanning (fan-out / straightening), in cm. While
+    // set, it is the setpoint instead of offset plus the XTE correction.
+    boolean   plannedWidthSet;
+    short int plannedWidth;
+
+    // LIMIT, cm (SetWidthLimits()); 0 = none set.
+    short int widthLowestCm  = 0;
+    short int widthHighestCm = 0;
+
     // Variables for adjusting ploughside and amount of shares
     boolean swap;
     byte    shares;
 
-    // Bypass valve fitted: driven together with the narrower/wider valves
-    boolean bypass;
+    // Normal, bypass valve or Danfoss proportional valve (HydraulicType)
+    HydraulicType hydraulics;
+    // Danfoss: when the signal was set to neutral, before F2 may power the valve
+    unsigned long danfossNeutralSinceMs;
 
     // XTE
     short int xte;   // initialised in the constructor; see note there
@@ -127,6 +177,7 @@ private:
     void setSetpoint();
     void setOffset(short int correction);
     void driveBypass(byte pwm);
+    void driveDanfoss(byte signal);
 
     void readOffset();
 
@@ -146,7 +197,9 @@ public:
     void Stop();
     void Narrower(byte pwm);
     void Wider(byte pwm);
-    void Adjust(byte mode, short int direction);
+    // `limited` false: the width procedure, which must reach its points
+    // whatever LIMIT says. Otherwise the buttons stop at the width limits.
+    void Adjust(byte mode, short int direction, bool limited = true);
     void PrintCalibrationData();
 
     // ----------------------------------------------------------------
@@ -224,8 +277,8 @@ public:
         return deadband;
     }
 
-    inline bool GetBypass() {
-        return bypass;
+    inline HydraulicType GetHydraulics() {
+        return hydraulics;
     }
 
     // The stored swap, not the side it gives: GetSide() is the plough-side
@@ -290,8 +343,32 @@ public:
         swap = value;
     }
 
-    inline void SetBypass(boolean value) {
-        bypass = value;
+    // Stops the plough and switches the outputs over. Out of range: Normal.
+    void SetHydraulics(HydraulicType value);
+
+    // WidthPlanning, every loop() pass: the planned width in cm, or none
+    // (set = false) for the XTE control.
+    inline void SetPlannedWidth(boolean set, short int widthCm) {
+        plannedWidthSet = set;
+        plannedWidth    = widthCm;
+    }
+    inline boolean HasPlannedWidth() {
+        return plannedWidthSet;
+    }
+
+    // LIMIT (the planner's Wmin..Wmax, the plough's physical range), in cm,
+    // every loop() pass from WidthPlanning: the setpoint stays inside it in
+    // every mode, and the buttons do not drive past it. 0 / 0: none set, the
+    // 20..60 cm per share the offset keeps to.
+    inline void SetWidthLimits(short int lowestCm, short int highestCm) {
+        widthLowestCm  = lowestCm;
+        widthHighestCm = highestCm;
+    }
+    inline short int GetWidthLowest() const {
+        return widthLowestCm > 0 ? widthLowestCm : short(shares * 20);
+    }
+    inline short int GetWidthHighest() const {
+        return widthHighestCm > 0 ? widthHighestCm : short(shares * 60);
     }
 };
 

@@ -47,7 +47,7 @@ inline bool SpeedReadyToSteer(GuidanceSource& guidance) {
     return guidance.MinSpeed();
 }
 
-// Why the control holds, as the LCD (S! / G!) and the VT (H S! / H G!, #318)
+// Why the control holds, as the LCD (S! / G!) and the VT (TE TRAAG / GPS FOUT, #318)
 // both show it: speed while a fresh VTG says below MINSPEED, otherwise GPS.
 // Only meaningful while InterfacePlough is in HOLD.
 enum class HoldReason : uint8_t { Gps, Speed };

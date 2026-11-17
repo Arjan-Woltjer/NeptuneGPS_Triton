@@ -56,7 +56,8 @@ public:
     // + (1) and - (-1) drive the plough in manual, with the end shutoff as in
     // manual (#244); 0 stops it. The only valve movement while a calibration
     // session is open. Called every loop pass while the procedure runs.
-    void Drive(int direction) { implement->Adjust(2, short(direction)); }
+    // Not limited by LIMIT: the points must be reachable whatever it says.
+    void Drive(int direction) { implement->Adjust(2, short(direction), false); }
 
     // Stops the plough and captures the sensor for this point. True once the
     // last point is in.
