@@ -43,7 +43,13 @@ FLASHMEM bool IsobusVtCalibration::OnSoftKey(uint16_t keyObjectId) {
         case Key_CalCancel:
             break;
         case Key_CalWidth:
-            if (open && !widthOpen) openWidthProcedure();
+            if (open && !widthOpen && !hydOpen) openWidthProcedure();
+            return false;
+        case Key_CalHyd:
+            if (open && !widthOpen && !hydOpen) openHydraulics();
+            return false;
+        case Key_HydBack:
+            if (hydOpen) closeHydraulics();
             return false;
         case Key_CalCapture:
             if (!widthOpen) return false;
@@ -72,6 +78,7 @@ FLASHMEM bool IsobusVtCalibration::OnSoftKey(uint16_t keyObjectId) {
     // Opslaan / Annuleren. A page left on the VT after a reconnect has no
     // draft behind it: either key just goes back to the main mask.
     if (widthOpen) closeWidthProcedure();
+    if (hydOpen) closeHydraulics();
     wantedMask = Plough_DataMask;
     if (!open) return false;
     const bool save = keyObjectId == Key_CalSave;
@@ -91,7 +98,7 @@ FLASHMEM void IsobusVtCalibration::OnWidthKey(uint16_t keyObjectId, HeldKey::Eve
     const bool wider = keyObjectId == Key_CalWider;
     if (!wider && keyObjectId != Key_CalNarrower) return;
     HeldKey& key = wider ? widerKey : narrowerKey;
-    if (!widthOpen) {
+    if (!widthOpen && !hydOpen) {
         key.Drop();
         return;
     }
@@ -102,6 +109,24 @@ FLASHMEM void IsobusVtCalibration::OnWidthKey(uint16_t keyObjectId, HeldKey::Eve
 }
 
 FLASHMEM void IsobusVtCalibration::OnNumericValue(uint16_t objectId, uint32_t value) {
+    if (hydOpen && objectId == Input_HydType) {
+        if (value <= kHighestHydraulicType) {
+            implement->SetHydraulicsStored(HydraulicType(value));
+            serialDebug->print("VT: hydraulics type ");
+            serialDebug->println(int(value));
+        }
+        shownHydType = value;   // resent by Update() if it differs
+        return;
+    }
+    if (hydOpen && objectId >= Input_Hyd0 && objectId < Input_Hyd0 + kHydRows) {
+        const uint8_t i = uint8_t(objectId - Input_Hyd0);
+        const DanfossParam param = HydParamFor(i, implement->GetHydraulics());
+        if (!implement->SetDanfoss(param, value > 0xFF ? 0x100 : int(value))) {
+            serialDebug->println("VT: hydraulics value refused");
+        }
+        shownHyd[i] = value;   // resent by Update() if it differs from what is held
+        return;
+    }
     if (!open) return;
     if (objectId < Input_Cal0 || objectId >= Input_Cal0 + PloughSettings::kCount) return;
     const uint8_t i = uint8_t(objectId - Input_Cal0);
@@ -117,6 +142,7 @@ FLASHMEM void IsobusVtCalibration::OnNumericValue(uint16_t objectId, uint32_t va
 
 FLASHMEM void IsobusVtCalibration::OnConnectionLost() {
     if (widthOpen) closeWidthProcedure();
+    if (hydOpen) closeHydraulics();
     if (open) {
         settings->Cancel(SettingsOwner::Vt);
         serialDebug->println("VT: calibration dropped, the VT went away");
@@ -129,6 +155,9 @@ FLASHMEM void IsobusVtCalibration::OnConnectionLost() {
 FLASHMEM void IsobusVtCalibration::Update(VtCalibrationOutput& out) {
     if (widthOpen) {
         updateWidthProcedure(out);
+    }
+    else if (hydOpen) {
+        updateHydraulics(out);
     }
     else if (open) {
         for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
@@ -223,6 +252,65 @@ FLASHMEM void IsobusVtCalibration::updateWidthProcedure(VtCalibrationOutput& out
         out.ChangeNumericValue(Var_CalWidthSensor, sensorValue)) {
         shownSensor = sensorValue;
         lastSensorSendMs = now;
+    }
+}
+
+FLASHMEM DanfossParam IsobusVtCalibration::HydParamFor(uint8_t row, HydraulicType type) {
+    const bool danfoss = type == HydraulicType::Danfoss;
+    switch (row) {
+        case 0:  return DanfossParam::Center;
+        case 1:  return danfoss ? DanfossParam::Manual : DanfossParam::DutyManual;
+        case 2:  return danfoss ? DanfossParam::AutoMax : DanfossParam::DutyAutoMax;
+        case 3:  return danfoss ? DanfossParam::AutoMin : DanfossParam::DutyAutoMin;
+        default: return DanfossParam::FullError;
+    }
+}
+
+FLASHMEM void IsobusVtCalibration::openHydraulics() {
+    hydOpen = true;
+    widerKey.Drop();
+    narrowerKey.Drop();
+    for (uint8_t i = 0; i < kHydRows; i++) shownHyd[i] = kNotSent;
+    shownHydType = kNotSent;
+    shownHydCenter = kNotSent;
+    shownHydSignal = kNotSent;
+    wantedMask = Plough_HydMask;
+    serialDebug->println("VT: hydraulics page open");
+}
+
+// Back to the page: the valves stop, the page shows its values again.
+FLASHMEM void IsobusVtCalibration::closeHydraulics() {
+    implement->Stop();
+    hydOpen = false;
+    widerKey.Drop();
+    narrowerKey.Drop();
+    forgetShown();
+    wantedMask = Plough_CalDataMask;
+}
+
+FLASHMEM void IsobusVtCalibration::updateHydraulics(VtCalibrationOutput& out) {
+    const unsigned long now = millis();
+    const bool wider = widerKey.IsHeld(now);
+    const bool narrower = narrowerKey.IsHeld(now);
+    // As the width procedure: Breder is +1, Smaller -1, both or neither stop.
+    implement->Adjust(2, short(wider == narrower ? 0 : wider ? 1 : -1));
+
+    const HydraulicType hydraulics = implement->GetHydraulics();
+    const uint32_t type = uint32_t(hydraulics);
+    if (type != shownHydType && out.ChangeNumericValue(Input_HydType, type)) shownHydType = type;
+    // KOZEP % only for Danfoss.
+    const uint32_t center = hydraulics == HydraulicType::Danfoss ? uint32_t(Cont_HydCenter) : 0xFFFFu;
+    if (center != shownHydCenter && out.ChangeNumericValue(Ptr_HydCenter, center)) shownHydCenter = center;
+    for (uint8_t i = 0; i < kHydRows; i++) {
+        const uint32_t value = implement->GetDanfoss(HydParamFor(i, hydraulics));
+        if (value != shownHyd[i] && out.ChangeNumericValue(Input_Hyd0 + i, value)) shownHyd[i] = value;
+    }
+    // The signal in 0.1 %, at most every kSensorSendMs.
+    const uint32_t signal = (uint32_t(implement->GetDanfossSignalPwm()) * 1000 + 127) / 255;
+    if (signal != shownHydSignal && (shownHydSignal == kNotSent || now - lastHydSignalMs >= kSensorSendMs) &&
+        out.ChangeNumericValue(Var_HydSignal, signal)) {
+        shownHydSignal = signal;
+        lastHydSignalMs = now;
     }
 }
 

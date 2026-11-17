@@ -41,7 +41,10 @@ enum class PloughSetting : uint8_t {
     Shares,
     Swap,
     HitchInversion,
-    Hydraulics,        // HydraulicType: normal, bypass, Danfoss
+#ifndef ISOBUS
+    Hydraulics,        // HydraulicType; on the VT's HIDR. page with ISOBUS
+#endif
+    MinSpeed,          // MIN km/h, in 0.1 km/h (PloughGates.hpp)
     Deadband,
     MaxCorrectionPerShare,
 #ifdef ISOBUS
@@ -63,6 +66,7 @@ enum class SettingKind : uint8_t {
     RtkQuality,
     LightbarMode,
     Hydraulics,
+    Tenths,            // a number in 0.1 units, shown with one decimal
 };
 
 struct PloughSettingLine {

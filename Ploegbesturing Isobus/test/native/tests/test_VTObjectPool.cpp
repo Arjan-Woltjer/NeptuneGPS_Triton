@@ -390,6 +390,14 @@ test(VTObjectPool, calibrationPage_hasARowPerSetting_withTheTablesBounds) {
             assertEqual((int)poolU16(at + 15), (int)Str_CalOn);
             assertEqual((int)poolU16(at + 17), (int)Str_CalOff);
         }
+        else if (line.kind == SettingKind::Tenths) {
+            // MIN km/h: a number shown x 0.1 with one decimal.
+            assertTrue(isType(objects, Input_Cal0 + i, 9));
+            const uint32_t at = objects.at(Input_Cal0 + i).at;
+            assertEqual(poolI32(at + 17), (int32_t)line.lowest);
+            assertEqual(poolI32(at + 21), (int32_t)line.highest);
+            assertEqual((int)VT3PoolData[at + 33], 1);   // decimals
+        }
         else if (line.kind == SettingKind::Hydraulics) {
             // NORMAAL, BYPASS, DANFOSS, the list index being the HydraulicType value.
             assertTrue(isType(objects, Input_Cal0 + i, 10));
@@ -576,7 +584,7 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
     assertFalse(objects.empty());
     assertTrue(softKeysAre(objects, Plough_SoftKeyMask,
                            { { 0, Key_Wider }, { 1, Key_Narrower }, { 2, Key_Calibrate }, { 3, Key_Plan },
-                             { 4, Key_PlanRange } }, 5));
+                             { 4, Key_AutoMan } }, 5));
     assertTrue(softKeysAre(objects, Plough_PlanSoftKeyMask,
                            { { 0, Key_PlanMleftUp }, { 1, Key_PlanMleftDown }, { 2, Key_PlanEnd1 },
                              { 3, Key_PlanEnd2 }, { 4, Key_PlanBack } }, 5));
@@ -584,14 +592,17 @@ test(VTObjectPool, softKeys_atTheOwnersPositions) {
                            { { 0, Key_RangeUp }, { 1, Key_RangeDown }, { 2, Key_RangeSelect },
                              { 3, Key_RangeSave }, { 4, Key_RangeCancel } }, 5));
     assertTrue(softKeysAre(objects, Plough_CalSoftKeyMask,
-                           { { 2, Key_CalWidth }, { 3, Key_CalSave }, { 4, Key_CalCancel } }, 5));
+                           { { 0, Key_PlanRange }, { 1, Key_CalHyd }, { 2, Key_CalWidth }, { 3, Key_CalSave },
+                             { 4, Key_CalCancel } }, 5));
+    assertTrue(softKeysAre(objects, Plough_HydSoftKeyMask,
+                           { { 0, Key_CalWider }, { 1, Key_CalNarrower }, { 4, Key_HydBack } }, 5));
     assertTrue(softKeysAre(objects, Plough_CalWidthSoftKeyMask,
                            { { 0, Key_CalWider }, { 1, Key_CalNarrower }, { 3, Key_CalCapture },
                              { 4, Key_CalWidthBack } }, 5));
     // Nothing on row 6 or in column 1 of any mask: a 2 x 5 VT shows all.
     for (uint16_t mask : { (uint16_t)Plough_SoftKeyMask, (uint16_t)Plough_CalSoftKeyMask,
                            (uint16_t)Plough_CalWidthSoftKeyMask, (uint16_t)Plough_PlanSoftKeyMask,
-                           (uint16_t)Plough_RangeSoftKeyMask }) {
+                           (uint16_t)Plough_RangeSoftKeyMask, (uint16_t)Plough_HydSoftKeyMask }) {
         assertTrue((int)VT3PoolData[objects.at(mask).at + 4] <= 5);
     }
     // The blanks are NULL pointers, and - and + are one large character each.
@@ -616,7 +627,7 @@ test(VTObjectPool, keyCodes_ofAllSoftKeys_areDistinct) {
                               KeyCode_CalCapture, KeyCode_CalWidthBack, KeyCode_Plan, KeyCode_PlanMleftUp,
                               KeyCode_PlanMleftDown, KeyCode_PlanEnd1, KeyCode_PlanEnd2, KeyCode_PlanRange, KeyCode_PlanBack,
                               KeyCode_RangeUp, KeyCode_RangeDown, KeyCode_RangeSelect, KeyCode_RangeSave,
-                              KeyCode_RangeCancel };
+                              KeyCode_RangeCancel, KeyCode_AutoMan, KeyCode_CalHyd, KeyCode_HydBack };
     for (size_t i = 0; i < sizeof(codes); i++) {
         assertNotEqual((int)codes[i], 0);
         for (size_t j = i + 1; j < sizeof(codes); j++) assertNotEqual((int)codes[i], (int)codes[j]);

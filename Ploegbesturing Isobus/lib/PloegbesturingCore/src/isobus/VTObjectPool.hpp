@@ -319,7 +319,43 @@ enum PloughVtObjectId : uint16_t {
     Key_PlanEnd2               = 316,
     Label_PlanEnd2A            = 317,
     Label_PlanEnd2B            = 318,
+
+    // AUTO / KEZI on the main screen (2026-11-17), where LIMIT was: a tap
+    // toggles the operator's manual request; the label, rewritten with
+    // Change String Value, shows the choice held (kTextKeyAuto /
+    // kTextKeyManual). Not the old AUTO key's ids (5, 14, code 3, #282).
+    Key_AutoMan                = 320,
+    Label_AutoMan              = 321,
+    // HIDR. on the calibration page opens the hydraulics page.
+    Key_CalHyd                 = 324,
+    Label_CalHyd               = 325,
+
+    // The hydraulics page: the Danfoss tuning (DanfossParam) as inputs,
+    // stored at once, the signal on F1 now, and + / - to try it.
+    Plough_HydMask             = 330,
+    Plough_HydSoftKeyMask      = 331,
+    Key_HydBack                = 332,
+    Label_HydBack              = 333,
+    Label_HydTitle             = 334,
+    Label_Hyd0                 = 335,   // .. 339, one per page row (kHydRows)
+    Input_Hyd0                 = 340,   // .. 344
+    Label_HydSignal            = 345,
+    Out_HydSignal              = 346,
+    Var_HydSignal              = 347,   // the signal on F1, 0.1 %
+
+    // The hydraulics page's first row (2026-11-17): the hydraulics type,
+    // moved from the calibration page (MIN km/h took its row there).
+    Label_HydType              = 358,
+    Input_HydType              = 359,
+    // KOZEP % only for Danfoss: its label and input in a container, behind
+    // a pointer that is NULL for the other types.
+    Cont_HydCenter             = 360,
+    Ptr_HydCenter              = 361,
 };
+
+// The AUTO / KEZI key's two labels, the same length (the label object's).
+extern const char* const kTextKeyAuto;
+extern const char* const kTextKeyManual;
 
 // The range bar's place on the main screen, under the four rows.
 constexpr uint16_t kMainBarY = 174;
@@ -362,6 +398,9 @@ enum PloughKeyCode : uint8_t {
     KeyCode_RangeSave    = 21,
     KeyCode_RangeCancel  = 22,
     KeyCode_PlanEnd2     = 23,
+    KeyCode_AutoMan      = 24,
+    KeyCode_CalHyd       = 25,
+    KeyCode_HydBack      = 26,
 };
 
 // The bar on the width range page spans the plough's whole range, in mm per

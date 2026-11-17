@@ -45,6 +45,9 @@ bool CalibrationPlough::loadGuidanceCalibration() {
         guidance->SetRtkQuality(storedRtk);
         found = true;
     }
+    // MIN km/h: not a calibration value either, "found" stays as it was.
+    const byte storedMinSpeed = EEPROM.read(kEepromMinSpeed);
+    SetMinSpeed(storedMinSpeed);
 #ifdef ISOBUS
     // Not a calibration value: "found" stays as it was.
     preferredVt = ReadPreferredVt();
@@ -56,6 +59,7 @@ bool CalibrationPlough::loadGuidanceCalibration() {
 void CalibrationPlough::CommitGuidanceCalibration() {
     EEPROM.write(kEepromGpsBaudIndex, gpsBaudIndex);
     EEPROM.write(kEepromRtkQuality, guidance->GetRtkQuality());
+    EEPROM.write(kEepromMinSpeed, gMinSpeedTenthsKmh);
 #ifdef ISOBUS
     WritePreferredVt(preferredVt);
     WriteLightbarMode(lightbarMode);
@@ -95,14 +99,22 @@ FLASHMEM void CalibrationPlough::PrintCalibrationData() {
 // carries only the value (yes/no, RTK quality, the lightbar mode, the
 // hydraulics).
 static const char* const kTitles[PloughSettings::kCount] = {
-    L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION, L_CAL_HYDRAULICS, L_CAL_DEADBAND, L_CAL_MAXCOR,
+    L_CAL_SHARES, L_CAL_SWAP, L_CAL_INVERSION,
+#ifndef ISOBUS
+    L_CAL_HYDRAULICS,
+#endif
+    L_CAL_MINSPEED, L_CAL_DEADBAND, L_CAL_MAXCOR,
 #ifdef ISOBUS
     L_CAL_VT, L_CAL_LIGHTBAR,
 #endif
     L_CAL_QUAL,
 };
 static const char* const kEditLines[PloughSettings::kCount] = {
-    L_CAL_SHARES_AD, L_CAL_SWAP_AD, nullptr, nullptr, L_CAL_DEADBAND_AD, L_CAL_MAXCOR_AD,
+    L_CAL_SHARES_AD, L_CAL_SWAP_AD, nullptr,
+#ifndef ISOBUS
+    nullptr,
+#endif
+    L_CAL_MINSPEED_AD, L_CAL_DEADBAND_AD, L_CAL_MAXCOR_AD,
 #ifdef ISOBUS
     L_CAL_VT_AD, nullptr,
 #endif
@@ -323,10 +335,18 @@ FLASHMEM void CalibrationPlough::drawValue() {
         case PloughSetting::HitchInversion:
             lcd->WriteBuffer(value ? L_CAL_YES : L_CAL_NO, 3);
             break;
+#ifndef ISOBUS
         case PloughSetting::Hydraulics:
             lcd->WriteBuffer(value == int(HydraulicType::Danfoss) ? L_CAL_HYD_DANFOSS
                            : value == int(HydraulicType::Bypass)  ? L_CAL_HYD_BYPASS
                                                                   : L_CAL_HYD_NORMAL, 3);
+            break;
+#endif
+        case PloughSetting::MinSpeed:
+            // x.x km/h, one digit before the point (at most 9.5).
+            lcd->WriteBuffer(value / 10 + '0', 3, 12);
+            lcd->WriteBuffer('.', 3, 13);
+            lcd->WriteBuffer(value % 10 + '0', 3, 14);
             break;
 #ifdef ISOBUS
         case PloughSetting::Lightbar:

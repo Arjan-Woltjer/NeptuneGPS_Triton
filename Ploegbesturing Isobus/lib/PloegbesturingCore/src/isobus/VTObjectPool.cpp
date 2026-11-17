@@ -287,7 +287,8 @@ static void appendNumberVariable(uint16_t id, uint32_t initValue) {
 // with Change Numeric Value on the object itself. 38 bytes, as AgIsoStack's
 // get_minimum_object_length() counts them.
 static void appendInputNumber(uint16_t id, uint16_t w, uint16_t h, uint16_t fontAttr,
-                              uint32_t value, int32_t minValue, int32_t maxValue) {
+                              uint32_t value, int32_t minValue, int32_t maxValue,
+                              float scale = 1.0f, uint8_t decimals = 0) {
     pu16(id); pu8(9);
     pu16(w); pu16(h);
     pu8(kBlack);    // background colour
@@ -298,8 +299,8 @@ static void appendInputNumber(uint16_t id, uint16_t w, uint16_t h, uint16_t font
     pi32(minValue);
     pi32(maxValue);
     pi32(0);        // offset
-    pf32(1.0f);     // scale
-    pu8(0);         // decimals
+    pf32(scale);    // scale: the value shown is value x scale
+    pu8(decimals);  // decimals
     pu8(0);         // format: fixed point
     pu8(0);         // justification: left
     pu8(0x01);      // enabled (VT3); no real-time editing
@@ -473,7 +474,7 @@ static void appendFontAttributes(uint16_t id, uint8_t colour, uint8_t size) {
 // ----------------------------------------------------------------
 // Labels, at most 10 characters at 12x16 (120 px of the 124 px column).
 static constexpr const char* kCalLabels[PloughSettings::kCount] = {
-    VT_TEXT("SCHAREN", "SHARES", "EKEFEJEK"), VT_TEXT("PLOEGZIJDE", "PLOUGHSIDE", "EKEOLDAL"), VT_TEXT("HEF INVERT", "HITCH INV.", "MUNKAK.INV"), VT_TEXT("HYDRAULIEK", "HYDRAULICS", "HIDRAULIKA"), VT_TEXT("DODE BAND", "DEADBAND", "HOLTJ\xC1T\xC9K"), VT_TEXT("CORR/SCH.", "CORR/SHARE", "KORR/FEJ"),
+    VT_TEXT("SCHAREN", "SHARES", "EKEFEJEK"), VT_TEXT("PLOEGZIJDE", "PLOUGHSIDE", "EKEOLDAL"), VT_TEXT("HEF INVERT", "HITCH INV.", "MUNKAK.INV"), "MIN km/h", VT_TEXT("DODE BAND", "DEADBAND", "HOLTJ\xC1T\xC9K"), VT_TEXT("CORR/SCH.", "CORR/SHARE", "KORR/FEJ"),
 #ifdef ISOBUS
     VT_TEXT("VOORK. VT", "PREF. VT", "PREF. VT"), "AG LEADER",
 #endif
@@ -542,10 +543,14 @@ FLASHMEM static void appendCalibrationPage() {
     // (session 23).
     uint16_t keys[kSoftKeySlots];
     for (uint16_t& key : keys) key = kNoKey;
+    keys[SoftKeySlot(1, 2)] = Key_PlanRange;   // LIMIT, from the main screen until 2026-11-17
+    keys[SoftKeySlot(2, 2)] = Key_CalHyd;
     keys[SoftKeySlot(3, 2)] = Key_CalWidth;
     keys[SoftKeySlot(4, 2)] = Key_CalSave;
     keys[SoftKeySlot(5, 2)] = Key_CalCancel;
     appendSoftKeys(Plough_CalSoftKeyMask, kBlack, keys);
+    appendKey(Key_CalHyd, kBlack, KeyCode_CalHyd, Label_CalHyd);
+    appendOutputString(Label_CalHyd, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("HYDR.", "HYDR.", "HIDR."));
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
     appendKey(Key_CalWidth, kBlack, KeyCode_CalWidth, Label_CalWidth);
@@ -575,6 +580,11 @@ FLASHMEM static void appendCalibrationPage() {
                 break;
             case SettingKind::Hydraulics:
                 appendInputList(Input_Cal0 + i, VAL_W, ROW_H, 0, kCalHydraulicsItems, 3);
+                break;
+            case SettingKind::Tenths:
+                // x.x, the value in 0.1 units: 3 characters, the number width.
+                appendInputNumber(Input_Cal0 + i, NUM_W, ROW_H, Font_White_Medium, uint32_t(line.lowest),
+                                  line.lowest, line.highest, 0.1f, 1);
                 break;
         }
     }
@@ -660,6 +670,83 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendObjectPointer(Ptr_CalWidthStatus, Str_CalBlank);
     appendOutputString(Str_CalBlank, 196, ROW_H, Font_White_Medium, 0, " ");
     appendOutputString(Str_CalInvalid, 196, ROW_H, Font_White_Medium, 0, VT_TEXT("ONGELDIG", "INVALID", "\xC9RV\xC9NYTELEN"));
+}
+
+// The hydraulics page (2026-11-17): the Danfoss tuning, one row per
+// DanfossParam, stored at once, the signal on F1 now under it, and + / -
+// (the width procedure's keys) to try it while the page is open.
+const char* const kTextKeyAuto   = "AUTO";
+const char* const kTextKeyManual = VT_TEXT("HAND", "MAN ", "K\xC9ZI");
+
+static constexpr const char* kHydLabels[kHydRows] = {
+    VT_TEXT("MIDDEN %", "CENTER %", "K\xD6Z\xC9P %"),
+    VT_TEXT("HAND %", "MANUAL %", "K\xC9ZI %"),
+    "AUTO MAX %",
+    "AUTO MIN %",
+    VT_TEXT("VOL BIJ cm", "FULL AT cm", "TELJES cm"),
+};
+
+static void appendContainer(uint16_t id, uint16_t w, uint16_t h, uint8_t nChildren);
+
+static constexpr bool hydLabelsFit(size_t maxChars, size_t i = 0) {
+    return i >= kHydRows ||
+           (calLabelLength(kHydLabels[i]) <= maxChars && hydLabelsFit(maxChars, i + 1));
+}
+
+FLASHMEM static void appendHydraulicsPage() {
+    constexpr uint16_t kCharW = 12;
+    constexpr uint16_t LBL_X = 2, LBL_W = 124, VAL_X = 128, NUM_W = 40, SIG_W = 60;
+    constexpr uint16_t TITLE_Y = 2, ROW_TOP = 26, ROW_H = 24, FIELD_H = 22, VAL_W = 72;
+    // The type first, then one row per DanfossParam, the signal under them.
+    constexpr uint16_t PARAM_TOP = ROW_TOP + ROW_H;
+    constexpr uint16_t SIGNAL_Y = PARAM_TOP + kHydRows * ROW_H + 2;
+    static_assert(hydLabelsFit(LBL_W / kCharW), "hydraulics label too wide for its column");
+    static_assert(SIGNAL_Y + FIELD_H <= 200, "the hydraulics rows leave the mask");
+    static_assert(Label_Hyd0 + kHydRows <= Input_Hyd0 && Input_Hyd0 + kHydRows <= Label_HydSignal,
+                  "the hydraulics labels or inputs run into the next ids");
+
+    // Row 0 (KOZEP) through Ptr_HydCenter, the other rows directly.
+    appendDataMask(Plough_HydMask, kBlack, Plough_HydSoftKeyMask, uint8_t(2 * (kHydRows - 1) + 6));
+    appendObjRef(Label_HydTitle, LBL_X, TITLE_Y);
+    appendObjRef(Label_HydType, LBL_X, ROW_TOP);
+    appendObjRef(Input_HydType, VAL_X, ROW_TOP);
+    appendObjRef(Ptr_HydCenter, LBL_X, PARAM_TOP);
+    for (uint8_t i = 1; i < kHydRows; i++) {
+        appendObjRef(Label_Hyd0 + i, LBL_X, PARAM_TOP + i * ROW_H);
+        appendObjRef(Input_Hyd0 + i, VAL_X, PARAM_TOP + i * ROW_H);
+    }
+    appendObjRef(Label_HydSignal, LBL_X, SIGNAL_Y);
+    appendObjRef(Out_HydSignal, VAL_X, SIGNAL_Y);
+
+    uint16_t keys[kSoftKeySlots];
+    for (uint16_t& key : keys) key = kNoKey;
+    keys[SoftKeySlot(1, 2)] = Key_CalWider;
+    keys[SoftKeySlot(2, 2)] = Key_CalNarrower;
+    keys[SoftKeySlot(5, 2)] = Key_HydBack;
+    appendSoftKeys(Plough_HydSoftKeyMask, kBlack, keys);
+    appendKey(Key_HydBack, kBlack, KeyCode_HydBack, Label_HydBack);
+    appendOutputString(Label_HydBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZA"));
+
+    appendOutputString(Label_HydTitle, 196, FIELD_H, Font_White_Medium, 0, VT_TEXT("HYDRAULIEK", "HYDRAULICS", "HIDRAULIKA"));
+    // The type: NORMAAL / BYPASS / DANFOSS, the calibration page's entries.
+    appendOutputString(Label_HydType, LBL_W, FIELD_H, Font_White_Medium, 0, VT_TEXT("TYPE", "TYPE", "T\xCDPUS"));
+    appendInputList(Input_HydType, VAL_W, FIELD_H, 0, kCalHydraulicsItems, 3);
+    // The rows' inputs take the widest bounds of what they edit: KEZI and
+    // the AUTO rows 0-100 (the duty), the plough refuses what the type's
+    // parameter does not take and the VT shows the held value again.
+    static const uint8_t lowest[kHydRows]  = { 30, 0, 0, 0, 1 };
+    static const uint8_t highest[kHydRows] = { 70, 100, 100, 100, 50 };
+    for (uint8_t i = 0; i < kHydRows; i++) {
+        appendOutputString(Label_Hyd0 + i, LBL_W, FIELD_H, Font_White_Medium, 0, kHydLabels[i]);
+        appendInputNumber(Input_Hyd0 + i, NUM_W, FIELD_H, Font_White_Medium, lowest[i], lowest[i], highest[i]);
+    }
+    appendObjectPointer(Ptr_HydCenter, Cont_HydCenter);
+    appendContainer(Cont_HydCenter, 196, FIELD_H, 2);
+    appendObjRef(Label_Hyd0, 0, 0);
+    appendObjRef(Input_Hyd0, VAL_X - LBL_X, 0);
+    appendOutputString(Label_HydSignal, LBL_W, FIELD_H, Font_White_Medium, 0, VT_TEXT("SIGNAAL %", "SIGNAL %", "JEL %"));
+    appendNumberVariable(Var_HydSignal, 500);
+    appendOutputNumber(Out_HydSignal, SIG_W, FIELD_H, Font_White_Medium, Var_HydSignal, 0, 0.1f, 1);
 }
 
 // ----------------------------------------------------------------
@@ -1201,9 +1288,15 @@ FLASHMEM void BuildObjectPool() {
         keys[SoftKeySlot(2, 2)] = Key_Narrower;
         keys[SoftKeySlot(3, 2)] = Key_Calibrate;
         keys[SoftKeySlot(4, 2)] = Key_Plan;
-        keys[SoftKeySlot(5, 2)] = Key_PlanRange;   // LIMIT, straight to the range page
+        // AUTO / KEZI on row 5 (2026-11-17); LIMIT moved to the
+        // calibration page, a one-time setup.
+        keys[SoftKeySlot(5, 2)] = Key_AutoMan;
         appendSoftKeys(Plough_SoftKeyMask, kBlack, keys);
     }
+    static_assert(sizeof("AUTO") == sizeof(VT_TEXT("HAND", "MAN ", "K\xC9ZI")),
+                  "the AUTO / KEZI labels differ in length");
+    appendKey(Key_AutoMan, kBlack, KeyCode_AutoMan, Label_AutoMan);
+    appendOutputString(Label_AutoMan, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, kTextKeyAuto);
 
     // ---- Soft keys ----
     appendKey(Key_Wider, kBlack, KeyCode_Wider, Label_Wider, kKeySignH);
@@ -1288,6 +1381,7 @@ FLASHMEM void BuildObjectPool() {
 
     appendCalibrationPage();
     appendCalibrationWidthPage();
+    appendHydraulicsPage();
     appendPlanWord();
     appendPlannerPage();
     appendRangePage();

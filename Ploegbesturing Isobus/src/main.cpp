@@ -437,6 +437,8 @@ void loop() {
 
     // Update interface -- the VT's Wider/Narrower soft keys (held levels, #245)
     // feed InterfacePlough's button handling, see PloughVtWorkingSet.hpp.
+    // The VT's AUTO / KEZI key: KEZI forces manual, as the MODE switch off.
+    gInterface->SetManualRequested(gVtWorkingSet->IsManualRequested());
     gInterface->Update(gVtWorkingSet->IsWiderHeld(), gVtWorkingSet->IsNarrowerHeld());
 #else
     // Update interface

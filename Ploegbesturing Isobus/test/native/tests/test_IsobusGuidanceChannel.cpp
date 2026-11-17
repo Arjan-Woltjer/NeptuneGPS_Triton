@@ -107,6 +107,7 @@ IsobusGuidanceChannel& Channel() {
 }
 
 void Reset() {
+    gMinSpeedTenthsKmh = kDefaultMinSpeedTenthsKmh;   // a global (PloughGates.hpp)
     millisValue(0);
     gcGuidance = GuidanceSource();
     Channel().ResetMessageCounters();

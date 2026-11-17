@@ -79,9 +79,9 @@ static constexpr short int kShutoffMoveCm = 2;
 // 0 and 1 keep their meaning):
 //   Normal  -- narrower / wider solenoids only.
 //   Bypass  -- plus the bypass output, on while either solenoid is.
-//   Danfoss -- a proportional valve (Danfoss PVE): the signal on the narrow
-//              output (F1), 50 % neutral, 12.5 % one way, 87.5 % the other; the
-//              wide output stays low. The bypass output (F2) is the PVE's
+//   Danfoss -- a proportional valve with an analog signal input: the signal
+//              on the narrow output (F1), Center (DanfossParam) at rest,
+//              less narrower, more wider; the wide output stays low. The bypass output (F2) is the PVE's
 //              supply, on all the time: it wants power, then the signal.
 enum class HydraulicType : byte {
     Normal  = 0,
@@ -90,17 +90,62 @@ enum class HydraulicType : byte {
 };
 static constexpr byte kHighestHydraulicType = byte(HydraulicType::Danfoss);
 
-// The Danfoss signal duties on F1, of 255.
-static constexpr byte kDanfossNeutralPwm  = 128;   // 50 %
-static constexpr byte kDanfossNarrowerPwm = 32;    // 12.5 %, as the original controller (1.75 V of 14)
-static constexpr byte kDanfossWiderPwm    = 223;   // 87.5 %, as the original controller (12.25 V of 14)
-// In auto the deflection follows the error past the deadband: the least
-// that still moves the spool (of 255, 35 %) just outside it, full from
-// kDanfossFullErrorCm on. Narrower / Wider take it as their pwm.
-static constexpr int kDanfossMinPwm      = 90;
-static constexpr int kDanfossFullErrorCm = 10;
-// Manual (the buttons): 40 % of the deflection, 35 % / 65 % on F1.
-static constexpr byte kDanfossManualPwm  = 102;
+// The hydraulics tuning, set on the VT's HYDRAULIEK page and stored at
+// once, one byte each at EEPROM kEepromDanfossTuning + the parameter (30-37:
+// past the vehicle sensors' 20-28, before the plough's block at 40).
+// Danfoss, in % of the supply on F1:
+//   Center    -- the signal at rest (neutral), 30-70.
+//   Manual    -- the deflection from Center the buttons drive at, 1-45.
+//   AutoMax   -- the most deflection auto drives at, 1-45.
+//   AutoMin   -- the deflection just past the deadband in auto, 0-45:
+//                the least that still moves the spool.
+// Both:
+//   FullError -- the error past the deadband (cm) where auto reaches
+//                AutoMax, 1-50; larger is gentler.
+// Normal and bypass, the solenoids' PWM duty in % (100 = on, as before;
+// switched boards without PWM, the Teensy's 20/21, stay on / off):
+//   DutyManual, DutyAutoMax -- 1-100; DutyAutoMin -- 0-100.
+enum class DanfossParam : uint8_t {
+    Center,
+    Manual,
+    AutoMax,
+    AutoMin,
+    FullError,
+    DutyManual,
+    DutyAutoMax,
+    DutyAutoMin,
+    Count
+};
+static constexpr uint8_t kDanfossParamCount = uint8_t(DanfossParam::Count);
+static constexpr int     kEepromDanfossTuning = 30;
+struct DanfossParamLine {
+    byte lowest;
+    byte highest;
+    byte byDefault;
+};
+// Manual 15 and auto 15 / 5 over 10 cm are what the bench liked on
+// 2026-11-17 (manual 35 % / 65 %).
+static constexpr DanfossParamLine kDanfossParams[kDanfossParamCount] = {
+    { 30, 70, 50 },   // Center
+    {  1, 45, 15 },   // Manual
+    {  1, 45, 15 },   // AutoMax
+    {  0, 45,  5 },   // AutoMin
+    {  1, 50, 10 },   // FullError
+    {  1, 100, 100 }, // DutyManual: full, as the solenoids always were
+    {  1, 100, 100 }, // DutyAutoMax
+    {  0, 100, 100 }, // DutyAutoMin: full from the deadband on, the bang-bang control
+};
+static_assert(kEepromDanfossTuning + kDanfossParamCount <= 40, "the Danfoss tuning runs into the plough's block");
+
+// The VT hydraulics page's rows after the type: KOZEP, KEZI, AUTO MAX, AUTO
+// MIN, TELJES. KEZI and the AUTO rows edit the Danfoss deflection or the
+// solenoids' duty, by the type (IsobusVtCalibration::HydParamFor()).
+constexpr uint8_t kHydRows = 5;
+
+// A % of the supply as a duty of 255, rounded.
+static constexpr byte DanfossPctToPwm(int pct) {
+    return byte(pct <= 0 ? 0 : pct >= 100 ? 255 : (pct * 255 + 50) / 100);
+}
 // F2 (the valve's power, through a relay) comes on this long after the signal
 // was set to neutral at boot or on a change of hydraulics.
 static constexpr unsigned long kDanfossPowerDelayMs = 500;
@@ -155,6 +200,12 @@ private:
     HydraulicType hydraulics;
     // Danfoss: when the signal was set to neutral, before F2 may power the valve
     unsigned long danfossNeutralSinceMs;
+    // Danfoss: the tuning (DanfossParam), the deflection the next Narrower /
+    // Wider drives at (% of the supply; Adjust sets it, else Manual), and the
+    // signal on F1 now, for the VT.
+    byte danfoss[kDanfossParamCount];
+    byte danfossNextPct;
+    byte danfossSignalPwm;
 
     // XTE
     short int xte;   // initialised in the constructor; see note there
@@ -178,6 +229,7 @@ private:
     void setOffset(short int correction);
     void driveBypass(byte pwm);
     void driveDanfoss(byte signal);
+    void readDanfossTuning();
 
     void readOffset();
 
@@ -345,6 +397,30 @@ public:
 
     // Stops the plough and switches the outputs over. Out of range: Normal.
     void SetHydraulics(HydraulicType value);
+    // The same, stored at once (EEPROM 68): the VT's HIDR. page.
+    void SetHydraulicsStored(HydraulicType value);
+
+    // The Danfoss tuning (DanfossParam). Set refuses a value outside the
+    // parameter's bounds (false) and stores the rest at once.
+    static bool IsValidDanfoss(DanfossParam param, int value) {
+        const DanfossParamLine& line = kDanfossParams[uint8_t(param)];
+        return value >= line.lowest && value <= line.highest;
+    }
+    inline byte GetDanfoss(DanfossParam param) const {
+        return danfoss[uint8_t(param)];
+    }
+    bool SetDanfoss(DanfossParam param, int value);
+
+    // Auto's deflection (% of the supply) for an error `beyondCm` past the
+    // deadband: AutoMin just past it, AutoMax from FullError on.
+    byte DanfossAutoPct(int beyondCm) const;
+    // The same for the solenoids' duty: DutyAutoMin to DutyAutoMax.
+    byte DutyAutoPct(int beyondCm) const;
+
+    // The duty on F1 now (of 255), while the hydraulics are Danfoss.
+    inline byte GetDanfossSignalPwm() const {
+        return danfossSignalPwm;
+    }
 
     // WidthPlanning, every loop() pass: the planned width in cm, or none
     // (set = false) for the XTE control.

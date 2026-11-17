@@ -75,6 +75,11 @@ public:
     bool IsWiderHeld() const;
     bool IsNarrowerHeld() const;
 
+    // AUTO / KEZI (2026-11-17): true while the operator has chosen KEZI on
+    // the main screen; main.cpp hands it to InterfacePlough. Starts on AUTO
+    // at boot and is kept over a lost VT connection.
+    bool IsManualRequested() const { return manualRequested; }
+
     // AUX-N events for the dump: assigned-input statuses per function.
     unsigned int GetAuxWiderEvents() const { return auxWiderEvents; }
     unsigned int GetAuxNarrowerEvents() const { return auxNarrowerEvents; }
@@ -162,6 +167,8 @@ private:
     uint16_t      lastSentSpeedIcon   = 0;  // the object Ptr_SpeedStatus points at
     int32_t       lastSentSpeed       = 0;  // 0.1 km/h
     uint16_t      lastSentState       = 0;  // the object Ptr_State points at
+    bool          manualRequested     = false;
+    bool          lastSentManual      = false;  // the AUTO / KEZI label shown
 
     uint8_t       controlMode        = 2;   // InterfacePlough starts in manual
     bool          controlCalibrating = false;

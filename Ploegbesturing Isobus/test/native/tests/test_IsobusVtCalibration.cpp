@@ -69,6 +69,7 @@ InterfaceI2CLCD   pgLcd;
 PageCaptureStream pgDebug;
 
 void resetAll() {
+    gMinSpeedTenthsKmh = kDefaultMinSpeedTenthsKmh;   // a global (PloughGates.hpp)
     millisValue(0);
     EEPROM.eepromReset();
     pgGuidance = GuidanceSource();
@@ -106,7 +107,7 @@ test(IsobusVtCalibration, calibrateKey_opensThePage_onTheDraft_andShowsEveryValu
     assertEqual(r.out.last(input(PloughSetting::Shares)), 4L);
     assertEqual(r.out.last(input(PloughSetting::Deadband)), 2L);
     assertEqual(r.out.last(input(PloughSetting::MaxCorrectionPerShare)), 50L);
-    assertEqual(r.out.last(input(PloughSetting::Hydraulics)), 0L);
+    assertEqual(r.out.last(input(PloughSetting::MinSpeed)), 18L);   // 1.8 km/h
     assertEqual(r.out.last(input(PloughSetting::Swap)), 0L);         // input low, no swap: R
     assertEqual(r.out.last(input(PloughSetting::RtkQuality)), 1L);   // 4 is the RTK entry
     assertTrue(pgDebug.has("VT: calibration page open"));
@@ -168,11 +169,9 @@ test(IsobusVtCalibration, lists_mapTheirEntriesToTheSettings) {
     resetAll();
     Rig r;
     r.page.OnCalibrateKey();
-    r.page.OnNumericValue(input(PloughSetting::Hydraulics), 2);
     r.page.OnNumericValue(input(PloughSetting::HitchInversion), 1);
     r.page.OnNumericValue(input(PloughSetting::RtkQuality), 0);
     r.page.OnNumericValue(input(PloughSetting::Swap), 1);          // LINKS with the input low: swap
-    assertEqual(r.settings().Get(PloughSetting::Hydraulics), (int16_t)2);   // DANFOSS
     assertEqual(r.settings().Get(PloughSetting::HitchInversion), (int16_t)1);
     assertEqual(r.settings().Get(PloughSetting::RtkQuality), (int16_t)2);
     assertEqual(r.settings().Get(PloughSetting::Swap), (int16_t)1);
@@ -377,6 +376,61 @@ test(IsobusVtCalibration, widthKeys_driveNothing_outsideTheProcedure) {
     r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
     r.page.Update(r.out);
     assertEqual(digitalWriteValue(OUTPUT_NARROW_2), LOW);
+}
+
+// The hydraulics page (HIDR.): the Danfoss tuning shown and stored at once,
+// the signal on F1 sent, + / - drive while held, TERUG back to the page.
+test(IsobusVtCalibration, hydraulicsPage_showsStoresAndDrives) {
+    resetAll();
+    Rig r;
+    r.impl.SetHydraulics(HydraulicType::Danfoss);
+    millisValue(kDanfossPowerDelayMs);
+    r.page.OnCalibrateKey();
+    r.page.OnSoftKey(Key_CalHyd);
+    assertTrue(r.page.IsHydraulicsOpen());
+    r.page.Update(r.out);
+    assertEqual((int)r.out.masks.back(), (int)Plough_HydMask);
+    assertEqual(r.out.last(Ptr_HydCenter), long(Cont_HydCenter));     // KOZEP shown for Danfoss
+    assertEqual(r.out.last(Input_HydType), long(HydraulicType::Danfoss));
+    assertEqual(r.out.last(Input_Hyd0 + uint8_t(DanfossParam::Center)), 50L);
+    assertEqual(r.out.last(Input_Hyd0 + uint8_t(DanfossParam::Manual)), 15L);
+    assertEqual(r.out.last(Var_HydSignal), long((DanfossPctToPwm(50) * 1000 + 127) / 255));
+
+    r.page.OnNumericValue(Input_Hyd0 + uint8_t(DanfossParam::Center), 52);
+    assertEqual((int)r.impl.GetDanfoss(DanfossParam::Center), 52);
+    assertEqual((int)EEPROM.read(kEepromDanfossTuning), 52);           // at once, no OPSLAAN
+    r.page.OnNumericValue(Input_Hyd0 + uint8_t(DanfossParam::Manual), 99);   // refused
+    assertEqual((int)r.impl.GetDanfoss(DanfossParam::Manual), 15);
+    r.out.clear();
+    r.page.Update(r.out);
+    assertEqual(r.out.last(Input_Hyd0 + uint8_t(DanfossParam::Manual)), 15L);   // shown again
+
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Press);
+    r.page.Update(r.out);
+    // Breder is +1, which drives Narrower() (the main keys and the width
+    // procedure alike): Center - Manual. The hoses set the real direction.
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)DanfossPctToPwm(52 - 15));
+    r.page.OnWidthKey(Key_CalWider, HeldKey::Event::Release);
+    r.page.Update(r.out);
+    assertEqual(analogWriteValue(OUTPUT_NARROW_2), (int)DanfossPctToPwm(52));
+
+    // The type, stored at once; KOZEP hidden, KEZI now the solenoids' duty.
+    r.page.OnNumericValue(Input_HydType, uint32_t(HydraulicType::Bypass));
+    assertEqual((int)r.impl.GetHydraulics(), (int)HydraulicType::Bypass);
+    assertEqual((int)EEPROM.read(68), 1);
+    r.out.clear();
+    r.page.Update(r.out);
+    assertEqual(r.out.last(Ptr_HydCenter), 0xFFFFL);
+    assertEqual(r.out.last(Input_Hyd0 + 1), 100L);                     // DutyManual
+    r.page.OnNumericValue(Input_Hyd0 + 1, 60);
+    assertEqual((int)r.impl.GetDanfoss(DanfossParam::DutyManual), 60);
+    assertEqual((int)r.impl.GetDanfoss(DanfossParam::Manual), 15);    // the Danfoss value kept
+
+    r.page.OnSoftKey(Key_HydBack);
+    assertFalse(r.page.IsHydraulicsOpen());
+    assertTrue(r.page.IsOpen());
+    r.page.Update(r.out);
+    assertEqual((int)r.out.masks.back(), (int)Plough_CalDataMask);
 }
 
 test(IsobusVtCalibration, threeCaptures_stageTheReadings_andOpslaanWritesThem) {

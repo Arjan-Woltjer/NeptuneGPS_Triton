@@ -42,13 +42,23 @@ inline bool GpsReadyToSteer(GuidanceSource& guidance, unsigned long nowMs) {
            guidance.IsRtkQuality();
 }
 
-// At or above GuidanceSource's MINSPEED.
+// The least speed the control steers at, in 0.1 km/h: MIN km/h on the
+// settings page (2026-11-17; GuidanceSource's fixed MINSPEED, 0.5 m/s =
+// 1.8 km/h, until then). CalibrationPlough loads it at boot (EEPROM 13) and
+// stores it on Save; the settings table edits it.
+constexpr uint8_t kLowestMinSpeedTenthsKmh  = 3;    // 0.3 km/h
+constexpr uint8_t kHighestMinSpeedTenthsKmh = 95;   // 9.5 km/h
+constexpr uint8_t kDefaultMinSpeedTenthsKmh = 18;   // 1.8 km/h, the old 0.5 m/s
+constexpr int     kEepromMinSpeed           = 13;
+inline uint8_t    gMinSpeedTenthsKmh        = kDefaultMinSpeedTenthsKmh;
+
+// At or above the MIN km/h setting (m/s x 36 = 0.1 km/h).
 inline bool SpeedReadyToSteer(GuidanceSource& guidance) {
-    return guidance.MinSpeed();
+    return guidance.GetSpeedMs() * 36.0f >= float(gMinSpeedTenthsKmh);
 }
 
 // Why the control holds, as the LCD (S! / G!) and the VT (TE TRAAG / GPS FOUT, #318)
-// both show it: speed while a fresh VTG says below MINSPEED, otherwise GPS.
+// both show it: speed while a fresh VTG says below MIN km/h, otherwise GPS.
 // Only meaningful while InterfacePlough is in HOLD.
 enum class HoldReason : uint8_t { Gps, Speed };
 inline HoldReason PloughHoldReason(GuidanceSource& guidance, unsigned long nowMs) {

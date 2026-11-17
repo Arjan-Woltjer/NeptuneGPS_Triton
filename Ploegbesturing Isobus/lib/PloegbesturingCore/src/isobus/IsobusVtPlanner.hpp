@@ -74,6 +74,9 @@ public:
     bool IsOpen() const { return open; }
     bool IsRangeOpen() const { return rangeOpen; }
 
+    // LIMIT opened from the calibration page: closing it goes back there.
+    void SetRangeReturnsToCalibration(bool value) { rangeToCalibration = value; }
+
     // A planner key, on release; heldMs is how long it was down. False when
     // it is not one of the planner's keys (Key_Plan included).
     bool OnSoftKey(uint16_t keyObjectId, unsigned long heldMs);
@@ -114,6 +117,7 @@ private:
 
     bool     open = false;
     bool     rangeOpen = false;
+    bool     rangeToCalibration = false;
     uint16_t wantedMask = 0;     // the mask to show, 0 = none pending
     uint8_t  draftMin = 0;
     uint8_t  draftMax = 0;

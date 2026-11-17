@@ -138,7 +138,8 @@ FLASHMEM bool IsobusVtPlanner::OnSoftKey(uint16_t keyObjectId, unsigned long hel
             }
             rangeOpen = false;
             forgetPage();
-            wantedMask = open ? Plough_PlanMask : Plough_DataMask;
+            wantedMask = open ? Plough_PlanMask : rangeToCalibration ? Plough_CalDataMask : Plough_DataMask;
+            rangeToCalibration = false;
             return true;
         default:
             return false;
