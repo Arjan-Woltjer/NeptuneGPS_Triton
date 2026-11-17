@@ -39,6 +39,10 @@ private:
     // Mode
     byte mode; // AUTO, SIM, MANUAL, CALIBRATE
 
+    // The VT's AUTO / KEZI key: KEZI forces manual, as the MODE switch off
+    // does; AUTO leaves the mode to the switch, the hitch and the gates.
+    bool          manualRequested = false;
+
     // Button flag and timer
     short int     buttons;
     ButtonPair    buttonPair;
@@ -85,6 +89,11 @@ public:
     inline byte GetMode() {
         return mode;
     };
+
+    // The VT's AUTO / KEZI key, before each Update().
+    inline void SetManualRequested(bool value) {
+        manualRequested = value;
+    }
 };
 
 }  // namespace triton

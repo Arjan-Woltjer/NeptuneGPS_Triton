@@ -43,6 +43,7 @@ static VehicleSensors  calTractor;
 static InterfaceI2CLCD calLcd;
 
 static void resetAll() {
+    gMinSpeedTenthsKmh = kDefaultMinSpeedTenthsKmh;   // a global (PloughGates.hpp)
     millisValue(0);
     EEPROM.eepromReset();
     calGuidance = GuidanceSource();   // rtkQuality back to its default, 4

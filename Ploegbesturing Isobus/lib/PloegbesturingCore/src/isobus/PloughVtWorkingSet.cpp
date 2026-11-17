@@ -24,6 +24,7 @@
 #ifdef ISOBUS
 
 #include "VTObjectPool.hpp"
+#include "IsobusVtPlanner.hpp"
 #include "../PloughGates.hpp"
 
 using namespace isobus;
@@ -94,7 +95,30 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // MW16 -> MW17, 2026-11-07: the control's state on the main screen
     // (#318), and both ANNUL. keys on row 5 for the 1200's 2 x 5 keys
     // (session 23).
-    return "MW17";
+    // MW17 -> MW18, 2026-11-15: the state in an 8x12 font, 9 characters
+    // wide (GPS FOUT / TE TRAAG instead of H G! / H S!).
+    // The English and Hungarian pools are different pools, so each has its
+    // own label: a terminal that has cached one must not show it for another.
+    // MW18 -> MW19, 2026-11-16: the width planner -- the PLAN key and word on
+    // the main screen, the planner page and the width range page.
+    // MW19 -> MW20, same day: the range bar on the main screen, LIMIT there
+    // too, the width now 3 lines wide, rows 23 apart.
+    // MW20 -> MW21, same day: the planner page's END 1 / END 2 keys and the
+    // passes now and at each end, in place of NIEUW VELD, SPOOR and BREEDTE.
+    // MW21 -> MW22, 2026-11-17: HYDRAULIEK (normaal / bypass / Danfoss) in
+    // place of the BYPASS yes/no on the calibration page.
+    // MW22 -> MW27, 2026-11-17: AUTO / KEZI on the main screen and LIMIT on
+    // the calibration page, the hydraulics page (HIDR.: type, Danfoss
+    // tuning, the solenoids' duty), MIN km/h on the calibration page. MW23-26
+    // were bench builds of the same day, so a VT holding one of them under
+    // its label must not take it for this pool.
+#if defined(ENGLISH)
+    return "MW27E";
+#elif defined(HUNGARIAN)
+    return "MW27H";
+#else
+    return "MW27";
+#endif
 }
 
 uint16_t PloughVtWorkingSet::StateString(uint8_t mode, bool calibrating, HoldReason hold) {
@@ -114,11 +138,13 @@ void PloughVtWorkingSet::OnClientCreated(std::shared_ptr<VirtualTerminalClient> 
     // A new VT means a fresh handshake: send every value again once it
     // connects.
     sentInitialVtVariables = false;
+    if (planner != nullptr) planner->OnConnectionLost();
 }
 
 void PloughVtWorkingSet::OnConnectionLost() {
     // An open calibration page belongs to the VT being left (#240).
     if (calibration != nullptr) calibration->OnConnectionLost();
+    if (planner != nullptr) planner->OnConnectionLost();
     DropKeys();
 }
 
@@ -137,6 +163,11 @@ void PloughVtWorkingSet::Update(bool connected) {
         // The page lives on this VT only: a lost connection drops its draft.
         if (connected) calibration->Update(*this);
         else if (calibration->IsOpen()) calibration->OnConnectionLost();
+    }
+    if (planner != nullptr) {
+        // The planner's word and pages; a new VT gets every value again.
+        if (connected) planner->Update(*this);
+        else planner->OnConnectionLost();
     }
 }
 
@@ -215,6 +246,11 @@ void PloughVtWorkingSet::UpdateValues() {
     }
     // The control's state (#318), with the hold reason the LCD shows.
     const uint16_t state = StateString(controlMode, controlCalibrating, PloughHoldReason(*guidance, millis()));
+    // The AUTO / KEZI key's label: the choice held.
+    if (forceSend || manualRequested != lastSentManual) {
+        client->send_change_string_value(Label_AutoMan, manualRequested ? kTextKeyManual : kTextKeyAuto);
+        lastSentManual = manualRequested;
+    }
     if (forceSend || state != lastSentState) {
         client->send_change_numeric_value(Ptr_State, state);
         lastSentState = state;
@@ -245,6 +281,7 @@ bool PloughVtWorkingSet::IsNarrowerHeld() const {
 
 void PloughVtWorkingSet::OnNumericValue(const VirtualTerminalClient::VTChangeNumericValueEvent& event) {
     if (calibration != nullptr) calibration->OnNumericValue(event.objectID, event.value);
+    if (planner != nullptr) planner->OnNumericValue(event.objectID, event.value);
 }
 
 void PloughVtWorkingSet::OnAuxInputStatus(uint8_t operatingState) {
@@ -327,6 +364,7 @@ bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& eve
     // nothing.
     if (event.keyEvent == Code::ButtonPressedOrLatched) {
         pressedTapKey = event.objectID;
+        pressedTapKeyAt = millis();
         return false;
     }
     if (event.keyEvent == Code::ButtonPressAborted) {
@@ -351,6 +389,12 @@ bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& eve
             serialDebug->println("VT: Calibrate pressed");
             if (calibration != nullptr) calibration->OnCalibrateKey();
             break;
+        case Key_AutoMan:
+            manualRequested = !manualRequested;
+            serialDebug->println(manualRequested ? "VT: KEZI (manual) chosen" : "VT: AUTO chosen");
+            break;
+        case Key_CalHyd:
+        case Key_HydBack:
         case Key_CalSave:
         case Key_CalCancel:
         case Key_CalWidth:
@@ -359,6 +403,14 @@ bool PloughVtWorkingSet::OnKeyEvent(const VirtualTerminalClient::VTKeyEvent& eve
             // A saved page may have changed the preferred VT (#255).
             return calibration != nullptr && calibration->OnSoftKey(event.objectID);
         default:
+            // PLAN and the planner's pages (IsobusVtPlanner). LIMIT opens from
+            // the calibration page, and goes back there.
+            if (planner != nullptr) {
+                if (event.objectID == Key_PlanRange) {
+                    planner->SetRangeReturnsToCalibration(calibration != nullptr && calibration->IsOpen());
+                }
+                planner->OnSoftKey(event.objectID, millis() - pressedTapKeyAt);
+            }
             break;
     }
     return false;

@@ -61,6 +61,13 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
     pinMode(OUTPUT_BYPASS_2, OUTPUT);
     pinMode(OUTPUT_LED_2, OUTPUT);
 #endif
+#if defined(OUTPUT_VALVE_BRIDGE_2) && defined(ARDUINO_ARCH_ESP32)
+    // The proportional valve wants an analog signal: at the core's 1 kHz it
+    // saw a 0/14 V square wave. 20 kHz is easy to smooth with an RC filter
+    // (or the valve's own input), and well within the TB67H451's range.
+    // Set before the first analogWrite; 8 bits still fit at 20 kHz.
+    analogWriteFrequency(20000);
+#endif
 
     // Analog IO
     // DEFAULT is an AVR/Teensy-3.x analogReference() constant; Teensy 4.1's
@@ -95,6 +102,8 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
 
     // Setpoint of adjust loop
     setpoint = 0;
+    plannedWidthSet = false;
+    plannedWidth    = 0;
 
     // End shutoff timers
     endShutoff.Begin(SHUTOFF_2, millis());
@@ -130,8 +139,8 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
         // side_swap
         swap = false;
 
-        // no bypass valve
-        bypass = false;
+        // solenoids only
+        hydraulics = HydraulicType::Normal;
 
         // amount of shares
         shares = kDefaultShares;
@@ -146,6 +155,13 @@ ImplementPlough::ImplementPlough(Stream* serialDebug, GuidanceSource* guidance) 
 
     // Get latest offset from EEPROM
     readOffset();
+
+    // A Danfoss valve idles on its Center signal, not on 0 V.
+    readDanfossTuning();
+    danfossNextPct = danfoss[uint8_t(DanfossParam::Manual)];
+    danfossSignalPwm = 0;
+    danfossNeutralSinceMs = millis();
+    if (hydraulics == HydraulicType::Danfoss) Stop();
 
 #ifdef DEBUG
     this->serialDebug->println("Done...");
@@ -202,6 +218,20 @@ void ImplementPlough::Update(byte mode, short int buttons) {
 // Method for setting setpoint
 // ---------------------------
 void ImplementPlough::setSetpoint() {
+    // Fan-out / straightening (WidthPlanning): the planned width is the
+    // setpoint, without an XTE correction on top. The plan already follows
+    // the previous furrow, and the simulator showed a correction on top
+    // makes the furrows worse. Kept within the same limits as offset.
+    if (plannedWidthSet) {
+        const int lowest  = GetWidthLowest();
+        const int highest = GetWidthHighest();
+        int wanted = plannedWidth;
+        if (wanted > highest) wanted = highest;
+        if (wanted < lowest)  wanted = lowest;
+        setpoint = static_cast<short int>(wanted);
+        return;
+    }
+
     // bang-bang control: the correction is the cross-track error itself
     int pe = xte;
 
@@ -216,14 +246,19 @@ void ImplementPlough::setSetpoint() {
         pe = maxCorrectionCm;
     }
 
-    // calculate setpoint
-    setpoint = offset + ((GetSide() * 2) - 1) * pe;
+    // calculate setpoint, inside LIMIT: the correction never asks for more
+    // than the plough can do (2026-11-17: 204 cm asked on a 192 cm limit
+    // drove it against the stop).
+    int wanted = offset + ((GetSide() * 2) - 1) * pe;
+    if (wanted > GetWidthHighest()) wanted = GetWidthHighest();
+    if (wanted < GetWidthLowest())  wanted = GetWidthLowest();
+    setpoint = static_cast<short int>(wanted);
 }
 
 // ------------------------------
 // Method for adjusting implement
 // ------------------------------
-void ImplementPlough::Adjust(byte mode, short int direction) {
+void ImplementPlough::Adjust(byte mode, short int direction, bool limited) {
     short int actualPosition = 0;
     byte pwm = 0;
 
@@ -242,6 +277,29 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
             // watches the measured position, as in auto (#244).
             actualPosition = setpoint - (direction * (deadband + 1));
             pwm = kValvePwm;
+            // Not past LIMIT on the buttons, once one is set (WidthPlanning;
+            // the builds without it keep the buttons as they were). +1 moves
+            // the width up, as auto's Narrower() does, -1 down.
+            if (limited && widthHighestCm > 0 &&
+                ((direction > 0 && position >= GetWidthHighest()) ||
+                 (direction < 0 && position <= GetWidthLowest()))) {
+                actualPosition = setpoint;
+            }
+    }
+
+    // A proportional valve: in auto the deflection follows the error, so it
+    // slows down towards the setpoint instead of overshooting it; the
+    // buttons drive at Manual (DanfossParam).
+    if (hydraulics == HydraulicType::Danfoss) {
+        danfossNextPct = mode == 0 ? DanfossAutoPct(abs(position - setpoint) - deadband)
+                                   : danfoss[uint8_t(DanfossParam::Manual)];
+    }
+    else if (mode != 1) {
+        // The solenoids' duty: DutyManual on the buttons, in auto from
+        // DutyAutoMin past the deadband to DutyAutoMax (100 / 100 / 100, the
+        // default, is the full-on bang-bang control as before).
+        pwm = DanfossPctToPwm(mode == 0 ? DutyAutoPct(abs(position - setpoint) - deadband)
+                                        : danfoss[uint8_t(DanfossParam::DutyManual)]);
     }
 
     // ------------------------------
@@ -282,9 +340,24 @@ void ImplementPlough::Adjust(byte mode, short int direction) {
 // Method for moving implement narrower
 // ------------------------------------
 void ImplementPlough::Narrower(byte pwm) {
-#if defined(ESP32S3)
+    if (hydraulics == HydraulicType::Danfoss) {
+        const int center = danfoss[uint8_t(DanfossParam::Center)];
+        driveDanfoss(DanfossPctToPwm(pwm ? center - danfossNextPct : center));
+        danfossNextPct = danfoss[uint8_t(DanfossParam::Manual)];
+#ifdef OUTPUT_LED_2
+        digitalWrite(OUTPUT_LED_2, pwm ? HIGH : LOW);
+#endif
+        return;
+    }
+#if defined(OUTPUT_VALVE_PH_2)
     digitalWrite(OUTPUT_VALVE_PH_2, OUTPUT_NARROW_PH_LEVEL);
     analogWrite(OUTPUT_VALVE_EN_2, pwm);
+#elif defined(OUTPUT_VALVE_BRIDGE_2)
+    // One bridge, IN1 = narrow, IN2 = wide: IN1 on, IN2 the inverted duty,
+    // so the solenoid is driven or braked (slow decay), never floating. Both
+    // through analogWrite: on the ESP32 a pin on PWM ignores digitalWrite.
+    analogWrite(OUTPUT_NARROW_2, pwm ? 255 : 0);
+    analogWrite(OUTPUT_WIDE_2, pwm ? 255 - pwm : 0);
 #else
     // digitalWrite, not analogWrite: pins 20/21 have no PWM on Teensy 4.x, where
     // analogWrite does nothing, so the valves never opened (#242). They only
@@ -292,7 +365,8 @@ void ImplementPlough::Narrower(byte pwm) {
     digitalWrite(OUTPUT_WIDE_2, LOW);
     digitalWrite(OUTPUT_NARROW_2, pwm ? HIGH : LOW);
 #endif
-    driveBypass(bypass ? pwm : 0);
+    // The bypass valve is on / off: fully on whatever the solenoids' duty.
+    driveBypass(hydraulics == HydraulicType::Bypass && pwm ? kValvePwm : 0);
 #ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, HIGH);
 #endif
@@ -302,14 +376,26 @@ void ImplementPlough::Narrower(byte pwm) {
 // Method for moving implement wider
 // ---------------------------------
 void ImplementPlough::Wider(byte pwm) {
-#if defined(ESP32S3)
+    if (hydraulics == HydraulicType::Danfoss) {
+        const int center = danfoss[uint8_t(DanfossParam::Center)];
+        driveDanfoss(DanfossPctToPwm(pwm ? center + danfossNextPct : center));
+        danfossNextPct = danfoss[uint8_t(DanfossParam::Manual)];
+#ifdef OUTPUT_LED_2
+        digitalWrite(OUTPUT_LED_2, pwm ? HIGH : LOW);
+#endif
+        return;
+    }
+#if defined(OUTPUT_VALVE_PH_2)
     digitalWrite(OUTPUT_VALVE_PH_2, (OUTPUT_NARROW_PH_LEVEL == LOW) ? HIGH : LOW);
     analogWrite(OUTPUT_VALVE_EN_2, pwm);
+#elif defined(OUTPUT_VALVE_BRIDGE_2)
+    analogWrite(OUTPUT_WIDE_2, pwm ? 255 : 0);
+    analogWrite(OUTPUT_NARROW_2, pwm ? 255 - pwm : 0);
 #else
     digitalWrite(OUTPUT_WIDE_2, pwm ? HIGH : LOW);
     digitalWrite(OUTPUT_NARROW_2, LOW);
 #endif
-    driveBypass(bypass ? pwm : 0);
+    driveBypass(hydraulics == HydraulicType::Bypass && pwm ? kValvePwm : 0);
 #ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, HIGH);
 #endif
@@ -319,8 +405,18 @@ void ImplementPlough::Wider(byte pwm) {
 // Method for stopping implement
 // ------------------------------
 void ImplementPlough::Stop() {
-#if defined(ESP32S3)
+    if (hydraulics == HydraulicType::Danfoss) {
+        driveDanfoss(DanfossPctToPwm(danfoss[uint8_t(DanfossParam::Center)]));
+#ifdef OUTPUT_LED_2
+        digitalWrite(OUTPUT_LED_2, LOW);
+#endif
+        return;
+    }
+#if defined(OUTPUT_VALVE_PH_2)
     analogWrite(OUTPUT_VALVE_EN_2, 0);
+#elif defined(OUTPUT_VALVE_BRIDGE_2)
+    analogWrite(OUTPUT_WIDE_2, 0);
+    analogWrite(OUTPUT_NARROW_2, 0);
 #else
     digitalWrite(OUTPUT_WIDE_2, LOW);
     digitalWrite(OUTPUT_NARROW_2, LOW);
@@ -329,6 +425,99 @@ void ImplementPlough::Stop() {
 #ifdef OUTPUT_LED_2
     digitalWrite(OUTPUT_LED_2, LOW);
 #endif
+}
+
+// ----------------------------------------------------------------------
+// Hydraulics change (settings Save): stopped with the old type, then with
+// the new one. pinMode hands the narrow pin back to GPIO: on the ESP32 a
+// pin that carried the Danfoss PWM ignores digitalWrite until it does.
+// ----------------------------------------------------------------------
+void ImplementPlough::SetHydraulics(HydraulicType value) {
+    if (byte(value) > kHighestHydraulicType) value = HydraulicType::Normal;
+    if (value == hydraulics) return;
+    Stop();
+    hydraulics = value;
+    danfossNeutralSinceMs = millis();
+#if !defined(OUTPUT_VALVE_PH_2)
+    pinMode(OUTPUT_NARROW_2, OUTPUT);
+    pinMode(OUTPUT_WIDE_2, OUTPUT);
+#endif
+    Stop();
+}
+
+void ImplementPlough::SetHydraulicsStored(HydraulicType value) {
+    SetHydraulics(value);
+    if (EEPROM.read(68) != byte(hydraulics)) EEPROM.write(68, byte(hydraulics));
+}
+
+// ----------------------------------------------------------------------
+// The Danfoss tuning: each byte as stored if within its bounds, else its
+// default; set from the VT's HYDRAULIEK page and stored at once (only a
+// byte that changes is written; main.cpp's loop commits it on the ESP32).
+// ----------------------------------------------------------------------
+void ImplementPlough::readDanfossTuning() {
+    for (uint8_t i = 0; i < kDanfossParamCount; i++) {
+        const byte stored = EEPROM.read(kEepromDanfossTuning + i);
+        danfoss[i] = IsValidDanfoss(DanfossParam(i), stored) ? stored : kDanfossParams[i].byDefault;
+    }
+}
+
+bool ImplementPlough::SetDanfoss(DanfossParam param, int value) {
+    if (uint8_t(param) >= kDanfossParamCount || !IsValidDanfoss(param, value)) return false;
+    danfoss[uint8_t(param)] = byte(value);
+    if (EEPROM.read(kEepromDanfossTuning + uint8_t(param)) != byte(value)) {
+        EEPROM.write(kEepromDanfossTuning + uint8_t(param), byte(value));
+    }
+    danfossNextPct = danfoss[uint8_t(DanfossParam::Manual)];
+    return true;
+}
+
+// Auto's deflection for an error `beyondCm` past the deadband: AutoMin just
+// past it, rising to AutoMax at FullError (AutoMin above AutoMax: AutoMax).
+byte ImplementPlough::DutyAutoPct(int beyondCm) const {
+    const int most  = danfoss[uint8_t(DanfossParam::DutyAutoMax)];
+    const int least = min(int(danfoss[uint8_t(DanfossParam::DutyAutoMin)]), most);
+    const int full  = danfoss[uint8_t(DanfossParam::FullError)];
+    if (beyondCm >= full) return byte(most);
+    if (beyondCm <= 0) return byte(least);
+    return byte(least + (most - least) * beyondCm / full);
+}
+
+byte ImplementPlough::DanfossAutoPct(int beyondCm) const {
+    const int most  = danfoss[uint8_t(DanfossParam::AutoMax)];
+    const int least = min(int(danfoss[uint8_t(DanfossParam::AutoMin)]), most);
+    const int full  = danfoss[uint8_t(DanfossParam::FullError)];
+    if (beyondCm >= full) return byte(most);
+    if (beyondCm <= 0) return byte(least);
+    return byte(least + (most - least) * beyondCm / full);
+}
+
+// ----------------------------------------------------------------------
+// Danfoss proportional valve: the signal duty on F1 (the narrow output,
+// the wide one held low; on Triton01 bridge 1's EN, PH fixed at the narrow
+// level) and the PVE's supply on F2, the bypass output, on all the time.
+// ----------------------------------------------------------------------
+void ImplementPlough::driveDanfoss(byte signal) {
+    const bool powered = millis() - danfossNeutralSinceMs >= kDanfossPowerDelayMs;
+    if (!powered) signal = DanfossPctToPwm(danfoss[uint8_t(DanfossParam::Center)]);   // powers up on neutral only
+    danfossSignalPwm = signal;
+#if defined(OUTPUT_VALVE_PH_2)
+    digitalWrite(OUTPUT_VALVE_PH_2, OUTPUT_NARROW_PH_LEVEL);
+    analogWrite(OUTPUT_VALVE_EN_2, signal);
+#elif defined(OUTPUT_VALVE_BRIDGE_2)
+    // One bridge, IN1 = narrow, IN2 = wide: IN1 high, IN2 the inverted duty,
+    // so F1 is driven high or braked low, never left floating.
+    analogWrite(OUTPUT_NARROW_2, 255);
+    analogWrite(OUTPUT_WIDE_2, 255 - signal);
+#else
+    digitalWrite(OUTPUT_WIDE_2, LOW);
+    analogWrite(OUTPUT_NARROW_2, signal);
+#endif
+    // F2 powers the valve (through a relay): only once the signal has sat at
+    // neutral for kDanfossPowerDelayMs, so the valve never powers up on a
+    // deflection. A reset drops F2 and the relay, so the valve stays put
+    // while the board boots.
+    driveBypass(powered ? kValvePwm : 0);
 }
 
 // ----------------------------------------------------------------------
@@ -491,12 +680,13 @@ boolean ImplementPlough::readCalibrationData() {
             shares = kDefaultShares;
         }
 
-        // Read bypass valve fitted, 1 or 0
-        if (EEPROM.read(68) < 2) {
-            bypass = EEPROM.read(68);
+        // Read the hydraulics: 0 normal, 1 bypass valve (the old yes/no),
+        // 2 Danfoss
+        if (EEPROM.read(68) <= kHighestHydraulicType) {
+            hydraulics = HydraulicType(EEPROM.read(68));
         }
         else {
-            bypass = false;
+            hydraulics = HydraulicType::Normal;
         }
 
     }
@@ -548,8 +738,8 @@ FLASHMEM void ImplementPlough::PrintCalibrationData() {
     serialDebug->println(swap);
     serialDebug->println("--------------------------");
 
-    serialDebug->println("Bypass valve");
-    serialDebug->println(bypass);
+    serialDebug->println("Hydraulics (0 normal, 1 bypass, 2 Danfoss)");
+    serialDebug->println(byte(hydraulics));
     serialDebug->println("--------------------------");
 
     serialDebug->println("Maximum correction per share (mm)");
@@ -578,7 +768,7 @@ void ImplementPlough::writeCalibrationData() {
     EEPROM.write(62, swap);     //62
     EEPROM.write(64, shares);   //64
     EepromStore::WriteInt16Le(66, offset);   //66-67, the width, which a share change may have reset (#238)
-    EEPROM.write(68, bypass);   //68, bypass valve fitted
+    EEPROM.write(68, byte(hydraulics));   //68, hydraulics: 0 normal, 1 bypass, 2 Danfoss
 
 #ifdef DEBUG
     serialDebug->println("Calibration data written");

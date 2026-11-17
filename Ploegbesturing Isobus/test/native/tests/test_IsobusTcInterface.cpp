@@ -38,6 +38,7 @@
 #undef max
 #include <isobus/hardware_integration/can_hardware_interface.hpp>
 #include <isobus/isobus/can_network_manager.hpp>
+#include <isobus/isobus/isobus_device_descriptor_object_pool_helpers.hpp>
 #include <isobus/isobus/isobus_device_descriptor_object_pool.hpp>
 #include <isobus/isobus/isobus_standard_data_description_indices.hpp>
 #include <isobus/isobus/isobus_task_controller_client_objects.hpp>
@@ -47,6 +48,11 @@
 #include "FakeCanPlugin.hpp"
 #include "TestBus.hpp"
 #include "isobus/IsobusTcInterface.hpp"
+#include "planner/WidthPlanning.hpp"
+#include "isobus/IsobusVtPlanner.hpp"
+#include "isobus/VTObjectPool.hpp"
+#include "calibration/SettingsConsole.hpp"
+#include "VehicleSensors.hpp"
 
 using namespace aunit;
 using namespace triton;
@@ -280,6 +286,70 @@ test(IsobusTcInterface, ddop_hasExactlyOneRootDeviceElement) {
     assertEqual(rootElements, 1);
 }
 
+// TC11: the AgOpenGPS TC sends guidance data (507-513, 514) only to a client
+// with at least one section, which it counts with AgIsoStack's geometry
+// reader. So the pool must read back as one boom with one section, 1.5 m
+// behind the hitch on the centre line, with the boot width as its width.
+test(IsobusTcInterface, ddop_readsBackAsOneBoomWithOneSection) {
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+
+    auto implement = isobus::DeviceDescriptorObjectPoolHelper::get_implement_geometry(parsed);
+    int sections = 0;
+    for (const auto& boom : implement.booms) {
+        sections += (int)boom.sections.size();
+        for (const auto& subBoom : boom.subBooms) sections += (int)subBoom.sections.size();
+    }
+    assertEqual((int)implement.booms.size(), 1);
+    assertEqual(sections, 1);
+
+    const auto& section = implement.booms[0].sections[0];
+    assertTrue(section.xOffset_mm.exists());
+    assertEqual((long)section.xOffset_mm.get(), -1500L);
+    assertEqual((long)section.yOffset_mm.get(), 0L);
+    assertEqual((long)section.width_mm.get(), (long)(tcImplement->GetOffset() * 10));
+}
+
+// No section control: the TC gets nothing to switch. DDI 161 is there, but
+// ours to report (TC12): not settable.
+test(IsobusTcInterface, ddop_declaresNoSectionControlDdis) {
+    const auto ddis = DdisInUploadedPool();
+    assertFalse(PoolHas(ddis, isobus::DataDescriptionIndex::SectionControlState));             // 160
+    assertFalse(PoolHas(ddis, isobus::DataDescriptionIndex::SetpointCondensedWorkState1_16));  // 290
+
+    std::vector<std::uint8_t> binary;
+    assertTrue(Fixture().GenerateDdopBinary(binary));
+    isobus::DeviceDescriptorObjectPool parsed;
+    assertTrue(parsed.deserialize_binary_object_pool(binary, isobus::NAME(0)));
+    bool found = false;
+    for (std::uint16_t index = 0; index < parsed.size(); index++) {
+        auto object = parsed.get_object_by_index(index);
+        if (object == nullptr || object->get_object_type() != isobus::task_controller_object::ObjectTypes::DeviceProcessData) continue;
+        auto pd = std::static_pointer_cast<isobus::task_controller_object::DeviceProcessDataObject>(object);
+        if (pd->get_ddi() != static_cast<std::uint16_t>(isobus::DataDescriptionIndex::ActualCondensedWorkState1_16)) continue;
+        found = true;
+        assertEqual((int)pd->get_properties_bitfield(), 0x01);  // default set, not settable
+    }
+    assertTrue(found);
+}
+
+// The section's state is the hitch: 01 working, 00 not; the other fifteen 11.
+test(IsobusTcInterface, valueRequest_condensedWorkStateFollowsSetWorking) {
+    Fixture().SetWorking(true);
+    assertEqual((long)IsobusTcInterfaceTestAccess::Request(Fixture(), 161), (long)(std::int32_t)0xFFFFFFFDu);
+    Fixture().SetWorking(false);
+    assertEqual((long)IsobusTcInterfaceTestAccess::Request(Fixture(), 161), (long)(std::int32_t)0xFFFFFFFCu);
+}
+
+test(IsobusTcInterface, ddop_declaresTheSwathWidthAndTheWorkingWidth) {
+    const auto ddis = DdisInUploadedPool();
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::GuidanceLineSwathWidth));  // 512
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::ActualWorkingWidth));      // 67
+    assertTrue(PoolHas(ddis, isobus::DataDescriptionIndex::DefaultWorkingWidth));     // 68
+}
+
 // ---------------------------------------------------------------------------
 // What the TC writes to us, and what we answer when it asks
 //
@@ -345,6 +415,19 @@ test(IsobusTcInterface, valueCommand_guidanceTrackFieldsAreStored) {
     Command(isobus::DataDescriptionIndex::TrackControlState, 1);
     assertTrue(Fixture().HasTrackControlState());
     assertEqual((int)Fixture().GetCommandedTrackControlState(), 1);
+}
+
+test(IsobusTcInterface, valueCommand_swathWidthIsStoredAndEchoed) {
+    Command(isobus::DataDescriptionIndex::GuidanceLineSwathWidth, 1680);
+    assertTrue(Fixture().HasSwathWidth());
+    assertEqual((int)Fixture().GetSwathWidthMm(), 1680);
+    assertEqual((int)Request(isobus::DataDescriptionIndex::GuidanceLineSwathWidth), 1680);
+}
+
+// DDI 67 is the measured width, in mm; ImplementPlough keeps cm.
+test(IsobusTcInterface, valueRequest_actualWorkingWidthIsTheMeasuredWidthInMm) {
+    assertEqual((int)Request(isobus::DataDescriptionIndex::ActualWorkingWidth),
+                (int)(tcImplement->GetPosition() * 10));
 }
 
 test(IsobusTcInterface, valueRequest_echoesWhatTheTcWroteToUs) {
@@ -473,6 +556,375 @@ test(IsobusTcInterface, watchdog_restartsAreOnePerFifteenSecondsNotOnePerLoop) {
     // The outage starts at 2000; restarts land at 17000, 32000 ... 92000.
     assertEqual(Fixture().GetReconnectAttemptCount(), (unsigned int)6);
     millisValue(0);
+}
+
+
+// ---------------------------------------------------------------------------
+// WidthPlanning: the TC's track data and an XTE fix in, the plough's planned
+// width out, the plan in EEPROM 176-185.
+// ---------------------------------------------------------------------------
+
+namespace {
+
+unsigned long gPlanClock = 0;
+
+// One XTE fix (PGN 129283's path into GuidanceSource), the TC's track data
+// for track 81 / left 80 at 1.6 m spacing in field 3, then a planner step.
+void PlanStep(triton::WidthPlanning& planning, int xteCm = 0) {
+    if (gPlanClock < millis()) gPlanClock = millis();
+    gPlanClock += 1000;
+    millisValue(gPlanClock);
+    Command(isobus::DataDescriptionIndex::UniqueGuidanceReferenceLineID, (3 << 16) | 1);
+    Command(isobus::DataDescriptionIndex::ActualGuidanceTrackNumber, 81);
+    Command(isobus::DataDescriptionIndex::GuidanceTrackNumberToTheLeft, 80);
+    Command(isobus::DataDescriptionIndex::GuidanceLineSwathWidth, 1600);
+    tcGuidance.SetSpeedKnots(4.0f);
+    tcGuidance.SetXte(xteCm);
+    planning.Update();
+}
+
+}  // namespace
+
+test(WidthPlanning, xteMode_leavesTheXteControl) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetMode(triton::WidthMode::Xte);
+    PlanStep(planning);
+    assertTrue(planning.HasTrackSupport());
+    assertFalse(tcImplement->HasPlannedWidth());
+    gPlanClock = 0;
+    millisValue(0);
+}
+
+// Fan-out after END 1: the set width until END 2, where the plough is in
+// passes (track 81 at 1.6 m: 128 m, 80.0 passes), and the plan in EEPROM,
+// read back by the next power-up.
+test(WidthPlanning, end1_theSetWidthUntilEnd2_andTheStoredPlan) {
+    VehicleSensors tractor;   // hitch down: working
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetMode(triton::WidthMode::FanOut);
+    PlanStep(planning);
+    assertEqual((int)planning.GetPassAtEndTenths(1), -1);
+    assertEqual((int)planning.RecordEnd(1), (int)triton::EndResult::Recorded);
+    PlanStep(planning);
+    assertEqual((int)planning.GetPassNowTenths(), 800);
+    assertEqual((int)planning.GetPassAtEndTenths(1), 800);
+    assertEqual((int)planning.GetPassAtEndTenths(2), -1);
+    assertEqual((int)planning.GetPlanner().GetReason(), (int)triton::PlanReason::Planned);
+    assertTrue(tcImplement->HasPlannedWidth());
+    assertEqual((int)planning.GetPlanner().GetSetpointCm(), (int)tcImplement->GetOffset());
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
+    assertEqual((int)EEPROM.read(triton::kEepromPlan), 0x5A);
+
+    triton::WidthPlanning afterPowerUp(tcImplement, &tractor, &tcGuidance, &Fixture());
+    afterPowerUp.Begin();
+    assertEqual((int)afterPowerUp.GetMode(), (int)triton::WidthMode::FanOut);
+    assertEqual((int)afterPowerUp.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
+    assertEqual((int)afterPowerUp.GetPlanner().GetStored().endADm, 1280);
+
+    planning.SetMode(triton::WidthMode::Xte);   // leave the shared EEPROM as found
+    PlanStep(planning);
+    assertFalse(tcImplement->HasPlannedWidth());
+    gPlanClock = 0;
+    millisValue(0);
+}
+
+// Without the TC's spacing there is no track support, and no planned width.
+test(WidthPlanning, rangeSettings_validatedLikeTheBootLoad) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetWidthRangePerShare(36, 48);
+    planning.SetWidthRangePerShare(50, 40);   // min above max: refused
+    planning.SetWidthRangePerShare(10, 48);   // below 20 cm per share: refused
+    assertEqual((int)planning.GetWminPerShare(), 36);
+    assertEqual((int)planning.GetWmaxPerShare(), 48);
+    assertEqual((int)planning.GetConfig().wminCm, 36 * (int)tcImplement->GetShares());
+}
+
+
+// ":plan" on the serial console: settings stored at once, out-of-range
+// values refused, and the state printed after every command.
+test(WidthPlanning, consolePlan_setsAndRefuses) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    triton::PloughSettings settings(tcImplement, &tractor, &tcGuidance, nullptr);
+    triton::SettingsConsole console(&tcDebug, &settings);
+    console.AttachPlanning(&planning);
+
+    char mode[] = "plan mode fan";
+    tcDebug.Clear();
+    console.HandleLine(mode, 0);
+    assertEqual((int)planning.GetMode(), (int)triton::WidthMode::FanOut);
+    assertTrue(tcDebug.Contains("P:mode=fan"));
+    assertTrue(tcDebug.Contains("OK"));
+
+    char range[] = "plan range 50 40";
+    tcDebug.Clear();
+    console.HandleLine(range, 0);
+    assertTrue(tcDebug.Contains("ERR:range"));
+
+    char k[] = "plan k 12";
+    console.HandleLine(k, 0);
+    assertEqual((int)planning.GetK(), 12);
+
+    char back[] = "plan mode xte";   // leave the shared EEPROM as found
+    console.HandleLine(back, 0);
+    char kback[] = "plan k 10";
+    console.HandleLine(kback, 0);
+}
+
+// ---------------------------------------------------------------------------
+// IsobusVtPlanner: the planner on the VT.
+// ---------------------------------------------------------------------------
+namespace {
+
+// What the planner sent, as the VT client would have queued it.
+struct PlanVtOutput : public triton::VtCalibrationOutput {
+    std::vector<uint16_t> masks;
+    std::vector<std::pair<uint16_t, uint32_t>> values;
+    bool ChangeActiveMask(uint16_t mask) override {
+        masks.push_back(mask);
+        return true;
+    }
+    bool ChangeNumericValue(uint16_t objectId, uint32_t value) override {
+        values.push_back({ objectId, value });
+        return true;
+    }
+    long last(uint16_t objectId) const {
+        for (auto it = values.rbegin(); it != values.rend(); ++it)
+            if (it->first == objectId) return long(it->second);
+        return -1;
+    }
+    void clear() { masks.clear(); values.clear(); }
+};
+
+}  // namespace
+
+// The word's order: mode, then plan, track, field, width, END 2? and the
+// rest; only RECHT and WAAIER carry the count.
+test(IsobusVtPlanner, wordFor_followsThePlansState) {
+    triton::PlanWordInputs in;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordXte);
+    in.mode = triton::WidthMode::FanOut;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordNoPlan);
+    in.state = triton::PlanState::OneEnd;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordNoTrack);
+    in.trackSupport = true;
+    in.reason = triton::PlanReason::OtherField;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordField);
+    in.reason = triton::PlanReason::Planned;
+    in.widthMismatch = true;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordWidth);
+    in.widthMismatch = false;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordEnd2);
+    in.state = triton::PlanState::Planned;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordFan);
+    in.mode = triton::WidthMode::Straight;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordStraight);
+    in.feasible = false;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordRange);
+    in.reason = triton::PlanReason::ParallelStrip;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordParallel);
+    in.reason = triton::PlanReason::Done;
+    assertEqual((int)triton::IsobusVtPlanner::WordFor(in), (int)triton::Str_PlanWordDone);
+    assertTrue(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordFan));
+    assertTrue(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordStraight));
+    assertFalse(triton::IsobusVtPlanner::WordHasCount(triton::Str_PlanWordEnd2));
+}
+
+// PLAN opens the page; with the TC's track data the mode is the list and the
+// tuning rows show; the operator's mode lands in WidthPlanning at once.
+test(IsobusVtPlanner, planKey_opensThePage_andTheModeIsStoredAtOnce) {
+    EEPROM.eepromReset();     // the defaults: XTE, no plan
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    triton::IsobusVtPlanner page(&tcDebug, &planning);
+    PlanVtOutput out;
+    PlanStep(planning);
+
+    page.Update(out);
+    assertEqual(out.last(triton::Ptr_PlanWord), (long)triton::Str_PlanWordXte);
+    assertEqual(out.last(triton::Ptr_PlanCount), 0xFFFFL);
+    assertTrue(out.masks.empty());
+    assertEqual(out.last(triton::Ptr_PlanMode), -1L);   // the page's values wait for the page
+
+    assertTrue(page.OnSoftKey(triton::Key_Plan, 100));
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_PlanMask);
+    assertEqual(out.last(triton::Ptr_PlanMode), (long)triton::Input_PlanMode);
+    assertEqual(out.last(triton::Ptr_PlanTuning), (long)triton::Cont_PlanTuning);
+    assertEqual(out.last(triton::Ptr_PlanNow), (long)triton::Out_PlanNow);
+    assertEqual(out.last(triton::Var_PlanNow), 800L);
+    assertEqual(out.last(triton::Input_PlanK), (long)planning.GetK());
+    assertEqual(out.last(triton::Ptr_PlanEnd1), (long)triton::Str_PlanDash);
+    assertEqual(out.last(triton::Ptr_PlanEnd2), (long)triton::Str_PlanDash);
+
+    page.OnNumericValue(triton::Input_PlanMode, 2);
+    assertEqual((int)planning.GetMode(), (int)triton::WidthMode::FanOut);
+    page.OnNumericValue(triton::Input_PlanK, 99);   // out of range: refused, shown again
+    out.clear();
+    page.Update(out);
+    assertEqual(out.last(triton::Input_PlanK), (long)planning.GetK());
+    assertEqual(out.last(triton::Ptr_PlanWord), (long)triton::Str_PlanWordNoPlan);
+
+    assertTrue(page.OnSoftKey(triton::Key_PlanBack, 100));
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_DataMask);
+    assertFalse(page.IsOpen());
+
+    planning.SetMode(triton::WidthMode::Xte);   // leave the shared EEPROM as found
+    gPlanClock = 0;
+    millisValue(0);
+}
+
+// END 1 starts a plan and END 2 completes it; over a plan END 1 throws it
+// away, so there a tap does nothing: only when held a second.
+test(IsobusVtPlanner, ends_planOnTheVt_end1OverAPlanOnlyWhenHeld) {
+    EEPROM.eepromReset();     // no plan stored
+    VehicleSensors tractor;   // hitch down: working
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetMode(triton::WidthMode::FanOut);
+    triton::IsobusVtPlanner page(&tcDebug, &planning);
+    PlanVtOutput out;
+    PlanStep(planning);
+    page.OnSoftKey(triton::Key_Plan, 100);
+
+    tcDebug.Clear();
+    page.OnSoftKey(triton::Key_PlanEnd2, 100);
+    assertTrue(tcDebug.Contains("END 1 first"));
+    page.OnSoftKey(triton::Key_PlanEnd1, 100);   // no plan yet: a tap is enough
+    PlanStep(planning);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
+    page.Update(out);
+    assertEqual(out.last(triton::Ptr_PlanWord), (long)triton::Str_PlanWordEnd2);
+    assertEqual(out.last(triton::Ptr_PlanEnd1), (long)triton::Out_PlanEnd1);
+    assertEqual(out.last(triton::Var_PlanEnd1), 800L);
+    assertEqual(out.last(triton::Ptr_PlanEnd2), (long)triton::Str_PlanDash);
+
+    page.OnSoftKey(triton::Key_PlanEnd2, 100);
+    PlanStep(planning);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::Planned);
+    page.Update(out);
+    assertEqual(out.last(triton::Ptr_PlanEnd2), (long)triton::Out_PlanEnd2);
+    assertEqual(out.last(triton::Var_PlanEnd2), 800L);
+
+    tcDebug.Clear();
+    page.OnSoftKey(triton::Key_PlanEnd1, 300);
+    assertTrue(tcDebug.Contains("held 1 s"));
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::Planned);
+    page.OnSoftKey(triton::Key_PlanEnd1, triton::IsobusVtPlanner::kEnd1HoldMs);
+    assertEqual((int)planning.GetPlanner().GetState(), (int)triton::PlanState::OneEnd);
+
+    planning.SetMode(triton::WidthMode::Xte);
+    PlanStep(planning);
+    gPlanClock = 0;
+    millisValue(0);
+}
+
+// The range page: MIN and MAX in cm for the whole plough, + and - step the
+// selected end 1 cm per share and never past the other; OPSLAAN stores,
+// ANNUL. leaves the stored range.
+test(IsobusVtPlanner, rangePage_stepsTheSelectedEnd_andStoresOnSave) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetWidthRangePerShare(34, 50);
+    triton::IsobusVtPlanner page(&tcDebug, &planning);
+    PlanVtOutput out;
+    const int shares = tcImplement->GetShares();
+
+    page.OnSoftKey(triton::Key_Plan, 100);
+    page.OnSoftKey(triton::Key_PlanRange, 100);
+    assertTrue(page.IsRangeOpen());
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_RangeMask);
+    assertEqual(out.last(triton::Var_RangeMin), long(34 * shares));
+    assertEqual(out.last(triton::Var_RangeMax), long(50 * shares));
+    assertEqual(out.last(triton::Var_RangeLo), long(20 * shares));
+    assertEqual(out.last(triton::Var_RangeHi), long(60 * shares));
+    assertEqual(out.last(triton::Var_BarMin), 340L);
+    assertEqual(out.last(triton::Var_BarNom), long(tcImplement->GetOffset() * 10 / shares));
+    assertEqual(out.last(triton::Ptr_RangeMinMark), (long)triton::Str_RangeMark);
+
+    page.OnSoftKey(triton::Key_RangeDown, 100);
+    page.OnSoftKey(triton::Key_RangeDown, 100);
+    page.OnSoftKey(triton::Key_RangeSelect, 100);
+    for (int i = 0; i < 20; i++) page.OnSoftKey(triton::Key_RangeUp, 100);   // stops at 60
+    page.Update(out);
+    assertEqual((int)page.GetDraftMin(), 32);
+    assertEqual((int)page.GetDraftMax(), 60);
+    assertEqual(out.last(triton::Var_RangeMin), long(32 * shares));
+    assertEqual(out.last(triton::Ptr_RangeMaxMark), (long)triton::Str_RangeMark);
+    assertEqual((int)planning.GetWmaxPerShare(), 50);   // not before OPSLAAN
+
+    for (int i = 0; i < 40; i++) page.OnSoftKey(triton::Key_RangeDown, 100);  // stops above MIN
+    assertEqual((int)page.GetDraftMax(), 33);
+
+    page.OnSoftKey(triton::Key_RangeCancel, 100);
+    assertEqual((int)planning.GetWmaxPerShare(), 50);
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_PlanMask);
+
+    page.OnSoftKey(triton::Key_PlanRange, 100);
+    page.OnSoftKey(triton::Key_RangeUp, 100);
+    page.OnSoftKey(triton::Key_RangeSave, 100);
+    assertEqual((int)planning.GetWminPerShare(), 35);
+    assertEqual((int)planning.GetWmaxPerShare(), 50);
+
+    planning.SetWidthRangePerShare(34, 50);   // leave the shared EEPROM as found
+}
+
+// The main screen's bar shows the stored range and the width now with no
+// page open; LIMIT there opens the range page and goes back to the main
+// screen, the bar following the draft meanwhile.
+test(IsobusVtPlanner, limitFromTheMainScreen_andTheBarThere) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    planning.SetWidthRangePerShare(34, 50);
+    triton::IsobusVtPlanner page(&tcDebug, &planning);
+    PlanVtOutput out;
+    page.Update(out);
+    assertEqual(out.last(triton::Var_BarMin), 340L);
+    assertEqual(out.last(triton::Var_BarMax), 500L);
+    assertTrue(out.last(triton::Var_BarNow) >= (long)triton::kRangeBarMinMm);
+    assertEqual(out.last(triton::Var_RangeMin), -1L);   // the page's numbers wait for the page
+
+    assertTrue(page.OnSoftKey(triton::Key_PlanRange, 100));
+    assertTrue(page.IsRangeOpen());
+    page.OnSoftKey(triton::Key_RangeUp, 100);
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_RangeMask);
+    assertEqual(out.last(triton::Var_BarMin), 350L);
+    page.OnSoftKey(triton::Key_RangeCancel, 100);
+    page.Update(out);
+    assertEqual((int)out.masks.back(), (int)triton::Plough_DataMask);
+    assertEqual(out.last(triton::Var_BarMin), 340L);     // the stored range again
+    assertEqual((int)planning.GetWminPerShare(), 34);
+}
+
+// A new VT shows nothing of the old one's pages: every value goes again.
+test(IsobusVtPlanner, connectionLost_closesThePages_andResendsTheWord) {
+    VehicleSensors tractor;
+    triton::WidthPlanning planning(tcImplement, &tractor, &tcGuidance, &Fixture());
+    planning.Begin();
+    triton::IsobusVtPlanner page(&tcDebug, &planning);
+    PlanVtOutput out;
+    page.OnSoftKey(triton::Key_Plan, 100);
+    page.Update(out);
+    page.OnConnectionLost();
+    assertFalse(page.IsOpen());
+    out.clear();
+    page.Update(out);
+    assertEqual(out.last(triton::Ptr_PlanWord), (long)triton::Str_PlanWordXte);
+    assertTrue(out.masks.empty());
+    assertFalse(page.OnSoftKey(triton::Key_Wider, 100));   // not the planner's
 }
 
 #endif  // ISOBUS

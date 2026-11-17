@@ -35,7 +35,11 @@ static const PloughSettingLine kLines[PloughSettings::kCount] = {
     { PloughSetting::Shares,                "shares",   SettingKind::Number,     kLowestShares,   kHighestShares,   1, 64 },
     { PloughSetting::Swap,                  "side",     SettingKind::PloughSide, 0,               1,                1, 62 },
     { PloughSetting::HitchInversion,        "hitchinv", SettingKind::YesNo,      0,               1,                1, 28 },
-    { PloughSetting::Bypass,                "bypass",   SettingKind::YesNo,      0,               1,                1, 68 },
+#ifndef ISOBUS
+    { PloughSetting::Hydraulics,            "hydraulics", SettingKind::Hydraulics, 0,               kHighestHydraulicType, 1, 68 },
+#endif
+    { PloughSetting::MinSpeed,              "minspeed", SettingKind::Tenths,
+      kLowestMinSpeedTenthsKmh, kHighestMinSpeedTenthsKmh, 5, kEepromMinSpeed },
     { PloughSetting::Deadband,              "deadband", SettingKind::Number,     kLowestDeadband, kHighestDeadband, 1, 58 },
     { PloughSetting::MaxCorrectionPerShare, "maxcorr",  SettingKind::Number,
       kLowestMaxCorrectionPerShareMm, kHighestMaxCorrectionPerShareMm, 5, 60 },
@@ -66,7 +70,8 @@ FLASHMEM bool PloughSettings::IsValid(PloughSetting id, int16_t value) {
 
 FLASHMEM int16_t PloughSettings::Step(PloughSetting id, int16_t value, int direction) {
     const PloughSettingLine& line = Line(id);
-    if (line.kind != SettingKind::Number && line.kind != SettingKind::LightbarMode) {
+    if (line.kind != SettingKind::Number && line.kind != SettingKind::LightbarMode &&
+        line.kind != SettingKind::Hydraulics && line.kind != SettingKind::Tenths) {
         if (direction == 1) return line.highest;
         if (direction == -1) return line.lowest;
         return value;
@@ -85,7 +90,10 @@ FLASHMEM int16_t PloughSettings::held(PloughSetting id) const {
         case PloughSetting::Shares:                return implement->GetShares();
         case PloughSetting::Swap:                  return implement->GetSwap();
         case PloughSetting::HitchInversion:        return tractor->GetInversion();
-        case PloughSetting::Bypass:                return implement->GetBypass();
+#ifndef ISOBUS
+        case PloughSetting::Hydraulics:            return int16_t(implement->GetHydraulics());
+#endif
+        case PloughSetting::MinSpeed:              return calibration->GetMinSpeed();
         case PloughSetting::Deadband:              return implement->GetDeadband();
         case PloughSetting::MaxCorrectionPerShare: return implement->GetMaxCorrectionPerShare();
 #ifdef ISOBUS
@@ -141,7 +149,10 @@ FLASHMEM bool PloughSettings::Save(SettingsOwner who) {
     implement->SetShares(byte(draft[uint8_t(PloughSetting::Shares)]));
     implement->SetSwap(draft[uint8_t(PloughSetting::Swap)] != 0);
     tractor->SetInversion(draft[uint8_t(PloughSetting::HitchInversion)] != 0);
-    implement->SetBypass(draft[uint8_t(PloughSetting::Bypass)] != 0);
+#ifndef ISOBUS
+    implement->SetHydraulics(HydraulicType(draft[uint8_t(PloughSetting::Hydraulics)]));
+#endif
+    calibration->SetMinSpeed(byte(draft[uint8_t(PloughSetting::MinSpeed)]));
     implement->SetDeadband(byte(draft[uint8_t(PloughSetting::Deadband)]));
     implement->SetMaxCorrectionPerShare(byte(draft[uint8_t(PloughSetting::MaxCorrectionPerShare)]));
 #ifdef ISOBUS

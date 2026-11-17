@@ -268,6 +268,17 @@ FLASHMEM void PloughDebugMenuSections::PrintDump() {
         } else {
             serialDebug->println("(not connected)");
         }
+        serialDebug->print("  Swath width (DDI 512): ");
+        if (tcInterface->HasSwathWidth()) {
+            serialDebug->print(tcInterface->GetSwathWidthMm());
+            serialDebug->print(" mm  (");
+            serialDebug->print(tcInterface->GetSwathWidthAgeMs());
+            serialDebug->println(" ms ago)");
+        } else if (tcInterface->IsConnected()) {
+            serialDebug->println("(none yet)");
+        } else {
+            serialDebug->println("(not connected)");
+        }
     }
 }
 

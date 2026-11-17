@@ -86,6 +86,7 @@ void InterfacePlough::Update(bool vtWiderPressed, bool vtNarrowerPressed, bool v
     // ------
     if (!triton::ReadDigital(MODE_PIN_2) ||
         //triton::ReadDigital(JOY_MODE_2) ||
+        manualRequested ||
         tractor->GetHitch()) {
         // set mode to manual
         mode = 2;
