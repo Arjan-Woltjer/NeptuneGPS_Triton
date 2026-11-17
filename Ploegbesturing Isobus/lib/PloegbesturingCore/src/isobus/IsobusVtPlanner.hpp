@@ -109,6 +109,7 @@ private:
         Word, CountPtr, Mleft,
         ModePtr, Mode, TuningPtr, K, R, Smooth, M, PassNow, PassNowPtr, End1, End1Ptr, End2, End2Ptr,
         RangeMin, RangeMax, RangeNom, RangeNow, BarMin, BarMax, BarNom, BarNow, Lo, Hi, MinMark, MaxMark,
+        BarCorrLo, BarCorrHi,
         kShownCount
     };
 

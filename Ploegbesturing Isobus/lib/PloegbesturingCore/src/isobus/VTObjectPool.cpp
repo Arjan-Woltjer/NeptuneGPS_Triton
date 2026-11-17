@@ -22,6 +22,7 @@
 #include "../FlashMem.hpp"
 
 #include <string.h>
+#include <initializer_list>
 
 // The pool's texts in the language the build selects: Dutch unless the env
 // passes -D ENGLISH or -D HUNGARIAN, as for the LCD texts (LanguagePlough.hpp).
@@ -184,7 +185,7 @@ static void appendSoftKeyMask(uint16_t id, uint8_t bgColour, uint8_t nKeys) {
 // 60x60 key the pool is designed for. Vertical centring is done by position:
 // VT3 has no vertical justification, and the InCommand 1200 is a VT3.
 static const uint16_t kKeyLabelW = 60;
-static const uint16_t kKeyLabelH = 10;
+static const uint16_t kKeyLabelH = 16;   // the 12x16 key font, 5 characters in 60 px
 static const uint16_t kKeyLabelY = (60 - kKeyLabelH) / 2;
 // The + and - labels (#282): one 24x32 character in a 32 px band.
 static const uint16_t kKeySignH = 32;
@@ -554,9 +555,9 @@ FLASHMEM static void appendCalibrationPage() {
     appendKey(Key_CalSave, kBlack, KeyCode_CalSave, Label_CalSave);
     appendKey(Key_CalCancel, kBlack, KeyCode_CalCancel, Label_CalCancel);
     appendKey(Key_CalWidth, kBlack, KeyCode_CalWidth, Label_CalWidth);
-    appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSLAAN", "SAVE", "MENT\xC9S"));
-    appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL.", "CANCEL", "M\xC9GSE"));
-    appendOutputString(Label_CalWidth, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("BREEDTE", "WIDTH", "SZ\xC9LES."));
+    appendOutputString(Label_CalSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSL.", "SAVE", "MENT."));
+    appendOutputString(Label_CalCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL", "CANC.", "M\xC9GSE"));
+    appendOutputString(Label_CalWidth, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("BREED", "WIDTH", "SZ\xC9L."));
 
     for (uint8_t i = 0; i < PloughSettings::kCount; i++) {
         const PloughSettingLine& line = PloughSettings::Line(PloughSetting(i));
@@ -652,8 +653,8 @@ FLASHMEM static void appendCalibrationWidthPage() {
     appendKey(Key_CalWidthBack, kBlack, KeyCode_CalWidthBack, Label_CalWidthBack);
     appendOutputString(Label_CalNarrower, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
     appendOutputString(Label_CalWider, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
-    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSLAAN", "SAVE", "MENT\xC9S"));
-    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL.", "CANCEL", "M\xC9GSE"));
+    appendOutputString(Label_CalCapture, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSL.", "SAVE", "MENT."));
+    appendOutputString(Label_CalWidthBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL", "CANC.", "M\xC9GSE"));
 
     appendOutputString(Label_CalWidthTitle, 196, ROW_H, Font_White_Medium, 0, VT_TEXT("BREEDTE", "WIDTH", "SZ\xC9LESS\xC9G"));
     appendOutputString(Label_CalWidthPoint, LBL_W, ROW_H, Font_White_Medium, 0, VT_TEXT("PUNT", "POINT", "PONT"));
@@ -725,7 +726,7 @@ FLASHMEM static void appendHydraulicsPage() {
     keys[SoftKeySlot(5, 2)] = Key_HydBack;
     appendSoftKeys(Plough_HydSoftKeyMask, kBlack, keys);
     appendKey(Key_HydBack, kBlack, KeyCode_HydBack, Label_HydBack);
-    appendOutputString(Label_HydBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZA"));
+    appendOutputString(Label_HydBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZ"));
 
     appendOutputString(Label_HydTitle, 196, FIELD_H, Font_White_Medium, 0, VT_TEXT("HYDRAULIEK", "HYDRAULICS", "HIDRAULIKA"));
     // The type: NORMAAL / BYPASS / DANFOSS, the calibration page's entries.
@@ -801,6 +802,7 @@ static void appendKey2(uint16_t id, uint8_t keyCode, uint16_t top, uint16_t bott
 // Colours (ISO 11783-6 Table A.1), for the range bar.
 static const uint8_t kGreen  = 2;
 static const uint8_t kGrey   = 8;
+static const uint8_t kRed    = 12;
 static const uint8_t kYellow = 14;
 
 // The plan's word under the state, in the state's 8x12 font: at most 9
@@ -943,8 +945,8 @@ FLASHMEM static void appendPlannerPage() {
     appendOutputString(Label_PlanEnd1B, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "1");
     appendOutputString(Label_PlanEnd2A, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("EIND", "END", "V\xC9G"));
     appendOutputString(Label_PlanEnd2B, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "2");
-    appendOutputString(Label_PlanRange, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("LIMIET", "LIMIT", "LIMIT"));
-    appendOutputString(Label_PlanBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZA"));
+    appendOutputString(Label_PlanRange, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("LIMIT", "LIMIT", "LIMIT"));
+    appendOutputString(Label_PlanBack, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("TERUG", "BACK", "VISSZ"));
 
     appendOutputString(Label_PlanMode, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelMode);
     appendOutputString(Label_PlanK, LBL_W, ROW_H, Font_White_Medium, 0, kTextPlanLabelK);
@@ -1005,6 +1007,7 @@ FLASHMEM static void appendPlannerPage() {
 // line at the main width (NOM), a yellow one at the width now.
 constexpr char kTextRangeNow[] = VT_TEXT("NU", "NOW", "MOST");
 static void appendRangeBarRefs(uint16_t x, uint16_t y);   // also on the main screen
+constexpr uint8_t kRangeBarLayers = 13;                   // what it places
 
 FLASHMEM static void appendRangePage() {
     constexpr uint16_t kCharW = 12;
@@ -1019,7 +1022,7 @@ FLASHMEM static void appendRangePage() {
     static_assert(76 + ROW_H <= BAR_Y && SCALE_Y + 16 <= 200, "rows overlap the bar or leave the mask");
     static_assert(sizeof(kTextRangeNow) - 1 <= 4, "NU label too wide");
 
-    appendDataMask(Plough_RangeMask, kBlack, Plough_RangeSoftKeyMask, 23);
+    appendDataMask(Plough_RangeMask, kBlack, Plough_RangeSoftKeyMask, 18 + kRangeBarLayers);
     appendObjRef(Ptr_RangeMinMark, MARK_X, ROW_Y[0]);
     appendObjRef(Label_RangeMin, LBL_X, ROW_Y[0]);
     appendObjRef(Out_RangeMin, VAL_X, ROW_Y[0]);
@@ -1059,9 +1062,9 @@ FLASHMEM static void appendRangePage() {
     appendKey(Key_RangeCancel, kBlack, KeyCode_RangeCancel, Label_RangeCancel);
     appendOutputString(Label_RangeUp, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
     appendOutputString(Label_RangeDown, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
-    appendOutputString(Label_RangeSelect, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, "MIN/MAX");
-    appendOutputString(Label_RangeSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSLAAN", "SAVE", "MENT\xC9S"));
-    appendOutputString(Label_RangeCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL.", "CANCEL", "M\xC9GSE"));
+    appendOutputString(Label_RangeSelect, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("KIES", "SEL.", "V\xC1LT"));
+    appendOutputString(Label_RangeSave, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("OPSL.", "SAVE", "MENT."));
+    appendOutputString(Label_RangeCancel, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("ANNUL", "CANC.", "M\xC9GSE"));
 
     appendOutputString(Label_RangeMin, 4 * kCharW, ROW_H, Font_White_Medium, 0, "MIN");
     appendOutputString(Label_RangeMax, 4 * kCharW, ROW_H, Font_White_Medium, 0, "MAX");
@@ -1094,25 +1097,45 @@ FLASHMEM static void appendRangePage() {
                          Var_BarMax, 0xFFFF);
     appendLinearBarGraph(Bar_RangeMin, BAR_W, BAR_H, kGrey, kWhite, kBarTargetLine, kRangeBarMinMm, kRangeBarMaxMm,
                          Var_BarMin, Var_BarNom);
-    // The width now, 3 lines wide (the owner, 2026-11-16: one VT line is too
-    // thin to see from the seat): the same variable on three bars whose
-    // ranges are shifted by one line each way.
-    constexpr uint16_t kNowShiftMm = 6;   // ~3 px of 196 over 400 mm
-    appendLinearBarGraph(Bar_RangeNow, BAR_W, BAR_H, kYellow, kYellow, kBarLine, kRangeBarMinMm, kRangeBarMaxMm,
-                         Var_BarNow, 0xFFFF);
-    appendLinearBarGraph(Bar_RangeNowL, BAR_W, BAR_H, kYellow, kYellow, kBarLine, kRangeBarMinMm + kNowShiftMm,
-                         kRangeBarMaxMm + kNowShiftMm, Var_BarNow, 0xFFFF);
-    appendLinearBarGraph(Bar_RangeNowR, BAR_W, BAR_H, kYellow, kYellow, kBarLine, kRangeBarMinMm - kNowShiftMm,
-                         kRangeBarMaxMm - kNowShiftMm, Var_BarNow, 0xFFFF);
+    // The correction limits (2026-11-17): red lines at the main width -/+
+    // KORR/FEJ, each two lines (one shifted ~1 px) to be seen from the seat.
+    constexpr uint16_t kLineStepMm = 2;   // ~1 px of 196 over 400 mm
+    appendNumberVariable(Var_BarCorrLo, kRangeBarMinMm);
+    appendNumberVariable(Var_BarCorrHi, kRangeBarMinMm);
+    appendLinearBarGraph(Bar_CorrLo, BAR_W, BAR_H, kRed, kRed, kBarLine, kRangeBarMinMm, kRangeBarMaxMm,
+                         Var_BarCorrLo, 0xFFFF);
+    appendLinearBarGraph(Bar_CorrLo2, BAR_W, BAR_H, kRed, kRed, kBarLine, kRangeBarMinMm + kLineStepMm,
+                         kRangeBarMaxMm + kLineStepMm, Var_BarCorrLo, 0xFFFF);
+    appendLinearBarGraph(Bar_CorrHi, BAR_W, BAR_H, kRed, kRed, kBarLine, kRangeBarMinMm, kRangeBarMaxMm,
+                         Var_BarCorrHi, 0xFFFF);
+    appendLinearBarGraph(Bar_CorrHi2, BAR_W, BAR_H, kRed, kRed, kBarLine, kRangeBarMinMm - kLineStepMm,
+                         kRangeBarMaxMm - kLineStepMm, Var_BarCorrHi, 0xFFFF);
+    // The width now, 7 lines wide (3 until 2026-11-17, still too thin from
+    // the seat): the same variable on seven bars whose ranges are shifted by
+    // about a line each, -6 to +6 mm.
+    struct NowLine { uint16_t id; int16_t shiftMm; };
+    const NowLine nowLines[] = {
+        { Bar_RangeNow, 0 },
+        { Bar_RangeNowL2, 2 }, { Bar_RangeNowR2, -2 },
+        { Bar_RangeNowL3, 4 }, { Bar_RangeNowR3, -4 },
+        { Bar_RangeNowL, 6 },  { Bar_RangeNowR, -6 },
+    };
+    for (const NowLine& line : nowLines) {
+        appendLinearBarGraph(line.id, BAR_W, BAR_H, kYellow, kYellow, kBarLine, uint16_t(kRangeBarMinMm + line.shiftMm),
+                             uint16_t(kRangeBarMaxMm + line.shiftMm), Var_BarNow, 0xFFFF);
+    }
 }
 
-// The range bar's five layers, at one place on a mask.
+// The range bar's layers, at one place on a mask: the range, the
+// correction limits over it, the width now on top.
 static void appendRangeBarRefs(uint16_t x, uint16_t y) {
-    appendObjRef(Bar_RangeMax, x, y);
-    appendObjRef(Bar_RangeMin, x, y);
-    appendObjRef(Bar_RangeNow, x, y);
-    appendObjRef(Bar_RangeNowL, x, y);
-    appendObjRef(Bar_RangeNowR, x, y);
+    for (uint16_t id : { (uint16_t)Bar_RangeMax, (uint16_t)Bar_RangeMin,
+                         (uint16_t)Bar_CorrLo, (uint16_t)Bar_CorrLo2, (uint16_t)Bar_CorrHi, (uint16_t)Bar_CorrHi2,
+                         (uint16_t)Bar_RangeNow, (uint16_t)Bar_RangeNowL2, (uint16_t)Bar_RangeNowR2,
+                         (uint16_t)Bar_RangeNowL3, (uint16_t)Bar_RangeNowR3,
+                         (uint16_t)Bar_RangeNowL, (uint16_t)Bar_RangeNowR }) {
+        appendObjRef(id, x, y);
+    }
 }
 
 FLASHMEM void BuildObjectPool() {
@@ -1241,7 +1264,7 @@ FLASHMEM void BuildObjectPool() {
 
     appendPictureGraphic(Icon_Plough, 16, 16, kIconPloughData, sizeof(kIconPloughData));
 
-    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 26);
+    appendDataMask(Plough_DataMask, kBlack, Plough_SoftKeyMask, 21 + kRangeBarLayers);
     // The tractor-and-plough picture, through a pointer that IsobusVtInterface
     // switches to the side the plough is ploughing (left until it says so).
     appendObjRef(Ptr_PloughImage, IMG_X, IMG_Y);
@@ -1308,7 +1331,9 @@ FLASHMEM void BuildObjectPool() {
 
     // ---- Font attributes ----
     appendFontAttributes(Font_White_Medium, kWhite, kFont12x16);
-    appendFontAttributes(Font_White_Small, kWhite, kFont8x8);
+    // The soft key labels: 12x16, 5 characters (8x8 until 2026-11-17, hard
+    // to read from the seat; 8x12 briefly the same day).
+    appendFontAttributes(Font_White_Small, kWhite, kFont12x16);
     appendFontAttributes(Font_White_Unit, kWhite, kFont8x8);
     appendFontAttributes(Font_White_Large, kWhite, kFont24x32);
     appendFontAttributes(Font_White_State, kWhite, kFont8x12);
@@ -1324,11 +1349,9 @@ FLASHMEM void BuildObjectPool() {
     // and - (#282); the AUX-N functions show the same labels.
     appendOutputString(Label_Wider, kKeyLabelW, kKeySignH, Font_White_Large, 1, "+");
     appendOutputString(Label_Narrower, kKeyLabelW, kKeySignH, Font_White_Large, 1, "-");
-    // "CALIBR" not "KALIBR": LanguagePlough.hpp's own LCD wizard strings
-    // already say "Breedte calibratie"/"Rotatie calibratie", so this matches
-    // what the operator reads on the cab display. 6 chars at 8x8 = 48 px,
-    // inside the 60 px key label box.
-    appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("CALIBR", "CALIBR", "KALIBR"));
+    // The settings page's key (CALIBR / KALIBR until 2026-11-17): at most
+    // 7 characters at 8x12 = 56 px, inside the 60 px key label box.
+    appendOutputString(Label_Calibrate, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("INST.", "SETUP", "BE\xC1LL"));
     // PLAN opens the width planner's page.
     appendKey(Key_Plan, kBlack, KeyCode_Plan, Label_Plan);
     appendOutputString(Label_Plan, kKeyLabelW, kKeyLabelH, Font_White_Small, 1, VT_TEXT("PLAN", "PLAN", "TERV"));

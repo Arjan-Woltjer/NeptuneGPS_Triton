@@ -102,6 +102,8 @@ public:
     // The plough's main width (ImplementPlough's offset) and share count.
     int16_t GetMainWidthCm() const { return implement->GetOffset(); }
     uint8_t GetShares() const { return implement->GetShares(); }
+    // KORR/FEJ: the XTE correction's limit per share, in mm.
+    uint8_t GetMaxCorrectionPerShareMm() const { return implement->GetMaxCorrectionPerShare(); }
     int16_t GetWidthNowCm() const { return implement->GetPosition(); }
 
     const WidthPlanner& GetPlanner() const { return planner; }

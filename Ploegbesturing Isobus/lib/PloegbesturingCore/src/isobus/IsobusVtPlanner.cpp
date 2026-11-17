@@ -224,6 +224,14 @@ FLASHMEM void IsobusVtPlanner::Update(VtCalibrationOutput& out) {
     send(out, BarMin, Var_BarMin, uint32_t(lo) * 10);
     send(out, BarMax, Var_BarMax, uint32_t(hi) * 10);
     send(out, BarNom, Var_BarNom, ClampBar(nominal * 10 / shares));
+    // The correction limits: the main width -/+ KORR/FEJ, per share in mm.
+    const int32_t correction = planning->GetMaxCorrectionPerShareMm();
+    // Inside LIMIT, as the setpoint is.
+    int32_t corrLo = nominal * 10 / shares - correction, corrHi = nominal * 10 / shares + correction;
+    if (corrLo < int32_t(lo) * 10) corrLo = int32_t(lo) * 10;
+    if (corrHi > int32_t(hi) * 10) corrHi = int32_t(hi) * 10;
+    send(out, BarCorrLo, Var_BarCorrLo, ClampBar(corrLo));
+    send(out, BarCorrHi, Var_BarCorrHi, ClampBar(corrHi));
     // The width now moves with the sensor's noise: at most every 200 ms.
     const unsigned long now = millis();
     const int32_t widthNow = planning->GetWidthNowCm() > 0 ? planning->GetWidthNowCm() : 0;

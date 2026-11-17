@@ -112,12 +112,15 @@ const char* PloughVtWorkingSet::GetPoolLabel() const {
     // tuning, the solenoids' duty), MIN km/h on the calibration page. MW23-26
     // were bench builds of the same day, so a VT holding one of them under
     // its label must not take it for this pool.
+    // MW27 -> MW28, same day: the key labels 12x16 (5 characters) and the
+    // settings key BEALL, red KORR/FEJ lines on the range bar, the width
+    // now 7 lines wide.
 #if defined(ENGLISH)
-    return "MW27E";
+    return "MW28E";
 #elif defined(HUNGARIAN)
-    return "MW27H";
+    return "MW28H";
 #else
-    return "MW27";
+    return "MW28";
 #endif
 }
 
