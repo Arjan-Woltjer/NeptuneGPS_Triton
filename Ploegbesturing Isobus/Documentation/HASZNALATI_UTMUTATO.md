@@ -156,9 +156,30 @@ Egyszer kell elvégezni, az eke és a traktor összeszerelése után. A hidrauli
 2. **Hidraulika (BEÁLL → HIDR.):**
    1. **TÍPUS:** NORMÁL (két be/ki szelep), BYPASS (plusz egy bypass szelep, ami mozgás közben be van kapcsolva), vagy DANFOSS (arányos szelep analóg jellel, a jel az F1-en). Danfossnál a szelep tápja egy relén keresztül jön, és a relét az F2 kapcsolja. Az F2 csak fél másodperccel azután kapcsol be, hogy a jel semlegesre állt, így újraindításkor a szelep nem mozdul.
    2. **Irány:** nyomd a **+** gombot. A POZÍCIÓ-nak nőnie kell, az ekének szélesednie. Ha fordítva mozog, cseréld meg a két hidraulikacsövet (vagy be/ki szelepeknél a két vezetéket).
-   3. **Csak Danfossnál, KÖZÉP %:** gombnyomás nélkül az eke nem mozdulhat. Ha lassan kúszik, állíts a KÖZÉP %-on, amíg megáll.
-   4. **KÉZI %:** akkora legyen, hogy a + / − kényelmes sebességgel mozgassa az ekét. A mi ekénknél a 15 % jól bevált.
-   5. **AUTO MAX %, AUTO MIN %, TELJES cm:** kezdésnek maradhat az alapérték (15 / 5 / 10). Ha az automata ideges, vedd lejjebb az AUTO MAX-ot, vagy emeld a TELJES cm-t.
+   3. **Az értékek a szelep típusa szerint**, lásd lent.
+
+   **Danfoss (arányos szelep, például szeleptömbös eke).** A mi szeleptömbös ekénken ezek az értékek váltak be:
+
+   | Sor | Érték | Megjegyzés |
+   |---|---|---|
+   | KÖZÉP % | 50 | Gombnyomás nélkül az eke nem mozdulhat. Ha lassan kúszik, állíts rajta, amíg megáll. |
+   | KÉZI % | 15 | Akkora legyen, hogy a + / − kényelmes sebességgel mozgassa az ekét. |
+   | AUTO MAX % | 15 | |
+   | AUTO MIN % | 5 | |
+   | TELJES cm | 10 | |
+
+   Ha az automata ideges, vedd lejjebb az AUTO MAX-ot, vagy emeld a TELJES cm-t.
+
+   **Hagyományos be/ki szelep (NORMÁL vagy BYPASS).** Ezek a szelepek általában nem PWM-mel mennek, hanem teljesen be- vagy kikapcsolnak:
+
+   | Sor | Érték |
+   |---|---|
+   | KÉZI % | 100 |
+   | AUTO MAX % | 100 |
+   | AUTO MIN % | 100 |
+   | TELJES cm | maradhat az alapérték (10), 100 %-os AUTO MIN-nél nincs hatása |
+
+   A mozgás sebességét, vagyis az érzékenységet itt **külső fojtószeleppel** állítsd a hidraulikakörben. Ha túl gyorsan mozog az eke és túllő, fojts rá jobban; ha túl lassú, engedd ki.
 3. Utána jöhet a [kalibrálás](#3-a-szélességérzékelő-kalibrálása).
 
 ---
@@ -240,6 +261,6 @@ Ha a tábla nem téglalap, és az utolsó menetekre egyenes, a referenciával p�
 | Terv: **SZÉLES.?** | A munkaszélesség nem egyezik az AgOpenGPS nyomtávolságával. |
 | Terv: **PÁRHUZ.** / **KÉSZ** | Az utolsó, párhuzamos menetek jönnek, illetve a terv elfogyott. |
 | A POZÍCIÓ nem egyezik a mért szélességgel | A szélesség-kalibrálás rossz. Végezd el újra, leengedett, nem fordított ekével ([3. fejezet](#3-a-szélességérzékelő-kalibrálása)). |
-| Az automata túllő, ideges | HIDR.: vedd lejjebb az AUTO MAX %-ot, vagy emeld a TELJES cm-t. Nagyobb HOLTJÁTÉK is segít. |
+| Az automata túllő, ideges | Danfoss: HIDR.-ben vedd lejjebb az AUTO MAX %-ot, vagy emeld a TELJES cm-t. Be/ki szelepnél: fojts rá a külső fojtószeleppel. Mindkettőnél segít a nagyobb HOLTJÁTÉK is. |
 | Danfoss: magától kúszik | HIDR.: állíts a KÖZÉP %-on. |
 | A + gomb szűkít | Cseréld meg a két hidraulikacsövet. |
