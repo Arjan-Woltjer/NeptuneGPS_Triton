@@ -222,11 +222,13 @@ A LIMIT az eke fizikai tartománya. A vezérlés ezen kívülre soha nem kér sz
 1. **AgOpenGPS:**
    - Nyisd meg a táblát, és vedd fel a vezetővonalat. Ez lesz a referencia, az 1. nyomvonal.
    - A munkagép-szélesség legyen az eke **valódi** menetszélessége.
-2. **Munkaszélesség:** a főképernyőn AUTO módban a **+** / **−** gombbal állítsd a MUNKASZÉL.-t **ugyanerre** az értékre.
+2. **Az eke MUNKASZÉL.-je:** maradhat, amire az ekét beállítottátok. Nálunk az vált be, hogy a szélességet **csak egy helyen, az AgOpenGPS-ben** állítottuk; az eke munkaszélességéhez nem nyúltunk.
 
-> **A valódi menetszélesség eltérhet attól, amire az ekét papíron beállítottuk.** Nálunk az ekén beállított 180 cm helyett **168 cm** kellett ehhez a traktorhoz. Azt a szélességet kell beírni, amit a traktor menetről menetre ténylegesen hagy. Ezt a traktor nyomtávja és a barázdakerék helyzete határozza meg. Ha az első menetek után a barázdák nem illeszkednek, mérd le a valódi menetszélességet (az előző barázdafaltól az újig), és azt írd be mind az AgOpenGPS-be, mind a MUNKASZÉL.-be.
+> **A valódi menetszélesség eltérhet attól, amire az ekét beállítottuk.** Nálunk az ekén 180 cm volt beállítva, az AgOpenGPS-ben viszont **168 cm** kellett ehhez a traktorhoz, hogy a menetek illeszkedjenek. Ha az első menetek után a barázdák nem illeszkednek, mérd le a valódi menetszélességet (az előző barázdafaltól az újig), és azt írd be az AgOpenGPS-be.
+>
+> Hogy a kettő miért tér el, nem tudjuk biztosan. Lehet, hogy a szélesség-kalibrálás nem volt pontos ([3. fejezet](#3-a-szélességérzékelő-kalibrálása)), vagy menet közben másképp áll az eke, mint álló helyzetben.
 
-3. **TERV oldal:** ha a munkaszélesség nem egyezik az AgOpenGPS nyomtávolságával, a főképernyő terv-sora **SZÉLES.?**-t mutat.
+3. **TERV oldal:** ha a munkaszélesség nem egyezik az AgOpenGPS nyomtávolságával, a főképernyő terv-sora **SZÉLES.?**-t mutat. Ha a fentiek szerint szándékosan tér el a kettő, ez a figyelmeztetés várható.
 
 ### 5.2 Menet közben
 
@@ -260,7 +262,7 @@ Ha a tábla nem téglalap, és az utolsó menetekre egyenes, a referenciával p�
 | Terv: **TÁBLA?** | A terv egy másik tábláé. |
 | Terv: **2. VÉG?** | A VÉG 1 megvan, a VÉG 2 hiányzik. |
 | Terv: **LIMIT!** | A terv nem fér bele a LIMIT-be. Bővítsd a LIMIT-et, vagy rögzítsd újra a végeket. |
-| Terv: **SZÉLES.?** | A munkaszélesség nem egyezik az AgOpenGPS nyomtávolságával. |
+| Terv: **SZÉLES.?** | A munkaszélesség nem egyezik az AgOpenGPS nyomtávolságával. Ha szándékosan tér el ([5.1](#51-előkészítés)), ez várható. |
 | Terv: **PÁRHUZ.** / **KÉSZ** | Az utolsó, párhuzamos menetek jönnek, illetve a terv elfogyott. |
 | A POZÍCIÓ nem egyezik a mért szélességgel | A szélesség-kalibrálás rossz. Végezd el újra, leengedett, nem fordított ekével ([3. fejezet](#3-a-szélességérzékelő-kalibrálása)). |
 | Az automata túllő, ideges | Danfoss: HIDR.-ben vedd lejjebb az AUTO MAX %-ot, vagy emeld a TELJES cm-t. Be/ki szelepnél: fojts rá a külső fojtószeleppel. Mindkettőnél segít a nagyobb HOLTJÁTÉK is. |
