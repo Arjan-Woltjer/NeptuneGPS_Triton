@@ -192,8 +192,8 @@ Ezzel tanulja meg a vezérlés, hogy a szenzor melyik értéke milyen szélessé
 
 1. **BEÁLL → SZÉL.** A PONT sor 1 / 3-at mutat, a CÉL 34 cm-t.
 2. A **+** / **−** gombbal állítsd az ekét úgy, hogy **egy fej** munkaszélessége pontosan a CÉL legyen.
-   - **Bevált módszer:** hosszabbítsd meg az eketalpakat egy-egy egyenes léccel, és a léceket hasonlítsd össze. Két szomszédos léc között mérőszalaggal könnyebb és pontosabb mérni, mint közvetlenül a fejek között.
-   - Mérj több fejpárnál is. Ha eltérnek, az átlagukat vedd.
+   - **Bevált módszer:** hosszabbítsd meg az egyik eketalpat egy egyenes léccel (vagy vízmértékkel), és mérőszalaggal mérd a léc és az előző eketalp között. Így könnyebb és pontosabb, mint közvetlenül a fejek között mérni.
+   - Esetleg mérj több fejpárnál is, és ha eltérnek, vedd az átlagukat.
 3. **MENT.** Ez rögzíti a pontot, a PONT 2 / 3-ra, a CÉL 42 cm-re vált.
 4. Ugyanígy a 2. pont (42 cm) és a 3. pont (50 cm). A 3. után az oldal magától visszalép a beállításokra.
 5. **A beállításokon MENT.** Csak ez írja be a kalibrálást. A MÉGSE eldobja.
